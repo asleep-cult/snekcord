@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 from urllib.parse import quote
-from .channel import *
+from .channel import DMChannel, TextChannel, VoiceChannel
 
 
 class Base:

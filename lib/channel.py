@@ -1,5 +1,5 @@
 import json
-from . import HTTPClient
+from .http import HTTPClient
 
 class GuildChannel:
     def __init__(self, data : dict):

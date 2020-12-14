@@ -1,7 +1,6 @@
 from .http import HTTPClient
 from .gateway import DiscordGateway
 import asyncio
-from .channel import GuildChannel
 
 class Client:
     def __init__(self, **kwargs):

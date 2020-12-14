@@ -73,3 +73,7 @@ class Guild:
     async def fetch_ban(self, user_id):
         data = await self._http.get_guild_ban(self.id, user_id)
         return data
+
+    async def ban(self, user_id, *, reason=None, deleted_message_days=14):
+        data = await self._http.ban(self.id, user_id, reason=reason, deleted_message_days=deleted_message_days)
+        return data
