@@ -1,4 +1,5 @@
 from .http import HTTPClient
+from .user import User
 
 class Guild:
     def __init__(self, data : dict, *, with_counts=False):
@@ -74,6 +75,19 @@ class Guild:
         data = await self._http.get_guild_ban(self.id, user_id)
         return data
 
-    async def ban(self, user_id, *, reason=None, deleted_message_days=14):
-        data = await self._http.ban(self.id, user_id, reason=reason, deleted_message_days=deleted_message_days)
+    async def ban(self, user_id, **kwargs):
+        data = await self._http.ban(self.id, user_id, **kwargs)
         return data
+
+class Member(User):
+    def __init__(self, data):
+        super(Member, self).__init__(data)
+        self.data = data
+        self._http = HTTPClient()
+
+        self.joined_at = data['joined_at']
+        self.roles = data['roles']
+        self.premium_since = data['premium_since']
+
+    async def ban(self, guild_id, **kwargs):
+        data = await self._http.ban(guild_id, self.id, **kwargs)
