@@ -1,7 +1,7 @@
-from . import HTTPClient
-from gateway import DiscordGateway
+from .http import HTTPClient
+from .gateway import DiscordGateway
 import asyncio
-from . import TextChannel
+from .channel import GuildChannel
 
 class Client:
     def __init__(self, **kwargs):
@@ -33,5 +33,4 @@ class Client:
 
     async def fetch_channel(self, channel_id):
         data = await self.http.get_channel(channel_id)
-        return TextChannel(data)
-
+        return data

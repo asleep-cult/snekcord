@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 from urllib.parse import quote
+from .channel import *
 
 
 class Base:
@@ -118,7 +119,16 @@ class HTTPClient:
 
     async def get_channel(self, channel_id):
         route = Base('GET', '/channels/{channel_id}', channel_id=channel_id)
-        return await self.request(route)
+        data = await self.request(route)
+        
+        if data['type'] == 0:
+            return TextChannel(data)
+
+        if data['type'] == 2:
+            return VoiceChannel(data)
+
+        if data['type'] == 1:
+            return DMChannel(data)
 
     async def delete_channel(self, channel_id):
         route = Base('DELETE', '/channels/{channel_id}', channel_id=channel_id)
