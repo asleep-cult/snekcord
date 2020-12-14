@@ -35,8 +35,8 @@ class DiscordGateway:
                 "intents": 513,
                 'properties': {
                     '$os': sys.platform,
-                    '$browser': 'py-discord-api',
-                    '$library': 'py-discord-api'
+                    '$browser': 'shitty-discord.py',
+                    '$library': 'shitty-discord.py'
                 },
                 'compress': True,
                 'large_threshold': 250,
