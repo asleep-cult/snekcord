@@ -15,17 +15,17 @@ class GuildChannel:
         self.parent_id = data['parent_id']
         self.type = data['type']
 
-        self.http = HTTPClient()
+        self._http = HTTPClient()
 
     def __str__(self):
         return json.dumps(self.data, indent=4)
 
     async def delete(self):
-        data = await self.http.delete_channel(self.id)
+        data = await self._http.delete_channel(self.id)
         return data
 
     async def edit(self, *, reason=None, **options):
-        data = await self.http.edit_channel(self.id, reason=reason, **options)
+        data = await self._http.edit_channel(self.id, reason=reason, **options)
         return data
 
     @property
@@ -43,11 +43,11 @@ class TextChannel(GuildChannel):
         self.last_message_id = data['last_message_id']
 
     async def send(self, *args, **kwargs):
-        data = await self.http.send_message(self.id, *args, **kwargs)
+        data = await self._http.send_message(self.id, *args, **kwargs)
         return data
 
     async def get_message(self, message_id):
-        data = await self.http.get_message(self.id, message_id)
+        data = await self._http.get_message(self.id, message_id)
         return data
 
 class VoiceChannel(GuildChannel):

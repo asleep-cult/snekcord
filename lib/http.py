@@ -120,7 +120,7 @@ class HTTPClient:
     async def get_channel(self, channel_id):
         route = Base('GET', '/channels/{channel_id}', channel_id=channel_id)
         data = await self.request(route)
-        
+
         if data['type'] == 0:
             return TextChannel(data)
 
@@ -147,3 +147,15 @@ class HTTPClient:
 
         return await self.request(route, reason=reason, json=payload)
 
+    async def get_guild(self, guild_id, *, with_counts=False):
+        r_url = '/guilds/{guild_id}'
+
+        if with_counts:
+            r_url = '/guilds/{guild_id}?with_counts=True'
+
+        route = Base('GET', r_url, guild_id=guild_id)
+        return await self.request(route)
+
+    async def delete_guild(self, guild_id):
+        route = Base("DELETE", "/guilds/{guild_id}", guild_id=guild_id)
+        return await self.request(route)
