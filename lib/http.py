@@ -159,3 +159,38 @@ class HTTPClient:
     async def delete_guild(self, guild_id):
         route = Base("DELETE", "/guilds/{guild_id}", guild_id=guild_id)
         return await self.request(route)
+
+    async def create_guild_role(self, guild_id, *, name:str=None, permissions=None,
+                                color=None, hoist:bool=None,
+                                mentionable:bool=None):
+
+        route = Base("POST", "/guilds/{guild_id}/roles", guild_id=guild_id)
+
+        payload = {
+            'name': str(name),
+            'permissions': permissions,
+            'color': color,
+            'hoist': hoist,
+            'mentionable': mentionable
+        }
+        return await self.request(route, json=payload)
+
+    async def delete_guild_role(self, guild_id, role_id):
+        route = Base('DELETE', "/guilds/{guild_id}/roles/{role_id}", guild_id=guild_id, role_id=role_id)
+        return await self.request(route)
+
+    async def add_member_role(self, guild_id, user_id, role_id):
+        route = Base('PUT', '/guilds/{guild_id}/members/{user_id}/roles/{role_id}', guild_id=guild_id, user_id=user_id, role_id=role_id)
+        return await self.request(route)
+
+    async def remove_member_role(self, guild_id, user_id, role_id):
+        route = Base('DELETE', '/guilds/{guild_id}/members/{user_id}/roles/{role_id}', guild_id=guild_id, user_id=user_id, role_id=role_id)
+        return await self.request(route)
+
+    async def get_guild_bans(self, guild_id):
+        route = Base('GET', '/guilds/{guild_id}/bans', guild_id=guild_id)
+        return await self.request(route)
+
+    async def get_guild_ban(self, guild_id, user_id):
+        route = Base('GET', '/guilds/{guild_id}/bans/{user_id}', guild_id=guild_id, user_id=user_id)
+        return await self.request(route)

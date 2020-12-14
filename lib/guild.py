@@ -45,3 +45,31 @@ class Guild:
     async def delete(self):
         data = await self._http.delete_guild(self.id)
         return data
+
+    async def get_member(self, user_id):
+        data = await self._http.get_guild_member(self.id, user_id)
+        return data
+
+    async def create_role(self, **kwargs):
+        data = await self._http.create_guild_role(self.id, **kwargs)
+        return data
+
+    async def delete_role(self, role_id):
+        data = await self._http.delete_guild_role(self.id, role_id)
+        return data
+
+    async def add_roles(self, user_id, role_id):
+        data = await self._http.add_member_role(self.id, user_id, role_id)
+        return data
+
+    async def remove_roles(self, user_id, role_id):
+        data = await self._http.remove_member_role(self.id, user_id, role_id)
+        return data
+
+    async def bans(self):
+        data = await self._http.get_guild_bans(self.id)
+        return data
+
+    async def fetch_ban(self, user_id):
+        data = await self._http.get_guild_ban(self.id, user_id)
+        return data
