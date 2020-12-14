@@ -28,7 +28,7 @@ class GuildChannel:
 
     @property
     def mention(self):
-        return '<@{0}>'.format(self.id)
+        return '<#{0}>'.format(self.id)
 
     def raw_data(self):
         return self.data
