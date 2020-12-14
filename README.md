@@ -1,0 +1,2 @@
+# shitty-discord.py
+ lol
