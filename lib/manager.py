@@ -1,39 +1,49 @@
 import asyncio
-import typing as t
 from .guild import Guild
-from . import shard
+from .shard import Shard
+from .shard import DiscordResponse
+
+from typing import (
+    Dict,
+    Callable,
+    Any
+)
 
 class Manager:
     def __init__(self, loop: asyncio.AbstractEventLoop):
         self.token: str = None
         self.loop = loop
         self.intents = 0
-        self.ws = shard.Shard(self, self.loop)
-        self.events = {}
-        self._guilds: t.Dict[str, Guild] = {}
+        self.ws = Shard(self)
+        self.events: Dict[str, Callable] = {}
+        self._guilds: Dict[str, Guild] = {}
 
-    def register_event(self, func):
+    def register_event(self, func: Callable) -> None:
         name = func.__name__.lower()
         try:
             self.events[name].append(func)
         except KeyError:
             self.events[name] = [func]
 
-    def guild_create(self, data: t.Dict[str, t.Any]) -> Guild:
+    def ready(self, data) -> None:
+        self.call_events('ready')
+
+    def guild_create(self, data: Dict[str, Any]) -> None:
         guild = Guild(manager=self, data=data)
         self._guilds[guild.id] = guild
-        return (guild), {}
+        self.call_events('guild_create', guild)
 
-    def dispatch(self, resp: shard.DiscordResponse):
+    def dispatch(self, resp: DiscordResponse) -> None:
         name = resp.event_name.lower()
-        print(name)
-        print(self.events)
-        func = getattr(self, name)
-        args, kwargs = func(resp.data)
+        func = getattr(self, name, None)
+        if func is not None:
+            func(resp.data)
+
+    def call_events(self, name: str, *args, **kwargs) -> None:
         for event in self.events.get(name, []):
             self.loop.create_task(event(*args, **kwargs))
 
-    def start(self, token):
+    def start(self, token: str) -> None:
         self.token = token
         self.loop.create_task(self.ws.connect())
         try:
