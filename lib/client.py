@@ -14,3 +14,8 @@ class Client:
 
     def start(self, token):
         self.manager.start(token)
+ 
+class Mudkip(Client):
+    def __init__(self, loop = None):
+        super().__init__(loop = loop)
+        self.cool = True
