@@ -19,23 +19,22 @@ class Ratelimiter:
         self._reset = float('inf')
 
         self.lock = asyncio.Lock()
+        self.new_headers = asyncio.Event()
 
         self.queue = []
         self._tasks = []
 
         self.current_burst_task: asyncio.Task = None
 
+        self.made_first_request = False
+
     @property
     def reset_after(self):
         now = datetime.now().timestamp()
-        if now > self._reset:
-            self._reset = 0
         return max((0, self._reset - now))
 
     @property
     def remaining(self):
-        if self.reset_after == 0:
-            self._remaining = self.limit
         return self._remaining
 
     @remaining.setter
@@ -52,6 +51,10 @@ class Ratelimiter:
                 self._remaining
             )
         )
+
+    async def wait_for_headers(self):
+        await self.new_headers.wait()
+        self.new_headers.clear()
     
     def _task_done_callback(self, task, fut):
         def set_result(resp):
@@ -67,22 +70,25 @@ class Ratelimiter:
 
     async def do_burst(self):
         async with self.lock:
-            if not self.ready:
+            if not self.made_first_request:
                 self._burst_run_once()
+                self.made_first_request = True
             else:
+                if not self.ready:
+                    await self.wait_for_headers()
                 while self.queue:
                     await asyncio.sleep(0)
-                    if self.remaining == 0:
+                    if self.remaining <= 0:
+                        await self.wait_for_headers()
                         await asyncio.sleep(self.reset_after)
-                    self.remaining -= 1 #good safety mesaure
+                    self.remaining -= 1
                     self._burst_run_once()
             self.current_burst_task = None
 
     def request(self, req):
-        print(self.current_burst_task,self.ready)
         fut = self.loop.create_future()
         self.queue.append((req, fut))
-        if not self.ready:
+        if not self.made_first_request:
             self.loop.create_task(self.do_burst())
         elif self.current_burst_task is None:
             self.current_burst_task = self.loop.create_task(self.do_burst())
@@ -107,7 +113,8 @@ class MessageCreateRequest(JsonStructure):
         self.content = content
         self.nonce = nonce
         self.tts = tts
-                
+
+
 class RestSession:
     URL = 'https://discord.com/api/v7/'
     def __init__(self, manager):
@@ -116,22 +123,17 @@ class RestSession:
 
         self.ratelimiters = {}
         self.client_session = aiohttp.ClientSession()
-        
-        self.base_headers = {
-            'Authorization': f'Bot {self.manager.token}'
-        }
 
     async def _request(self, ratelimiter, req):
         resp = await req()
-        print(await resp.text())
         if resp.status == 429:
-            print('429!!!!!!!!!!!!!')
             if ratelimiter.current_burst_task is not None:
                 ratelimiter.current_burst_task.cancel()
             data = await resp.text()
             r = RatelimitedResponse.unmarshal(data)
             ratelimiter.remaining = 0
             ratelimiter._reset = datetime.now().timestamp() + (r.retry_after / 1000)
+            ratelimiter.new_headers.set()
             return await ratelimiter.request(req)
 
         limit = resp.headers.get('X-Ratelimit-Limit')
@@ -143,6 +145,7 @@ class RestSession:
             ratelimiter.remaining = int(remaining)
         if reset is not None:
             ratelimiter._reset = float(reset)
+        ratelimiter.new_headers.set()
         return resp
 
     def request(self, meth, url, path_params, **kwargs):
@@ -152,7 +155,9 @@ class RestSession:
                     path_params.get("guild_id"), path_params.get("channel_id"), path_params.get("webhook_id")
                 )
         headers = kwargs.pop('headers', {})
-        headers.update(self.base_headers)
+        headers.update({
+            'Authorization': f'Bot {self.manager.token}'
+        })
         ratelimiter = self.ratelimiters.get(bucket)
         if ratelimiter is None:
             ratelimiter = Ratelimiter(self)
