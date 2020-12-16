@@ -2,6 +2,8 @@ import json
 from .http import HTTPClient
 
 class GuildChannel:
+    
+
     def __init__(self, data : dict):
         self.data = data
 

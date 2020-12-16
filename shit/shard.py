@@ -5,6 +5,11 @@ import sys
 import time
 import functools
 
+from .utils import (
+    JsonStructure,
+    JsonField
+)
+
 from typing import (
     Dict,
     Union,
@@ -12,6 +17,9 @@ from typing import (
     Callable,
     Awaitable
 )
+
+if False: #circular import... for typing
+    from .manager import Manager
 
 class ShardOpcode:
     DISPATCH = 0
@@ -26,23 +34,14 @@ class ShardOpcode:
     HELLO = 10
     HEARTBEAT_ACK = 11
 
-class DiscordResponse:
-    def __init__(self, resp: str):
-        self.resp = resp
+class DiscordResponse(JsonStructure):
+    opcode = JsonField(int, 'op')
+    sequence = JsonField(int, 's')
+    event_name = JsonField(str, 't')
+    data = JsonField(dict, 'd')
 
-        try:
-            self.loaded = json.loads(self.resp)
-            self.opcode = self.loaded.get('op')
-            self.sequence = self.loaded.get('s')
-            self.event_name = self.loaded.get('t')
-            self.data = self.loaded.get('d')
-            self.valid = True
-        except (AttributeError, ValueError):
-            self.opcode = None
-            self.sequence = None
-            self.event_name = None
-            self.event_data = None
-            self.valid = False  
+    def __init__(self):
+        self.valid =  self.event_name is not None and self.opcode is not None and self.data is not None
 
 class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def new(
@@ -94,7 +93,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     async def poll_event(self) -> None:
         payload = await self.receive()
         if payload.type == aiohttp.WSMsgType.TEXT:
-            resp = DiscordResponse(payload.data)
+            resp = DiscordResponse.unmarshal(payload.data)
             if resp.valid:
                 await self.dispatch_function(resp)
 
@@ -118,7 +117,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         
 class ConnectionBase:
     def __init__(self, manager):
-        self.manager: 'manager.Manager' = manager
+        self.manager: 'Manager' = manager
 
     @property
     def endpoint(self) -> str:

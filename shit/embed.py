@@ -1,4 +1,4 @@
-
+   
 class Embed:
     def __init__(self, color, *, title, description, url, timestamp):
         self.color = color

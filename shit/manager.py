@@ -1,7 +1,11 @@
 import asyncio
+
+from .rest import RestSession
 from .guild import Guild
-from .shard import Shard
-from .shard import DiscordResponse
+from .shard import (
+    Shard, 
+    DiscordResponse
+)
 
 from typing import (
     Dict,
@@ -14,6 +18,7 @@ class Manager:
         self.token: str = None
         self.loop = loop
         self.intents = 0
+        self.rest = RestSession(self)
         self.ws = Shard(self)
         self.events: Dict[str, Callable] = {}
         self._guilds: Dict[str, Guild] = {}
@@ -29,7 +34,7 @@ class Manager:
         self.call_events('ready')
 
     def guild_create(self, data: Dict[str, Any]) -> None:
-        guild = Guild(manager=self, data=data)
+        guild = Guild.unmarshal(data, manager=self)
         self._guilds[guild.id] = guild
         self.call_events('guild_create', guild)
 
