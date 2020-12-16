@@ -1,80 +1,52 @@
-import json
-from .http import HTTPClient
+from .utils import (
+    JsonStructure,
+    JsonField
+)
 
-class GuildChannel:
-    
+class ChannelType:
+    GUILD_TEXT = 0	
+    DM = 1	
+    GUILD_VOICE = 2
+    GROUP_DM = 3
+    GUILD_CATEGORY = 4
+    GUILD_NEWS = 5
+    GUILD_STORE = 6
 
-    def __init__(self, data : dict):
-        self.data = data
+class GuildChannel(JsonStructure):
+    id = JsonField('id', int, str)
+    name = JsonField('name')
+    guild_id = JsonField('guild_id', int, str)
+    permission_overwrites = JsonField('permission_overwrites')
+    position = JsonField('position')
+    nsfw = JsonField('nsfw')
+    parent_id = JsonField('parent_id', int, str)
+    type = JsonField('type')
 
-        self.id = int(data['id'])
-        self.name = data['name']
-        self.guild_id = data['guild_id']
-        self.permission_overwrites = data['permission_overwrites']
-        self.position = data['position']
-
-        self.nsfw = data['nsfw']
-        self.parent_id = data['parent_id']
-        self.type = data['type']
-
-        self._http = HTTPClient()
-
-    def __str__(self):
-        return json.dumps(self.data, indent=4)
-
-    async def delete(self):
-        data = await self._http.delete_channel(self.id)
-        return data
-
-    async def edit(self, *, reason=None, **options):
-        data = await self._http.edit_channel(self.id, reason=reason, **options)
-        return data
+    def __init__(self, manager):
+        self.manager = manager
 
     @property
     def mention(self):
         return '<#{0}>'.format(self.id)
 
-    def raw_data(self):
-        return self.data
-
 class TextChannel(GuildChannel):
-    def __init__(self, data):
-        self.data = data
-        super(TextChannel, self).__init__(data)
+    last_message_id = JsonField('last_message_id', int, str)
 
-        self.last_message_id = data['last_message_id']
-
-    async def send(self, *args, **kwargs):
-        data = await self._http.send_message(self.id, *args, **kwargs)
-        return data
-
-    async def get_message(self, message_id):
-        data = await self._http.get_message(self.id, message_id)
-        return data
+    def send(self, content=None, *, nonce=None, tts=False):
+        return self.manager.rest.send_message(self.id, content, nonce, tts)
 
 class VoiceChannel(GuildChannel):
-    def __init__(self, data):
-        super(VoiceChannel, self).__init__(data)
-        self.data = data
-
-        self.bitrate = data['bitrate']
-        self.user_limit = data['user_limit']
+    bitrate = JsonField('bitrate')
+    user_limit = JsonField('user_limit')
 
 class CategoryChannel(GuildChannel):
-    def __init__(self, data):
-        super(CategoryChannel, self).__init__(data)
-        self.data = data
+    pass
 
-class DMChannel:
-    def __init__(self, data : dict):
-        self.data = data
+class DMChannel(JsonStructure):
+    id = JsonField('id')
+    last_message_id = JsonField('last_message_id', int, str)
+    type = JsonField('type')
+    recepients = JsonField('recepients')
 
-        self.last_message_id = data['last_message_id']
-        self.id = data['id']
-        self.type = data['type']
-
-        self.recepients = data['recepients']
-        self.recepient_username = self.recepients[0]['username']
-        self.recepient_discriminator = self.recepients[0]['discriminator']
-        self.recepient_id = self.recepients[0]['id']
-
+    def __init__(self, manager):
+        self.manager = manager

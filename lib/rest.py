@@ -95,14 +95,14 @@ class Ratelimiter:
         return fut
 
 class RatelimitedResponse(JsonStructure):
-    global_ratelimit = JsonField(bool, 'global')
-    retry_after = JsonField(float, 'retry_after')
-    message = JsonField(str, 'message')
+    global_ratelimit = JsonField('global')
+    retry_after = JsonField('retry_after', float)
+    message = JsonField('message')
 
 class MessageCreateRequest(JsonStructure):
-    content = JsonField(str, 'content')
-    nonce = JsonField(None, 'nonce')
-    tts = JsonField(bool, 'tts')
+    content = JsonField('content')
+    nonce = JsonField('nonce')
+    tts = JsonField('tts')
     #file
     #embed
     #payload_json
@@ -194,11 +194,12 @@ class RestSession:
         )
         return fut
 
-    def send_message(self, channel_id, request):
+    def send_message(self, channel_id, content=None, nonce=None, tts=False):
+        req = MessageCreateRequest(content, nonce, tts)
         fut = self.request(
             'POST',
             'channels/{channel_id}/messages',
             dict(channel_id=channel_id),
-            json=request.to_dict()
+            json=req.to_dict()
         )
         return fut
