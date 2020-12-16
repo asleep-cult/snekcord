@@ -1,7 +1,7 @@
 import json
 
 class JsonStructure:
-    #inspired by Go's encoding/json module
+    # inspired by Go's encoding/json module
     def __init_subclass__(cls):
         cls.json_fields = {}
         
@@ -19,7 +19,7 @@ class JsonStructure:
             try:
                 value = field(data[field.name])
                 setattr(self, name, value)
-            except: #JsonField.__call__ could raise anything
+            except:  # JsonField.__call__ could raise anything
                 setattr(self, name, field.default)
 
         self.__init__(*args, **kwargs)

@@ -2,7 +2,6 @@ from .utils import (
     JsonStructure,
     JsonField
 )
-from .manager import Manager
 
 class Guild(JsonStructure):
 
@@ -37,7 +36,8 @@ class Guild(JsonStructure):
     presence_count: int = JsonField(int, 'approximate_presence_count')
 
     def __init__(self, *, manager):
-        self._manager: Manager = manager
+        self._manager = manager
 
-    def get_member(self, user_id):
-        return self._manager.rest.get_member(user_id, self.id)
+    async def fetch_member(self, user_id):
+        return await self._manager.rest.get_member(user_id, self.id)
+

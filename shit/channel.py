@@ -2,7 +2,6 @@ from .utils import (
     JsonStructure,
     JsonField
 )
-from .manager import Manager
 
 class GuildChannel(JsonStructure):
 
@@ -15,7 +14,7 @@ class GuildChannel(JsonStructure):
     permission_overwrites: tuple = JsonField(tuple, 'permission_overwrites')
 
     def __init__(self, *, manager):
-        self._manager: Manager = manager
+        self._manager = manager
 
 class TextChannel(GuildChannel):
 
@@ -23,8 +22,8 @@ class TextChannel(GuildChannel):
     rate_limit_per_user: int = JsonField(int, 'rate_limit_per_user')
     topic: str = JsonField(str, 'topic')
 
-    def send(self, request):
-        return self._manager.rest.send_message(self.id, request)
+    async def send(self, request):
+        return await self._manager.rest.send_message(self.id, request)
 
 
 class VoiceChannel(GuildChannel):
@@ -43,4 +42,4 @@ class DMChannel(JsonStructure):
     type: int = JsonField(int, 'type')
 
     def __init__(self, *, manager):
-        self._manager: Manager = manager
+        self._manager = manager
