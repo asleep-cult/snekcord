@@ -37,9 +37,6 @@ class JsonStructure:
     def marshal(self):
         return json.dumps(self.to_dict())
 
-def no_type_call(data):
-    return data
-
 class JsonField:
     def __init__(self, type_callable, key, default=None):
         self.type_callable = type_callable
