@@ -178,6 +178,7 @@ class Shard(ConnectionBase):
     async def dispatch(self, resp: DiscordResponse) -> None:
         if resp.opcode == ShardOpcode.HELLO:
             await self.websocket.send_json(self.identify_payload)
+            
             self.websocket.heartbeat_interval = resp.data['heartbeat_interval'] / 1000
             self.websocket.do_heartbeat()
 

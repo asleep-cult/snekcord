@@ -2,8 +2,10 @@ from .utils import (
     JsonStructure,
     JsonField
 )
+from .manager import Manager
 
 class Guild(JsonStructure):
+
     id: int = JsonField(int, 'id')
     name: str = JsonField(str, 'name')
     description: str = JsonField(str, 'description')
@@ -35,4 +37,7 @@ class Guild(JsonStructure):
     presence_count: int = JsonField(int, 'approximate_presence_count')
 
     def __init__(self, *, manager):
-        self._manager = manager
+        self._manager: Manager = manager
+
+    def get_member(self, user_id):
+        return self._manager.rest.get_member(user_id, self.id)

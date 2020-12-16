@@ -8,6 +8,7 @@ from .utils import (
     JsonStructure,
     JsonField
 )
+from .embed import Embed
 
 class Ratelimiter:
     def __init__(self, rest_session):
@@ -57,11 +58,13 @@ class Ratelimiter:
         def set_result(resp):
             self._tasks.remove(task)
             fut.set_result(resp)
+
         task.add_done_callback(set_result)
 
     def _burst_run_once(self):
         req, fut = self.queue.pop(0)
         task = self.loop.create_task(req())
+
         self._tasks.append(task)
         self._task_done_callback(task, fut)
 
@@ -69,23 +72,29 @@ class Ratelimiter:
         async with self.lock:
             if not self.ready:
                 self._burst_run_once()
+
             else:
                 while self.queue:
                     await asyncio.sleep(0)
                     if self.remaining == 0:
                         await asyncio.sleep(self.reset_after)
+
                     self.remaining -= 1 #good safety mesaure
                     self._burst_run_once()
+
             self.current_burst_task = None
 
     def request(self, req):
         print(self.current_burst_task,self.ready)
         fut = self.loop.create_future()
+
         self.queue.append((req, fut))
         if not self.ready:
             self.loop.create_task(self.do_burst())
+
         elif self.current_burst_task is None:
             self.current_burst_task = self.loop.create_task(self.do_burst())
+
         return fut
 
 class RatelimitedResponse(JsonStructure):
@@ -97,16 +106,17 @@ class MessageCreateRequest(JsonStructure):
     content = JsonField(str, 'content')
     nonce = JsonField(None, 'nonce')
     tts = JsonField(bool, 'tts')
+    embed = JsonField(Embed, 'embed')
     #file
-    #embed
     #payload_json
     #allowed_mentions
     #message_reference
 
-    def __init__(self, content=None, nonce=None, tts=None):
+    def __init__(self, content=None, nonce=None, tts=None, embed=None):
         self.content = content
         self.nonce = nonce
         self.tts = tts
+        self.embed = embed
                 
 class RestSession:
     URL = 'https://discord.com/api/v7/'
@@ -124,48 +134,87 @@ class RestSession:
     async def _request(self, ratelimiter, req):
         resp = await req()
         print(await resp.text())
+
         if resp.status == 429:
             print('429!!!!!!!!!!!!!')
             if ratelimiter.current_burst_task is not None:
                 ratelimiter.current_burst_task.cancel()
+
             data = await resp.text()
             r = RatelimitedResponse.unmarshal(data)
+
             ratelimiter.remaining = 0
             ratelimiter._reset = datetime.now().timestamp() + (r.retry_after / 1000)
+
             return await ratelimiter.request(req)
 
         limit = resp.headers.get('X-Ratelimit-Limit')
         remaining = resp.headers.get('X-Ratelimit-Remaining')
         reset = resp.headers.get('X-Ratelimit-Reset')
+
         if limit is not None:
             ratelimiter.limit = int(limit)
+
         if remaining is not None:
             ratelimiter.remaining = int(remaining)
+
         if reset is not None:
             ratelimiter._reset = float(reset)
+
         return resp
 
     def request(self, meth, url, path_params, **kwargs):
         url = self.URL + url.format(**path_params)
+
         bucket = '{0}-{1}-{2}-{3}'.format(
                     meth, 
                     path_params.get("guild_id"), path_params.get("channel_id"), path_params.get("webhook_id")
                 )
         headers = kwargs.pop('headers', {})
+
         headers.update(self.base_headers)
         ratelimiter = self.ratelimiters.get(bucket)
+
         if ratelimiter is None:
             ratelimiter = Ratelimiter(self)
             self.ratelimiters[bucket] = ratelimiter
+
         req = functools.partial(self.client_session.request, meth, url, headers=headers, **kwargs)
         actual_req = functools.partial(self._request, ratelimiter, req)
+
         return ratelimiter.request(actual_req)
+
+    # Getting stuff
 
     def get_channel(self, channel_id):
         fut = self.request(
             'GET', 
             'channels/{channel_id}',
             dict(channel_id=channel_id)
+        )
+        return fut
+
+    def get_guild(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_user(self, user_id):
+        fut = self.request(
+            'GET',
+            'users/{user_id}',
+            dict(user_id=user_id)
+        )
+        return fut
+
+    def get_member(self, user_id, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/members/{user_id}',
+            dict(user_id=user_id, guild_id=guild_id)
         )
         return fut
 
