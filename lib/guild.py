@@ -10,6 +10,11 @@ from .utils import (
     JsonArray
 )
 
+from typing import (
+    Union,
+    Dict
+)
+
 def guild_channel_unmarshall(data):
     channel_type = data.get('type')
     if channel_type is None:
@@ -45,7 +50,7 @@ class Guild(JsonStructure):
     public_updates_channel_id: int = JsonField('public_updates_channel_id', int, str)
     emojis: list = JsonField('emojis')
     roles: list = JsonField('roles')
-    channels: list = JsonArray('channels', unmarshal_callable=guild_channel_unmarshall, marshal_callable=GuildChannel.to_dict)
+    channels: Dict[int, Union[TextChannel]] = JsonArray('channels', unmarshal_callable=guild_channel_unmarshall, marshal_callable=GuildChannel.to_dict)
     member_count: int = JsonField('approximate_member_count')
     presence_count: int = JsonField('approximate_presence_count')
 
@@ -57,6 +62,7 @@ class Guild(JsonStructure):
             if channel is not None:
                 channel.__init__(manager)
                 self.channels[channel.id] = channel
+        manager._channels.update(self.channels)
 
     def get_channel(self, channel_id):
         return self.channels.get(channel_id)

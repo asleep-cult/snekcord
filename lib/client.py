@@ -14,9 +14,3 @@ class Client:
 
     def start(self, token):
         self.manager.start(token)
- 
-class Bot(Client):
-    pass
-
-class Mudkip(Client):
-    cool = True

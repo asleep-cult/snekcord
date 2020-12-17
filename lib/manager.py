@@ -22,6 +22,7 @@ class Manager:
         self.ws = Shard(self)
         self.events: Dict[str, Callable] = {}
         self._guilds: Dict[str, Guild] = {}
+        self._channels = {}
 
     def register_event(self, func: Callable) -> None:
         name = func.__name__.lower()

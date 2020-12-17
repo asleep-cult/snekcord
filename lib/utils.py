@@ -8,6 +8,7 @@ class JsonStructure:
         for name, value in dict(cls.__dict__).items():
             if isinstance(value, JsonField):
                 cls.json_fields[name] = value
+                delattr(cls, name)
 
     @classmethod
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
@@ -27,15 +28,21 @@ class JsonStructure:
     def to_dict(self):
         dct = {}
         for name, field in self.json_fields.items():
-            attr = getattr(self, name)
-            dct[name] = field.marshal(attr)
+            try:
+                attr = getattr(self, name)
+                value = field.marshal(attr)
+                if value is None and field.omitemoty:
+                    continue
+                dct[name] = value
+            except AttributeError:
+                continue
         return dct
 
     def marshal(self):
         return json.dumps(self.to_dict())
 
 class JsonField:
-    def __init__(self, key, unmarshal_callable=None, marshal_callable=None, default=None, struct=None, init_struct_class=True):
+    def __init__(self, key, unmarshal_callable=None, marshal_callable=None, default=None, struct=None, init_struct_class=True, omitemoty=True):
         if struct is not None:
             self.unmarshal_callable = lambda *args, **kwargs: struct.unmarshal(*args, **kwargs, init_class=init_struct_class)
             self.marshal_callable = struct.to_dict
