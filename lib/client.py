@@ -19,4 +19,7 @@ class Bot(Client):
     pass
 
 class Mudkip(Client):
+    cool = False
+
+class Blanket(Client):
     cool = True
