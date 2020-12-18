@@ -8,7 +8,6 @@ from .utils import (
     JsonStructure,
     JsonField
 )
-from .embed import Embed
 
 class Ratelimiter:
     def __init__(self, rest_session):
@@ -103,16 +102,9 @@ class RatelimitedResponse(JsonStructure):
     message = JsonField('message')
 
 class MessageCreateRequest(JsonStructure):
-<<<<<<< HEAD
-    content = JsonField(str, 'content')
-    nonce = JsonField(None, 'nonce')
-    tts = JsonField(bool, 'tts')
-    embed = JsonField(Embed, 'embed')
-=======
     content = JsonField('content')
     nonce = JsonField('nonce')
     tts = JsonField('tts')
->>>>>>> e810744b1df8f73a495827a81b82bb0d3316a894
     #file
     #payload_json
     #allowed_mentions

@@ -3,13 +3,8 @@ import json
 class JsonStructure:
     # inspired by Go's encoding/json module
     def __init_subclass__(cls):
-<<<<<<< HEAD
-        cls.json_fields = {}
-        
-=======
         if not hasattr(cls, 'json_fields'):
             cls.json_fields = {}
->>>>>>> e810744b1df8f73a495827a81b82bb0d3316a894
         for name, value in dict(cls.__dict__).items():
             if isinstance(value, JsonField):
                 cls.json_fields[name] = value
@@ -25,28 +20,14 @@ class JsonStructure:
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, name, value)
-<<<<<<< HEAD
-            except:  # JsonField.__call__ could raise anything
-                setattr(self, name, field.default)
-
-        self.__init__(*args, **kwargs)
-=======
             except: 
                 setattr(self, name, field.default)
         if init_class:
             self.__init__(*args, **kwargs)
->>>>>>> e810744b1df8f73a495827a81b82bb0d3316a894
         return self
 
     def to_dict(self):
         dct = {}
-<<<<<<< HEAD
-
-        for name in self.json_fields:
-            attr = getattr(self, name)
-            dct[name] = attr
-
-=======
         for name, field in self.json_fields.items():
             try:
                 attr = getattr(self, name)
@@ -56,7 +37,6 @@ class JsonStructure:
                 dct[name] = value
             except AttributeError:
                 continue
->>>>>>> e810744b1df8f73a495827a81b82bb0d3316a894
         return dct
 
     def marshal(self):
