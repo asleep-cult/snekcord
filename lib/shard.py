@@ -35,13 +35,10 @@ class ShardOpcode:
     HEARTBEAT_ACK = 11
 
 class DiscordResponse(JsonStructure):
-    opcode = JsonField(int, 'op')
-    sequence = JsonField(int, 's')
-    event_name = JsonField(str, 't')
-    data = JsonField(dict, 'd')
-
-    def __init__(self):
-        self.valid =  self.event_name is not None and self.opcode is not None and self.data is not None
+    opcode = JsonField('op', int)
+    sequence = JsonField('s', int)
+    event_name = JsonField('t')
+    data = JsonField('d')
 
 class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def new(
@@ -94,8 +91,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         payload = await self.receive()
         if payload.type == aiohttp.WSMsgType.TEXT:
             resp = DiscordResponse.unmarshal(payload.data)
-            if resp.valid:
-                await self.dispatch_function(resp)
+            await self.dispatch_function(resp)
 
         elif payload.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
             return
