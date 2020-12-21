@@ -1,6 +1,7 @@
 from .utils import (
     JsonStructure,
-    JsonField
+    JsonField,
+    Snowflake
 )
 
 class ChannelType:
@@ -13,13 +14,13 @@ class ChannelType:
     GUILD_STORE = 6
 
 class GuildChannel(JsonStructure):
-    id = JsonField('id', int, str)
+    id: Snowflake = JsonField('id', Snowflake, str)
     name = JsonField('name')
-    guild_id = JsonField('guild_id', int, str)
+    guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
     permission_overwrites = JsonField('permission_overwrites')
     position = JsonField('position')
     nsfw = JsonField('nsfw')
-    parent_id = JsonField('parent_id', int, str)
+    parent_id: Snowflake = JsonField('parent_id', Snowflake, str)
     type = JsonField('type')
 
     def __init__(self, manager):

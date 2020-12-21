@@ -7,7 +7,8 @@ from .channel import (
 from .utils import (
     JsonStructure,
     JsonField,
-    JsonArray
+    JsonArray,
+    Snowflake
 )
 
 from typing import (
@@ -23,18 +24,18 @@ def guild_channel_unmarshall(data):
         return TextChannel.unmarshal(data, init_class=False)
 
 class Guild(JsonStructure):
-    id: int = JsonField('id', int, str)
+    id: Snowflake = JsonField('id', Snowflake, str)
     name: str = JsonField('name')
     description: str = JsonField('description')
-    owner_id: int = JsonField('owner_id', int, str)
+    owner_id: Snowflake = JsonField('owner_id', Snowflake, str)
     region: str = JsonField('region')
     features: tuple = JsonField('features', tuple)
-    afk_channel_id: int = JsonField('afk_channel_id', int, str)
+    afk_channel_id: Snowflake = JsonField('afk_channel_id', Snowflake, str)
     afk_timeout: float = JsonField('afk_timeout', float)
-    system_channel_id: int = JsonField('system_channel_id', int, str)
+    system_channel_id: Snowflake = JsonField('system_channel_id', Snowflake, str)
     verification_level: int = JsonField('verification_level')
     widget_enabled: bool = JsonField('widget_enabled')
-    widget_channel_id: int = JsonField('widget_channel_id', int, str)
+    widget_channel_id: Snowflake = JsonField('widget_channel_id', Snowflake, str)
     default_message_notifications: int = JsonField('default_message_notifications')
     mfa_level: int = JsonField('mfa_level')
     explicit_content_filter: int = JsonField('explicit_content_filter')
@@ -46,11 +47,11 @@ class Guild(JsonStructure):
     premium_subscription_count: int = JsonField('premium_subscription_count')
     system_channel_flags: int = JsonField('system_channel_flags')
     preferred_locale: str = JsonField('preferred_locale')
-    rules_channel_id: int = JsonField('rules_channel_id', int, str)
-    public_updates_channel_id: int = JsonField('public_updates_channel_id', int, str)
+    rules_channel_id: Snowflake = JsonField('rules_channel_id', Snowflake, str)
+    public_updates_channel_id: Snowflake = JsonField('public_updates_channel_id', Snowflake, str)
     emojis: list = JsonField('emojis')
     roles: list = JsonField('roles')
-    channels: Dict[int, Union[TextChannel]] = JsonArray('channels', unmarshal_callable=guild_channel_unmarshall, marshal_callable=GuildChannel.to_dict)
+    channels: Dict[int, Union[TextChannel]] = JsonArray('channels', unmarshal_callable=guild_channel_unmarshall, marshal_callable=JsonStructure.to_dict)
     member_count: int = JsonField('approximate_member_count')
     presence_count: int = JsonField('approximate_presence_count')
 
@@ -62,7 +63,6 @@ class Guild(JsonStructure):
             if channel is not None:
                 channel.__init__(manager)
                 self.channels[channel.id] = channel
-        manager._channels.update(self.channels)
 
     def get_channel(self, channel_id):
         return self.channels.get(channel_id)

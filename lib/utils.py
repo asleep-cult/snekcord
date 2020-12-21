@@ -1,5 +1,11 @@
 import json
 
+from datetime import datetime
+
+SNOWFLAKE_MINIMUM_BIT_LENGTH = 51
+SNOWFLAKE_MAXIMUM_BIT_LENGTH = 111
+DISCORD_EPOCH = 1420070400000
+
 class JsonStructure:
     # inspired by Go's encoding/json module
     def __init_subclass__(cls):
@@ -75,3 +81,28 @@ class JsonArray(JsonField):
         for item in data:
             items.append(super().marshal(item))
         return items
+
+class Snowflake(int):
+    __slots__ = ()
+
+    def __new__(cls, *args, **kwargs):
+        self = int.__new__(cls, *args, **kwargs)
+        if not SNOWFLAKE_MINIMUM_BIT_LENGTH <= self.bit_length() <= SNOWFLAKE_MAXIMUM_BIT_LENGTH:
+            raise ValueError('Snowflake\'s bit length should be {} to {}'.format(SNOWFLAKE_MINIMUM_BIT_LENGTH, SNOWFLAKE_MAXIMUM_BIT_LENGTH))
+        return self
+
+    @property
+    def datetime(self):
+        return datetime.fromtimestamp(((self >> 22) + DISCORD_EPOCH) / 1000)
+
+    @property
+    def worker_id(self):
+        return (self & 0x3E0000) >> 17
+
+    @property
+    def process_id(self):
+        return (self & 0x1F000) >> 12
+
+    @property
+    def increment(self):
+        return self & 0xFFF

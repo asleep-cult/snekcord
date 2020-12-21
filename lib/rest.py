@@ -101,21 +101,12 @@ class RatelimitedResponse(JsonStructure):
     retry_after = JsonField('retry_after', float)
     message = JsonField('message')
 
-class MessageCreateRequest(JsonStructure):
-    content = JsonField('content')
-    nonce = JsonField('nonce')
-    tts = JsonField('tts')
-    #file
-    #payload_json
-    #allowed_mentions
-    #message_reference
-
     def __init__(self, content=None, nonce=None, tts=None, embed=None):
         self.content = content
         self.nonce = nonce
         self.tts = tts
         self.embed = embed
-                
+
 class RestSession:
     URL = 'https://discord.com/api/v7/'
     def __init__(self, manager):
@@ -182,7 +173,6 @@ class RestSession:
 
         return ratelimiter.request(actual_req)
 
-    # Getting stuff
 
     def get_channel(self, channel_id):
         fut = self.request(
@@ -208,7 +198,7 @@ class RestSession:
         )
         return fut
 
-    def get_member(self, user_id, guild_id):
+    def get_guild_member(self, user_id, guild_id):
         fut = self.request(
             'GET',
             'guilds/{guild_id}/members/{user_id}',
@@ -216,17 +206,7 @@ class RestSession:
         )
         return fut
 
-    #Modify Channel
-
-    def delete_channel(self, channel_id):
-        fut = self.request(
-            'DELETE',
-            'channels/{channel_id}',
-            dict(channel_id=channel_id)
-        )
-        return fut
-
-    #get message
+    #get channel messages
 
     def get_channel_message(self, channel_id, message_id):
         fut = self.request(
@@ -236,12 +216,81 @@ class RestSession:
         )
         return fut
 
+    def delete_channel(self, channel_id):
+        fut = self.request(
+            'DELETE',
+            'channels/{channel_id}',
+            dict(channel_id=channel_id)
+        )
+        return fut
+
+    def get_channel_message(self, channel_id, message_id):
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/messages/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+    def modify_channel(
+        self, 
+        channel_id, 
+        name=None, 
+        type=None, 
+        position=None, 
+        topic=None, 
+        nsfw=None, 
+        slowmode=None, 
+        bitrate=None, 
+        user_limit=None, 
+        permission_overwrites=None, 
+        parent_id=None
+    ):
+        payload = {
+            'name': name,
+            'type': type,
+            'position': position,
+            'topic': topic,
+            'nsfw': nsfw,
+            'ratelimit_per_user': slowmode,
+            'bitrate': bitrate,
+            'user_limit': user_limit,
+            'permission_overwrites': permission_overwrites,
+            'parent_id': parent_id
+        }
+        fut = self.request(
+            'PATCH',
+            'channels/{channel_id}',
+            dict(channel_id=channel_id),
+            json=payload
+        )
+        return fut
+
+    def delete_channel(self, channel_id):
+        fut = self.request(
+            'DELETE',
+            '/channels/{channel_id}'
+        )
+        return fut
+
     def send_message(self, channel_id, content=None, nonce=None, tts=False):
-        req = MessageCreateRequest(content, nonce, tts)
+        payload = {
+            'content': content,
+            'nonce': nonce,
+            'tts': tts
+        }
         fut = self.request(
             'POST',
             'channels/{channel_id}/messages',
             dict(channel_id=channel_id),
-            json=req.to_dict()
+            json=payload
+        )
+        return fut
+
+    def crosspost_message(self, channel_id, message_id):
+        fut = self.request(
+            'POST',
+            'channels/{channel_id}/messages/{message_id}/crosspost',
+            dict(channel_id=channel_id, message_id=message_id)
         )
         return fut

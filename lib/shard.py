@@ -110,7 +110,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     @property
     def latency(self) -> float:
         return  self.last_acked - self.last_sent  
-        
+
 class ConnectionBase:
     def __init__(self, manager):
         self.manager: 'Manager' = manager

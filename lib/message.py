@@ -186,7 +186,7 @@ class Embed(JsonStructure):
             'name': name,
             'url': url
         }
-        self.provider = EmbedProvider.unmarshal(data)
+        self.provider = EmbedProvider.unmarshal(fields)
         return self.provider
 
     def set_author(self, name=None, url=None, icon_url=None, proxy_icon_url=None):
@@ -249,7 +249,7 @@ class Message(JsonStructure):
     #mentions
     #mention_roles
     #mention_channels
-    attachments: list = JsonArray('attachments', struct=Attachment)
+    attachments: list = JsonArray('attachments', struct=MessageAttachment)
     embeds: list = JsonArray('embeds', struct=Embed)
     reactions: list = JsonArray('reactions', struct=Reaction)
     nonce = JsonField('nonce')
