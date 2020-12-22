@@ -1,11 +1,12 @@
 from .connection import Shard
 
 class Gateway:
-    def __init__(self, client, sharded=False, intents=None):
+    def __init__(self, client, *, max_shards, intents=None):
         self._client = client
-        self.sharded = False
+        self.max_shards = max_shards
         self.intents = intents
         self.shards = {}
+        self.multi_sharded = False
         self.recommended_shards = None
         self.url = None
         self.total = None
@@ -23,11 +24,12 @@ class Gateway:
         self.remaining = session_start_limit['total']
         self.reset_after = session_start_limit['reset_after']
         self.max_concurrency = session_start_limit['reset_after']
-        if (not self.sharded) and self.recommended_shards != 1:
-            raise ConnectionError('Discord recommends using {} shards but this client isn\'t sharded'.format(self.recommended_shards))
         if self.remaining == 0:
             raise ConnectionError('This client is out of session starts, please try again in {}'.format(self.reset_after))
-        for shard_id in range(self.recommended_shards):
+        shard_range = min((self.recommended_shards, self.max_shards))
+        if shard_range > 1:
+            self.multi_sharded = True
+        for shard_id in range(shard_range):
             shard = Shard(self._client, self.url, shard_id)
             self.shards[shard_id] = shard
         for shard in self.shards.values():

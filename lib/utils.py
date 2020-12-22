@@ -27,8 +27,7 @@ class JsonStructure:
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, field._attr_name, value)
-            except Exception as e:
-                print(e)
+            except:
                 setattr(self, field._attr_name, field.default)
         if init_class:
             self.__init__(*args, **kwargs)
@@ -60,6 +59,7 @@ class JsonField:
             self.marshal_callable = marshal_callable
         self.name = key
         self.default = default
+        self._attr_name = None
 
     def unmarshal(self, data):
         if self.unmarshal_callable is None:

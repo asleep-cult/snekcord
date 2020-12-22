@@ -1,18 +1,30 @@
 import asyncio
 from .channel import ChannelState
 from .guild import GuildState
+from .user import UserState
 from .rest import RestSession
 from .events import EventHandler
 from .gateway import Gateway
 
 class Client:
-    def __init__(self, loop=None, rest=None, channel_state=None, guild_state=None, event_handler=None, ws=None, sharded=False):
+    def __init__(
+        self, 
+        loop=None, 
+        rest=None, 
+        channel_state=None, 
+        guild_state=None,
+        user_state=None,
+        event_handler=None, 
+        ws=None, 
+        max_shards=1
+    ):
         self.loop = loop or asyncio.get_event_loop()
         self.rest = rest or RestSession(self)
         self.channels = channel_state or ChannelState(self)
         self.guilds = guild_state or GuildState(self)
+        self.users = user_state or UserState(self)
         self.events = event_handler or EventHandler(self)
-        self.ws = ws or Gateway(self, sharded)
+        self.ws = ws or Gateway(self, max_shards=max_shards)
         self.token = None
 
     def on(self, func):

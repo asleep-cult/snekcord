@@ -106,7 +106,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
     @property
     def latency(self) -> float:
-        return  self.last_acked - self.last_sent  
+        return self.last_acked - self.last_sent  
 
 class ConnectionBase:
     def __init__(self, client, endpoint):
@@ -163,7 +163,7 @@ class Shard(ConnectionBase):
                 }
             }
         }
-        if self._client.ws.sharded:
+        if self._client.ws.multi_sharded:
             payload['shard'] = [self.id, self._client.ws.recommended_shards]
         return payload
 
