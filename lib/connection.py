@@ -18,9 +18,6 @@ from typing import (
     Awaitable
 )
 
-if False: #circular import... for typing
-    from .manager import Manager
-
 class ShardOpcode:
     DISPATCH = 0
     HEARTBEAT = 1
@@ -85,7 +82,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
     def do_poll(self) -> None:
         create_task = functools.partial(self.loop.create_task, self.poll_event())
-        self.current_heartbeat_handle = self.loop.call_soon(create_task)
+        self.current_poll_handle = self.loop.call_soon(create_task)
 
     async def poll_event(self) -> None:
         payload = await self.receive()
@@ -112,12 +109,9 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         return  self.last_acked - self.last_sent  
 
 class ConnectionBase:
-    def __init__(self, manager):
-        self.manager: 'Manager' = manager
-
-    @property
-    def endpoint(self) -> str:
-        raise NotImplementedError
+    def __init__(self, client, endpoint):
+        self._client = client
+        self.endpoint = endpoint
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -128,7 +122,7 @@ class ConnectionBase:
 
     async def connect(self) -> None:
         session = aiohttp.ClientSession(
-            loop=self.manager.loop,
+            loop=self._client.loop,
             ws_response_class=ConnectionProtocol
         )
 
@@ -137,15 +131,15 @@ class ConnectionBase:
         )
 
         self.websocket.new(
-            loop=self.manager.loop, 
+            loop=self._client.loop, 
             heartbeat_payload=self.heartbeat_payload,
             dispatch_function=self.dispatch
         )
 
 class Shard(ConnectionBase):
-    @property
-    def endpoint(self) -> str:
-        return 'wss://gateway.discord.gg?v=6'
+    def __init__(self, client, endpoint, shard_id):
+        super().__init__(client, endpoint)
+        self.id = shard_id
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -160,7 +154,7 @@ class Shard(ConnectionBase):
         payload = {
             'op': ShardOpcode.IDENTIFY,
             'd': {
-                'token': self.manager.token,
+                'token': self._client.token,
                 #'intents': self.manager.intents,
                 'properties': {
                     '$os': sys.platform,
@@ -169,6 +163,8 @@ class Shard(ConnectionBase):
                 }
             }
         }
+        if self._client.ws.sharded:
+            payload['shard'] = [self.id, self._client.ws.recommended_shards]
         return payload
 
     async def dispatch(self, resp: DiscordResponse) -> None:
@@ -182,4 +178,4 @@ class Shard(ConnectionBase):
             self.websocket.heartbeat_ack()
 
         elif resp.opcode == ShardOpcode.DISPATCH:
-            self.manager.dispatch(resp)
+            self._client.events.dispatch(resp)

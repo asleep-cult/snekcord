@@ -271,4 +271,3 @@ class Message(JsonStructure):
             self.guild = self.channel.guild
         else:
             self.guild = manager._guilds.get(self.guild_id)
-        

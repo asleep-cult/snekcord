@@ -54,9 +54,9 @@ class Ratelimiter:
         )
     
     def _task_done_callback(self, task, fut):
-        def set_result(resp):
+        def set_result(task):
             self._tasks.remove(task)
-            fut.set_result(resp)
+            fut.set_result(task.result())
 
         task.add_done_callback(set_result)
 
@@ -71,7 +71,6 @@ class Ratelimiter:
         async with self.lock:
             if not self.ready:
                 self._burst_run_once()
-
             else:
                 while self.queue:
                     await asyncio.sleep(0)
@@ -84,7 +83,6 @@ class Ratelimiter:
             self.current_burst_task = None
 
     def request(self, req):
-        print(self.current_burst_task,self.ready)
         fut = self.loop.create_future()
 
         self.queue.append((req, fut))
@@ -109,20 +107,15 @@ class RatelimitedResponse(JsonStructure):
 
 class RestSession:
     URL = 'https://discord.com/api/v7/'
-    def __init__(self, manager):
-        self.manager = manager
-        self.loop = manager.loop
+    def __init__(self, client):
+        self._client = client
+        self.loop = self._client.loop
 
         self.ratelimiters = {}
         self.client_session = aiohttp.ClientSession()
-        
-        self.base_headers = {
-            'Authorization': f'Bot {self.manager.token}'
-        }
 
     async def _request(self, ratelimiter, req):
         resp = await req()
-        print(await resp.text())
 
         if resp.status == 429:
             print('429!!!!!!!!!!!!!')
@@ -157,11 +150,17 @@ class RestSession:
 
         bucket = '{0}-{1}-{2}-{3}'.format(
                     meth, 
-                    path_params.get("guild_id"), path_params.get("channel_id"), path_params.get("webhook_id")
+                    path_params.get("guild_id"), 
+                    path_params.get("channel_id"), 
+                    path_params.get("webhook_id")
                 )
         headers = kwargs.pop('headers', {})
 
-        headers.update(self.base_headers)
+        base_headers = {
+            'Authorization': f'Bot {self._client.token}'
+        }
+
+        headers.update(base_headers)
         ratelimiter = self.ratelimiters.get(bucket)
 
         if ratelimiter is None:
@@ -294,3 +293,15 @@ class RestSession:
             dict(channel_id=channel_id, message_id=message_id)
         )
         return fut
+
+    def get_gateway_bot(self):
+        url = self.URL + 'gateway/bot'
+        ratelimiter = Ratelimiter(self)
+
+        base_headers = {
+            'Authorization': f'Bot {self._client.token}'
+        }
+
+        req = functools.partial(self.client_session.request, 'GET', url, headers=base_headers)
+        actual_req = functools.partial(self._request, ratelimiter, req)
+        return ratelimiter.request(actual_req)

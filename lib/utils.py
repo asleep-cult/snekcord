@@ -14,6 +14,7 @@ class JsonStructure:
         for name, value in dict(cls.__dict__).items():
             if isinstance(value, JsonField):
                 cls.json_fields[name] = value
+                value._attr_name = name
                 delattr(cls, name)
 
     @classmethod
@@ -25,9 +26,10 @@ class JsonStructure:
         for name, field in self.json_fields.items():
             try:
                 value = field.unmarshal(data[field.name])
-                setattr(self, name, value)
-            except: 
-                setattr(self, name, field.default)
+                setattr(self, field._attr_name, value)
+            except Exception as e:
+                print(e)
+                setattr(self, field._attr_name, field.default)
         if init_class:
             self.__init__(*args, **kwargs)
         return self

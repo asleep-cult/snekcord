@@ -23,8 +23,8 @@ class GuildChannel(JsonStructure):
     parent_id: Snowflake = JsonField('parent_id', Snowflake, str)
     type = JsonField('type')
 
-    def __init__(self, manager):
-        self.manager = manager
+    def __init__(self, *, state):
+        self._state = state
 
     @property
     def mention(self):
@@ -49,5 +49,48 @@ class DMChannel(JsonStructure):
     type = JsonField('type')
     recepients = JsonField('recepients')
 
-    def __init__(self, manager):
-        self.manager = manager
+    def __init__(self, state):
+        self._state = state
+
+CHANNEL_TYPE_MAP = {
+    ChannelType.GUILD_TEXT: TextChannel,
+    ChannelType.DM: DMChannel,
+    ChannelType.GUILD_VOICE: VoiceChannel,
+    ChannelType.GUILD_CATEGORY: CategoryChannel
+}
+
+class ChannelState:
+    def __init__(self, client):
+        self._client = client
+        self._channels = {}
+
+    def get(self, item, default=None):
+        try:
+            snowflake = Snowflake(item)
+        except ValueError:
+            return default
+        return self._channels.get(snowflake, default)
+
+    def __getitem__(self, item):
+        try:
+            snowflake = Snowflake(item)
+        except ValueError:
+            snowflake = None
+        return self._channels[snowflake]
+
+    def __len__(self):
+        return len(self._channels)
+
+    async def fetch(self, channel_id):
+        data = await self._client.rest.get_channel(channel_id)
+        return self.add_channel(data)
+
+    def add(self, data):
+        channel = self.get(data['id'])
+        if channel is not None:
+            channel._update(data)
+            return channel
+        cls = CHANNEL_TYPE_MAP.get(data['type'])
+        channel = cls.unmarshal(data, state=self)
+        self._channels[channel.id] = channel
+        return channel

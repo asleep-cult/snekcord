@@ -16,13 +16,6 @@ from typing import (
     Dict
 )
 
-def guild_channel_unmarshall(data):
-    channel_type = data.get('type')
-    if channel_type is None:
-        raise Exception('No channel Type')
-    elif channel_type == ChannelType.GUILD_TEXT:
-        return TextChannel.unmarshal(data, init_class=False)
-
 class Guild(JsonStructure):
     id: Snowflake = JsonField('id', Snowflake, str)
     name: str = JsonField('name')
@@ -51,18 +44,55 @@ class Guild(JsonStructure):
     public_updates_channel_id: Snowflake = JsonField('public_updates_channel_id', Snowflake, str)
     emojis: list = JsonField('emojis')
     roles: list = JsonField('roles')
-    channels: Dict[int, Union[TextChannel]] = JsonArray('channels', unmarshal_callable=guild_channel_unmarshall, marshal_callable=JsonStructure.to_dict)
+    _channels: Dict[int, Union[TextChannel]] = JsonArray('channels')
     member_count: int = JsonField('approximate_member_count')
     presence_count: int = JsonField('approximate_presence_count')
 
-    def __init__(self, *, manager):
-        self._manager = manager
-        channels = self.channels
+    def __init__(self, *, state):
+        self._state = state
         self.channels = {}
-        for channel in channels:
-            if channel is not None:
-                channel.__init__(manager)
-                self.channels[channel.id] = channel
+        for channel in self._channels:
+            channel = state._client.channels.add(channel)
+            self.channels[channel.id] = channel
+        del self._channels
 
-    def get_channel(self, channel_id):
-        return self.channels.get(channel_id)
+    def __eq__(self, other):
+        return isinstance(other, Guild) and other.id == self.id
+
+    def __str__(self):
+        return self.name
+
+class GuildState:
+    def __init__(self, client):
+        self._client = client
+        self._guilds = {}
+
+    def get(self, item, default=None):
+        try:
+            snowflake = Snowflake(item)
+        except ValueError:
+            return default
+        return self._guilds.get(snowflake, default)
+
+    def __getitem__(self, item):
+        try:
+            snowflake = Snowflake(item)
+        except ValueError:
+            snowflake = None
+        return self._guilds[snowflake]
+
+    def __len__(self):
+        return len(self._guilds)
+
+    async def fetch(self, channel_id):
+        data = await self._client.rest.get_guild(channel_id)
+        return self.add_channel(data)
+
+    def add(self, data):
+        guild = self.get(data['id'])
+        if guild is not None:
+            guild._update(data)
+            return guild
+        guild = Guild.unmarshal(data, state=self)
+        self._guilds[guild.id] = guild
+        return guild
