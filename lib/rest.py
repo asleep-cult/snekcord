@@ -276,11 +276,12 @@ class RestSession:
         )
         return fut
 
-    def send_message(self, channel_id, content=None, nonce=None, tts=False):
+    def send_message(self, channel_id, content=None, nonce=None, tts=False, embed=None):
         payload = {
             'content': content,
             'nonce': nonce,
-            'tts': tts
+            'tts': tts,
+            'embed': embed
         }
         fut = self.request(
             'POST',

@@ -1,3 +1,5 @@
+from .message import MessageState
+
 from .bases import (
     BaseObject,
     BaseState
@@ -22,7 +24,8 @@ class ChannelType:
 class GuildChannel(BaseObject):
     __json_slots__ = (
         '_state', 'id', 'name', 'guild_id', 'permission_overwrites', 'position',
-        'nsfw', 'parent_id', 'type')
+        'nsfw', 'parent_id', 'type'
+    )
 
     name: str = JsonField('name')
     guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
@@ -34,12 +37,16 @@ class GuildChannel(BaseObject):
 
     def __init__(self, *, state, guild=None):
         self._state = state
+        self.messages = MessageState(state._client, self)
 
         self.guild = guild or state._client.guilds.get(self.guild_id)
 
     @property
     def mention(self):
         return '<#{0}>'.format(self.id)
+    
+    async def delete(self):
+        resp = await self._state._client.rest.delete_channel(self.id)
 
 
 class TextChannel(GuildChannel):
@@ -47,8 +54,33 @@ class TextChannel(GuildChannel):
 
     last_message_id: Snowflake = JsonField('last_message_id', Snowflake, str)
 
-    def send(self, content=None, *, nonce=None, tts=False):
-        return self._state._client.rest.send_message(self.id, content, nonce, tts)
+    async def edit(
+        self, 
+        *, 
+        name=None, 
+        type=None, 
+        position=None, 
+        topic=None, 
+        nsfw=None, 
+        slowmode=None, 
+        permission_overwrites=None, 
+        category=None
+    ):
+        if category is not None:
+            category = category.id
+        resp = await self._state._client.rest.modify_channel(
+            self.id, name=name, type=type, 
+            position=position, topic=topic, nsfw=nsfw, 
+            slowmode=slowmode, permission_overwrites=permission_overwrites,
+            category=category
+        )
+        # todo... return channel
+
+    async def send(self, content=None, *, nonce=None, tts=False, embed=None):
+        if embed is not None:
+            embed = embed.to_dict()
+        resp = await self._state._client.rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
+        # todo... return message
 
 
 class VoiceChannel(GuildChannel):

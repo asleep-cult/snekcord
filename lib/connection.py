@@ -29,6 +29,19 @@ class ShardOpcode:
     HELLO = 10
     HEARTBEAT_ACK = 11
 
+class VoiceConnectionOpcode:
+    IDENTIFY = 0 
+    SELECT = 1  
+    READY = 2	
+    HEARTBEAT = 3	
+    SESSION_DESCRIPTION = 4
+    SPEAKING = 5	
+    HEARTBEAT_ACK = 6	
+    RESUME = 7	
+    HELLO = 8	
+    RESUMED = 9	
+    CLIENT_DISCONNECT = 13
+
 
 class DiscordResponse(JsonStructure):
     opcode = JsonField('op', int)
@@ -61,6 +74,8 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         self.current_heartbeat_handle: asyncio.Handle = None
         self.current_poll_handle: asyncio.Handle = None
 
+        self.waiters = {}
+
         self.do_poll()
 
     def do_heartbeat(self) -> None:
@@ -88,6 +103,12 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         payload = await self.receive()
         if payload.type == aiohttp.WSMsgType.TEXT:
             resp = DiscordResponse.unmarshal(payload.data)
+
+            if resp.event_name is not None:
+                waiters = self.waiters.pop(resp.event_name.lower(), [])
+                for waiter in waiters:
+                    waiter.set_result(resp)
+
             await self.dispatch_function(resp)
 
         elif payload.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
@@ -103,6 +124,15 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
             self.current_poll_handle.cancel()
         
         return super().close(*args, **kwargs)
+
+    def wait_for(self, event):
+        waiters = self.waiters.get(event.lower())
+        if waiters is None:
+            waiters = []
+            self.waiters[event] = waiters
+        fut = self.loop.create_future()
+        waiters.append(fut)
+        return fut
 
     @property
     def latency(self) -> float:
@@ -169,6 +199,21 @@ class Shard(ConnectionBase):
             payload['shard'] = [self.id, self._client.ws.recommended_shards]
         return payload
 
+    async def update_voice_state(self, guild_id, channel_id, self_mute=False, self_deaf=False):
+        payload = {
+            'guild_id': guild_id,
+            'channel_id': channel_id,
+            'self_mute': self_mute,
+            'self_deaf': self_deaf
+        }
+
+        await self.websocket.send_json(payload)
+
+        voice_state_update = self.websocket.wait_for('voice_state_update')
+        voice_server_update = self.websocket.wait_for('voice_server_update')
+
+        return voice_state_update, voice_server_update
+
     async def dispatch(self, resp: DiscordResponse) -> None:
         if resp.opcode == ShardOpcode.HELLO:
             await self.websocket.send_json(self.identify_payload)
@@ -181,3 +226,36 @@ class Shard(ConnectionBase):
 
         elif resp.opcode == ShardOpcode.DISPATCH:
             self._client.events.dispatch(resp)
+
+class VoiceConnection(ConnectionBase):
+    def __init__(self, client, endpoint, voice_channel):
+        super().__init__(client, endpoint)
+        self.voice_channel = voice_channel
+    
+    @property
+    def heartbeat_payload(self):
+        payload = {
+            'op': VoiceConnectionOpcode.HEARTBEAT,
+            'd': 0
+        }
+        return payload
+
+    @property
+    def identify_payload(self):
+        payload = {
+            'op': VoiceConnectionOpcode.IDENTIFY,
+            'd': {
+                'server_id': self.voice_channel.guild.id,
+                'user_id': ...,
+                'session_id': ...,
+                'token': ...
+            }
+        }
+        return payload
+
+    async def dispatch(self, resp):
+        if resp.opcode == VoiceConnectionOpcode.HELLO:
+            await self.websocket.send_json(self.identify_payload)
+
+            self.websocket.heartbeat_interval = resp.data['heartbeat_interval'] / 1000
+            self.websocket.do_heartbeat()

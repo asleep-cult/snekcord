@@ -105,15 +105,14 @@ class GuildMemberState(BaseState):
         return self.add(data)
 
     def add(self, data, user=None):
-        if user is not None:
-            member = self.get(user.id)
-        else:
-            member = self.get(data['user'].get('id'))
+        if user is None:
+            user = self._client.users.add(data['user'])
+        member = self.get(user.id)
         if member is not None:
             member._update(data)
             return member
         member = GuildMember.unmarshal(data, state=self, guild=self._guild, user=user)
-        self._values[member.user.id] = member
+        self._values[member.id] = member
         return member
 
 
