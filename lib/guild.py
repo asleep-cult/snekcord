@@ -1,28 +1,27 @@
-from .channel import (
-    TextChannel, 
-    ChannelType,
-    GuildChannel
+from .bases import (
+    BaseObject, 
+    BaseState
 )
 
 from .utils import (
     JsonStructure,
     JsonField,
     JsonArray,
-    Snowflake
+    Snowflake,
 )
 
-from typing import (
-    Union,
-    Dict
-)
 
 class RoleTags(JsonStructure):
+    __json_slots__ = ('bot_id', 'integration_id', 'premium_subscriber')
+
     bot_id: Snowflake = JsonField('bot_id', Snowflake, str)
     integration_id: Snowflake = JsonField('integration_id', Snowflake, str)
     premium_subscriber: bool = JsonField('premium_subscriber')
 
-class Role(JsonStructure):
-    id: Snowflake = JsonField('id', Snowflake, str)
+
+class Role(BaseObject):
+    __json_slots__ = ('id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed', 'mentionable', 'tags')
+
     name: str = JsonField('name')
     color: int = JsonField('color')
     hoist: bool = JsonField('hoist')
@@ -32,31 +31,11 @@ class Role(JsonStructure):
     mentionable: bool = JsonField('mentionable')
     tags: RoleTags = JsonField('tags', struct=RoleTags)
 
-class RoleState:
+
+class RoleState(BaseState):
     def __init__(self, client, guild):
-        self._client = client
+        super().__init__(client)
         self._guild = guild
-        self._roles = {}
-
-    def get(self, item, default=None):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            return default
-        return self._roles.get(snowflake, default)
-
-    def __getitem__(self, item):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            snowflake = None
-        return self._roles[snowflake]
-
-    def __len__(self):
-        return len(self._roles)
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self._roles)
 
     async def fetch(self, member_id):
         data = await self._client.rest.get_guild_role(self._guild.id, member_id)
@@ -68,13 +47,20 @@ class RoleState:
             role._update(data)
             return role
         role = Role.unmarshal(data, state=self, guild=self._guild)
-        self._roles[role.id] = role
+        self._values[role.id] = role
         return role
 
-class GuildMember(JsonStructure):
+
+class GuildMember(BaseObject):
+    __json_slots__ = (
+        '_user', 'nick', '_roles', 'joined_at', 'premium_since', 'deaf', 'mute', 
+        'pending', '_state', 'guild', 'user'
+    )
+
+    json_fields = {}
     _user = JsonField('user')
     nick: str = JsonField('nick')
-    _roles =  JsonField('roles')
+    _roles = JsonField('roles')
     joined_at: str = JsonField('joined_at')
     premium_since: str = JsonField('premium_since')
     deaf: bool = JsonField('deaf')
@@ -85,7 +71,7 @@ class GuildMember(JsonStructure):
         self._state = state
         self.guild = guild
         if user is not None:
-            self._user = user
+            self.user = user
         else:
             self.user = state._client.users.add(self._user)
 
@@ -95,34 +81,24 @@ class GuildMember(JsonStructure):
             if self in guild.members:
                 yield guild
 
+    def __getattribute__(self, name):
+        try:
+            attr = super().__getattribute__(name)
+        except AttributeError as e:
+            try:
+                attr = self.user.__getattribute__(name)
+            except AttributeError:
+                raise e
+        return attr
+
     def _update(self, *args, **kwargs):
         pass
 
-class GuildMemberState:
+
+class GuildMemberState(BaseState):
     def __init__(self, client, guild):
-        self._client = client
+        super().__init__(client)
         self._guild = guild
-        self._members = {}
-
-    def get(self, item, default=None):
-        try:
-            snowflake = Snowflake(item)
-        except ValueError:
-            return default
-        return self._members.get(snowflake, default)
-
-    def __getitem__(self, item):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            snowflake = None
-        return self._members[snowflake]
-
-    def __len__(self):
-        return len(self._members)
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self._members)
 
     async def fetch(self, member_id):
         data = await self._client.rest.get_guild_member(self._guild.id, member_id)
@@ -137,11 +113,23 @@ class GuildMemberState:
             member._update(data)
             return member
         member = GuildMember.unmarshal(data, state=self, guild=self._guild, user=user)
-        self._members[member.user.id] = member
+        self._values[member.user.id] = member
         return member
 
-class Guild(JsonStructure):
-    id: Snowflake = JsonField('id', Snowflake, str)
+
+class Guild(BaseObject):
+    __json_slots__ = (
+        '_state', 'members', 'shard', 'name', 'description', 
+        'owner_id', 'region', 'features', 'afk_channel_id', 
+        'afk_timeout', 'system_channel_id', 'verification_level', 
+        'widget_enabled', 'widget_channel_id', 'default_message_notifications', 
+        'mfa_level', 'explicit_content_filter', 'max_presences', 'max_members', 
+        'max_video_channel_users', 'vanity_url_code', 'premium_tier', 
+        'premium_subscription_count', 'system_channel_flags', 'preferred_locale',
+        'rules_channel_id', 'public_updates_channel_id', 'emojis', 'roles', '_channels', 
+        '_members', 'member_count', 'presence_count', 'id'
+    )
+
     name: str = JsonField('name')
     description: str = JsonField('description')
     owner_id: Snowflake = JsonField('owner_id', Snowflake, str)
@@ -159,7 +147,7 @@ class Guild(JsonStructure):
     max_presences: int = JsonField('max_presences')
     max_members: int = JsonField('max_members')
     max_video_channel_users: int = JsonField('max_video_channel_users')
-    venity_url_code: str = JsonField('vanity_url_code')
+    vanity_url_code: str = JsonField('vanity_url_code')
     premium_tier: int = JsonField('premium_tier')
     premium_subscription_count: int = JsonField('premium_subscription_count')
     system_channel_flags: int = JsonField('system_channel_flags')
@@ -167,9 +155,9 @@ class Guild(JsonStructure):
     rules_channel_id: Snowflake = JsonField('rules_channel_id', Snowflake, str)
     public_updates_channel_id: Snowflake = JsonField('public_updates_channel_id', Snowflake, str)
     emojis: list = JsonField('emojis')
-    roles: list = JsonField('roles')
-    _channels = JsonArray('channels')
-    _members = JsonArray('members')
+    roles: RoleState = JsonField('roles')
+    _channels: list = JsonArray('channels')
+    _members: list = JsonArray('members')
     member_count: int = JsonField('approximate_member_count')
     presence_count: int = JsonField('approximate_presence_count')
 
@@ -190,46 +178,17 @@ class Guild(JsonStructure):
         del self._channels
         del self._members
 
-    def __eq__(self, other):
-        return isinstance(other, Guild) and other.id == self.id
-
-    def __str__(self):
-        return self.name
-
     @property
     def channels(self):
         for channel in self._state._client.channels:
             if channel.guild == self:
                 yield channel
 
-class GuildState:
-    def __init__(self, client):
-        self._client = client
-        self._guilds = {}
 
-    def get(self, item, default=None):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            return default
-        return self._guilds.get(snowflake, default)
-
-    def __getitem__(self, item):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            snowflake = None
-        return self._guilds[snowflake]
-
-    def __len__(self):
-        return len(self._guilds)
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self._guilds)
-
+class GuildState(BaseState):
     async def fetch(self, guild_id):
         data = await self._client.rest.get_guild(guild_id)
-        return self.add_channel(data)
+        return self.add(data)
 
     def add(self, data):
         guild = self.get(data['id'])
@@ -237,5 +196,5 @@ class GuildState:
             guild._update(data)
             return guild
         guild = Guild.unmarshal(data, state=self)
-        self._guilds[guild.id] = guild
+        self._values[guild.id] = guild
         return guild

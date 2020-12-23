@@ -1,5 +1,6 @@
 from .connection import Shard
 
+
 class Gateway:
     def __init__(self, client, *, max_shards, intents=None):
         self._client = client
@@ -25,7 +26,8 @@ class Gateway:
         self.reset_after = session_start_limit['reset_after']
         self.max_concurrency = session_start_limit['reset_after']
         if self.remaining == 0:
-            raise ConnectionError('This client is out of session starts, please try again in {}'.format(self.reset_after))
+            raise ConnectionError('This client is out of session starts, please try again in {}'.format(
+                self.reset_after))
         shard_range = min((self.recommended_shards, self.max_shards))
         if shard_range > 1:
             self.multi_sharded = True

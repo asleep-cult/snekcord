@@ -1,5 +1,3 @@
-from .guild import Guild
-
 class EventHandler:
     def __init__(self, client):
         handlers = (

@@ -6,6 +6,7 @@ from .rest import RestSession
 from .events import EventHandler
 from .gateway import Gateway
 
+
 class Client:
     def __init__(
         self, 

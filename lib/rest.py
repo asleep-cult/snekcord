@@ -9,6 +9,7 @@ from .utils import (
     JsonField
 )
 
+
 class Ratelimiter:
     def __init__(self, rest_session):
         self.rest_session = rest_session
@@ -94,6 +95,7 @@ class Ratelimiter:
 
         return fut
 
+
 class RatelimitedResponse(JsonStructure):
     global_ratelimit = JsonField('global')
     retry_after = JsonField('retry_after', float)
@@ -105,8 +107,10 @@ class RatelimitedResponse(JsonStructure):
         self.tts = tts
         self.embed = embed
 
+
 class RestSession:
     URL = 'https://discord.com/api/v7/'
+
     def __init__(self, client):
         self._client = client
         self.loop = self._client.loop

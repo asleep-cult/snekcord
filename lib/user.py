@@ -1,12 +1,21 @@
-from .utils import (
-    JsonStructure,
-    JsonField,
-    Snowflake
+from .bases import (
+    BaseObject, 
+    BaseState
 )
 
-class User(JsonStructure):
-    id: Snowflake = JsonField('id', Snowflake, str)
-    name: str = JsonField('name')
+from .utils import (
+    JsonField
+)
+
+
+class User(BaseObject):
+    __json_slots__ = (
+        '_state', 'name', 'discriminator', 'avatar', 'bot', 'system', 
+        'mfa_enabled', 'locale', 'verified', 'email', 'flags', 
+        'premium_type', 'public_flags'
+    )
+
+    name: str = JsonField('username')
     discriminator: int = JsonField('discriminator')
     avatar: str = JsonField('avatar')
     bot: bool = JsonField('bot')
@@ -25,28 +34,8 @@ class User(JsonStructure):
     def _update(self, *args, **kwargs):
         pass
 
-class UserState:
-    def __init__(self, client):
-        self._client = client
-        self._users = {}
 
-    def get(self, item, default=None):
-        try:
-            snowflake = Snowflake(item)
-        except ValueError:
-            return default
-        return self._users.get(snowflake, default)
-
-    def __getitem__(self, item):
-        try:
-            snowflake = Snowflake(item)
-        except ValueError:
-            snowflake = item
-        return self._users[snowflake]
-
-    def __len__(self):
-        return len(self._channels)
-
+class UserState(BaseState):
     async def fetch(self, user_id):
         data = await self._client.rest.get_user(user_id)
         return self.add(data)
@@ -57,5 +46,5 @@ class UserState:
             user._update(data)
             return user
         user = User.unmarshal(data, state=self)
-        self._users[user.id] = user
+        self._values[user.id] = user
         return user

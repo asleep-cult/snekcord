@@ -1,14 +1,12 @@
-from .user import User
+from .bases import (
+    BaseObject,
+    BaseState
+)
 
 from .utils import (
-    JsonStructure,
     JsonField,
     JsonArray,
     Snowflake
-)
-
-from typing import (
-    Optional
 )
 
 class ChannelType:
@@ -20,8 +18,12 @@ class ChannelType:
     GUILD_NEWS = 5
     GUILD_STORE = 6
 
-class GuildChannel(JsonStructure):
-    id: Snowflake = JsonField('id', Snowflake, str)
+
+class GuildChannel(BaseObject):
+    __json_slots__ = (
+        '_state', 'id', 'name', 'guild_id', 'permission_overwrites', 'position',
+        'nsfw', 'parent_id', 'type')
+
     name: str = JsonField('name')
     guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
     permission_overwrites = JsonField('permission_overwrites')
@@ -39,21 +41,30 @@ class GuildChannel(JsonStructure):
     def mention(self):
         return '<#{0}>'.format(self.id)
 
+
 class TextChannel(GuildChannel):
+    __json_slots__ = (*GuildChannel.__json_slots__, 'last_message_id')
+
     last_message_id: Snowflake = JsonField('last_message_id', Snowflake, str)
 
     def send(self, content=None, *, nonce=None, tts=False):
-        return self.manager.rest.send_message(self.id, content, nonce, tts)
+        return self._state._client.rest.send_message(self.id, content, nonce, tts)
+
 
 class VoiceChannel(GuildChannel):
+    __json_slots__ = (*GuildChannel.__json_slots__, 'bitrate', 'user_limit')
+
     bitrate: int = JsonField('bitrate')
     user_limit: int = JsonField('user_limit')
+
 
 class CategoryChannel(GuildChannel):
     pass
 
-class DMChannel(JsonStructure):
-    id: Snowflake = JsonField('id', Snowflake, str)
+
+class DMChannel(BaseObject):
+    __json_slots__ = (*GuildChannel.__json_slots__, 'last_message_id', 'type', '_recipients', 'recipients')
+
     last_message_id: Snowflake = JsonField('last_message_id', Snowflake, str)
     type: int = JsonField('type')
     _recipients = JsonArray('recipients')
@@ -68,38 +79,16 @@ class DMChannel(JsonStructure):
 
         del self._recipients
 
-CHANNEL_TYPE_MAP = {
+
+_CHANNEL_TYPE_MAP = {
     ChannelType.GUILD_TEXT: TextChannel,
     ChannelType.DM: DMChannel,
     ChannelType.GUILD_VOICE: VoiceChannel,
     ChannelType.GUILD_CATEGORY: CategoryChannel
 }
 
-class ChannelState:
-    def __init__(self, client):
-        self._client = client
-        self._channels = {}
 
-    def get(self, item, default=None):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            return default
-        return self._channels.get(snowflake, default)
-
-    def __getitem__(self, item):
-        try:
-            snowflake = Snowflake(item)
-        except (ValueError, TypeError):
-            snowflake = item
-        return self._channels[snowflake]
-
-    def __len__(self):
-        return len(self._channels)
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self._channels)
-
+class ChannelState(BaseState):
     async def fetch(self, channel_id):
         data = await self._client.rest.get_channel(channel_id)
         return self.add(data)
@@ -109,7 +98,7 @@ class ChannelState:
         if channel is not None:
             channel._update(data)
             return channel
-        cls = CHANNEL_TYPE_MAP.get(data['type'])
+        cls = _CHANNEL_TYPE_MAP.get(data['type'])
         channel = cls.unmarshal(data, *args, state=self, **kwargs)
-        self._channels[channel.id] = channel
+        self._values[channel.id] = channel
         return channel

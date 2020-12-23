@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-import json
 import sys
 import time
 import functools
@@ -12,7 +11,6 @@ from .utils import (
 
 from typing import (
     Dict,
-    Union,
     Any, 
     Callable,
     Awaitable
@@ -31,11 +29,13 @@ class ShardOpcode:
     HELLO = 10
     HEARTBEAT_ACK = 11
 
+
 class DiscordResponse(JsonStructure):
     opcode = JsonField('op', int)
     sequence = JsonField('s', int)
     event_name = JsonField('t')
     data = JsonField('d')
+
 
 class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def new(
@@ -108,6 +108,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def latency(self) -> float:
         return self.last_acked - self.last_sent  
 
+
 class ConnectionBase:
     def __init__(self, client, endpoint):
         self._client = client
@@ -136,6 +137,7 @@ class ConnectionBase:
             dispatch_function=self.dispatch
         )
 
+
 class Shard(ConnectionBase):
     def __init__(self, client, endpoint, shard_id):
         super().__init__(client, endpoint)
@@ -155,7 +157,7 @@ class Shard(ConnectionBase):
             'op': ShardOpcode.IDENTIFY,
             'd': {
                 'token': self._client.token,
-                #'intents': self.manager.intents,
+                # 'intents': self.manager.intents,
                 'properties': {
                     '$os': sys.platform,
                     '$browser': 'wrapper-we-dont-name-for',

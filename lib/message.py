@@ -4,6 +4,7 @@ from .utils import (
     JsonArray
 )
 
+
 class MessageType:
     DEFAULT = 0
     RECIPIENT_ADD = 1
@@ -23,9 +24,11 @@ class MessageType:
     REPLY = 19
     APPLICATION_COMMAND = 20
 
+
 class MessageActivity(JsonField):
     type: int = JsonField('type')
     party_id: str = JsonField('party_id')
+
 
 class MessageApplication(JsonStructure):
     id: int = JsonField('id', int, str)
@@ -34,10 +37,12 @@ class MessageApplication(JsonStructure):
     icon: str = JsonField('icon')
     name: str = JsonField('name')
 
+
 class MessageReference(JsonStructure):
     message_id = JsonField('message_id', int, str)
     channel_id = JsonField('channel_id', int, str)
     guild_id = JsonField('guild_id', int, str)
+
 
 class MessageActivityType:
     JOIN = 1
@@ -45,12 +50,14 @@ class MessageActivityType:
     LISTEN = 3
     JOIN_REQUEST = 5
 
+
 class MessageFlag:
     CROSSPOSTED = 1 << 0
     IS_CROSSPOST = 1 << 1
     SUPRESS_EMBEDS = 1 << 2
     SOURCE_MESSAGE_DELETED = 1 << 3
     URGENT = 1 << 4
+
 
 class MessageSticker(JsonStructure):
     id: int = JsonField('id', int, str)
@@ -62,25 +69,30 @@ class MessageSticker(JsonStructure):
     preview_asset: str = JsonField('preview_asset')
     format_type: int = JsonField('format_type')
 
+
 class MessageSticketType:
     PNG = 1
     APNG = 2
     LOTTIE = 3
 
+
 class FollowedChannel(JsonStructure):
     channel_id: int = JsonField('channel_id', int, str)
     webhook_id: int = JsonField('webhook_id', int, str)
 
+
 class Reaction(JsonStructure):
     count: int = JsonField('count')
     me: bool = JsonField('me')
-    #emoji ...
+    # emoji ...
+
 
 class PermissionOverwrite:
     id: int = JsonField('id', int, str)
     type: int = JsonField('type')
     allow: int = JsonField('allow', int, str)
     deny: int = JsonField('deny', int, set)
+
 
 class EmbedType:
     RICH = 'rich'
@@ -90,20 +102,24 @@ class EmbedType:
     ARTICLE = 'article'
     LINK = 'link'
 
+
 class EmbedAttachment(JsonStructure):
     url: str = JsonField('url')
     proxy_url = JsonField('proxy_url')
     height = JsonField('height')
     width = JsonField('width')
 
+
 class EmbedVideo(JsonStructure):
     url: str = JsonField('url')
     height: int = JsonField('height')
     width: int = JsonField('width')
 
+
 class EmbedProvider(JsonStructure):
     name: str = JsonField('name')
     url: str = JsonField('url')
+
 
 class EmbedAuthor(JsonStructure):
     name: str = JsonField('name')
@@ -111,22 +127,25 @@ class EmbedAuthor(JsonStructure):
     icon_url: str = JsonField('icon_url')
     proxy_icon_url: str = JsonField('proxy_icon_url')
 
+
 class EmbedFooter(JsonStructure):
     text: str = JsonField('text')
     icon_url: str = JsonField('icon_url')
     proxy_icon_url: str = JsonField('proxy_icon_url')
+
 
 class EmbedField(JsonStructure):
     name: str = JsonField('name')
     value: str = JsonField('value')
     inline: bool = JsonField('inline')
 
+
 class Embed(JsonStructure):
     title: str = JsonField('title')
     type: str = JsonField('type')
     description: str = JsonField('description')
     url: str = JsonField('url')
-    #timestamp
+    # timestamp
     color: int = JsonField('color')
     footer: EmbedFooter = JsonField('footer', struct=EmbedFooter)
     image: EmbedAttachment = JsonField('image', struct=EmbedAttachment)
@@ -209,6 +228,7 @@ class Embed(JsonStructure):
         self.fields.append(field)
         return field
 
+
 class MessageAttachment(JsonStructure):
     id: int = JsonField('id', int, str)
     filename: str = JsonField('filename')
@@ -218,16 +238,19 @@ class MessageAttachment(JsonStructure):
     height: int = JsonField('height')
     width: int = JsonField('width')
 
+
 class ChannelMention(JsonStructure):
     id: int = JsonField('id', int, str)
     guild_id: int = JsonField('int', int, str)
     type: int = JsonField('int')
     name: str = JsonField('name')
 
+
 class AllowedMentionsType:
     ROLES = 'roles'
     USERS = 'users'
     EVERYONE = 'everyone'
+
 
 class AllowedMentions(JsonStructure):
     parse: list = JsonArray('parse')
@@ -235,20 +258,21 @@ class AllowedMentions(JsonStructure):
     users: list = JsonArray('users', int, str)
     replied_user: bool = JsonField('replied_user')
 
+
 class Message(JsonStructure):
     id: int = JsonField('id', int, str)
     channel_id: int = JsonField('channel_id', int, str)
     guild_id: int = JsonField('guild_id', int, str)
-    #author
-    #member
+    # author
+    # member
     content: str = JsonField('content')
-    #timestamp
-    #edited_timestamp
+    # timestamp
+    # edited_timestamp
     tts: bool = JsonField('tts')
     mention_everyone: bool = JsonField('mention_everyone')
-    #mentions
-    #mention_roles
-    #mention_channels
+    # mentions
+    # mention_roles
+    # mention_channels
     attachments: list = JsonArray('attachments', struct=MessageAttachment)
     embeds: list = JsonArray('embeds', struct=Embed)
     reactions: list = JsonArray('reactions', struct=Reaction)
@@ -258,10 +282,11 @@ class Message(JsonStructure):
     type: int = JsonField('type')
     activity: MessageActivity = JsonField('activity', struct=MessageActivity)
     application: MessageApplication = JsonField('application')
-    #message_reference
+    # message_reference
     flags: int = JsonField('flags')
     stickers: list = JsonArray('stickers', struct=MessageSticker)
-    #referenced_message
+
+    # referenced_message
 
     def __init__(self, manager, channel=None):
         self._manager = manager
