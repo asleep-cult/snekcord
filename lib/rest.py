@@ -176,6 +176,28 @@ class RestSession:
 
         return ratelimiter.request(actual_req)
 
+    def get_guild_audit_log(self, guild_id, *, user_id=None, action_type=None, before=None, limit=None):
+        params = {}
+
+        if user_id is not None:
+            params['user_id'] = user_id
+
+        if action_type is not None:
+            params['action_type'] = action_type
+
+        if before is not None:
+            params['before'] = before
+
+        if limit is not None:
+            params['before'] = before
+
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/audit-logs',
+            dict(guild_id=guild_id),
+            params=params
+        )
+        return fut
 
     def get_channel(self, channel_id):
         fut = self.request(
@@ -185,68 +207,18 @@ class RestSession:
         )
         return fut
 
-    def get_guild(self, guild_id):
-        fut = self.request(
-            'GET',
-            'guilds/{guild_id}',
-            dict(guild_id=guild_id)
-        )
-        return fut
-
-    def get_user(self, user_id):
-        fut = self.request(
-            'GET',
-            'users/{user_id}',
-            dict(user_id=user_id)
-        )
-        return fut
-
-    def get_guild_member(self, user_id, guild_id):
-        fut = self.request(
-            'GET',
-            'guilds/{guild_id}/members/{user_id}',
-            dict(user_id=user_id, guild_id=guild_id)
-        )
-        return fut
-
-    #get channel messages
-
-    def get_channel_message(self, channel_id, message_id):
-        fut = self.request(
-            'GET',
-            'channels/{channel_id}/messages/{message_id}',
-            dict(channel_id=channel_id, message_id=message_id)
-        )
-        return fut
-
-    def delete_channel(self, channel_id):
-        fut = self.request(
-            'DELETE',
-            'channels/{channel_id}',
-            dict(channel_id=channel_id)
-        )
-        return fut
-
-    def get_channel_message(self, channel_id, message_id):
-        fut = self.request(
-            'GET',
-            'channels/{channel_id}/messages/{message_id}',
-            dict(channel_id=channel_id, message_id=message_id)
-        )
-        return fut
-
     def modify_channel(
-        self, 
-        channel_id, 
-        name=None, 
-        type=None, 
-        position=None, 
-        topic=None, 
-        nsfw=None, 
-        slowmode=None, 
-        bitrate=None, 
-        user_limit=None, 
-        permission_overwrites=None, 
+        self,
+        channel_id,
+        name=None,
+        type=None,
+        position=None,
+        topic=None,
+        nsfw=None,
+        slowmode=None,
+        bitrate=None,
+        user_limit=None,
+        permission_overwrites=None,
         parent_id=None
     ):
         payload = {
@@ -272,17 +244,56 @@ class RestSession:
     def delete_channel(self, channel_id):
         fut = self.request(
             'DELETE',
-            '/channels/{channel_id}'
+            'channels/{channel_id}',
+            dict(channel_id=channel_id)
         )
         return fut
 
-    def send_message(self, channel_id, content=None, nonce=None, tts=False, embed=None):
-        payload = {
-            'content': content,
-            'nonce': nonce,
-            'tts': tts,
-            'embed': embed
-        }
+    def get_channel_messages(self, channel_id, *, around=None, before=None, after=None, limit=None):
+        params = {}
+
+        if around is not None:
+            params['around'] = around
+
+        if before is not None:
+            params['before'] = before
+
+        if after is not None:
+            params['after'] = after
+
+        if limit is not None:
+            params['limit'] = limit
+
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/messages',
+            dict(channel_id=channel_id),
+            params=params
+        )
+        return fut
+
+    def get_channel_message(self, channel_id, message_id):
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/messages/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+    def send_message(self, channel_id, *, content=None, nonce=None, tts=False, embed=None):
+        payload = {}
+
+        if content is not None:
+            payload['content'] = content
+
+        if nonce is not None:
+            payload['nonce'] = nonce
+
+        payload['tts'] = tts
+
+        if embed is not None:
+            payload['embed'] = embed
+
         fut = self.request(
             'POST',
             'channels/{channel_id}/messages',
@@ -290,6 +301,389 @@ class RestSession:
             json=payload
         )
         return fut
+
+    def crosspost_message(self, channel_id, message_id):
+        fut = self.request(
+            'POST',
+            'channels/{channel_id}/messages/{message_id}/crosspost',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+    def create_reaction(self, channel_id, message_id, emoji):
+        fut = self.request(
+            'PUT',
+            'channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me',
+            dict(channel_id=channel_id, message_id=message_id, emoji=emoji)
+        )
+        return fut
+
+    def delete_reaction(self, channel_id, message_id, emoji, user_id='@me'):
+        fut = self.request(
+            'DELETE',
+            'channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}',
+            dict(channel_id=channel_id, message_id=message_id, emoji=emoji, user_id=user_id)
+        )
+        return fut
+
+    def get_reactions(self, channel_id, message_id):
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/messages/{message_id}/reactions',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+    def delete_reactions(self, channel_id, message_id, emoji=None):
+        path = 'channels/{channel_id}/messages/{message_id}/reactions'
+
+        if emoji is not None:
+            path += '/{emoji}'
+
+        fut = self.request(
+            'DELETE',
+            path,
+            dict(channel_id=channel_id, message_id=message_id, emoji=emoji)
+        )
+        return fut
+
+    def edit_message(self, channel_id, message_id, *, content=None, embed=None, flags=None, allowed_mentions=None):
+        payload = {}
+
+        if content is not None:
+            payload['content'] = content
+
+        if embed is not None:
+            payload['embed'] = embed
+
+        if flags is not None:
+            payload['flags'] = flags
+
+        if allowed_mentions is not None:
+            payload['allowed_mentions'] = allowed_mentions
+
+        fut = self.request(
+            'PATCH',
+            'channels/{channel_id}/messages/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id),
+            json=payload
+        )
+        return fut
+
+    def delete_message(self, channel_id, message_id):
+        fut = self.request(
+            'DELETE',
+            'channels/{channel_id}/messages/{message_id}'
+        )
+        return fut
+
+    def bulk_delete_messages(self, channel_id, message_ids):
+        payload = {
+            'messages': message_ids
+        }
+
+        fut = self.request(
+            'POST',
+            'channels/{channel_id}/messages/bulk-delete',
+            json=payload
+        )
+        return fut
+
+    def edit_channel_permissions(self, channel_id, overwrite_id, allow, deny, overwrite_type):
+        payload = {
+            'allow': allow,
+            'deny': deny,
+            'type': overwrite_type
+        }
+
+        fut = self.request(
+            'PATCH',
+            'channels/{channel_id}/permissions/{overwrite_id}',
+            dict(channel_id=channel_id, overwrite_id=overwrite_id),
+            json=payload
+        )
+        return fut
+
+    def get_channel_invites(self, channel_id):
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/invites',
+            dict(channel_id=channel_id)
+        )
+        return fut
+
+    def create_channel_invite(
+        self,
+        channel_id,
+        *,
+        max_age=None,
+        max_uses=None,
+        temporary=False,
+        unique=False,
+        target_user_id=None,
+        target_user_type=None
+    ):
+        payload = {}
+
+        if max_age is not None:
+            payload['max_age'] = max_age
+
+        if max_uses is not None:
+            payload['max_uses'] = max_uses
+
+        payload['temporary'] = temporary
+
+        payload['unique'] = unique
+
+        if target_user_id is not None:
+            payload['target_user'] = target_user_id
+
+        if target_user_type is not None:
+            payload['target_user_type'] = target_user_type
+
+        fut = self.request(
+            'POST',
+            'channels/{channel_id}/invites',
+            dict(channel_id=channel_id),
+            json=payload
+        )
+        return fut
+
+    def delete_channel_permission(self, channel_id, overwrite_id):
+        fut = self.request(
+            'DELETE',
+            'channels/{channel_id}/permissions/{overwrite_id}',
+            dict(channel_id=channel_id, overwrite_id=overwrite_id)
+        )
+        return fut
+
+    def follow_news_channel(self, channel_id, webhook_channel_id):
+        payload = {
+            'webgook_channel_id': webhook_channel_id
+        }
+
+        fut = self.request(
+            'POST',
+            'channels/{channel_id}/followers',
+            dict(channel_id=channel_id),
+            json=payload
+        )
+        return fut
+
+    def trigger_typing(self, channel_id):
+        fut = self.request(
+            'POST',
+            'channels/{channel_id}/typing',
+            dict(channel_id=channel_id)
+        )
+        return fut
+
+    def get_pinned_messages(self, channel_id):
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/pins',
+            dict(channel_id=channel_id)
+        )
+        return fut
+
+    def pin_message(self, channel_id, message_id):
+        fut = self.request(
+            'PUT',
+            'channels/{channel_id}/pins/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+    def unpin_message(self, channel_id, message_id):
+        fut = self.request(
+            'DELETE',
+            'channels/{channel_id}/pins/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+    def add_dm_recipient(self, channel_id, user_id, access_token, nick):
+        payload = {
+            'access_token': access_token,
+            'nick': nick
+        }
+
+        fut = self.request(
+            'POST',
+            '/channels/{channel_id}/recipients/{user_id}',
+            dict(channel_id=channel_id, user_id=user_id),
+            json=payload
+        )
+        return fut
+
+    def remove_dm_recipient(self, channel_id, user_id):
+        fut = self.request(
+            'DELETE',
+            '/channels/{channel_id}/recipients/{user_id}',
+            dict(channel_id=channel_id, user_id=user_id),
+        )
+        return fut
+
+    def get_guild_emojis(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/emojis',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_guild_emoji(self, guild_id, emoji_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/emojis/{emoji_id}',
+            dict(guild_id=guild_id, emoji_id=emoji_id)
+        )
+        return fut
+
+    def create_guild_emoji(self, guild_id, name, image, roles=None):
+        payload = {
+            'name': name,
+            'image': image,
+        }
+
+        if roles is not None:
+            payload['roles'] = roles
+
+        fut = self.request(
+            'POST',
+            'guilds/{guild_id}/eomjis',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def modify_guild_emoji(self, guild_id, emoji_id, name=None, roles=None):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if roles is not None:
+            payload['roles'] = roles
+
+        fut = self.request(
+            'PATCH',
+            'guild/{guild_id}/emojis/{emoji_id}',
+            dict(guild_id=guild_id, emoji_id=emoji_id),
+            json=payload
+        )
+        return fut
+
+    def delete_guild_emoji(self, guild_id, emoji_id):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}/emojis/{emoji_id}',
+            dict(guild_id=guild_id, emoji_id=emoji_id)
+        )
+        return fut
+
+    def get_guild(self, guild_id, with_counts=True):
+        params = {
+            'with_counts': with_counts
+        }
+
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}',
+            dict(guild_id=guild_id),
+            params=params
+        )
+        return fut
+
+    def get_preview_guild(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/preview',
+            dict(guild_id=guild_id),
+        )
+        return fut
+
+    # modify_guild :(
+
+    def delete_guild(self, guild_id):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}',
+            dict(guild_id=guild_id),
+        )
+        return fut
+
+    def get_guild_channels(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/channels',
+            dict(guild_id=guild_id),
+        )
+        return fut
+
+    # create_guild_channel :(
+
+    def modify_guild_channel_positions(self, guild_id, positions):
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/channels',
+            dict(guild_id=guild_id),
+            json=positions
+        )
+        return fut
+
+    def get_guild_member(self, guild_id, user_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/members/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id)
+        )
+        return fut
+
+    def get_guild_members(self, guild_id, limit=1000, after=None):
+        params = {
+            'limit': limit
+        }
+
+        if after is not None:
+            params['after'] = after
+
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/members',
+            dict(guild_id=guild_id),
+            params=params
+        )
+        return fut
+
+    # add_guild_member :(
+
+    def get_user(self, user_id):
+        fut = self.request(
+            'GET',
+            'users/{user_id}',
+            dict(user_id=user_id)
+        )
+        return fut
+
+    def get_channel_message(self, channel_id, message_id):
+        fut = self.request(
+            'GET',
+            'channels/{channel_id}/messages/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id)
+        )
+        return fut
+
+
+
+    def delete_channel(self, channel_id):
+        fut = self.request(
+            'DELETE',
+            '/channels/{channel_id}'
+        )
+        return fut
+
+
 
     def crosspost_message(self, channel_id, message_id):
         fut = self.request(
