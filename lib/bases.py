@@ -5,10 +5,15 @@ from .utils import (
     _try_snowflake
 )
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .client import Client
+
 
 class BaseState:
     def __init__(self, client):
-        self._client = client
+        self._client: 'Client' = client
         self._values = {}
 
     def __iter__(self):
@@ -43,7 +48,8 @@ class BaseState:
         return value
 
     def pop(self, item):
-        return self._values.pop(_try_snowflake(item))
+        item = _try_snowflake(item)
+        return self._values.pop(item)
 
     def clear(self):
         self._values = {}

@@ -55,7 +55,12 @@ class JsonStructure(metaclass=JsonStructureMeta):
         for name, field in self.json_fields.items():
             try:
                 attr = getattr(self, name)
-                value = field.marshal(attr)
+                if attr is None and field.omitemoty:
+                    continue
+                try:
+                    value = field.marshal(attr)
+                except:
+                    continue
                 if value is None and field.omitemoty:
                     continue
                 dct[field.name] = value
@@ -76,7 +81,7 @@ class JsonField:
             default=None,
             struct=None,
             init_struct_class=True,
-            omitemoty=True
+            omitemoty=False
     ):
         if struct is not None:
             self.unmarshal_callable = lambda *args, **kwargs: struct.unmarshal(

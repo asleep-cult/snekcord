@@ -1,21 +1,30 @@
 from .connection import Shard
 
+from typing import (
+    Dict,
+    Optional,
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from .client import Client
+
 
 class Gateway:
-    def __init__(self, client, *, max_shards, intents=None):
+    def __init__(self, client: 'Client', *, max_shards: Optional[int] = None, intents: Optional[int] = None):
         self._client = client
         self.max_shards = max_shards
         self.intents = intents
-        self.shards = {}
-        self.multi_sharded = False
-        self.recommended_shards = None
-        self.url = None
-        self.total = None
-        self.remaining = None
-        self.reset_after = None
-        self.max_concurrency = None
+        self.shards: Dict[int, Shard] = {}
+        self.multi_sharded: bool = False
+        self.recommended_shards: int = None
+        self.url: str = None
+        self.total: int = None
+        self.remaining: int = None
+        self.reset_after: int = None
+        self.max_concurrency: int = None
 
-    async def connect(self):
+    async def connect(self) -> None:
         resp = await self._client.rest.get_gateway_bot()
         data = await resp.json()
         self.url = data['url']

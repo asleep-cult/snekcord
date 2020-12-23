@@ -13,8 +13,12 @@ from typing import (
     Dict,
     Any, 
     Callable,
-    Awaitable
+    Awaitable,
+    TYPE_CHECKING
 )
+
+if TYPE_CHECKING:
+    from .client import Client
 
 class ShardOpcode:
     DISPATCH = 0
@@ -28,6 +32,7 @@ class ShardOpcode:
     INVALID_SESSION = 9
     HELLO = 10
     HEARTBEAT_ACK = 11
+
 
 class VoiceConnectionOpcode:
     IDENTIFY = 0 
@@ -140,9 +145,10 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
 
 class ConnectionBase:
-    def __init__(self, client, endpoint):
+    def __init__(self, client: 'Client', endpoint: str):
         self._client = client
         self.endpoint = endpoint
+        self.websocket: ConnectionProtocol = None
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -226,6 +232,7 @@ class Shard(ConnectionBase):
 
         elif resp.opcode == ShardOpcode.DISPATCH:
             self._client.events.dispatch(resp)
+
 
 class VoiceConnection(ConnectionBase):
     def __init__(self, client, endpoint, voice_channel):

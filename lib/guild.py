@@ -1,3 +1,6 @@
+from .user import User
+from .channel import _Channel
+
 from .bases import (
     BaseObject, 
     BaseState
@@ -9,6 +12,8 @@ from .utils import (
     JsonArray,
     Snowflake,
 )
+
+from typing import Iterable
 
 
 class RoleTags(JsonStructure):
@@ -51,7 +56,7 @@ class RoleState(BaseState):
         return role
 
 
-class GuildMember(BaseObject):
+class GuildMember(User):
     __json_slots__ = (
         '_user', 'nick', '_roles', 'joined_at', 'premium_since', 'deaf', 'mute', 
         'pending', '_state', 'guild', 'user'
@@ -67,16 +72,19 @@ class GuildMember(BaseObject):
     mute: bool = JsonField('mute')
     pending: bool = JsonField('pending')
 
-    def __init__(self, *, state, guild, user=None):
-        self._state = state
+    def __init__(self, *, state: 'GuildMemberState', guild: 'Guild', user=None):
+        self._state: GuildMemberState = state
         self.guild = guild
         if user is not None:
             self.user = user
         else:
-            self.user = state._client.users.add(self._user)
+            self.user = self._state._client.users.add(self._user)
+
+        del self._user
+        del self._roles
 
     @property
-    def guilds(self):
+    def guilds(self) -> 'Iterable[Guild]':
         for guild in self._state._client.guilds:
             if self in guild.members:
                 yield guild
@@ -160,16 +168,16 @@ class Guild(BaseObject):
     member_count: int = JsonField('approximate_member_count')
     presence_count: int = JsonField('approximate_presence_count')
 
-    def __init__(self, *, state):
+    def __init__(self, *, state: 'GuildState'):
         self._state = state
-        self.roles = RoleState(state._client, guild=self)
-        self.members = GuildMemberState(state._client, guild=self)
+        self.roles: Iterable[Role] = RoleState(self._state._client, guild=self)
+        self.members: Iterable[GuildMember] = GuildMemberState(self._state._client, guild=self)
 
-        shard_id = ((self.id >> 22) % len(state._client.ws.shards))
-        self.shard = state._client.ws.shards.get(shard_id)
+        shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
+        self.shard = self._state._client.ws.shards.get(shard_id)
 
         for channel in self._channels:
-            state._client.channels.add(channel, guild=self)
+            self._state._client.channels.add(channel, guild=self)
 
         for member in self._members:
             self.members.add(member)
@@ -178,18 +186,28 @@ class Guild(BaseObject):
         del self._members
 
     @property
-    def channels(self):
+    def channels(self) -> Iterable[_Channel]:
         for channel in self._state._client.channels:
             if channel.guild == self:
                 yield channel
 
+    def to_dict(self):
+        dct = super().to_dict()
+        members = dct['members'] = []
+        channels = dct['channels'] = []
+        for member in self.members:
+            members.append(member.to_dict())
+        for channel in self.channels:
+            channels.append(channel.to_dict())
+        return dct
+
 
 class GuildState(BaseState):
-    async def fetch(self, guild_id):
+    async def fetch(self, guild_id) -> Guild:
         data = await self._client.rest.get_guild(guild_id)
         return self.add(data)
 
-    def add(self, data):
+    def add(self, data) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
             guild._update(data)

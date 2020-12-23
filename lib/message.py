@@ -10,6 +10,13 @@ from .utils import (
     Snowflake
 )
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .channel import (
+        _Channel,
+        ChannelState
+    )
 
 class MessageType:
     DEFAULT = 0
@@ -74,7 +81,7 @@ class MessageSticker(BaseObject):
     format_type: int = JsonField('format_type')
 
 
-class MessageSticketType:
+class MessageStickerType:
     PNG = 1
     APNG = 2
     LOTTIE = 3
@@ -294,7 +301,7 @@ class Message(BaseObject):
 
     # referenced_message
 
-    def __init__(self, *, state, channel):
+    def __init__(self, *, state: 'ChannelState', channel: '_Channel'):
         self._state = state
 
         self.channel = channel
@@ -316,11 +323,11 @@ class Message(BaseObject):
 
 
 class MessageState(BaseState):
-    def __init__(self, client, channel):
+    def __init__(self, client, channel: '_Channel'):
         super().__init__(client)
         self._channel = channel
 
-    def add(self, data):
+    def add(self, data) -> Message:
         message = self.get(data['id'])
         if message is not None:
             message._update(data)
@@ -328,3 +335,7 @@ class MessageState(BaseState):
         message = Message.unmarshal(data, state=self, channel=self._channel)
         self._values[message.id] = message
         return message
+
+    async def fetch(self, message_id) -> Message:
+        data = await self._client.rest.get_channel_message(self._channel.id)
+        return self.add(data)

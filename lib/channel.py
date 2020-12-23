@@ -1,4 +1,9 @@
-from .message import MessageState
+from .user import User
+
+from .message import (
+    MessageState,
+    Message
+)
 
 from .bases import (
     BaseObject,
@@ -10,6 +15,17 @@ from .utils import (
     JsonArray,
     Snowflake
 )
+
+from typing import (
+    Union,
+    Iterable,
+    List,
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from .guild import Guild
+
 
 class ChannelType:
     GUILD_TEXT = 0	
@@ -36,16 +52,16 @@ class GuildChannel(BaseObject):
     type = JsonField('type')
 
     def __init__(self, *, state, guild=None):
-        self._state = state
-        self.messages = MessageState(state._client, self)
+        self._state: ChannelState = state
+        self.messages: Iterable[Message] = MessageState(state._client, self)
 
-        self.guild = guild or state._client.guilds.get(self.guild_id)
+        self.guild: 'Guild' = guild or state._client.guilds.get(self.guild_id)
 
     @property
-    def mention(self):
+    def mention(self) -> str:
         return '<#{0}>'.format(self.id)
     
-    async def delete(self):
+    async def delete(self) -> None:
         resp = await self._state._client.rest.delete_channel(self.id)
 
 
@@ -65,7 +81,7 @@ class TextChannel(GuildChannel):
         slowmode=None, 
         permission_overwrites=None, 
         category=None
-    ):
+    ) -> None:
         if category is not None:
             category = category.id
         resp = await self._state._client.rest.modify_channel(
@@ -76,7 +92,7 @@ class TextChannel(GuildChannel):
         )
         # todo... return channel
 
-    async def send(self, content=None, *, nonce=None, tts=False, embed=None):
+    async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
         if embed is not None:
             embed = embed.to_dict()
         resp = await self._state._client.rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
@@ -102,12 +118,12 @@ class DMChannel(BaseObject):
     _recipients = JsonArray('recipients')
 
     def __init__(self, state):
-        self._state = state
-        self.recipients = {}
+        self._state: ChannelState = state
+        self.recipients: List[User] = []
 
         for recipient in self._recipients:
             user = state._client.users.add(recipient)
-            self.recipients[user.id] = user
+            self.recipients.append(user)
 
         del self._recipients
 
@@ -134,3 +150,5 @@ class ChannelState(BaseState):
         channel = cls.unmarshal(data, *args, state=self, **kwargs)
         self._values[channel.id] = channel
         return channel
+
+_Channel = Union[DMChannel, CategoryChannel, VoiceChannel, TextChannel, GuildChannel]
