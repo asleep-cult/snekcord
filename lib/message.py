@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from .bases import (
     BaseObject,
     BaseState
@@ -7,7 +9,8 @@ from .utils import (
     JsonStructure,
     JsonField,
     JsonArray,
-    Snowflake
+    Snowflake,
+    _try_snowflake
 )
 
 from typing import TYPE_CHECKING
@@ -95,7 +98,17 @@ class FollowedChannel(JsonStructure):
 class Reaction(JsonStructure):
     count: int = JsonField('count')
     me: bool = JsonField('me')
-    # emoji ...
+    emoji = JsonField('emoji')
+
+    def __init__(self, state, message):
+        self._state = state
+        self.message = message
+
+    async def remove(self, user=None):
+        await self._state.remove(self.emoji, user)
+
+    async def remove_all(self):
+        await self._state.remove_emoji(self.emoji)
 
 
 class PermissionOverwrite(BaseObject):
@@ -288,7 +301,7 @@ class Message(BaseObject):
     # mention_channels
     attachments: list = JsonArray('attachments', struct=MessageAttachment)
     embeds: list = JsonArray('embeds', struct=Embed)
-    reactions: list = JsonArray('reactions', struct=Reaction)
+    _reactions: list = JsonArray('reactions')
     nonce = JsonField('nonce')
     pinned: bool = JsonField('pinned')
     webhook_id: int = JsonField('webhook_id', int, str)
@@ -304,6 +317,12 @@ class Message(BaseObject):
     def __init__(self, *, state: 'ChannelState', channel: '_Channel'):
         self._state = state
 
+        self.reactions = ReactionState(self._state._client, self)
+
+        if self._reactions is not None:
+            for reaction in self._reactions:
+                self.reactions._add(reaction)
+
         self.channel = channel
 
         if self.channel is not None:
@@ -314,12 +333,79 @@ class Message(BaseObject):
         if self.guild is not None:
             if self._member.get('user') is None:
                 self._member['user'] = self._author
-            self.author = self.guild.members.add(self._member)
+            self.author = self.guild.members._add(self._member)
         else:
-            self.author = state._client.users.add(self._author)
+            self.author = state._client.users._add(self._author)
 
         del self._author
         del self._member
+        del self._reactions
+
+    async def crosspost(self):
+        rest = self._state._client.rest
+        resp = await rest.crosspost_message(self.channel.id, self.id)
+        data = await resp.json()
+        message = self._state._add(data, channel=self.channel)
+        return message
+
+    async def edit(self, content=None, *, embed=None, flags=None, allowed_mentions=None):
+        rest = self._state._client.rest
+        resp = await rest.edit_message(self.channel.id, self.id, content=content, embed=embed, flags=flags, allowed_mentions=allowed_mentions)
+        data = await resp.json()
+        message = self._state._add(self, channel=self.channel)
+        return message
+
+    async def delete(self):
+        rest = self._state._client.rest
+        await rest.edit_message(self.channel.id, self.id)
+
+
+class ReactionState(BaseState):
+    def __init__(self, client, message):
+        super().__init__(client)
+        self._message = message
+
+    def _add(self, data) -> Reaction:
+        reaction = self.get(data['emoji'])
+        if reaction is not None:
+            reaction._update(data)
+            return reaction
+        reaction = Reaction.unmarshal(data)
+        self._values[reaction.emoji] = reaction
+        return reaction
+
+    async def add(self, emoji):
+        rest = self._client.rest
+        await rest.create_reaction(self._message.channel.id, self._message.id, emoji)
+
+    async def fetch(self, emoji=None):
+        rest = self._client.rest
+        resp = await rest.get_reactions(self._message.channel.id, self._message.id)
+        data = await resp.json()
+        reactions = []
+        for reaction in data:
+            reaction = self._add(reaction)
+            if emoji is not None:
+                if reaction.emoji == emoji:
+                    reactions.append(reaction)
+            else:
+                reactions.append(reaction)
+        return reactions
+
+    async def remove(self, emoji, user=None):
+        if user is not None:
+            user = user.id
+
+        rest = self._state._client.rest
+        await rest.delete_reaction(self._message.channel.id, self._message.id, emoji, user)
+
+    async def remove_emoji(self, emoji):
+        rest = self._state._client.rest
+        await rest.delete_reactions(self._message.channel.id, self._message.id, emoji)
+
+    async def remove_all(self, emoji):
+        rest = self._state._client.rest
+        await rest.delete_reactions(self._message.channel.id, self._message.id)
 
 
 class MessageState(BaseState):
@@ -327,7 +413,7 @@ class MessageState(BaseState):
         super().__init__(client)
         self._channel = channel
 
-    def add(self, data) -> Message:
+    def _add(self, data) -> Message:
         message = self.get(data['id'])
         if message is not None:
             message._update(data)
@@ -337,5 +423,44 @@ class MessageState(BaseState):
         return message
 
     async def fetch(self, message_id) -> Message:
-        data = await self._client.rest.get_channel_message(self._channel.id)
-        return self.add(data)
+        rest = self._client.rest
+        resp = await rest.get_channel_message(self._channel.id, message_id)
+        data = await resp.json()
+        message = self._add(message)
+        return message
+
+    async def fetch_history(self, around=None, before=None, after=None, limit=None):
+        around = _try_snowflake(around)
+        before = _try_snowflake(before)
+        after = _try_snowflake(after)
+        
+        if isinstance(around, Snowflake):
+            around = around.datetime
+
+        if isinstance(before, Snowflake):
+            before = before.datetime
+
+        if isinstance(after, Snowflake):
+            after = after.datetime
+
+        if isinstance(around, datetime):
+            around = around.timestamp()
+        
+        if isinstance(before, datetime):
+            before = before.timestamp()
+
+        if isinstance(after, datetime):
+            after = after.timestamp()
+
+        rest = self._client.rest
+        resp = await rest.get_channel_messages(self._channel.id, around=around, before=before, after=after, limit=limit)
+        data = await resp.json()
+        messages = []
+        for message in data:
+            messages.append(self._add(message))
+        return messages
+
+    async def bulk_delete(self, messages):
+        messages = list({message.id for message in messages})
+        rest = self._state._client.reat
+        await rest.bulk_delete_messages(self._channel.id, messages)

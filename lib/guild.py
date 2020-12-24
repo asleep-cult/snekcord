@@ -44,9 +44,9 @@ class RoleState(BaseState):
 
     async def fetch(self, member_id):
         data = await self._client.rest.get_guild_role(self._guild.id, member_id)
-        return self.add(data)
+        return self._add(data)
 
-    def add(self, data):
+    def _add(self, data):
         role = self.get(data['id'])
         if role is not None:
             role._update(data)
@@ -78,7 +78,7 @@ class GuildMember(User):
         if user is not None:
             self.user = user
         else:
-            self.user = self._state._client.users.add(self._user)
+            self.user = self._state._client.users._add(self._user)
 
         del self._user
         del self._roles
@@ -110,11 +110,11 @@ class GuildMemberState(BaseState):
 
     async def fetch(self, member_id):
         data = await self._client.rest.get_guild_member(self._guild.id, member_id)
-        return self.add(data)
+        return self._add(data)
 
-    def add(self, data, user=None):
+    def _add(self, data, user=None):
         if user is None:
-            user = self._client.users.add(data['user'])
+            user = self._client.users._add(data['user'])
         member = self.get(user.id)
         if member is not None:
             member._update(data)
@@ -177,10 +177,10 @@ class Guild(BaseObject):
         self.shard = self._state._client.ws.shards.get(shard_id)
 
         for channel in self._channels:
-            self._state._client.channels.add(channel, guild=self)
+            self._state._client.channels._add(channel, guild=self)
 
         for member in self._members:
-            self.members.add(member)
+            self.members._add(member)
 
         del self._channels
         del self._members
@@ -205,9 +205,9 @@ class Guild(BaseObject):
 class GuildState(BaseState):
     async def fetch(self, guild_id) -> Guild:
         data = await self._client.rest.get_guild(guild_id)
-        return self.add(data)
+        return self._add(data)
 
-    def add(self, data) -> Guild:
+    def _add(self, data) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
             guild._update(data)

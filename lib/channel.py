@@ -66,7 +66,7 @@ class GuildChannel(BaseObject):
     @property
     def mention(self) -> str:
         return '<#{0}>'.format(self.id)
-    
+
     async def delete(self) -> None:
         resp = await self._state._client.rest.delete_channel(self.id)
 
@@ -80,7 +80,7 @@ class TextChannel(GuildChannel):
         self, 
         *, 
         name=None, 
-        type=None, 
+        channel_type=None, 
         position=None, 
         topic=None, 
         nsfw=None, 
@@ -88,10 +88,11 @@ class TextChannel(GuildChannel):
         permission_overwrites=None, 
         category=None
     ) -> None:
+        rest = self._state._client.rest
         if category is not None:
             category = category.id
-        resp = await self._state._client.rest.modify_channel(
-            self.id, name=name, type=type, 
+        resp = await rest.modify_channel(
+            self.id, name=name, channel_type=channel_type, 
             position=position, topic=topic, nsfw=nsfw, 
             slowmode=slowmode, permission_overwrites=permission_overwrites,
             category=category
@@ -99,9 +100,10 @@ class TextChannel(GuildChannel):
         # todo... return channel
 
     async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
+        rest = self._state._client.rest
         if embed is not None:
             embed = embed.to_dict()
-        resp = await self._state._client.rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
+        resp = await rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
         # todo... return message
 
 
@@ -121,9 +123,53 @@ class VoiceChannel(GuildChannel):
         await self.voice_connection.connect()
         return self.voice_connection
 
+    async def edit(
+        self,
+        channel_id,
+        *,
+        name=None,
+        channel_type=None,
+        position=None,
+        topic=None,
+        nsfw=None,
+        bitrate=None,
+        user_limit=None,
+        permission_overwrites=None,
+        parent_id=None
+    ):
+        rest = self._state._client.rest
+        resp = await rest.modify_channel(
+            self.id, name=name, channel_type=channel_type,
+            position=position, topic=topic, nsfw=nsfw, 
+            bitrate=bitrate, user_limit=user_limit, 
+            permission_overwrites=permission_overwrites,
+            parent_id=parent_id
+        )
+        data = await resp.json()
+        channel = self._state._add(data, guild=self.guild)
+        return channel
+
 
 class CategoryChannel(GuildChannel):
-    pass
+    async def edit(
+        self, 
+        *, 
+        name=None, 
+        channel_type=None, 
+        position=None, 
+        topic=None, 
+        nsfw=None, 
+        slowmode=None, 
+        permission_overwrites=None, 
+    ) -> None:
+        rest = self._state._client.rest
+        if category is not None:
+            category = category.id
+        resp = await rest.modify_channel(
+            self.id, name=name, channel_type=channel_type, 
+            position=position, topic=topic, nsfw=nsfw, 
+            slowmode=slowmode, permission_overwrites=permission_overwrites,
+        )
 
 
 class DMChannel(BaseObject):
@@ -138,7 +184,7 @@ class DMChannel(BaseObject):
         self.recipients: List[User] = []
 
         for recipient in self._recipients:
-            user = state._client.users.add(recipient)
+            user = state._client.users._add(recipient)
             self.recipients.append(user)
 
         del self._recipients
@@ -155,9 +201,9 @@ _CHANNEL_TYPE_MAP = {
 class ChannelState(BaseState):
     async def fetch(self, channel_id):
         data = await self._client.rest.get_channel(channel_id)
-        return self.add(data)
+        return self._add(data)
 
-    def add(self, data, *args, **kwargs):
+    def _add(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
             channel._update(data)

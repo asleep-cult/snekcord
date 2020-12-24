@@ -31,9 +31,9 @@ class EventHandler:
         if channel is None:
             print('rip')
             return
-        message = channel.messages.add(data)
+        message = channel.messages._add(data)
         self._call_listeners('message_create', message)
 
     def guild_create(self, payload):
-        guild = self._client.guilds.add(payload.data)
+        guild = self._client.guilds._add(payload.data)
         self._call_listeners('guild_create', guild)

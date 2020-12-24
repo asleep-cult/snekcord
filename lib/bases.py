@@ -54,7 +54,7 @@ class BaseState:
     def clear(self):
         self._values = {}
 
-    def add(self, *args, **kwargs):
+    def _add(self, *args, **kwargs):
         raise NotImplementedError
 
     async def fetch(self, object_id):

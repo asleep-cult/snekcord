@@ -210,8 +210,9 @@ class RestSession:
     def modify_channel(
         self,
         channel_id,
+        *,
         name=None,
-        type=None,
+        channel_type=None,
         position=None,
         topic=None,
         nsfw=None,
@@ -223,7 +224,7 @@ class RestSession:
     ):
         payload = {
             'name': name,
-            'type': type,
+            'type': channel_type,
             'position': position,
             'topic': topic,
             'nsfw': nsfw,
@@ -318,7 +319,10 @@ class RestSession:
         )
         return fut
 
-    def delete_reaction(self, channel_id, message_id, emoji, user_id='@me'):
+    def delete_reaction(self, channel_id, message_id, emoji, user_id=None):
+        if user_id is None:
+            user_id = '@me'
+
         fut = self.request(
             'DELETE',
             'channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}',

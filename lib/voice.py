@@ -33,7 +33,7 @@ class VoiceState(JsonStructure):
         self.guild = voice_channel.guild
 
         if self._member is not None:
-            self.member = self.guild.members.add(self._member)
+            self.member = self.guild.members._add(self._member)
 
         del self._member
 
