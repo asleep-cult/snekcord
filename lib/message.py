@@ -330,7 +330,7 @@ class Message(BaseObject):
         else:
             self.guild = state._client.guilds.get(self.guild_id)
 
-        if self.guild is not None:
+        if self.guild is not None and self._member is not None:
             if self._member.get('user') is None:
                 self._member['user'] = self._author
             self.author = self.guild.members._add(self._member)
@@ -396,15 +396,15 @@ class ReactionState(BaseState):
         if user is not None:
             user = user.id
 
-        rest = self._state._client.rest
+        rest = self._client.rest
         await rest.delete_reaction(self._message.channel.id, self._message.id, emoji, user)
 
     async def remove_emoji(self, emoji):
-        rest = self._state._client.rest
+        rest = self._client.rest
         await rest.delete_reactions(self._message.channel.id, self._message.id, emoji)
 
     async def remove_all(self, emoji):
-        rest = self._state._client.rest
+        rest = self._client.rest
         await rest.delete_reactions(self._message.channel.id, self._message.id)
 
 
