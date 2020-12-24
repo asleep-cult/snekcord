@@ -401,8 +401,8 @@ class Guild(BaseObject):
 
 
 class GuildBan(JsonStructure):
-    reason = JsonStructure('reason')
-    _user = JsonStructure('user')
+    reason = JsonField('reason')
+    _user = JsonField('user')
 
     def __init__(self, state):
         self._state = state
