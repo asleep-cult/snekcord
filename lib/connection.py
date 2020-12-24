@@ -279,7 +279,6 @@ class VoiceWSProtocol(ConnectionBase):
         return payload
 
     async def select(self):
-        print(self.select_payload)
         await self.websocket.send_json(self.select_payload)
 
     async def dispatch(self, resp):

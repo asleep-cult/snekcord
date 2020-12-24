@@ -603,7 +603,80 @@ class RestSession:
         )
         return fut
 
-    # modify_guild :(
+    def modify_guild(
+        self,
+        guild_id, 
+        *,
+        name=None, 
+        region=None,
+        verification_level=None, 
+        default_message_notifications=None,
+        explicit_content_filter=None,
+        afk_channel_id=None,
+        afk_timeout=None,
+        icon=None,
+        owner_id=None,
+        splash=None,
+        banner=None,
+        system_channel_id=None,
+        rules_channel_id=None,
+        public_updates_channel_id=None,
+        preferred_locale=None
+    ):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if region is not None:
+            payload['region'] = region
+
+        if verification_level is not None:
+            payload['verification_level'] = verification_level
+
+        if default_message_notifications is not None:
+            payload['default_message_notifications'] = default_message_notifications
+
+        if explicit_content_filter is not None:
+            payload['explicit_content_filter'] = explicit_content_filter
+
+        if afk_channel_id is not None:
+            payload['adk_channel_id'] = afk_channel_id
+
+        if afk_timeout is not None:
+            payload['afk_timeout'] = afk_timeout
+
+        if icon is not None:
+            payload['icon'] = icon
+
+        if owner_id is not None:
+            payload['owner_id'] = owner_id
+
+        if splash is not None:
+            payload['splash'] = splash
+
+        if banner is not None:
+            payload['banner'] = banner
+
+        if system_channel_id is not None:
+            payload['system_channel_id'] = system_channel_id
+
+        if rules_channel_id is not None:
+            payload['rules_channel_id'] = rules_channel_id
+
+        if public_updates_channel_id is not None:
+            paylaod['public_updates_channel_id'] = public_updates_channel_id
+
+        if preferred_locale is not None:
+            payload['preferred_locale'] = preferred_locale
+
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
 
     def delete_guild(self, guild_id):
         fut = self.request(
@@ -621,7 +694,59 @@ class RestSession:
         )
         return fut
 
-    # create_guild_channel :(
+    def create_guild_channel(
+        self,
+        guild_id,
+        *,
+        name=None, 
+        channel_type=None,
+        topic=None,
+        bitrate=None,
+        user_limit=None,
+        slowmode=None,
+        position=None,
+        permission_overwrites=None,
+        parent_id=None,
+        nsfw=None
+    ):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if channel_type is not None:
+            payload['type'] = channel_type
+
+        if topic is not None:
+            payload['topic'] = topic
+
+        if bitrate is not None:
+            payload['bitrate'] = bitrate
+
+        if user_limit is not None:
+            payload['user_limit'] = user_limit
+
+        if slowmode is not None:
+            payload['rate_limt_per_user'] = slowmode
+
+        if position is not None:
+            payload['position'] = position
+
+        if permission_overwrites is not None:
+            payload['permission_overwrites'] =  permission_overwrites
+
+        if parent_id is not None:
+            payload['parent_id'] = parent_id
+
+        if nsfw is not None:
+            payload['nsfw'] = nsfw
+
+        fut = self.request(
+            'POST',
+            'guilds/{guild_id}/channels',
+            dict(guild_id=guild_id),
+            json=payload
+        )
 
     def modify_guild_channel_positions(self, guild_id, positions):
         fut = self.request(
@@ -656,9 +781,510 @@ class RestSession:
         )
         return fut
 
-    # add_guild_member :(
+    def add_guild_member(
+        self,
+        guild_id,
+        user_id,
+        access_token,
+        *,
+        nick=None,
+        roles=None,
+        mute=None,
+        deaf=None
+    ):
+        payload = {}
 
-    def get_user(self, user_id):
+        if nick is not None:
+            payload['nick'] = nick
+
+        if roles is not None:
+            payload['roles'] = roles
+
+        if mute is not None:
+            payload['mute'] = mute
+
+        if deaf is not None:
+            paylaod['deaf'] = deaf
+
+        fut = self.request(
+            'PUT',
+            'guilds/{guild_id}/members/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id),
+            json=payload
+        )
+        return fut
+
+    def modify_guild_member(
+        self,
+        guild_id,
+        user_id,
+        *,
+        nick=None,
+        roles=None,
+        mute=None,
+        deaf=None,
+        channel_id=None
+    ):
+        payload = {}
+
+        if nick is not None:
+            payload['nick'] = nick
+
+        if roles is not None:
+            payload['roles'] = roles
+
+        if mute is not None:
+            payload['mite'] = mute
+
+        if deaf is not None:
+            payload['deaf'] = deaf
+
+        if channel_id is not None:
+            payload['channel_id'] = channel_id
+
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/members/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id),
+            json=payload
+        )
+        return fut
+
+    def modify_client_nick(self, guild_id, nick):
+        payload = {
+            'nick': nick
+        }
+
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/members/@me/nick',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def add_guild_member_role(self, guild_id, user_id, role_id):
+        fut = self.request(
+            'PUT',
+            'guilds/{guild_id}/members/{user_id}/roles{role_id}',
+            dict(guild_id=guild_id, user_id=user_id, role_id=role_id)
+        )
+        return fut
+
+    def remove_guild_member_role(self, guild_id, user_id, role_id):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}/members/{user_id}/roles{role_id}',
+            dict(guild_id=guild_id, user_id=user_id, role_id=role_id)
+        )
+        return fut
+
+    def kick_guild_member(self, guild_id, user_id):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}/members/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id)
+        )
+        return fut
+
+    def get_guild_bans(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/bans',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_guild_ban(self, guild_id, user_id):
+        fut = self.request(
+            'GET',
+            'guild/{guild_id}/bans/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id)
+        )
+        return fut
+
+    def ban_guild_member(self, guild_id, user_id):
+        fut = self.request(
+            'PUT',
+            'guilds/{guild_id}/bans/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id)
+        )
+        return fut
+
+    def unban_guild_member(self, guild_id, user_id):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}/bans/{user_id}',
+            dict(guild_id=guild_id, user_id=user_id)
+        )
+        return fut
+
+    def get_guild_roles(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/roles',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def create_guild_role(
+        self,
+        guild_id,
+        *,
+        name=None,
+        permissions=None,
+        color=None,
+        hoist=None,
+        mentionable=None
+    ):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if permissions is not None:
+            payload['permissions'] = permissions
+
+        if color is not None:
+            payload['color'] = color
+
+        if hoist is not None:
+            payload['hoist'] = hoist
+
+        if mentionable is not None:
+            payload['mentionable'] = mentionable
+
+        fut = self.request(
+            'POST',
+            'guilds/{guild_id}/roles',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def modify_guild_role_positions(self, guild_id, positions):
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/roles',
+            dict(guild_id=guild_id),
+            json=positions
+        )
+
+    def modify_guild_role(
+        self,
+        guild_id,
+        *,
+        name=None,
+        permissions=None,
+        color=None,
+        hoist=None,
+        mentionable=None
+    ):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if permissions is not None:
+            payload['permissions'] = permissions
+
+        if color is not None:
+            payload['color'] = color
+
+        if hoist is not None:
+            payload['hoist'] = hoist
+
+        if mentionable is not None:
+            payload['mentionable'] = mentionable
+
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/roles',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def delete_guild_role(self, guild_id, role_id):
+        fut = self.request(
+            'DELETE',
+            'guild/{guild_id}/roles/{role_id}',
+            dict(guild_id=guild_id, role_id=role_id)
+        )
+        return fut
+
+    def get_guild_prune_count(self, guild_id, *, days=None, include_roles=None):
+        params = {}
+
+        if days is not None:
+            params['days'] = days
+
+        if include_roles is not None:
+            params['include_roles'] = include_roles
+
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/prune',
+            dict(guild_id=guild_id),
+            params=params
+        )
+        return fut
+
+    def begin_guild_prune(self, guild_id, *, days=None, include_roles=None, compute_prune_count=None):
+        payload = {}
+
+        if days is not None:
+            payload['days'] = days
+
+        if include_roles is not None:
+            payload['include_roles'] = include_roles
+
+        if compute_prune_count is not None:
+            payload['compute_prune_count'] = compute_prune_count
+
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/prune',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def get_guild_voice_region(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/regions',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_guild_invites(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/invites',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_guild_integrations(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/integrations',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def create_guild_integration(self, guild_id, integration_type, integration_id):
+        payload = {
+            'type': integration_type,
+            'id': integration_id
+        }
+
+        fut = self.request(
+            'GET',
+            'guild/{guild_id}/integrations/',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def modify_guild_integration(
+        self,
+        guild_id,
+        integration_id,
+        *,
+        expire_behavior=None,
+        expire_grace_period=None,
+        enable_emoticons=None
+    ):
+        payload = {}
+
+        if expire_behavior is not None:
+            payload['expire_behavior'] = expire_behavior
+
+        if expire_grace_period is not None:
+            payload['expire_grace_period'] = expire_grace_period
+
+        if enable_emoticons is not None:
+            payload['enable_emoticons'] = enable_emoticons
+
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/integrations/{integration_id}',
+            dict(guild_id=guild_id, integration_id=integration_id),
+            json=payload
+        )
+        return fut
+
+    def delete_guild_integration(self, guild_id, integration_id):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}/integrations/{integration_id}',
+            dict(guild_id=guild_id, integration_id=integration_id)
+        )
+        return fut
+
+    def sync_guild_integration(self, guild_id, integration_id):
+        fut = self.request(
+            'POST',
+            'guilds/{guild_id}/integrations/{integration_id}/sync',
+            dict(guild_id=guild_id, integration_id=integration_id)
+        )
+        return fut
+
+    def get_guild_widget_settings(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/widget',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def modify_guild_widget(self, guild_id, widget):
+        fut = self.request(
+            'PATCH',
+            'guilds/{guild_id}/widget',
+            dict(guild_id=guild_id),
+            json=widget
+        )
+        return fut
+
+    def get_guild_widget(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/widget.json',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_guild_vanity_url(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/vanity-url',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def get_guild_widget_image(self, guild_id, style=None):
+        params = {}
+
+        if style is not None:
+            params['style'] = style
+
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/widget.png',
+            dict(guild_id=guild_id),
+            params=params
+        )
+        return fut
+
+    def get_invite(self, invite_code, with_counts=None):
+        params = {}
+
+        if with_counts is not None:
+            params['with_counts'] = with_counts
+
+        fut = self.request(
+            'GET',
+            'invites/{invite_code}',
+            dict(invite_code=invite_code),
+            params=params
+        )
+        return fut
+
+    def delete_invite(self, invite_code):
+        fut = self.request(
+            'GET',
+            'invites/{invite_code}',
+            dict(invite_code=invite_code)
+        )
+        return fut
+
+    def get_template(self, template_code):
+        fut = self.request(
+            'GET',
+            'guilds/templates/{template_code}',
+            dict(template_code=template_code)
+        )
+        return fut
+
+    def create_guild_from_template(self, template_code, *, name=None, icon=None):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if icon is not None:
+            payload['icon'] = icon
+
+        fut = self.request(
+            'POST',
+            'guilds/templates/{template_code}',
+            dict(template_code=template_code),
+            json=payload
+        )
+        return fut
+
+    def get_guild_templates(self, guild_id):
+        fut = self.request(
+            'GET',
+            'guilds/{guild_id}/templates',
+            dict(guild_id=guild_id)
+        )
+        return fut
+
+    def create_guild_template(self, guild_id, *, name=None, description=None):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if description is not None:
+            payload['description'] = description
+
+        fut = self.request(
+            'POST',
+            'guilds/{guild_id}/templates',
+            dict(guild_id=guild_id),
+            json=payload
+        )
+        return fut
+
+    def sync_guild_template(self, guild_id, template_code):
+        fut = self.request(
+            'PUT',
+            'guilds/{guild_id}/templates/{template_code}',
+            dict(guild_id=guild_id, template_code=template_code)
+        )
+        return fut
+
+    def modify_guild_template(self, guild_id, template_code, name=None, description=None):
+        payload = {}
+
+        if name is not None:
+            payload['name'] = name
+
+        if description is not None:
+            payload['description'] = description
+
+        fut = self.request(
+            'POST',
+            'guilds/{guild_id}/templates/{template_code}',
+            dict(guild_id=guild_id, template_code=template_code),
+            json=payload
+        )
+        return fut
+
+    def delete_guild_template(self, guild_id, template_code):
+        fut = self.request(
+            'DELETE',
+            'guilds/{guild_id}/templates/{template_code}',
+            dict(guild_id=guild_id, template_code=template_code)
+        )
+        return fut
+
+    def get_user(self, user_id='@me'):
         fut = self.request(
             'GET',
             'users/{user_id}',
@@ -666,30 +1292,92 @@ class RestSession:
         )
         return fut
 
-    def get_channel_message(self, channel_id, message_id):
+    def modify_client_user(self, username=None, avatar=None):
+        payload = {}
+
+        if username is not None:
+            payload['username'] = username
+
+        if avatar is not None:
+            payload['avatar'] = avatar
+
         fut = self.request(
-            'GET',
-            'channels/{channel_id}/messages/{message_id}',
-            dict(channel_id=channel_id, message_id=message_id)
+            'PATCH',
+            'users/@me',
+            dict(),
+            json=payload
+        )
+
+    def get_client_guilds(self, before=None, after=None, limit=None):
+        params = {}
+
+        if before is not None:
+            params['before'] = before
+
+        if after is not None:
+            params['after'] = after
+
+        if limit is not None:
+            params['limit'] = limit
+
+        fut = self.request(
+            'PATCH',
+            'users/@me/guilds',
+            dict(),
+            params=params
         )
         return fut
 
-
-
-    def delete_channel(self, channel_id):
+    def leave_guild(self, guild_id):
         fut = self.request(
             'DELETE',
-            '/channels/{channel_id}'
+            'users/@me/guilds/{guild_id}',
+            dict(),
         )
         return fut
 
+    def get_client_dms(self):
+        fut = self.request(
+            'GET',
+            'users/@me/channels',
+            dict(),
+        )
+        return fut
 
+    def create_dm_channel(self, recipient_id):
+        payload = {
+            'recipient_id': recipient_id
+        }
 
-    def crosspost_message(self, channel_id, message_id):
         fut = self.request(
             'POST',
-            'channels/{channel_id}/messages/{message_id}/crosspost',
-            dict(channel_id=channel_id, message_id=message_id)
+            'users/@me/channels',
+            dict(),
+            json=payload
+        )
+        return fut
+
+    def create_group_dm_channel(self, access_tokens, nicks=None):
+        payload = {
+            'access_tokens': access_tokens
+        }
+
+        if nicks is not None:
+            payload['nicks'] = nicks
+
+        fut = self.request(
+            'POST',
+            'users/@me/channels',
+            dict(),
+            json=payload
+        )
+        return fut
+
+    def get_client_connections(self):
+        fut = self.request(
+            'GET',
+            'users/@me/connections',
+            dict()
         )
         return fut
 
