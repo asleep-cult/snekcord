@@ -15,7 +15,8 @@ from .utils import (
     JsonField,
     JsonArray,
     Snowflake,
-    JsonStructure
+    JsonStructure,
+    _try_snowflake
 )
 
 from .voice import (
@@ -35,6 +36,8 @@ from typing import (
 if TYPE_CHECKING:
     from .guild import Guild
 
+
+# TODO: add NewsChannel?, add ChannelRecipientState, add GuildEmojiState
 
 class ChannelType:
     GUILD_TEXT = 0	
@@ -174,6 +177,10 @@ class PermissionOverwrite(BaseObject):
         rest = self._state._client.rest
         await rest.edit_channel_permissions(self._state._channel.id, self.id, overwrite.allow, overwrite.deny, overwrite.type)
 
+    async def delete(self):
+        rest = self._state._client.rest
+        await rest.delete_channel_permission(self._state._channel.id, self.id)
+
 
 class PermissionOverwriteState(BaseState):
     def __init__(self, client, channel):
@@ -209,16 +216,18 @@ class TextChannel(GuildChannel):
         nsfw=None, 
         slowmode=None, 
         permission_overwrites=None, 
-        category=None
+        perent=None
     ) -> None:
         rest = self._state._client.rest
-        if category is not None:
-            category = category.id
+
+        if perent is not None:
+            perent = perent.id
+
         resp = await rest.modify_channel(
             self.id, name=name, channel_type=channel_type, 
             position=position, topic=topic, nsfw=nsfw, 
             slowmode=slowmode, permission_overwrites=permission_overwrites,
-            category=category
+            perent_id=perent
         )
         # todo... return channel
 
@@ -228,6 +237,10 @@ class TextChannel(GuildChannel):
             embed = embed.to_dict()
         resp = await rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
         # todo... return message
+
+    async def trigger_typing(self):
+        rest = self._state._client.rest
+        await rest.trigger_typing(self.id)
 
 
 class VoiceChannel(GuildChannel):
@@ -258,15 +271,19 @@ class VoiceChannel(GuildChannel):
         bitrate=None,
         user_limit=None,
         permission_overwrites=None,
-        parent_id=None
+        parent=None
     ):
         rest = self._state._client.rest
+
+        if parent is not None:
+            parent = parent.id
+
         resp = await rest.modify_channel(
             self.id, name=name, channel_type=channel_type,
             position=position, topic=topic, nsfw=nsfw, 
             bitrate=bitrate, user_limit=user_limit, 
             permission_overwrites=permission_overwrites,
-            parent_id=parent_id
+            parent_id=parent
         )
         data = await resp.json()
         channel = self._state._add(data, guild=self.guild)
@@ -320,9 +337,8 @@ _CHANNEL_TYPE_MAP = {
 
 
 class ChannelState(BaseState):
-    async def fetch(self, channel_id):
-        data = await self._client.rest.get_channel(channel_id)
-        return self._add(data)
+    def __init__(self, client):
+        super().__init__(client)
 
     def _add(self, data, *args, **kwargs):
         channel = self.get(data['id'])
@@ -333,5 +349,54 @@ class ChannelState(BaseState):
         channel = cls.unmarshal(data, *args, state=self, **kwargs)
         self._values[channel.id] = channel
         return channel
+
+    async def fetch(self, channel_id):
+        data = await self._client.rest.get_channel(channel_id)
+        return self._add(data)
+
+class GuildChannelState:
+    def __init__(self, channel_state, guild):
+        self._channel_state = channel_state
+        self._guild = guild
+
+    async def fetch_all(self):
+        rest = self._channel_state._client.rest
+        resp = await rest.get_guild_channels(self._guild.id)
+        data = await resp.json()
+        channels = []
+        for channel in data:
+            channel = self._channel_state._add(channel)
+            channels.append(channel)
+        return channel
+
+    async def create(
+        self,
+        *,
+        name=None, 
+        channel_type=None,
+        topic=None,
+        bitrate=None,
+        user_limit=None,
+        slowmode=None,
+        position=None,
+        permission_overwrites=None,
+        parent=None,
+        nsfw=None
+    ):
+        rest = self._channel_state._client.rest
+
+        if parent is not None:
+            parent = parent.id
+
+        await rest.create_guild_channel(
+            self._guild.id, name=name, channel_type=channel_type,
+            topic=topic, bitrate=bitrate, user_limit=user_limit,
+            slowmode=slowmode, position=position, permission_overwrites=permission_overwrites,
+            parent=parent, nsfw=nsfw
+        )
+
+    async def modify_positions(self, positions):
+        rest = self._channel_state._client.rest
+        await rest.modify_guild_channel_positions(self._guild.id, positions)
 
 _Channel = Union[DMChannel, CategoryChannel, VoiceChannel, TextChannel, GuildChannel]

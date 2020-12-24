@@ -422,8 +422,8 @@ class RestSession:
         *,
         max_age=None,
         max_uses=None,
-        temporary=False,
-        unique=False,
+        temporary=None,
+        unique=None,
         target_user_id=None,
         target_user_type=None
     ):
@@ -435,9 +435,11 @@ class RestSession:
         if max_uses is not None:
             payload['max_uses'] = max_uses
 
-        payload['temporary'] = temporary
+        if temporary is not None:
+            payload['temporary'] = temporary
 
-        payload['unique'] = unique
+        if unique is not None:
+            payload['unique'] = unique
 
         if target_user_id is not None:
             payload['target_user'] = target_user_id
@@ -599,7 +601,7 @@ class RestSession:
         )
         return fut
 
-    def get_preview_guild(self, guild_id):
+    def get_guild_preview(self, guild_id):
         fut = self.request(
             'GET',
             'guilds/{guild_id}/preview',
@@ -907,15 +909,24 @@ class RestSession:
         )
         return fut
 
-    def ban_guild_member(self, guild_id, user_id):
+    def create_guild_ban(self, guild_id, user_id, delete_message_days=None, reason=None):
+        payload = {}
+
+        if delete_message_days is not None:
+            payload['delete_message_days'] = delete_message_days
+
+        if reason is not None:
+            payload['reason'] = reason
+
         fut = self.request(
             'PUT',
             'guilds/{guild_id}/bans/{user_id}',
-            dict(guild_id=guild_id, user_id=user_id)
+            dict(guild_id=guild_id, user_id=user_id),
+            json=payload
         )
         return fut
 
-    def unban_guild_member(self, guild_id, user_id):
+    def remove_guild_ban(self, guild_id, user_id):
         fut = self.request(
             'DELETE',
             'guilds/{guild_id}/bans/{user_id}',
@@ -977,6 +988,7 @@ class RestSession:
     def modify_guild_role(
         self,
         guild_id,
+        role_id,
         *,
         name=None,
         permissions=None,
@@ -1003,8 +1015,8 @@ class RestSession:
 
         fut = self.request(
             'PATCH',
-            'guilds/{guild_id}/roles',
-            dict(guild_id=guild_id),
+            'guilds/{guild_id}/roles/{role_id}',
+            dict(guild_id=guild_id, role_id=role_id),
             json=payload
         )
         return fut

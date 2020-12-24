@@ -27,18 +27,15 @@ class EventHandler:
             self._client.loop.create_task(listener(*args))
 
     def invite_create(self, payload):
-        data = payload.data
-        print(data)
-        invite = self._client.invites._add(data)
+        invite = self._client.invites._add(payload.data)
         self._call_listeners('invite_create', invite)
 
     def message_create(self, payload):
         data = payload.data
         channel = self._client.channels.get(data.get('channel_id'))
-        if channel is None:
-            return
-        message = channel.messages._add(data)
-        self._call_listeners('message_create', message)
+        if channel is not None:
+            message = channel.messages._add(data)
+            self._call_listeners('message_create', message)
 
     def guild_create(self, payload):
         guild = self._client.guilds._add(payload.data)

@@ -27,12 +27,17 @@ class Invite(JsonStructure):
 
     def __init__(self, state=None):
         self._state = state
+
         if self._guild is not None:
             self.guild = self._state._client.guilds._add(self._guild)
-            self.channel = self._state._client.channels._add(self._channel)
         else:
             self.guild = self._state._client.guilds.get(self.guild_id)
-            self.channel = self._state._client.channels.get(self.channel_id)
+
+        if self._channel is not None:
+            self.channel = self._state._client.channels.add(self._channel)
+        else:
+            self.channel = self._state._client.channels.get(self.guild_id)
+
         if self._inviter is not None:
             self.inviter = self._state._client.users._add(self._inviter)
         if self._target_user is not None:
@@ -116,4 +121,29 @@ class ChannelInviteState:
         for invite in data:
             invite = self._invite_state._add(invite)
             invites.append(invite)
+        return invite
+
+    async def create(
+        self,
+        *,
+        max_age=None,
+        max_uses=None,
+        temporary=None,
+        unique=None,
+        target_user=None,
+        target_user_type=None
+    ):
+        rest = self._invite_state._client.rest
+
+        if target_user is not None:
+            target_user = target_user.id
+
+        resp = await rest.create_channel_invite(
+            max_age=max_age, max_uses=max_uses,
+            temporary=temporary, unique=unique,
+            target_user_id=target_user, 
+            target_user_type=target_user_type
+        )
+        data = await resp.json()
+        invite = self._invite_state._add(data)
         return invite

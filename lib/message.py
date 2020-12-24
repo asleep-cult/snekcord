@@ -359,6 +359,14 @@ class Message(BaseObject):
         rest = self._state._client.rest
         await rest.edit_message(self.channel.id, self.id)
 
+    async def pin(self):
+        rest = self._state._client.rest
+        await rest.pin_message(self.id)
+
+    async def unpin(self):
+        rest = self._state._client.rest
+        await rest.unpin_message(self.id)
+
 
 class ReactionState(BaseState):
     def __init__(self, client, message):
@@ -461,6 +469,10 @@ class MessageState(BaseState):
         return messages
 
     async def bulk_delete(self, messages):
-        messages = list({message.id for message in messages})
+        messages = {message.id for message in messages}
         rest = self._state._client.reat
         await rest.bulk_delete_messages(self._channel.id, messages)
+
+    async def fetch_pins(self):
+        rest = self._state._client.reat
+        await rest.get_pinned_message(self._channel.id)
