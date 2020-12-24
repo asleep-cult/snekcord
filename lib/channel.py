@@ -16,6 +16,12 @@ from .utils import (
     Snowflake
 )
 
+from .voice import (
+    VoiceConnection,
+    VoiceState,
+    VoiceServerUpdate
+)
+
 from typing import (
     Union,
     Iterable,
@@ -104,6 +110,16 @@ class VoiceChannel(GuildChannel):
 
     bitrate: int = JsonField('bitrate')
     user_limit: int = JsonField('user_limit')
+
+    async def connect(self):
+        voice_state_update, voice_server_update = await self.guild.shard.update_voice_state(self.guild.id, self.id)
+        state_data = await voice_state_update
+        server_data = await voice_server_update
+        voice_state = VoiceState.unmarshal(state_data.data, voice_channel=self)
+        voice_server = VoiceServerUpdate.unmarshal(server_data.data)
+        self.voice_connection = VoiceConnection(voice_state, voice_server)
+        await self.voice_connection.connect()
+        return self.voice_connection
 
 
 class CategoryChannel(GuildChannel):

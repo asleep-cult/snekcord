@@ -207,10 +207,13 @@ class Shard(ConnectionBase):
 
     async def update_voice_state(self, guild_id, channel_id, self_mute=False, self_deaf=False):
         payload = {
-            'guild_id': guild_id,
-            'channel_id': channel_id,
-            'self_mute': self_mute,
-            'self_deaf': self_deaf
+            'op': ShardOpcode.VOICE_STATE_UPDATE,
+            'd': {
+                'guild_id': guild_id,
+                'channel_id': channel_id,
+                'self_mute': self_mute,
+                'self_deaf': self_deaf
+            }
         }
 
         await self.websocket.send_json(payload)
@@ -234,11 +237,11 @@ class Shard(ConnectionBase):
             self._client.events.dispatch(resp)
 
 
-class VoiceConnection(ConnectionBase):
-    def __init__(self, client, endpoint, voice_channel):
-        super().__init__(client, endpoint)
-        self.voice_channel = voice_channel
-    
+class VoiceWSProtocol(ConnectionBase):
+    def __init__(self, voice_connection):
+        self.voice_connection = voice_connection
+        super().__init__(voice_connection._client, voice_connection.endpoint)
+
     @property
     def heartbeat_payload(self):
         payload = {
@@ -252,13 +255,32 @@ class VoiceConnection(ConnectionBase):
         payload = {
             'op': VoiceConnectionOpcode.IDENTIFY,
             'd': {
-                'server_id': self.voice_channel.guild.id,
-                'user_id': ...,
-                'session_id': ...,
-                'token': ...
+                'server_id': self.voice_connection.guild_id,
+                'user_id': self.voice_connection.voice_state.member.id,
+                'session_id': self.voice_connection.voice_state.session_id,
+                'token': self.voice_connection.token
             }
         }
         return payload
+
+    @property
+    def select_payload(self):
+        payload = {
+            'op': VoiceConnectionOpcode.SELECT,
+            'd': {
+                'protocol': 'udp',
+                'data': {
+                    'address': self.voice_connection.udp_ip,
+                    'port': self.voice_connection.udp_port, 
+                    'mode': self.voice_connection.mode
+                }
+            }
+        }
+        return payload
+
+    async def select(self):
+        print(self.select_payload)
+        await self.websocket.send_json(self.select_payload)
 
     async def dispatch(self, resp):
         if resp.opcode == VoiceConnectionOpcode.HELLO:
@@ -266,3 +288,18 @@ class VoiceConnection(ConnectionBase):
 
             self.websocket.heartbeat_interval = resp.data['heartbeat_interval'] / 1000
             self.websocket.do_heartbeat()
+
+        elif resp.opcode == VoiceConnectionOpcode.HEARTBEAT_ACK:
+            self.websocket.heartbeat_ack()
+
+        else:
+            await self.voice_connection.dispatch(resp)
+
+
+class VoiceUDPProtocol(asyncio.DatagramProtocol):
+    def __init__(self):
+        self.first_datagram_received = asyncio.Future()
+
+    def datagram_received(self, data, addr):
+        if not self.first_datagram_received.done():
+            self.first_datagram_received.set_result(data)
