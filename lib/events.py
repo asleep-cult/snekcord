@@ -1,6 +1,7 @@
 class EventHandler:
     def __init__(self, client):
         handlers = (
+            self.invite_create,
             self.message_create,
             self.guild_create
         )
@@ -25,11 +26,16 @@ class EventHandler:
         for listener in self.listeners[name]:
             self._client.loop.create_task(listener(*args))
 
+    def invite_create(self, payload):
+        data = payload.data
+        print(data)
+        invite = self._client.invites._add(data)
+        self._call_listeners('invite_create', invite)
+
     def message_create(self, payload):
         data = payload.data
         channel = self._client.channels.get(data.get('channel_id'))
         if channel is None:
-            print('rip')
             return
         message = channel.messages._add(data)
         self._call_listeners('message_create', message)

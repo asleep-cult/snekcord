@@ -1,5 +1,6 @@
 from .user import User
 from .channel import _Channel
+from .invite import GuildInviteState
 
 from .bases import (
     BaseObject, 
@@ -172,6 +173,7 @@ class Guild(BaseObject):
         self._state = state
         self.roles: Iterable[Role] = RoleState(self._state._client, guild=self)
         self.members: Iterable[GuildMember] = GuildMemberState(self._state._client, guild=self)
+        self.invites = GuildInviteState(self._state._client.invites, guild=self)
 
         shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
         self.shard = self._state._client.ws.shards.get(shard_id)

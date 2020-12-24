@@ -3,6 +3,7 @@ from .channel import ChannelState
 from .guild import GuildState
 from .user import UserState
 from .rest import RestSession
+from .invite import InviteState
 from .events import EventHandler
 from .gateway import Gateway
 
@@ -15,6 +16,7 @@ class Client:
         channel_state=None, 
         guild_state=None,
         user_state=None,
+        invite_state=None,
         event_handler=None, 
         ws=None, 
         max_shards=1
@@ -24,6 +26,7 @@ class Client:
         self.channels = channel_state or ChannelState(self)
         self.guilds = guild_state or GuildState(self)
         self.users = user_state or UserState(self)
+        self.invites = invite_state or InviteState(self)
         self.events = event_handler or EventHandler(self)
         self.ws = ws or Gateway(self, max_shards=max_shards)
         self.token = None

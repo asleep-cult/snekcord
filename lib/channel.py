@@ -1,4 +1,5 @@
 from .user import User
+from .invite import ChannelInviteState
 
 from .message import (
     MessageState,
@@ -13,7 +14,8 @@ from .bases import (
 from .utils import (
     JsonField,
     JsonArray,
-    Snowflake
+    Snowflake,
+    JsonStructure
 )
 
 from .voice import (
@@ -100,8 +102,6 @@ class GuildChannel(BaseObject):
 
         for overwrite in self._permission_overwrites:
             self.permission_overwrites._add(overwrite)
-
-        print(next(iter(self.permission_overwrites)).send_messages)
 
         del self._permission_overwrites
 
@@ -194,6 +194,10 @@ class TextChannel(GuildChannel):
     __json_slots__ = (*GuildChannel.__json_slots__, 'last_message_id')
 
     last_message_id: Snowflake = JsonField('last_message_id', Snowflake, str)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.invites = ChannelInviteState(self._state._client.invites, self)
 
     async def edit(
         self, 
