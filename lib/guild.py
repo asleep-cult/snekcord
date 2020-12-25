@@ -3,7 +3,7 @@ from .invite import GuildInviteState
 
 from .channel import (
     _Channel,
-    ChannelState
+    GuildChannelState
 )
 
 from .bases import (
@@ -256,6 +256,88 @@ class GuildMemberState(BaseState):
         return member
 
 
+class GuildEmoji(BaseObject):
+    name = JsonField('name')
+    _roles = JsonArray('roles')
+    _user = JsonField('user')
+    required_colons = JsonField('required_colons')
+    managed = JsonField('managed')
+    animated = JsonField('animated')
+    available = JsonField('available')
+
+    def __init__(self, state, guild):
+        self._state = state
+        self.guild = guild
+        self.roles = []
+        
+        if self._user is not None:
+            self.user = self._state._client.users._add(user)
+
+        for role in self._roles:
+            role = self.guild.roles.get(role)
+            if role is not None:
+                self.roles.append(role)
+
+    def __str__(self):
+        if self.id is None:
+            return self.name
+        elif self.animated:
+            return '<a:%s:%s>' % (self.name, self.id)
+        else:
+            return '<:%s:%s>' % (self.name, self.id)
+
+    def __repr__(self):
+        return '<String: %r, Roles: %s, Guild: %s>' % (
+            str(self), self.roles, self.guild)
+
+    async def delete(self):
+        rest = self._state._client.rest
+        await rest.delete_guild_emoji(self.guild.id, self.id)
+
+    async def edit(self, name=None, roles=None):
+        rest = self._state._client.rest
+        await rest.modify_guild_emoji(self.guild.id, self.id, name, roles)
+
+
+class GuildEmojiState(BaseState):
+    def __init__(self, client, guild):
+        super().__init__(client)
+        self._guild = guild
+
+    def _add(self, data):
+        emoji = self.get(data.get('id'))
+        if emoji is not None:
+            emoji._update(data)
+            return emoji
+        emoji = GuildEmoji.unmarshal(data, state=self, guild=self._guild)
+        self._values[emoji.id] = emoji
+        return emoji
+
+    async def fetch(self, emoji_id):
+        rest = self._client.rest
+        resp = await rest.get_guild_emoji(self._guild.id, emoji_id)
+        data = await resp.data()
+        emoji = self._add(data)
+        return emoji
+
+    async def fetch_all(self):
+        rest = self._client.rest
+        resp = await rest.get_guild_emojis(self._guild.id)
+        data = await resp.data()
+        emojis = []
+        for emoji in data:
+            emoji = self._add(emoji)
+            emojis.append(emoji)
+        return emojis
+
+    async def create(self, name, image, roles=None):
+        rest = self._client.rest
+        resp = await rest.create_guild_emoji(self._guild.id, name, image, roles)
+        data = await resp.json()
+        emoji = self._add(data)
+        return emoji
+
+
 class Guild(BaseObject):
     __json_slots__ = (
         '_state', 'members', 'shard', 'name', 'description', 
@@ -293,8 +375,8 @@ class Guild(BaseObject):
     preferred_locale: str = JsonField('preferred_locale')
     rules_channel_id: Snowflake = JsonField('rules_channel_id', Snowflake, str)
     public_updates_channel_id: Snowflake = JsonField('public_updates_channel_id', Snowflake, str)
-    emojis: list = JsonField('emojis')
-    roles: RoleState = JsonField('roles')
+    _emojis: list = JsonField('emojis')
+    _roles: list = JsonField('roles')
     _channels: list = JsonArray('channels')
     _members: list = JsonArray('members')
     member_count: int = JsonField('approximate_member_count')
@@ -302,13 +384,21 @@ class Guild(BaseObject):
 
     def __init__(self, *, state: 'GuildState'):
         self._state = state
+        self.emojis = GuildEmojiState(self._state._client, guild=self)
         self.roles: Iterable[Role] = RoleState(self._state._client, guild=self)
         self.members: Iterable[GuildMember] = GuildMemberState(self._state._client, guild=self)
         self.invites = GuildInviteState(self._state._client.invites, guild=self)
         self.bans = GuildBanState(self._state._client, guild=self)
+        self.channels = GuildChannelState(self._state._client.channels, guild=self)
 
         shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
         self.shard = self._state._client.ws.shards.get(shard_id)
+
+        for emoji in self._emojis:
+            self.emojis._add(emoji)
+
+        for role in self._roles:
+            self.roles._add(role)
 
         for channel in self._channels:
             self._state._client.channels._add(channel)
@@ -316,8 +406,34 @@ class Guild(BaseObject):
         for member in self._members:
             self.members._add(member)
 
+        del self._emojis
+        del self._roles
         del self._channels
         del self._members
+
+    @property
+    def owner(self):
+        return self.members.get(self.owner_id)
+
+    @property
+    def afk_channel(self):
+        return self._state._client.channels.get(self.afk_channel_id)
+
+    @property
+    def system_channel(self):
+        return self._state._client.channels.get(self.system_channel_id)
+
+    @property
+    def widdget_channel(self):
+        return self._state._client.channels.get(self.widget_channel_id)
+
+    @property
+    def rules_channel(self):
+        return self._state._client.channels.get(self.rules_channel_id)
+    
+    @property
+    def everyone_role(self):
+        return self.roles.get(self.id)
 
     def to_dict(self):
         dct = super().to_dict()

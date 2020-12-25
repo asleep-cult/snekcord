@@ -101,7 +101,7 @@ class GuildInviteState:
         for invite in data:
             invite = self._invite_state._add(invite)
             invites.append(invite)
-        return invite
+        return invites
 
 class ChannelInviteState:
     def __init__(self, invite_state, channel):
@@ -121,7 +121,7 @@ class ChannelInviteState:
         for invite in data:
             invite = self._invite_state._add(invite)
             invites.append(invite)
-        return invite
+        return invites
 
     async def create(
         self,

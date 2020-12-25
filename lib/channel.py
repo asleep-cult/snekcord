@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from .guild import Guild
 
 
-# TODO: add NewsChannel?, add ChannelRecipientState, add GuildEmojiState
+# TODO: add NewsChannel?, add ChannelRecipientState
 
 class ChannelType:
     GUILD_TEXT = 0	
@@ -367,7 +367,7 @@ class GuildChannelState:
         for channel in data:
             channel = self._channel_state._add(channel)
             channels.append(channel)
-        return channel
+        return channels
 
     async def create(
         self,
