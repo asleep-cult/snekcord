@@ -68,12 +68,12 @@ class InviteState(BaseState):
         rest = self._client.rest
         resp = await rest.get_invite(code, with_counts)
         data = await resp.json()
-        invite = self._add(invite)
+        invite = self._add(data)
         return invite
 
     async def delete(self, code):
         rest = self._client.rest
-        resp = await rest.delete_invite(code)
+        await rest.delete_invite(code)
 
 
 # GuildInviteState and ChannelInviteState essentialy wrap InviteState

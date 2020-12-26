@@ -300,7 +300,7 @@ class Message(BaseObject):
     # mention_roles
     # mention_channels
     attachments: list = JsonArray('attachments', struct=MessageAttachment)
-    embeds: list = JsonArray('embeds', struct=Embed)
+    embeds: list = JsonArray('embeds', struct=Embed, init_struct_class=False)
     _reactions: list = JsonArray('reactions')
     nonce = JsonField('nonce')
     pinned: bool = JsonField('pinned')
@@ -318,17 +318,14 @@ class Message(BaseObject):
         self._state = state
 
         self.reactions = ReactionState(self._state._client, self)
+        self.channel = channel
 
         if self._reactions is not None:
             for reaction in self._reactions:
                 self.reactions._add(reaction)
 
-        self.channel = channel
-
         if self.channel is not None:
             self.guild = self.channel.guild
-        else:
-            self.guild = state._client.guilds.get(self.guild_id)
 
         if self.guild is not None and self._member is not None:
             if self._member.get('user') is None:
@@ -352,7 +349,7 @@ class Message(BaseObject):
         rest = self._state._client.rest
         resp = await rest.edit_message(self.channel.id, self.id, content=content, embed=embed, flags=flags, allowed_mentions=allowed_mentions)
         data = await resp.json()
-        message = self._state._add(self, channel=self.channel)
+        message = self._state._add(data, channel=self.channel)
         return message
 
     async def delete(self):
@@ -386,18 +383,14 @@ class ReactionState(BaseState):
         rest = self._client.rest
         await rest.create_reaction(self._message.channel.id, self._message.id, emoji)
 
-    async def fetch(self, emoji=None):
+    async def fetch_all(self):
         rest = self._client.rest
         resp = await rest.get_reactions(self._message.channel.id, self._message.id)
         data = await resp.json()
         reactions = []
         for reaction in data:
             reaction = self._add(reaction)
-            if emoji is not None:
-                if reaction.emoji == emoji:
-                    reactions.append(reaction)
-            else:
-                reactions.append(reaction)
+            reactions.append(reaction)
         return reactions
 
     async def remove(self, emoji, user=None):
@@ -434,7 +427,7 @@ class MessageState(BaseState):
         rest = self._client.rest
         resp = await rest.get_channel_message(self._channel.id, message_id)
         data = await resp.json()
-        message = self._add(message)
+        message = self._add(data)
         return message
 
     async def fetch_history(self, around=None, before=None, after=None, limit=None):
@@ -470,9 +463,9 @@ class MessageState(BaseState):
 
     async def bulk_delete(self, messages):
         messages = {message.id for message in messages}
-        rest = self._state._client.reat
+        rest = self._client.reat
         await rest.bulk_delete_messages(self._channel.id, messages)
 
     async def fetch_pins(self):
-        rest = self._state._client.reat
+        rest = self._client.reat
         await rest.get_pinned_message(self._channel.id)

@@ -229,14 +229,18 @@ class TextChannel(GuildChannel):
             slowmode=slowmode, permission_overwrites=permission_overwrites,
             perent_id=perent
         )
-        # todo... return channel
+        data = await resp.json()
+        message = self.messages._add(data)
+        return message
 
     async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
         rest = self._state._client.rest
         if embed is not None:
             embed = embed.to_dict()
         resp = await rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
-        # todo... return message
+        data = await resp.json()
+        message = self.messages._add(data)
+        return message
 
     async def trigger_typing(self):
         rest = self._state._client.rest
@@ -308,6 +312,9 @@ class CategoryChannel(GuildChannel):
             position=position, topic=topic, nsfw=nsfw, 
             slowmode=slowmode, permission_overwrites=permission_overwrites,
         )
+        data = await resp.json()
+        channel = self._state._add(data, guild=self.guild)
+        return channel
 
 
 class DMChannel(BaseObject):
@@ -319,13 +326,31 @@ class DMChannel(BaseObject):
 
     def __init__(self, state):
         self._state: ChannelState = state
-        self.recipients: List[User] = []
+        self.recipients = ChannelRecipientState(self._state.client, channel=self)
 
         for recipient in self._recipients:
-            user = state._client.users._add(recipient)
-            self.recipients.append(user)
+            self.recipients._add(recipient)
 
         del self._recipients
+
+
+class ChannelRecipientState(BaseState):
+    def __init__(self, client, channel):
+        super().__init__(client)
+        self._channel = channel
+
+    def _add(self, data):
+        user = self._client.users._add(data)
+        self._values[user.id] = user
+        return user
+
+    async def add(self, user, access_token, *, nick):
+        rest = self._client.rest
+        await rest.add_dm_recipient(self._channel.id, user.id, access_token, nick)
+
+    async def remove(self, user):
+        rest = self._client.rest
+        await rest.remove_dm_recipient(self._channel.id, user.id)
 
 
 _CHANNEL_TYPE_MAP = {

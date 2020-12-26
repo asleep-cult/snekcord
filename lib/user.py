@@ -36,10 +36,6 @@ class User(BaseObject):
 
 
 class UserState(BaseState):
-    async def fetch(self, user_id) -> User:
-        data = await self._client.rest.get_user(user_id)
-        return self._add(data)
-
     def _add(self, data) -> User:
         user = self.get(data['id'])
         if user is not None:
@@ -48,3 +44,7 @@ class UserState(BaseState):
         user = User.unmarshal(data, state=self)
         self._values[user.id] = user
         return user
+
+    async def fetch(self, user_id) -> User:
+        data = await self._client.rest.get_user(user_id)
+        return self._add(data)

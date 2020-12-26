@@ -377,7 +377,8 @@ class RestSession:
     def delete_message(self, channel_id, message_id):
         fut = self.request(
             'DELETE',
-            'channels/{channel_id}/messages/{message_id}'
+            'channels/{channel_id}/messages/{message_id}',
+            dict(channel_id=channel_id, message_id=message_id)
         )
         return fut
 
@@ -389,6 +390,7 @@ class RestSession:
         fut = self.request(
             'POST',
             'channels/{channel_id}/messages/bulk-delete',
+            dict(channel_id=channel_id),
             json=payload
         )
         return fut
@@ -671,7 +673,7 @@ class RestSession:
             payload['rules_channel_id'] = rules_channel_id
 
         if public_updates_channel_id is not None:
-            paylaod['public_updates_channel_id'] = public_updates_channel_id
+            payload['public_updates_channel_id'] = public_updates_channel_id
 
         if preferred_locale is not None:
             payload['preferred_locale'] = preferred_locale
@@ -753,6 +755,7 @@ class RestSession:
             dict(guild_id=guild_id),
             json=payload
         )
+        return fut
 
     def modify_guild_channel_positions(self, guild_id, positions):
         fut = self.request(
@@ -810,7 +813,7 @@ class RestSession:
             payload['mute'] = mute
 
         if deaf is not None:
-            paylaod['deaf'] = deaf
+            payload['deaf'] = deaf
 
         fut = self.request(
             'PUT',
@@ -984,6 +987,7 @@ class RestSession:
             dict(guild_id=guild_id),
             json=positions
         )
+        return fut
 
     def modify_guild_role(
         self,
@@ -1156,12 +1160,20 @@ class RestSession:
         )
         return fut
 
-    def modify_guild_widget(self, guild_id, widget):
+    def modify_guild_widget(self, guild_id, *, enabled=None, channel_id=None):
+        payload = {}
+
+        if enabled is not None:
+            payload['enabled'] = enabled
+
+        if channel_id is not None:
+            payload['channel_id'] = channel_id
+
         fut = self.request(
             'PATCH',
             'guilds/{guild_id}/widget',
             dict(guild_id=guild_id),
-            json=widget
+            json=payload
         )
         return fut
 
@@ -1323,6 +1335,7 @@ class RestSession:
             dict(),
             json=payload
         )
+        return fut
 
     def get_client_guilds(self, before=None, after=None, limit=None):
         params = {}

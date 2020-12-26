@@ -187,7 +187,7 @@ class GuildMember(User):
         return member
 
     async def ban(self, *, reason=None, delete_message_days=None):
-        ban = await self._guild.bans.add(self, reason=reason, delete_message_days=delete_message_days)
+        ban = await self.guild.bans.add(self, reason=reason, delete_message_days=delete_message_days)
         return ban
 
 
@@ -295,7 +295,7 @@ class GuildEmoji(BaseObject):
             return '<:%s:%s>' % (self.name, self.id)
 
     def __repr__(self):
-        return '<String: %r, Roles: %s, Guild: %s>' % (
+        return '<GuildEmoji String: %r, Roles: %s, Guild: %s>' % (
             str(self), self.roles, self.guild)
 
     async def delete(self):
@@ -356,6 +356,143 @@ class GuildEmojiState(BaseState):
         return emoji
 
 
+class GuildIntegrationAccount(BaseObject):
+    name = JsonField('name')
+
+
+class GuildIntegrationApplication(BaseObject):
+    name = JsonField('name')
+    icon = JsonField('icon')
+    description = JsonField('description')
+    summary = JsonField('summary')
+    _bot = JsonField('bot')
+
+    def __init__(self, state):
+        self._state = state
+        
+        if self._bot is not None:
+            self.bot = self._state._client.users.add(self._bot)
+
+
+class GuildIntegration(BaseObject):
+    name = JsonField('name')
+    type = JsonField('type')
+    enabled = JsonField('enabled')
+    syncing = JsonField('syncing')
+    role_id  = JsonField('role_id', Snowflake, str)
+    enable_emoticons = JsonField('enable_emoticons')
+    expire_behavior = JsonField('expire_behavior')
+    expire_grace_period = JsonField('expire_grace_period')
+    _user = JsonField('user')
+    account = JsonField('account', struct=GuildIntegrationAccount)
+    synced_at = JsonField('synced_at')
+    subscriber_count = JsonField('subscriber_count')
+    revoked = JsonField('revoked')
+    _application = JsonField('application')
+
+    def __init__(self, state, guild):
+        self._state = state
+        self.guild = guild
+
+        if self._user is not None:
+            self.user = self._state._client.users._add(self._user)
+
+        if self._application is not None:
+            self.application = GuildIntegrationApplication.unmarshal(self._application, 
+            state=self._state)
+
+    async def edit(
+        self,
+        *,
+        expire_behavior=None,
+        expire_grace_period=None,
+        enable_emoticons=None
+    ):
+        rest = self._state._client.rest
+        await rest.modify_guild_integration(
+            self.guild.id, self.id, expire_behavior=expire_behavior,
+            expire_grace_period=expire_grace_period,
+            enable_emoticons=enable_emoticons 
+        )
+
+    async def delete(self):
+        rest = self._state._client.rest
+        await rest.delete_guild_integration(self.guild.id, self.id)
+
+    async def sync(self):
+        rest = self._state._client.rest
+        await rest.delete_guild_integration(self.guild.id, self.id)
+
+
+class GuildIntegrationState(BaseState):
+    def __init__(self, client, guild):
+        super().__init__(client)
+        self._guild = guild
+
+    def _add(self, data):
+        integration = self.get(data['id'])
+        if integration is not None:
+            integration._update(data)
+            return integration
+        integration = GuildIntegration.unmarshal(data, state=self, guild=self._guild)
+        self._values[integration.id] = integration
+        return integration
+
+    async def fetch_all(self):
+        rest = self._client.rest
+        resp = await rest.get_guild_integrations(self._guild.id)
+        data = await resp.json()
+        integrations = []
+        for integration in data:
+            integration = self._add(integration)
+            integrations.append(integration)
+        return integrations
+
+    async def create(self, integration_id, integration_type):
+        rest = self._client.rest
+        await rest.create_guild_integration(integration_type, integration_id)
+
+
+class GuildWidgetChannel(BaseObject):
+    name = JsonField('name')
+    poosition = JsonField('position')
+
+
+class GuildWidgetMember(BaseObject):
+    username = JsonField('username')
+    discriminator = JsonField('discriminator')
+    avatar = JsonField('avatar')
+    avatar_url = JsonField('avatar_url')
+
+
+class GuildWidget(BaseObject):
+    name = JsonField('name')
+    instant_invite = JsonField('instant_invite')
+    channels = JsonArray('channels', struct=GuildWidgetChannel)
+    members = JsonArray('members', struct=GuildWidgetMember)
+    presence_count = JsonField('presence_count')
+
+    def __init__(self, guild):
+        self.guild = guild
+
+    def edit(self, *, enabled=None, channel=None):
+        return self.guild.edit_widget(enabled=enabled, channel=channel) 
+
+
+class GuildWidgetSettings(JsonStructure):
+    enabled = JsonField('enabled')
+    channel_id = JsonField('channel_id')
+
+    def __init__(self, guild):
+        channels = guild._state._client.channels
+        self.channel = channels.get(self.channel_id)
+
+
+class PartialInvite(JsonStructure):
+    code = JsonField('code')
+    uses = JsonField('uses')
+
+
 class GuildPreview(BaseObject):
     # Basically a partial guild?
     name = JsonField('name')
@@ -376,6 +513,7 @@ class GuildPreview(BaseObject):
         self.invites = GuildInviteState(self._state._client.invites, guild=self)
         self.bans = GuildBanState(self._state._client, guild=self)
         self.channels = GuildChannelState(self._state._client.channels, guild=self)
+        self.integrations = GuildIntegrationState(self._state._client, guild=self)
 
         for emoji in self._emojis:
             self.emojis._add(emoji)
@@ -445,7 +583,46 @@ class GuildPreview(BaseObject):
         rest = self._state._client.rest
         resp = await rest.get_guild_vanity_url(self.id)
         data = await resp.json()
-        return data
+        invite = PartialInvite.unmarshal(data)
+        return invite
+
+    async def get_prune_count(self, *, days=None, include_roles=None):
+        rest = self._state.client.rest
+        resp = await rest.get_guild_prune_count(self.id, days, include_roles)
+        data = await resp.json()
+        return data['pruned']
+
+    async def begin_prune(self, days=None, include_roles=None, compute_prune_count=None):
+        rest = self._state._client.rest
+        resp = await rest.begin_guild_prune(self.id, days=days, include_roles=include_roles, 
+        compute_prune_count=compute_prune_count)
+        data = await resp.json()
+        return data['pruned']
+
+    async def fetch_widget(self):
+        rest = self._state._client.rest
+        resp = await rest.get_guild_widget(self.id)
+        data = await resp.json()
+        widget = GuildWidget.unmarshal(data)
+        return widget
+
+    async def fetch_widget_settings(self):
+        rest = self._state._client.rest
+        resp = await rest.get_guild_widget_settings(self.id)
+        data = await resp.json()
+        settings = GuildWidgetSettings.unmarshal(data, guild=self)
+        return settings
+
+    async def edit_widget_settings(self, *, enabled=None, channel=None):
+        rest = self._state._client.rest
+        
+        if channel is not None:
+            channel = channel.id
+
+        resp = await rest.modify_guild_widget(self.id, enabled=enabled, channel_id=channel)
+        data = await resp.json()
+        widget = GuildWidgetSettings.unmarshal(data, guild=self)
+        return widget
 
     def to_dict(self, cls=None):
         dct = super().to_dict(cls=cls)
@@ -457,6 +634,60 @@ class GuildPreview(BaseObject):
         dct['emojis'] = emojis
     
         return dct
+
+
+class GuildBan(JsonStructure):
+    reason = JsonField('reason')
+    _user = JsonField('user')
+
+    def __init__(self, state):
+        self._state = state
+        self.user = state._client._users.add(self._user)
+
+        del self._user
+
+
+class GuildBanState(BaseState):
+    def __init__(self, client, guild):
+        super().__init__(client)
+        self._guild = guild
+
+    def _add(self, data):
+        ban = self.get(data['user']['id'])
+        if ban is not None:
+            ban._update(data)
+            return ban
+        ban = GuildBan.unmarshal(data, state=self)
+        self._values[ban.user.id] = ban
+        return ban
+
+    async def fetch(self, user):
+        rest = self._client.rest
+        resp = await rest.get_guild_ban(self._guild.id, user.id)
+        data = await resp.json()
+        ban = self._add(data)
+        return ban
+
+    async def fetch_all(self):
+        rest = self._client.rest
+        resp = await rest.get_guild_bans(self._guild.id)
+        data = await resp.json()
+        bans = []
+        for ban in data:
+            ban = self._add(data)
+            bans.append(ban)
+        return bans
+
+    async def add(self, user, *, reason=None, delete_message_days=None):
+        rest = self._client.rest
+        resp = await rest.create_guild_ban(self._guild.id, user.id, delete_message_days, reason)
+        data = await resp.json()
+        ban = self._add(data)
+        return ban
+
+    async def remove(self, user):
+        rest = self._client.rest
+        await rest.remove_guild_ban(self._guild.id, user.id)
 
 
 class Guild(GuildPreview):
@@ -511,7 +742,7 @@ class Guild(GuildPreview):
             self.roles._add(role)
 
         for channel in self._channels:
-            self._state._client.channels._add(channel)
+            self._state._client.channels._add(channel, guild=self)
 
         for member in self._members:
             self.members._add(member)
@@ -570,59 +801,6 @@ class Guild(GuildPreview):
         return dct
 
 
-class GuildBan(JsonStructure):
-    reason = JsonField('reason')
-    _user = JsonField('user')
-
-    def __init__(self, state):
-        self._state = state
-        self.user = state._client._users.add(self._user)
-
-        del self._user
-
-
-class GuildBanState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
-        self._guild = guild
-
-    def _add(self, data):
-        ban = self.get(data['user']['id'])
-        if ban is not None:
-            ban._update(data)
-            return ban
-        ban = GuildBan.unmarshal(data, state=self)
-        self._values[ban.user.id] = ban
-        return ban
-
-    async def fetch(self, user):
-        rest = self._client.rest
-        resp = await rest.get_guild_ban(self._guild.id, user.id)
-        data = await resp.json()
-        ban = self._add(data)
-        return ban
-
-    async def fetch_all(self):
-        rest = self._client.rest
-        resp = await rest.get_guild_bans(self._guild.id)
-        data = await resp.json()
-        bans = []
-        for ban in data:
-            ban = self._add(data)
-            bans.append(ban)
-        return bans
-
-    async def add(self, user, *, reason=None, delete_message_days=None):
-        rest = self._client.rest
-        resp = await rest.create_guild_ban(self._guild.id, user.id, delete_message_days, reason)
-        data = await resp.json()
-        ban = self._add(data)
-        return ban
-
-    async def remove(self, user):
-        rest = self._client.rest
-        await rest.remove_guild_ban(self._guild.id, user.id)
-
 class GuildState(BaseState):
     def _add(self, data) -> Guild:
         guild = self.get(data['id'])
@@ -640,9 +818,9 @@ class GuildState(BaseState):
         guild = self._add(data)
         return guild
 
-    async def fetch_preview(self, guild_id) -> GuildPreview:
+    async def fetch_preview(self, guild_id):
         rest = self._client.rest
         resp = await rest.get_guild_preview(guild_id)
         data = await resp.json()
-        perview = self._add(data).__preview
-        return perview
+        guild = self._add(data)
+        return guild
