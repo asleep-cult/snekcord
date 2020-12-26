@@ -63,7 +63,7 @@ class Role(BaseObject):
             hoist=hoist, mentionable=mentionable
         )
         data = await resp.json()
-        role = self._add(data)
+        role = self._state._add(data)
         return role
     
     async def delete(self):
@@ -92,7 +92,7 @@ class RoleState(BaseState):
         resp = await rest.get_guild_roles(self._guild.id)
         data = await resp.json()
         roles = []
-        for role in roles:
+        for role in data:
             role = self._add(role)
             roles.append(role)
         return roles
@@ -135,7 +135,7 @@ class GuildMember(User):
     json_fields = {}
     _user = JsonField('user')
     nick: str = JsonField('nick')
-    _roles = JsonField('roles')
+    _roles: list = JsonField('roles')
     joined_at: str = JsonField('joined_at')
     premium_since: str = JsonField('premium_since')
     deaf: bool = JsonField('deaf')
@@ -185,6 +185,10 @@ class GuildMember(User):
         data = await resp.json()
         member = self._add(data)
         return member
+
+    async def ban(self, *, reason=None, delete_message_days=None):
+        ban = await self._guild.bans.add(self, reason=reason, delete_message_days=delete_message_days)
+        return ban
 
 
 class GuildMemberRoleState(BaseState):
@@ -237,7 +241,7 @@ class GuildMemberState(BaseState):
         resp = await rest.get_guild_members(self._guild.id, limit, before)
         data = await resp.json()
         members = []
-        for member in members:
+        for member in data:
             member = self._add(member)
             members.append(member)
         return members
@@ -269,14 +273,18 @@ class GuildEmoji(BaseObject):
         self._state = state
         self.guild = guild
         self.roles = []
+        self.user = None
         
         if self._user is not None:
-            self.user = self._state._client.users._add(user)
+            self.user = self._state._client.users._add(self._user)
 
         for role in self._roles:
             role = self.guild.roles.get(role)
             if role is not None:
                 self.roles.append(role)
+
+        del self._roles
+        del self._user
 
     def __str__(self):
         if self.id is None:
@@ -297,6 +305,16 @@ class GuildEmoji(BaseObject):
     async def edit(self, name=None, roles=None):
         rest = self._state._client.rest
         await rest.modify_guild_emoji(self.guild.id, self.id, name, roles)
+
+    def to_dict(self):
+        dct = super().to_dict()
+
+        if self.user is not None:
+            dct['user'] = self.user.to_dict()
+
+        dct['roles'] = [role.id for role in self.roles]
+
+        return dct
 
 
 class GuildEmojiState(BaseState):
@@ -338,51 +356,19 @@ class GuildEmojiState(BaseState):
         return emoji
 
 
-class Guild(BaseObject):
-    __json_slots__ = (
-        '_state', 'members', 'shard', 'name', 'description', 
-        'owner_id', 'region', 'features', 'afk_channel_id', 
-        'afk_timeout', 'system_channel_id', 'verification_level', 
-        'widget_enabled', 'widget_channel_id', 'default_message_notifications', 
-        'mfa_level', 'explicit_content_filter', 'max_presences', 'max_members', 
-        'max_video_channel_users', 'vanity_url_code', 'premium_tier', 
-        'premium_subscription_count', 'system_channel_flags', 'preferred_locale',
-        'rules_channel_id', 'public_updates_channel_id', 'emojis', 'roles', '_channels', 
-        '_members', 'member_count', 'presence_count', 'id'
-    )
+class GuildPreview(BaseObject):
+    # Basically a partial guild?
+    name = JsonField('name')
+    icon = JsonField('icon')
+    splash = JsonField('splash')
+    discovery_splash = JsonField('discovery_splash')
+    _emojis = JsonArray('emojis')
+    features = JsonArray('features')
+    member_count = JsonField('approximate_member_count')
+    presence_count = JsonField('approximate_presence_count')
+    description = JsonField('description')
 
-    name: str = JsonField('name')
-    description: str = JsonField('description')
-    owner_id: Snowflake = JsonField('owner_id', Snowflake, str)
-    region: str = JsonField('region')
-    features: tuple = JsonField('features', tuple)
-    afk_channel_id: Snowflake = JsonField('afk_channel_id', Snowflake, str)
-    afk_timeout: float = JsonField('afk_timeout', float)
-    system_channel_id: Snowflake = JsonField('system_channel_id', Snowflake, str)
-    verification_level: int = JsonField('verification_level')
-    widget_enabled: bool = JsonField('widget_enabled')
-    widget_channel_id: Snowflake = JsonField('widget_channel_id', Snowflake, str)
-    default_message_notifications: int = JsonField('default_message_notifications')
-    mfa_level: int = JsonField('mfa_level')
-    explicit_content_filter: int = JsonField('explicit_content_filter')
-    max_presences: int = JsonField('max_presences')
-    max_members: int = JsonField('max_members')
-    max_video_channel_users: int = JsonField('max_video_channel_users')
-    vanity_url_code: str = JsonField('vanity_url_code')
-    premium_tier: int = JsonField('premium_tier')
-    premium_subscription_count: int = JsonField('premium_subscription_count')
-    system_channel_flags: int = JsonField('system_channel_flags')
-    preferred_locale: str = JsonField('preferred_locale')
-    rules_channel_id: Snowflake = JsonField('rules_channel_id', Snowflake, str)
-    public_updates_channel_id: Snowflake = JsonField('public_updates_channel_id', Snowflake, str)
-    _emojis: list = JsonField('emojis')
-    _roles: list = JsonField('roles')
-    _channels: list = JsonArray('channels')
-    _members: list = JsonArray('members')
-    member_count: int = JsonField('approximate_member_count')
-    presence_count: int = JsonField('approximate_presence_count')
-
-    def __init__(self, *, state: 'GuildState'):
+    def __init__(self, state):
         self._state = state
         self.emojis = GuildEmojiState(self._state._client, guild=self)
         self.roles: Iterable[Role] = RoleState(self._state._client, guild=self)
@@ -391,64 +377,10 @@ class Guild(BaseObject):
         self.bans = GuildBanState(self._state._client, guild=self)
         self.channels = GuildChannelState(self._state._client.channels, guild=self)
 
-        shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
-        self.shard = self._state._client.ws.shards.get(shard_id)
-
         for emoji in self._emojis:
             self.emojis._add(emoji)
 
-        for role in self._roles:
-            self.roles._add(role)
-
-        for channel in self._channels:
-            self._state._client.channels._add(channel)
-
-        for member in self._members:
-            self.members._add(member)
-
         del self._emojis
-        del self._roles
-        del self._channels
-        del self._members
-
-    @property
-    def owner(self):
-        return self.members.get(self.owner_id)
-
-    @property
-    def afk_channel(self):
-        return self._state._client.channels.get(self.afk_channel_id)
-
-    @property
-    def system_channel(self):
-        return self._state._client.channels.get(self.system_channel_id)
-
-    @property
-    def widdget_channel(self):
-        return self._state._client.channels.get(self.widget_channel_id)
-
-    @property
-    def rules_channel(self):
-        return self._state._client.channels.get(self.rules_channel_id)
-    
-    @property
-    def everyone_role(self):
-        return self.roles.get(self.id)
-
-    def to_dict(self):
-        dct = super().to_dict()
-        members = dct['members'] = []
-        channels = dct['channels'] = []
-        for member in self.members:
-            members.append(member.to_dict())
-        for channel in self.channels:
-            channels.append(channel.to_dict())
-        return dct
-
-    async def fetch_preview(self):
-        rest = self._state._client.rest
-        resp = await rest.get_guild_preview(self.id)
-        data = await resp.json()
 
     async def edit(
         self,
@@ -515,6 +447,128 @@ class Guild(BaseObject):
         data = await resp.json()
         return data
 
+    def to_dict(self, cls=None):
+        dct = super().to_dict(cls=cls)
+
+        emojis = []
+        for emoji in self.emojis:
+            emojis.append(emoji.to_dict())
+
+        dct['emojis'] = emojis
+    
+        return dct
+
+
+class Guild(GuildPreview):
+    icon_hash = JsonField('icon_hash')
+    _owner = JsonField('owner')
+    owner_id = JsonField('owner_id', Snowflake, str)
+    permissions = JsonField('permissions')
+    region = JsonField('region')
+    afk_channel_id = JsonField('afk_channel_id', Snowflake, str)
+    afk_timeout = JsonField('afk_timeout')
+    widget_enabled = JsonField('widget_enabled')
+    widget_channel_id = JsonField('widget_channel_id', Snowflake, str)
+    verification_level = JsonField('verification_level')
+    default_message_notifications = JsonField('default_message_notifications')
+    explicit_content_filter = JsonField('explicit_content_filter')
+    _roles = JsonArray('roles')
+    mfa_level = JsonField('mfa_level')
+    application_id = JsonField('application_id', Snowflake, str)
+    system_channel_id = JsonField('system_channel_id', Snowflake, str)
+    system_channel_flags = JsonField('system_channel_flags')
+    rules_channel_id = JsonField('rules_channel_id', Snowflake, str)
+    joined_at = JsonField('joined_at')
+    large = JsonField('large')
+    unavailable = JsonField('unavailable')
+    member_count = JsonField('member_count')
+    _voice_states = JsonArray('voice_states')
+    _members = JsonArray('members')
+    _channels = JsonArray('channels')
+    _presences = JsonArray('presences')
+    max_presences = JsonField('max_presences')
+    max_members = JsonField('max_members')
+    vanity_url_code = JsonField('vanity_url_code')
+    banner = JsonField('banner')
+    premium_tier = JsonField('permium_tier')
+    premium_subscription_count = JsonField('premium_subscription_count')
+    preferred_locale = JsonField('preferred_locale')
+    public_updates_channel_id = JsonField('public_updates_channel_id', Snowflake, str)
+    max_video_channel_users = JsonField('max_video_channel_users')
+
+    def __init__(self, *, state: 'GuildState'):
+        super().__init__(state)
+
+        shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
+        self.shard = self._state._client.ws.shards.get(shard_id)
+
+        if self.owner is not None:
+            owner = self._state._client.guilds._add(self._owner)
+            if owner is not None:
+                self.owner_id = owner.id
+
+        for role in self._roles:
+            self.roles._add(role)
+
+        for channel in self._channels:
+            self._state._client.channels._add(channel)
+
+        for member in self._members:
+            self.members._add(member)
+
+        del self._roles
+        del self._channels
+        del self._members
+        del self._owner
+
+    @property
+    def owner(self):
+        return self.members.get(self.owner_id)
+
+    @property
+    def afk_channel(self):
+        return self._state._client.channels.get(self.afk_channel_id)
+
+    @property
+    def system_channel(self):
+        return self._state._client.channels.get(self.system_channel_id)
+
+    @property
+    def widdget_channel(self):
+        return self._state._client.channels.get(self.widget_channel_id)
+
+    @property
+    def rules_channel(self):
+        return self._state._client.channels.get(self.rules_channel_id)
+    
+    @property
+    def everyone_role(self):
+        return self.roles.get(self.id)
+
+    def to_preview_dict(self):
+        return super().to_dict(cls=GuildPreview)
+
+    def to_dict(self, cls=None):
+        dct = super().to_dict(cls=cls)
+
+        roles = []
+        for role in self.roles:
+            roles.append(role.to_dict())
+
+        members = []
+        for member in self.members:
+            members.append(member.to_dict())
+
+        channels = []
+        for channel in self.channels:
+            channels.append(channel.to_dict())
+
+        dct['roles'] = roles
+        dct['members'] = members
+        dct['channels'] = channels
+
+        return dct
+
 
 class GuildBan(JsonStructure):
     reason = JsonField('reason')
@@ -558,9 +612,12 @@ class GuildBanState(BaseState):
             bans.append(ban)
         return bans
 
-    async def add(self, user, *, delete_message_days=None, reason=None):
+    async def add(self, user, *, reason=None, delete_message_days=None):
         rest = self._client.rest
-        await rest.create_guild_ban(self._guild.id, user.id, delete_message_days, reason)
+        resp = await rest.create_guild_ban(self._guild.id, user.id, delete_message_days, reason)
+        data = await resp.json()
+        ban = self._add(data)
+        return ban
 
     async def remove(self, user):
         rest = self._client.rest
@@ -577,5 +634,15 @@ class GuildState(BaseState):
         return guild
 
     async def fetch(self, guild_id) -> Guild:
-        data = await self._client.rest.get_guild(guild_id)
-        return self._add(data)
+        rest = self._client.rest
+        resp = await rest.get_guild(guild_id)
+        data = await resp.json()
+        guild = self._add(data)
+        return guild
+
+    async def fetch_preview(self, guild_id) -> GuildPreview:
+        rest = self._client.rest
+        resp = await rest.get_guild_preview(guild_id)
+        data = await resp.json()
+        perview = self._add(data).__preview
+        return perview

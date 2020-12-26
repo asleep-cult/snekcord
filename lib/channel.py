@@ -359,6 +359,11 @@ class GuildChannelState:
         self._channel_state = channel_state
         self._guild = guild
 
+    def __iter__(self):
+        for channel in self._channel_state:
+            if channel.guild == self._guild:
+                yield channel
+
     async def fetch_all(self):
         rest = self._channel_state._client.rest
         resp = await rest.get_guild_channels(self._guild.id)

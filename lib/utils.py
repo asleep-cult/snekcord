@@ -50,9 +50,15 @@ class JsonStructure(metaclass=JsonStructureMeta):
             self.__init__(*args, **kwargs)
         return self
 
-    def to_dict(self):
+    def to_dict(self, cls=None):
         dct = {}
-        for name, field in self.json_fields.items():
+
+        if cls is not None:
+            json_fields = cls.json_fields
+        else:
+            json_fields = self.json_fields
+
+        for name, field in json_fields.items():
             try:
                 attr = getattr(self, name)
                 if attr is None and field.omitemoty:
