@@ -97,15 +97,15 @@ class Ratelimiter:
 
 
 class RatelimitedResponse(JsonStructure):
-    global_ratelimit = JsonField('global')
-    retry_after = JsonField('retry_after', float)
-    message = JsonField('message')
+    __json_fields__ = {
+        'global_ratelimit': JsonField('global'),
+        'retry_after': JsonField('retry_after', float),
+        'message': JsonField('message'),
+    }
 
-    def __init__(self, content=None, nonce=None, tts=None, embed=None):
-        self.content = content
-        self.nonce = nonce
-        self.tts = tts
-        self.embed = embed
+    global_ratelimit: bool
+    retry_after: float
+    message: str
 
 
 class RestSession:

@@ -21,27 +21,46 @@ from .utils import (
 from typing import Iterable
 
 
-# TODO: Add GuildPreview, add IntegrationState, add Integration, add Widget
-
 class RoleTags(JsonStructure):
-    __json_slots__ = ('bot_id', 'integration_id', 'premium_subscriber')
+    __slots__ = ('bot_id', 'integration_id', 'premium_subscriber')
 
-    bot_id: Snowflake = JsonField('bot_id', Snowflake, str)
-    integration_id: Snowflake = JsonField('integration_id', Snowflake, str)
-    premium_subscriber: bool = JsonField('premium_subscriber')
+    __json_fields__ = {
+        'bot_id': JsonField('bot_id', Snowflake, str),
+        'integration_id': JsonField('integration_id', Snowflake, str),
+        'premium_subscriber': JsonField('premium_subscriber'),
+    }
+
+    bot_id: Snowflake
+    integration_id: Snowflake
+    premium_subscriber: bool
 
 
 class Role(BaseObject):
-    __json_slots__ = ('id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed', 'mentionable', 'tags')
+    __slots__ = (
+        'id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed', 
+        'mentionable', 'tags'
+    )
 
-    name: str = JsonField('name')
-    color: int = JsonField('color')
-    hoist: bool = JsonField('hoist')
-    position: int = JsonField('position')
-    permissions: str = JsonField('permissions')
-    managed: bool = JsonField('managed')
-    mentionable: bool = JsonField('mentionable')
-    tags: RoleTags = JsonField('tags', struct=RoleTags)
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'color': JsonField('color'),
+        'hoist': JsonField('hoist'),
+        'position': JsonField('position'),
+        'permissions': JsonField('permissions'),
+        'managed': JsonField('managed'),
+        'mentionable': JsonField('mentionable'),
+        'tags': JsonField('tags', struct=RoleTags),
+    }
+
+    name: str
+    color: int
+    hoist: bool
+    position: int
+    permissions: str
+    managed: bool
+    mentionable: bool
+    tags: RoleTags
+    guild: ...
 
     def __init__(self, state, guild):
         self._state = state
@@ -132,15 +151,24 @@ class GuildMember(User):
         'pending', '_state', 'guild', 'user'
     )
 
-    json_fields = {}
-    _user = JsonField('user')
-    nick: str = JsonField('nick')
-    _roles: list = JsonField('roles')
-    joined_at: str = JsonField('joined_at')
-    premium_since: str = JsonField('premium_since')
-    deaf: bool = JsonField('deaf')
-    mute: bool = JsonField('mute')
-    pending: bool = JsonField('pending')
+    json_fields = {
+        '_user': JsonField('user'),
+        'nick': JsonField('nick'),
+        '_roles': JsonField('roles'),
+        'joined_at': JsonField('joined_at'),
+        'premium_since': JsonField('premium_since'),
+        'deaf': JsonField('deaf'),
+        'mute': JsonField('mute'),
+        'pending': JsonField('pending'),
+    }
+    _user: ...
+    nick: str
+    _roles: list
+    joined_at: str
+    premium_since: str
+    deaf: bool
+    mute: bool
+    pending: bool
 
     def __init__(self, *, state: 'GuildMemberState', guild: 'Guild', user=None):
         self._state: GuildMemberState = state
@@ -261,13 +289,23 @@ class GuildMemberState(BaseState):
 
 
 class GuildEmoji(BaseObject):
-    name = JsonField('name')
-    _roles = JsonArray('roles')
-    _user = JsonField('user')
-    required_colons = JsonField('required_colons')
-    managed = JsonField('managed')
-    animated = JsonField('animated')
-    available = JsonField('available')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        '_roles': JsonArray('roles'),
+        '_user': JsonField('user'),
+        'required_colons': JsonField('required_colons'),
+        'managed': JsonField('managed'),
+        'animated': JsonField('animated'),
+        'available': JsonField('available'),
+    }
+
+    name: ...
+    _roles: ...
+    _user: ...
+    required_colons: ...
+    managed: ...
+    animated: ...
+    available: ...
 
     def __init__(self, state, guild):
         self._state = state
@@ -357,15 +395,27 @@ class GuildEmojiState(BaseState):
 
 
 class GuildIntegrationAccount(BaseObject):
-    name = JsonField('name')
+    __json_fields__ = {
+        'name': JsonField('name'),
+    }
+    
+    name: ...
 
 
 class GuildIntegrationApplication(BaseObject):
-    name = JsonField('name')
-    icon = JsonField('icon')
-    description = JsonField('description')
-    summary = JsonField('summary')
-    _bot = JsonField('bot')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'icon': JsonField('icon'),
+        'description': JsonField('description'),
+        'summary': JsonField('summary'),
+        '_bot': JsonField('bot'),
+    }
+
+    name: ...
+    icon: ...
+    description: ...
+    summary: ...
+    _bot: ...
 
     def __init__(self, state):
         self._state = state
@@ -375,20 +425,37 @@ class GuildIntegrationApplication(BaseObject):
 
 
 class GuildIntegration(BaseObject):
-    name = JsonField('name')
-    type = JsonField('type')
-    enabled = JsonField('enabled')
-    syncing = JsonField('syncing')
-    role_id  = JsonField('role_id', Snowflake, str)
-    enable_emoticons = JsonField('enable_emoticons')
-    expire_behavior = JsonField('expire_behavior')
-    expire_grace_period = JsonField('expire_grace_period')
-    _user = JsonField('user')
-    account = JsonField('account', struct=GuildIntegrationAccount)
-    synced_at = JsonField('synced_at')
-    subscriber_count = JsonField('subscriber_count')
-    revoked = JsonField('revoked')
-    _application = JsonField('application')
+    __json_fields__ = {
+        'name':  JsonField('name'),
+        'type': JsonField('type'),
+        'enabled': JsonField('enabled'),
+        'syncing': JsonField('syncing'),
+        'role_id': JsonField('role_id', Snowflake, str),
+        'enable_emoticons': JsonField('enable_emoticons'),
+        'expire_behavior': JsonField('expire_behavior'),
+        'expire_grace_period': JsonField('expire_grace_period'),
+        '_user': JsonField('user'),
+        'account': JsonField('account', struct=GuildIntegrationAccount),
+        'synced_at': JsonField('synced_at'),
+        'subscriber_count': JsonField('subscriber_count'),
+        'revoked': JsonField('revoked'),
+        '_application': JsonField('application'),
+    }
+
+    name: ...
+    type: ...
+    enabled: ...
+    syncing: ...
+    role_id: ...
+    enable_emoticons: ...
+    expire_behavior: ...
+    expire_grace_period: ...
+    _user: ...
+    account: ...
+    synced_at: ...
+    subscriber_count: ...
+    revoked: ...
+    _application: ...
 
     def __init__(self, state, guild):
         self._state = state
@@ -454,23 +521,43 @@ class GuildIntegrationState(BaseState):
 
 
 class GuildWidgetChannel(BaseObject):
-    name = JsonField('name')
-    poosition = JsonField('position')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'poosition': JsonField('position'),
+    }
+
+    name: ...
+    poosition: ...
 
 
 class GuildWidgetMember(BaseObject):
-    username = JsonField('username')
-    discriminator = JsonField('discriminator')
-    avatar = JsonField('avatar')
-    avatar_url = JsonField('avatar_url')
+    __json_fields__ = {
+        'username': JsonField('username'),
+        'discriminator': JsonField('discriminator'),
+        'avatar': JsonField('avatar'),
+        'avatar_url': JsonField('avatar_url'),
+    }
+
+    username: ...
+    discriminator: ...
+    avatar: ...
+    avatar_url: ...
 
 
 class GuildWidget(BaseObject):
-    name = JsonField('name')
-    instant_invite = JsonField('instant_invite')
-    channels = JsonArray('channels', struct=GuildWidgetChannel)
-    members = JsonArray('members', struct=GuildWidgetMember)
-    presence_count = JsonField('presence_count')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'instant_invite': JsonField('instant_invite'),
+        'channels': JsonArray('channels', struct=GuildWidgetChannel),
+        'members': JsonArray('members', struct=GuildWidgetMember),
+        'presence_count': JsonField('presence_count'),
+    }
+
+    name: ...
+    instant_invite: ...
+    channels: ...
+    members: ...
+    presence_count: ...
 
     def __init__(self, guild):
         self.guild = guild
@@ -480,8 +567,14 @@ class GuildWidget(BaseObject):
 
 
 class GuildWidgetSettings(JsonStructure):
-    enabled = JsonField('enabled')
-    channel_id = JsonField('channel_id')
+    __json_fields__ = {
+        'enabled': JsonField('enabled'),
+        'channel_id': JsonField('channel_id'),
+    }
+
+    enabled: ...
+    channel_id: ...
+    channel: ...
 
     def __init__(self, guild):
         channels = guild._state._client.channels
@@ -489,21 +582,38 @@ class GuildWidgetSettings(JsonStructure):
 
 
 class PartialInvite(JsonStructure):
-    code = JsonField('code')
-    uses = JsonField('uses')
+    __json_fields__ = {
+        'code': JsonField('code'),
+        'uses': JsonField('uses'),
+    }
+
+    code: ...
+    uses: ...
 
 
 class GuildPreview(BaseObject):
     # Basically a partial guild?
-    name = JsonField('name')
-    icon = JsonField('icon')
-    splash = JsonField('splash')
-    discovery_splash = JsonField('discovery_splash')
-    _emojis = JsonArray('emojis')
-    features = JsonArray('features')
-    member_count = JsonField('approximate_member_count')
-    presence_count = JsonField('approximate_presence_count')
-    description = JsonField('description')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'icon': JsonField('icon'),
+        'splash': JsonField('splash'),
+        'discovery_splash': JsonField('discovery_splash'),
+        '_emojis': JsonArray('emojis'),
+        'features': JsonArray('features'),
+        'member_count': JsonField('approximate_member_count'),
+        'presence_count': JsonField('approximate_presence_count'),
+        'description': JsonField('description'),
+    }
+
+    name: ...
+    icon: ...
+    splash: ...
+    discovery_splash: ...
+    _emojis: ...
+    features: ...
+    member_count: ...
+    presence_count: ...
+    description: ...
 
     def __init__(self, state):
         self._state = state
@@ -637,8 +747,14 @@ class GuildPreview(BaseObject):
 
 
 class GuildBan(JsonStructure):
-    reason = JsonField('reason')
-    _user = JsonField('user')
+    __json_fields__ = {
+        'reason': JsonField('reason'),
+        '_user': JsonField('user'),
+    }
+
+    reason: ...
+    _user: ...
+    user: ...
 
     def __init__(self, state):
         self._state = state
@@ -691,47 +807,83 @@ class GuildBanState(BaseState):
 
 
 class Guild(GuildPreview):
-    icon_hash = JsonField('icon_hash')
-    _owner = JsonField('owner')
-    owner_id = JsonField('owner_id', Snowflake, str)
-    permissions = JsonField('permissions')
-    region = JsonField('region')
-    afk_channel_id = JsonField('afk_channel_id', Snowflake, str)
-    afk_timeout = JsonField('afk_timeout')
-    widget_enabled = JsonField('widget_enabled')
-    widget_channel_id = JsonField('widget_channel_id', Snowflake, str)
-    verification_level = JsonField('verification_level')
-    default_message_notifications = JsonField('default_message_notifications')
-    explicit_content_filter = JsonField('explicit_content_filter')
-    _roles = JsonArray('roles')
-    mfa_level = JsonField('mfa_level')
-    application_id = JsonField('application_id', Snowflake, str)
-    system_channel_id = JsonField('system_channel_id', Snowflake, str)
-    system_channel_flags = JsonField('system_channel_flags')
-    rules_channel_id = JsonField('rules_channel_id', Snowflake, str)
-    joined_at = JsonField('joined_at')
-    large = JsonField('large')
-    unavailable = JsonField('unavailable')
-    member_count = JsonField('member_count')
-    _voice_states = JsonArray('voice_states')
-    _members = JsonArray('members')
-    _channels = JsonArray('channels')
-    _presences = JsonArray('presences')
-    max_presences = JsonField('max_presences')
-    max_members = JsonField('max_members')
-    vanity_url_code = JsonField('vanity_url_code')
-    banner = JsonField('banner')
-    premium_tier = JsonField('permium_tier')
-    premium_subscription_count = JsonField('premium_subscription_count')
-    preferred_locale = JsonField('preferred_locale')
-    public_updates_channel_id = JsonField('public_updates_channel_id', Snowflake, str)
-    max_video_channel_users = JsonField('max_video_channel_users')
+    __json_fields__ = {
+        **GuildPreview.__json_fields__,
+        'icon_hash': JsonField('icon_hash'),
+        '_owner': JsonField('owner'),
+        'owner_id': JsonField('owner_id', Snowflake, str),
+        'permissions': JsonField('permissions'),
+        'region': JsonField('region'),
+        'afk_channel_id': JsonField('afk_channel_id', Snowflake, str),
+        'afk_timeout': JsonField('afk_timeout'),
+        'widget_enabled': JsonField('widget_enabled'),
+        'widget_channel_id': JsonField('widget_channel_id', Snowflake, str),
+        'verification_level': JsonField('verification_level'),
+        'default_message_notifications': JsonField('default_message_notifications'),
+        'explicit_content_filter': JsonField('explicit_content_filter'),
+        '_roles': JsonArray('roles'),
+        'mfa_level': JsonField('mfa_level'),
+        'application_id': JsonField('application_id', Snowflake, str),
+        'system_channel_id': JsonField('system_channel_id', Snowflake, str),
+        'system_channel_flags': JsonField('system_channel_flags'),
+        'rules_channel_id': JsonField('rules_channel_id', Snowflake, str),
+        'joined_at': JsonField('joined_at'),
+        'large': JsonField('large'),
+        'unavailable': JsonField('unavailable'),
+        'member_count': JsonField('member_count'),
+        '_voice_states': JsonArray('voice_states'),
+        '_members': JsonArray('members'),
+        '_channels': JsonArray('channels'),
+        '_presences': JsonArray('presences'),
+        'max_presences': JsonField('max_presences'),
+        'max_members': JsonField('max_members'),
+        'vanity_url_code': JsonField('vanity_url_code'),
+        'banner': JsonField('banner'),
+        'premium_tier': JsonField('permium_tier'),
+        'premium_subscription_count': JsonField('premium_subscription_count'),
+        'preferred_locale': JsonField('preferred_locale'),
+        'public_updates_channel_id': JsonField('public_updates_channel_id', Snowflake, str),
+        'max_video_channel_users': JsonField('max_video_channel_users'),
+    }
+
+    icon_hash: ...
+    _owner: ...
+    owner_id: ...
+    permissions: ...
+    region: ...
+    afk_channel_id: ...
+    afk_timeout: ...
+    widget_enabled: ...
+    widget_channel_id: ...
+    verification_level: ...
+    default_message_notifications: ...
+    explicit_content_filter: ...
+    _roles: ...
+    mfa_level: ...
+    application_id: ...
+    system_channel_id: ...
+    system_channel_flags: ...
+    rules_channel_id: ...
+    joined_at: ...
+    large: ...
+    unavailable: ...
+    member_count: ...
+    _voice_states: ...
+    _members: ...
+    _channels: ...
+    _presences: ...
+    max_presences: ...
+    max_members: ...
+    vanity_url_code: ...
+    banner: ...
+    premium_tier: ...
+    premium_subscription_count: ...
+    preferred_locale: ...
+    public_updates_channel_id: ...
+    max_video_channel_users: ...
 
     def __init__(self, *, state: 'GuildState'):
         super().__init__(state)
-
-        shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
-        self.shard = self._state._client.ws.shards.get(shard_id)
 
         if self.owner is not None:
             owner = self._state._client.guilds._add(self._owner)
@@ -751,6 +903,11 @@ class Guild(GuildPreview):
         del self._channels
         del self._members
         del self._owner
+
+    @property
+    def shard(self):
+        shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
+        return self._state._client.ws.shards.get(shard_id)
 
     @property
     def owner(self):

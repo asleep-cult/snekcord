@@ -16,7 +16,6 @@ from .utils import (
     JsonArray,
     Snowflake,
     JsonStructure,
-    _try_snowflake
 )
 
 from .voice import (
@@ -37,11 +36,9 @@ if TYPE_CHECKING:
     from .guild import Guild
 
 
-# TODO: add NewsChannel?, add ChannelRecipientState
-
 class ChannelType:
-    GUILD_TEXT = 0	
-    DM = 1	
+    GUILD_TEXT = 0
+    DM = 1
     GUILD_VOICE = 2
     GROUP_DM = 3
     GUILD_CATEGORY = 4
@@ -51,12 +48,12 @@ class ChannelType:
 
 class PermissionFlag:
     CREATE_INSTANT_INVITE = 0x00000001
-    KICK_MEMBERS = 0x00000002	
-    BAN_MEMBERS = 0x00000004	
-    ADMINISTRATOR = 0x00000008	
+    KICK_MEMBERS = 0x00000002
+    BAN_MEMBERS = 0x00000004
+    ADMINISTRATOR = 0x00000008
     MANAGE_CHANNELS = 0x00000010
     MANAGE_GUILD = 0x00000020
-    ADD_REACTIONS = 0x00000040	
+    ADD_REACTIONS = 0x00000040
     VIEW_AUDIT_LOG = 0x00000080
     PRIORITY_SPEAKER = 0x00000100
     STREAM = 0x00000200
@@ -84,18 +81,29 @@ class PermissionFlag:
 
 
 class GuildChannel(BaseObject):
-    __json_slots__ = (
-        '_state', 'id', 'name', 'guild_id', 'permission_overwrites', 'position',
-        'nsfw', 'parent_id', 'type'
+    __slots__ = (
+        '_state', 'id', 'name', 'guild_id', 'permission_overwrites', 
+        'position', 'nsfw', 'parent_id', 'type'
     )
 
-    name: str = JsonField('name')
-    guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
-    _permission_overwrites = JsonField('permission_overwrites')
-    position: int = JsonField('position')
-    nsfw = JsonField('nsfw')
-    parent_id: Snowflake = JsonField('parent_id', Snowflake, str)
-    type = JsonField('type')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'guild_id': JsonField('guild_id', Snowflake, str),
+        '_permission_overwrites': JsonField('permission_overwrites'),
+        'position': JsonField('position'),
+        'nsfw': JsonField('nsfw'),
+        'parent_id': JsonField('parent_id', Snowflake, str),
+        'type': JsonField('type'),
+    }
+
+    id: Snowflake
+    name: str
+    guild_id: Snowflake
+    _permission_overwrites: ...
+    position: int
+    nsfw: bool
+    parent_id: Snowflake
+    type: ...
 
     def __init__(self, *, state, guild=None):
         self._state: ChannelState = state
@@ -118,11 +126,18 @@ class GuildChannel(BaseObject):
 
 
 class PermissionOverwrite(BaseObject):
-    __json_slots__ = ('id', 'type', 'deny', 'allow')
+    __slots__ = ('id', 'type', 'deny', 'allow')
 
-    allow: int = JsonField('allow', int, str)
-    deny: int = JsonField('deny', int, str)
-    type: str = JsonField('type')
+    __json_fields__ = {
+        'allow': JsonField('allow', int, str),
+        'deny': JsonField('deny', int, str),
+        'type': JsonField('type'),
+    }
+
+    id: Snowflake
+    allow: int
+    deny: int
+    type: str
 
     create_instant_invite: Optional[bool]
     kick_members: Optional[bool]
@@ -175,7 +190,12 @@ class PermissionOverwrite(BaseObject):
 
     async def edit(self, overwrite):
         rest = self._state._client.rest
-        await rest.edit_channel_permissions(self._state._channel.id, self.id, overwrite.allow, overwrite.deny, overwrite.type)
+        await rest.edit_channel_permissions(
+            self._state._channel.id, 
+            self.id, overwrite.allow, 
+            overwrite.deny, 
+            overwrite.type
+        )
 
     async def delete(self):
         rest = self._state._client.rest
@@ -198,9 +218,14 @@ class PermissionOverwriteState(BaseState):
 
 
 class TextChannel(GuildChannel):
-    __json_slots__ = (*GuildChannel.__json_slots__, 'last_message_id')
+    __slots__ = (*GuildChannel.__slots__, 'last_message_id')
 
-    last_message_id: Snowflake = JsonField('last_message_id', Snowflake, str)
+    __json_fields__ = {
+        **GuildChannel.__json_fields__,
+        'last_message_id': JsonField('last_message_id', Snowflake, str),
+    }
+
+    last_message_id: Snowflake
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -248,13 +273,22 @@ class TextChannel(GuildChannel):
 
 
 class VoiceChannel(GuildChannel):
-    __json_slots__ = (*GuildChannel.__json_slots__, 'bitrate', 'user_limit')
+    __slots__ = (*GuildChannel.__slots__, 'bitrate', 'user_limit')
 
-    bitrate: int = JsonField('bitrate')
-    user_limit: int = JsonField('user_limit')
+    __json_fields__ = {
+        **GuildChannel.__json_fields__,
+        'bitrate': JsonField('bitrate'),
+        'user_limit': JsonField('user_limit'),
+    }
+
+    bitrate: int
+    user_limit: int
 
     async def connect(self):
-        voice_state_update, voice_server_update = await self.guild.shard.update_voice_state(self.guild.id, self.id)
+        voice_state_update, voice_server_update = await self.guild.shard.update_voice_state(
+            self.guild.id, 
+            self.id
+        )
         state_data = await voice_state_update
         server_data = await voice_server_update
         voice_state = VoiceState.unmarshal(state_data.data, voice_channel=self)
@@ -318,11 +352,20 @@ class CategoryChannel(GuildChannel):
 
 
 class DMChannel(BaseObject):
-    __json_slots__ = (*GuildChannel.__json_slots__, 'last_message_id', 'type', '_recipients', 'recipients')
+    __slots__ = (
+        *GuildChannel.__slots__, 
+        'last_message_id', 'type', '_recipients', 'recipients'
+    )
 
-    last_message_id: Snowflake = JsonField('last_message_id', Snowflake, str)
-    type: int = JsonField('type')
-    _recipients = JsonArray('recipients')
+    __json_fields__ = {
+        'last_message_id': JsonField('last_message_id', Snowflake, str),
+        'type': JsonField('type'),
+        '_recipients': JsonArray('recipients'),
+    }
+
+    last_message_id: Snowflake
+    type: int
+    _recipients: ...
 
     def __init__(self, state):
         self._state: ChannelState = state

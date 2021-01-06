@@ -8,22 +8,40 @@ from .utils import (
 INVITE_BASE_URL = 'https://discord.com/invite/'
 
 class Invite(JsonStructure):
-    code = JsonField('code')
-    _guild = JsonField('guild')
-    _channel = JsonField('channel')
-    guild_id = JsonField('guild_id')
-    channel_id = JsonField('channel_id')
-    _inviter = JsonField('inviter')
-    _target_user = JsonField('target_user')
-    target_user_type = JsonField('target_user_type')
-    approximate_presence_count = JsonField('approximate_presence_count')
-    approximate_member_count = JsonField('approximate_member_count')
+    __json_fields__ = {
+        'code': JsonField('code'),
+        '_guild': JsonField('guild'),
+        '_channel': JsonField('channel'),
+        'guild_id': JsonField('guild_id'),
+        'channel_id': JsonField('channel_id'),
+        '_inviter': JsonField('inviter'),
+        '_target_user': JsonField('target_user'),
+        'target_user_type': JsonField('target_user_type'),
+        'approximate_presence_count': JsonField('approximate_presence_count'),
+        'approximate_member_count': JsonField('approximate_member_count'),
 
-    #metadata
-    uses = JsonField('uses')
-    max_uses = JsonField('max_uses')
-    temporary = JsonField('temporary')
-    create_at = JsonField('created_at')
+        #metadata
+        'uses': JsonField('uses'),
+        'max_uses': JsonField('max_uses'),
+        'temporary': JsonField('temporary'),
+        'created_at': JsonField('created_at'),
+    }
+    
+    code: ...
+    _guild: ...
+    _channel: ...
+    guild_id: ...
+    channel_id: ...
+    _inviter: ...
+    _target_user: ...
+    target_user_type: ...
+    approximate_presence_count: ...
+    approximate_member_count: ...
+    uses: ...
+    max_uses: ...
+    temporary: ...
+    created_at: ...
+    
 
     def __init__(self, state=None):
         self._state = state
@@ -53,6 +71,7 @@ class Invite(JsonStructure):
 
     async def delete(self):
         await self._state.delet(self.code)
+
 
 class InviteState(BaseState):
     def _add(self, data):

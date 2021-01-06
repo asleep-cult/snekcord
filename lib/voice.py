@@ -1,4 +1,3 @@
-import asyncio
 import struct
 
 from .connection import (
@@ -15,18 +14,33 @@ from .utils import (
 
 
 class VoiceState(JsonStructure):
-    guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
-    channel_id: Snowflake = JsonField('channel_id', Snowflake, str)
-    user_id: Snowflake = JsonField('user_id', Snowflake, str)
-    _member: dict = JsonField('member')
-    session_id: str = JsonField('session_id')
-    deaf: bool = JsonField('deaf')
-    mute: bool = JsonField('mute')
-    self_deaf: bool = JsonField('self_deaf')
-    self_mute: bool = JsonField('self_mute')
-    self_stream: bool = JsonField('self_stream')
-    self_video: bool = JsonField('self_video')
-    suppress: bool = JsonField('suppress')
+    __json_fields__ = {
+        'guild_id': JsonField('guild_id', Snowflake, str),
+        'channel_id': JsonField('channel_id', Snowflake, str),
+        'user_id': JsonField('user_id', Snowflake, str),
+        '_member': JsonField('member'),
+        'session_id': JsonField('session_id'),
+        'deaf': JsonField('deaf'),
+        'mute': JsonField('mute'),
+        'self_deaf': JsonField('self_deaf'),
+        'self_mute': JsonField('self_mute'),
+        'self_stream': JsonField('self_stream'),
+        'self_video': JsonField('self_video'),
+        'suppress': JsonField('suppress'),
+    }
+
+    guild_id: Snowflake
+    channel_id: Snowflake
+    user_id: Snowflake
+    _member: dict
+    session_id: str
+    deaf: bool
+    mute: bool
+    self_deaf: bool
+    self_mute: bool
+    self_stream: bool
+    self_video: bool
+    suppress: bool
 
     def __init__(self, voice_channel):
         self.voice_channel = voice_channel
@@ -39,9 +53,15 @@ class VoiceState(JsonStructure):
 
 
 class VoiceServerUpdate(JsonStructure):
-    token: str = JsonField('token')
-    guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
-    endpoint: str = JsonField('endpoint')
+    __json_fields__ = {
+        'token': JsonField('token'),
+        'guild_id': JsonField('guild_id', Snowflake, str),
+        'endpoint': JsonField('endpoint'),
+    }
+
+    token: str
+    guild_id: Snowflake
+    endpoint: str
 
 
 class VoiceConnection:
@@ -57,12 +77,10 @@ class VoiceConnection:
         self.voice_channel = voice_state.voice_channel
         self._client = self.voice_channel._state._client
         self.ws = VoiceWSProtocol(self)
-        self.loop: asyncio.AbstractEventLoop = self._client.loop
+        self.loop = self._client.loop
         self.mode = []
         self.ip = None
         self.port = None
-        self.udp_ip = None
-        self.udp_port = None
         self.transport = None
         self.protocol = None
         self.ssrc = None
@@ -71,6 +89,7 @@ class VoiceConnection:
         await self.ws.connect()
 
     async def dispatch(self, resp):
+        print(resp.data)
         if resp.opcode == VoiceConnectionOpcode.READY:
             self.ip = resp.data['ip']
             self.port = resp.data['port']
@@ -81,21 +100,9 @@ class VoiceConnection:
             struct.pack_into('!I', buffer, 4, self.ssrc)
 
             self.transport, self.protocol = await self.loop.create_datagram_endpoint(VoiceUDPProtocol, remote_addr=(self.ip, self.port))
-
+            self.protocol.loop = self.loop
             self.protocol.voice_connection = self
 
             self.transport.sendto(buffer)
-
-            data = await self.protocol.first_datagram_received
-
-            end = data.index(0, 4)
-            udp_ip = data[4:end]
-            self.udp_ip = udp_ip.decode()
-
-            udp_port = data[-2:]
-            self.udp_port = int.from_bytes(udp_port, 'big')
-
-            await self.ws.select()
-
         else:
             print(resp.data)

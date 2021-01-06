@@ -62,9 +62,14 @@ class BaseState:
 
 
 class BaseObject(JsonStructure):
-    __json_slots__ = ('id',)
+    __json_fields__ = {
+        'id': JsonField('id', Snowflake, str)
+    }
 
-    id: Snowflake = JsonField('id', Snowflake, str)
+    id: Snowflake
+
+    def __init_subclass__(cls):
+        cls.__json_fields__['id'] = JsonField('id', Snowflake, str)
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and other.id == self.id

@@ -3,6 +3,8 @@ import asyncio
 import sys
 import time
 import functools
+import struct
+import threading
 
 from .utils import (
     JsonStructure,
@@ -14,11 +16,13 @@ from typing import (
     Any, 
     Callable,
     Awaitable,
+    Optional,
     TYPE_CHECKING
 )
 
 if TYPE_CHECKING:
     from .client import Client
+
 
 class ShardOpcode:
     DISPATCH = 0
@@ -49,11 +53,17 @@ class VoiceConnectionOpcode:
 
 
 class DiscordResponse(JsonStructure):
-    opcode = JsonField('op', int)
-    sequence = JsonField('s', int)
-    event_name = JsonField('t')
-    data = JsonField('d')
+    __json_fields__ = {
+        'opcode': JsonField('op', int),
+        'sequence': JsonField('s', int),
+        'event_name': JsonField('t'),
+        'data': JsonField('d')
+    }
 
+    opcode: Optional[int]
+    sequence: Optional[int]
+    event_name: Optional[str]
+    data: Optional[dict]
 
 class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def new(
@@ -61,7 +71,8 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         *,
         loop: asyncio.AbstractEventLoop,
         heartbeat_payload: Dict[str, Any],
-        dispatch_function: Callable[[DiscordResponse], None]
+        dispatch_function: Callable[[DiscordResponse], None],
+        zombie_function
     ) -> None:
 
         self.loop = loop
@@ -78,18 +89,27 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
         self.current_heartbeat_handle: asyncio.Handle = None
         self.current_poll_handle: asyncio.Handle = None
+        self.current_zombie_thread = None
+
+        self.zombie_function = zombie_function
 
         self.waiters = {}
 
         self.do_poll()
 
+    def _zombie_connection(self):
+        self.zombie_function()
+        self.current_zombie_thread = None
+
     def do_heartbeat(self) -> None:
         interval = self.heartbeat_interval if self.heartbeats_sent != 0 else 0
         create_task = functools.partial(self.loop.create_task, self.send_heartbeat())
         self.current_heartbeat_handle = self.loop.call_later(interval, create_task)
+        self.current_zombie_thread = threading.Timer(10, self.zombie_function)
+        self.current_zombie_thread.start()
 
     async def send_heartbeat(self) -> None:
-        assert self.heartbeat_interval != float('inf'), 'hello not received'
+        assert self.heartbeat_interval != float('inf'), 'HELLO not received'
 
         await self.send_json(self.heartbeat_payload)
         self.heartbeats_sent += 1
@@ -99,6 +119,10 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def heartbeat_ack(self) -> None:
         self.heartbeats_acked += 1
         self.last_acked = time.monotonic()
+
+        if self.current_zombie_thread is not None:
+            self.current_zombie_thread.cancel()
+            self.current_zombie_thread = None
 
     def do_poll(self) -> None:
         create_task = functools.partial(self.loop.create_task, self.poll_event())
@@ -157,6 +181,9 @@ class ConnectionBase:
     def dispatch(self, resp: DiscordResponse) -> None:
         raise NotImplementedError
 
+    def handle_zombie_connection(self):
+        raise NotImplementedError
+
     async def connect(self) -> None:
         session = aiohttp.ClientSession(
             loop=self._client.loop,
@@ -170,7 +197,8 @@ class ConnectionBase:
         self.websocket.new(
             loop=self._client.loop, 
             heartbeat_payload=self.heartbeat_payload,
-            dispatch_function=self.dispatch
+            dispatch_function=self.dispatch,
+            zombie_function=self.handle_zombie_connection
         )
 
 
@@ -178,6 +206,14 @@ class Shard(ConnectionBase):
     def __init__(self, client, endpoint, shard_id):
         super().__init__(client, endpoint)
         self.id = shard_id
+
+    def handle_zombie_connection(self):
+        self._client.ws.logger.critical(
+            'Shard ID %s hasn\'t received a heartbeat ack from the gateway in %s',
+            self.id, time.monotonic() - self.websocket.last_acked,
+            exc_info=sys._current_frames().get(threading.main_thread().ident),
+            extra=dict(cls=self.__class__.__name__)
+        )
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -270,8 +306,8 @@ class VoiceWSProtocol(ConnectionBase):
             'd': {
                 'protocol': 'udp',
                 'data': {
-                    'address': self.voice_connection.udp_ip,
-                    'port': self.voice_connection.udp_port, 
+                    'address': self.voice_connection.protocol.ip,
+                    'port': self.voice_connection.protocol.port, 
                     'mode': self.voice_connection.mode
                 }
             }
@@ -297,8 +333,23 @@ class VoiceWSProtocol(ConnectionBase):
 
 class VoiceUDPProtocol(asyncio.DatagramProtocol):
     def __init__(self):
-        self.first_datagram_received = asyncio.Future()
+        self.ip = None
+        self.port = None
+        self.mode = None
+        self.selected = False
+        self.voice_connection = None
+
+    async def _datagram_received(self, data):
+        if not self.selected:
+            end = data.index(0, 4)
+            ip = data[4:end]
+            self.ip = ip.decode()
+
+            port = data[-2:]
+            self.port = int.from_bytes(port, 'big')
+
+            await self.voice_connection.ws.select()
+            self.selected = True
 
     def datagram_received(self, data, addr):
-        if not self.first_datagram_received.done():
-            self.first_datagram_received.set_result(data)
+        self.voice_connection.loop.create_task(self._datagram_received(data))

@@ -9,24 +9,39 @@ from .utils import (
 
 
 class User(BaseObject):
-    __json_slots__ = (
+    __slots__ = (
         '_state', 'name', 'discriminator', 'avatar', 'bot', 'system', 
         'mfa_enabled', 'locale', 'verified', 'email', 'flags', 
         'premium_type', 'public_flags'
     )
 
-    name: str = JsonField('username')
-    discriminator: int = JsonField('discriminator')
-    avatar: str = JsonField('avatar')
-    bot: bool = JsonField('bot')
-    system: bool = JsonField('system')
-    mfa_enabled: bool = JsonField('mfa_enabled')
-    locale: str = JsonField('locale')
-    verified: bool = JsonField('verified')
-    email: str = JsonField('email')
-    flags: int = JsonField('flags')
-    premium_type: int = JsonField('premium_type')
-    public_flags: int = JsonField('public_flags')
+    __json_fields__ = {
+        'name': JsonField('username'),
+        'discriminator': JsonField('discriminator'),
+        'avatar': JsonField('avatar'),
+        'bot': JsonField('bot'),
+        'system': JsonField('system'),
+        'mfa_enabled': JsonField('mfa_enabled'),
+        'locale': JsonField('locale'),
+        'verified': JsonField('verified'),
+        'email': JsonField('email'),
+        'flags': JsonField('flags'),
+        'premium_type': JsonField('premium_type'),
+        'public_flags': JsonField('public_flags'),
+    }
+
+    name: str
+    discriminator: int
+    avatar: str
+    bot: bool
+    system: bool
+    mfa_enabled: bool
+    locale: str
+    verified: bool
+    email: str
+    flags: int
+    premium_type: int
+    public_flags: int
 
     def __init__(self, *, state):
         self._state = state

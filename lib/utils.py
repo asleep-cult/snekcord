@@ -1,5 +1,4 @@
 import json
-from copy import deepcopy
 from datetime import datetime
 
 SNOWFLAKE_MINIMUM_BIT_LENGTH = 51
@@ -7,40 +6,21 @@ SNOWFLAKE_MAXIMUM_BIT_LENGTH = 111
 DISCORD_EPOCH = 1420070400000
 
 
-class JsonStructureMeta(type):
-    # this classes only purpose is to add an "_" to the end of a class attributes name if it conflicts with __slots__
-    # so it can later be stripped by JsonStructure.__init_subclass__
-    # __json_slots__ is just an alias to __slots__ (so linters will be quiet)
-    def __new__(mcs, name, bases, dict_):
-        slots = dict_.get('__json_slots__', None)
-        for key, value in dict(dict_).items():
-            if key in (slots or ()):
-                if isinstance(value, JsonField):
-                    del dict_[key]
-                    dict_[key + '_'] = value
-        if slots is not None:
-            dict_['__slots__'] = slots
-        return super().__new__(mcs, name, bases, dict_)
-
-
-class JsonStructure(metaclass=JsonStructureMeta):
+class JsonStructure:
     # inspired by Go's encoding/json module
+
+    __json_fields__: dict
+
     def __init_subclass__(cls):
-        if hasattr(cls, 'json_fields'):
-            cls.json_fields = deepcopy(cls.json_fields)
-        else:
-            cls.json_fields = {}
-        for name, value in dict(cls.__dict__).items():
-            if isinstance(value, JsonField):
-                cls.json_fields[name.rstrip('_')] = value
-                delattr(cls, name)
+        assert hasattr(cls, '__json_fields__')
 
     @classmethod
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
         if isinstance(data, (str, bytes, bytearray)):
             data = json.loads(data)
         self = object.__new__(cls)
-        for name, field in self.json_fields.items():
+
+        for name, field in self.__json_fields__.items():
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, name, value)
@@ -54,9 +34,9 @@ class JsonStructure(metaclass=JsonStructureMeta):
         dct = {}
 
         if cls is not None:
-            json_fields = cls.json_fields
+            json_fields = cls.__json_fields__
         else:
-            json_fields = self.json_fields
+            json_fields = self.__json_fields__
 
         for name, field in json_fields.items():
             try:

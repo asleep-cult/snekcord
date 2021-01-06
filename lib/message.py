@@ -13,12 +13,17 @@ from .utils import (
     _try_snowflake
 )
 
-from typing import TYPE_CHECKING
+from typing import (
+    Optional,
+    TYPE_CHECKING,
+    List,
+    Union
+)
 
 if TYPE_CHECKING:
     from .channel import (
         _Channel,
-        ChannelState
+        ChannelState,
     )
 
 class MessageType:
@@ -42,21 +47,39 @@ class MessageType:
 
 
 class MessageActivity(JsonStructure):
-    type: int = JsonField('type')
-    party_id: str = JsonField('party_id')
+    __json_fields__ = {
+        'type': JsonField('type'),
+        'party_id': JsonField('party_id'),
+    }
+
+    type: int
+    party_id: str
 
 
 class MessageApplication(BaseObject):
-    cover_image: str = JsonField('cover_image')
-    description: str = JsonField('description')
-    icon: str = JsonField('icon')
-    name: str = JsonField('name')
+    __json_fields__ = {
+        'cover_image': JsonField('cover_image'),
+        'description': JsonField('description'),
+        'icon': JsonField('icon'),
+        'name': JsonField('name'),
+    }
+
+    cover_image: str
+    description: str
+    icon: str
+    name: str
 
 
 class MessageReference(JsonStructure):
-    message_id = JsonField('message_id', int, str)
-    channel_id = JsonField('channel_id', int, str)
-    guild_id = JsonField('guild_id', int, str)
+    __json_fields__ = {
+        'message_id': JsonField('message_id', Snowflake, str),
+        'channel_id': JsonField('channel_id', Snowflake, str),
+        'guild_id': JsonField('guild_id', int, str),
+    }
+
+    message_id: Snowflake
+    channel_id: Snowflake
+    guild_id: Snowflake
 
 
 class MessageActivityType:
@@ -75,13 +98,23 @@ class MessageFlag:
 
 
 class MessageSticker(BaseObject):
-    pack_id: int = JsonField('pack_id', int, str)
-    name: str = JsonField('name')
-    description: str = JsonField('description')
-    tags: str = JsonField('tags')
-    asset: str = JsonField('asset')
-    preview_asset: str = JsonField('preview_asset')
-    format_type: int = JsonField('format_type')
+    __json_fields__ = {
+        'pack_id': JsonField('pack_id', Snowflake, str),
+        'name': JsonField('name'),
+        'description': JsonField('description'),
+        'tags': JsonField('tags'),
+        'asset': JsonField('asset'),
+        'preview_asset': JsonField('preview_asset'),
+        'format_type': JsonField('format_type'),
+    }
+    
+    pack_id: Snowflake
+    name: str
+    description: str
+    tags: str
+    asset: str
+    preview_asset: str
+    format_type: int
 
 
 class MessageStickerType:
@@ -91,14 +124,25 @@ class MessageStickerType:
 
 
 class FollowedChannel(JsonStructure):
-    channel_id: int = JsonField('channel_id', int, str)
-    webhook_id: int = JsonField('webhook_id', int, str)
+    __json_fields__ = {
+        'channel_id': JsonField('channel_id', Snowflake, str),
+        'webhook_id': JsonField('webhook_id', Snowflake, str),
+    }
+
+    channel_id: Snowflake
+    webhook_id: Snowflake
 
 
 class Reaction(JsonStructure):
-    count: int = JsonField('count')
-    me: bool = JsonField('me')
-    emoji = JsonField('emoji')
+    __json_fields__ = {
+        'count': JsonField('count'),
+        'me': JsonField('me'),
+        'emoji': JsonField('emoji'),
+    }
+
+    count: int
+    me: bool
+    emoji: ...
 
     def __init__(self, state, message):
         self._state = state
@@ -111,12 +155,6 @@ class Reaction(JsonStructure):
         await self._state.remove_emoji(self.emoji)
 
 
-class PermissionOverwrite(BaseObject):
-    type: int = JsonField('type')
-    allow: int = JsonField('allow', int, str)
-    deny: int = JsonField('deny', int, set)
-
-
 class EmbedType:
     RICH = 'rich'
     IMAGE = 'image'
@@ -127,56 +165,107 @@ class EmbedType:
 
 
 class EmbedAttachment(JsonStructure):
-    url: str = JsonField('url')
-    proxy_url = JsonField('proxy_url')
-    height = JsonField('height')
-    width = JsonField('width')
+    __json_fields__ = {
+        'url': JsonField('url'),
+        'proxy_url': JsonField('proxy_url'),
+        'height': JsonField('height'),
+        'width': JsonField('width'),
+    }
+
+    url: str
+    proxy_url: ...
+    height: ...
+    width: ...
 
 
 class EmbedVideo(JsonStructure):
-    url: str = JsonField('url')
-    height: int = JsonField('height')
-    width: int = JsonField('width')
+    __json_fields__ = {
+        'url': JsonField('url'),
+        'height': JsonField('height'),
+        'width': JsonField('width'),
+    }
+
+    url: str
+    height: int
+    width: int
 
 
 class EmbedProvider(JsonStructure):
-    name: str = JsonField('name')
-    url: str = JsonField('url')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'url': JsonField('url'),
+    }
+
+    name: str
+    url: str
 
 
 class EmbedAuthor(JsonStructure):
-    name: str = JsonField('name')
-    url: str = JsonField('url')
-    icon_url: str = JsonField('icon_url')
-    proxy_icon_url: str = JsonField('proxy_icon_url')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'url': JsonField('url'),
+        'icon_url': JsonField('icon_url'),
+        'proxy_icon_url': JsonField('proxy_icon_url'),
+    }
+
+    name: str
+    url: str
+    icon_url: str
+    proxy_icon_url: str
 
 
 class EmbedFooter(JsonStructure):
-    text: str = JsonField('text')
-    icon_url: str = JsonField('icon_url')
-    proxy_icon_url: str = JsonField('proxy_icon_url')
+    __json_fields__ = {
+        'text': JsonField('text'),
+        'icon_url': JsonField('icon_url'),
+        'proxy_icon_url': JsonField('proxy_icon_url'),
+    }
+
+    text: str
+    icon_url: str
+    proxy_icon_url: str
 
 
 class EmbedField(JsonStructure):
-    name: str = JsonField('name')
-    value: str = JsonField('value')
-    inline: bool = JsonField('inline')
+    __json_fields__ = {
+        'name': JsonField('name'),
+        'value': JsonField('value'),
+        'inline': JsonField('inline'),
+    }
 
+    name: str
+    value: str
+    inline: bool
+    
 
 class Embed(JsonStructure):
-    title: str = JsonField('title')
-    type: str = JsonField('type')
-    description: str = JsonField('description')
-    url: str = JsonField('url')
+    __json_fields__ = {
+        'title': JsonField('title'),
+        'type': JsonField('type'),
+        'description': JsonField('description'),
+        'url': JsonField('url'),
+        'color': JsonField('color'),
+        'footer': JsonField('footer', struct=EmbedFooter),
+        'image': JsonField('image', struct=EmbedAttachment),
+        'thumbnail': JsonField('thumbnail', struct=EmbedAttachment),
+        'video': JsonField('video', struct=EmbedVideo),
+        'provider': JsonField('provider', struct=EmbedProvider),
+        'author': JsonField('author', struct=EmbedAuthor),
+        'fields': JsonArray('fields', struct=EmbedField),
+    }
+    title: str
+    type: str
+    description: str
+    url: str
     # timestamp
-    color: int = JsonField('color')
-    footer: EmbedFooter = JsonField('footer', struct=EmbedFooter)
-    image: EmbedAttachment = JsonField('image', struct=EmbedAttachment)
-    thumbnail: EmbedAttachment = JsonField('thumbnail', struct=EmbedAttachment)
-    video: EmbedVideo = JsonField('video', struct=EmbedVideo)
-    provider: EmbedProvider = JsonField('provider', struct=EmbedProvider)
-    author: EmbedAuthor = JsonField('author', struct=EmbedAuthor)
-    fields: list = JsonArray('fields', struct=EmbedField)
+    color: int
+    footer: EmbedFooter
+    image: EmbedAttachment
+    thumbnail: EmbedAttachment
+    video: EmbedVideo
+    provider: EmbedProvider
+    author: EmbedAuthor
+    fields: list
 
     def __init__(self, *, title=None, description=None, url=None, color=None):
         self.title = title
@@ -253,18 +342,33 @@ class Embed(JsonStructure):
 
 
 class MessageAttachment(BaseObject):
-    filename: str = JsonField('filename')
-    size: int = JsonField('size')
-    url: str = JsonField('url')
-    proxy_url: str = JsonField('proxy_url')
-    height: int = JsonField('height')
-    width: int = JsonField('width')
+    __json_fields__ = {
+        'filename': JsonField('filename'),
+        'size': JsonField('size'),
+        'url': JsonField('url'),
+        'proxy_url': JsonField('proxy_url'),
+        'height': JsonField('height'),
+        'width': JsonField('width'),
+    }
+
+    filename: str
+    size: int
+    url: str
+    proxy_url: str
+    height: int
+    width: int
 
 
 class ChannelMention(BaseObject):
-    guild_id: int = JsonField('int', int, str)
-    type: int = JsonField('int')
-    name: str = JsonField('name')
+    __json_fields__ = {
+        'guild_id': JsonField('int', int, str),
+        'type': JsonField('int'),
+        'name': JsonField('name'),
+    }
+    
+    guild_id: Snowflake
+    type: int
+    name: str
 
 
 class AllowedMentionsType:
@@ -274,43 +378,72 @@ class AllowedMentionsType:
 
 
 class AllowedMentions(JsonStructure):
-    parse: list = JsonArray('parse')
-    roles: list = JsonArray('roles', int, str)
-    users: list = JsonArray('users', int, str)
-    replied_user: bool = JsonField('replied_user')
+    __json_fields__ = {
+        'parse': JsonArray('parse'),
+        'roles': JsonArray('roles', Snowflake, str),
+        'users': JsonArray('users', Snowflake, str),
+        'replied_user': JsonField('replied_user'),
+    }
+
+    parse: ...
+    roles: List[Snowflake]
+    users: List[Snowflake]
+    replied_user: bool
 
 
 class Message(BaseObject):
-    __json_slots__ = (
+    __slots__ = (
         'id', 'channel_id', 'guild_id', 'channel', 'guild', '_author', 'author', '_member', 
         'content', 'tts', 'mention_everyone', 'attachments', 'embeds', 'reactions', 'nonce', 
         'pinned', 'webhook_id', 'type', 'activity', 'appliaction', 'flags', 'stickers'
     )
 
-    channel_id: Snowflake = JsonField('channel_id', Snowflake, str)
-    guild_id: Snowflake = JsonField('guild_id', Snowflake, str)
-    _author = JsonField('author')
-    _member = JsonField('member')
-    content: str = JsonField('content')
+    __json_fields__ = {
+        'channel_id': JsonField('channel_id', Snowflake, str),
+        'guild_id': JsonField('guild_id', Snowflake, str),
+        '_author': JsonField('author'),
+        '_member': JsonField('member'),
+        'content': JsonField('content'),
+        'tts': JsonField('tts'),
+        'mention_everyone': JsonField('mention_everyone'),
+        'attachments': JsonArray('attachments', struct=MessageAttachment),
+        'embeds': JsonArray('embeds', struct=Embed, init_struct_class=False),
+        '_reactions': JsonArray('reactions'),
+        'nonce': JsonField('nonce'),
+        'pinned': JsonField('pinned'),
+        'webhook_id': JsonField('webhook_id', int, str),
+        'type': JsonField('type'),
+        'activity': JsonField('activity', struct=MessageActivity),
+        'application': JsonField('application'),
+        'flags': JsonField('flags'),
+        'stickers': JsonArray('stickers', struct=MessageSticker),
+    }
+
+    id: Snowflake
+    channel_id: Snowflake
+    guild_id: Snowflake
+    _author: dict
+    _member: dict
+    content: str
     # timestamp
     # edited_timestamp
-    tts: bool = JsonField('tts')
-    mention_everyone: bool = JsonField('mention_everyone')
+    tts: bool
+    mention_everyone: bool
     # mentions
     # mention_roles
     # mention_channels
-    attachments: list = JsonArray('attachments', struct=MessageAttachment)
-    embeds: list = JsonArray('embeds', struct=Embed, init_struct_class=False)
-    _reactions: list = JsonArray('reactions')
-    nonce = JsonField('nonce')
-    pinned: bool = JsonField('pinned')
-    webhook_id: int = JsonField('webhook_id', int, str)
-    type: int = JsonField('type')
-    activity: MessageActivity = JsonField('activity', struct=MessageActivity)
-    application: MessageApplication = JsonField('application')
+    attachments: list
+    embeds: list
+    _reactions: list
+    nonce: Union[str, int]
+    pinned: bool
+    webhook_id: int
+    type: int
+    activity: MessageActivity
+    application: MessageApplication
     # message_reference
-    flags: int = JsonField('flags')
-    stickers: list = JsonArray('stickers', struct=MessageSticker)
+    flags: int
+    stickers: list
 
     # referenced_message
 
