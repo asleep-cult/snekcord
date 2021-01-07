@@ -14,7 +14,6 @@ from .utils import (
 )
 
 from typing import (
-    Optional,
     TYPE_CHECKING,
     List,
     Union
@@ -25,6 +24,7 @@ if TYPE_CHECKING:
         _Channel,
         ChannelState,
     )
+
 
 class MessageType:
     DEFAULT = 0
@@ -64,6 +64,7 @@ class MessageApplication(BaseObject):
         'name': JsonField('name'),
     }
 
+    id: Snowflake
     cover_image: str
     description: str
     icon: str
@@ -107,7 +108,7 @@ class MessageSticker(BaseObject):
         'preview_asset': JsonField('preview_asset'),
         'format_type': JsonField('format_type'),
     }
-    
+
     id: Snowflake
     pack_id: Snowflake
     name: str
@@ -237,7 +238,7 @@ class EmbedField(JsonStructure):
     name: str
     value: str
     inline: bool
-    
+
 
 class Embed(JsonStructure):
     __json_fields__ = {
@@ -321,7 +322,13 @@ class Embed(JsonStructure):
         self.provider = EmbedProvider.unmarshal(fields)
         return self.provider
 
-    def set_author(self, name=None, url=None, icon_url=None, proxy_icon_url=None):
+    def set_author(
+        self,
+        name=None,
+        url=None,
+        icon_url=None,
+        proxy_icon_url=None
+    ):
         fields = {
             'name': name,
             'url': url,
@@ -366,7 +373,7 @@ class ChannelMention(BaseObject):
         'type': JsonField('int'),
         'name': JsonField('name'),
     }
-    
+
     guild_id: Snowflake
     type: int
     name: str
@@ -394,9 +401,10 @@ class AllowedMentions(JsonStructure):
 
 class Message(BaseObject):
     __slots__ = (
-        'id', 'channel_id', 'guild_id', 'channel', 'guild', '_author', 'author', '_member', 
-        'content', 'tts', 'mention_everyone', 'attachments', 'embeds', 'reactions', 'nonce', 
-        'pinned', 'webhook_id', 'type', 'activity', 'appliaction', 'flags', 'stickers'
+        'id', 'channel_id', 'guild_id', 'channel', 'guild', '_author',
+        'author', '_member', 'content', 'tts', 'mention_everyone',
+        'attachments', 'embeds', 'reactions', 'nonce', 'pinned', 'webhook_id',
+        'type', 'activity', 'appliaction', 'flags', 'stickers'
     )
 
     __json_fields__ = {
@@ -479,9 +487,23 @@ class Message(BaseObject):
         message = self._state._add(data, channel=self.channel)
         return message
 
-    async def edit(self, content=None, *, embed=None, flags=None, allowed_mentions=None):
+    async def edit(
+        self,
+        content=None,
+        *,
+        embed=None,
+        flags=None,
+        allowed_mentions=None
+    ):
         rest = self._state._client.rest
-        resp = await rest.edit_message(self.channel.id, self.id, content=content, embed=embed, flags=flags, allowed_mentions=allowed_mentions)
+        resp = await rest.edit_message(
+            self.channel.id,
+            self.id,
+            content=content,
+            embed=embed,
+            flags=flags,
+            allowed_mentions=allowed_mentions
+        )
         data = await resp.json()
         message = self._state._add(data, channel=self.channel)
         return message
@@ -515,11 +537,18 @@ class ReactionState(BaseState):
 
     async def add(self, emoji):
         rest = self._client.rest
-        await rest.create_reaction(self._message.channel.id, self._message.id, emoji)
+        await rest.create_reaction(
+            self._message.channel.id,
+            self._message.id,
+            emoji
+        )
 
     async def fetch_all(self):
         rest = self._client.rest
-        resp = await rest.get_reactions(self._message.channel.id, self._message.id)
+        resp = await rest.get_reactions(
+            self._message.channel.id,
+            self._message.id
+        )
         data = await resp.json()
         reactions = []
         for reaction in data:
@@ -532,11 +561,20 @@ class ReactionState(BaseState):
             user = user.id
 
         rest = self._client.rest
-        await rest.delete_reaction(self._message.channel.id, self._message.id, emoji, user)
+        await rest.delete_reaction(
+            self._message.channel.id,
+            self._message.id,
+            emoji,
+            user
+        )
 
     async def remove_emoji(self, emoji):
         rest = self._client.rest
-        await rest.delete_reactions(self._message.channel.id, self._message.id, emoji)
+        await rest.delete_reactions(
+            self._message.channel.id,
+            self._message.id,
+            emoji
+        )
 
     async def remove_all(self, emoji):
         rest = self._client.rest
@@ -564,11 +602,17 @@ class MessageState(BaseState):
         message = self._add(data)
         return message
 
-    async def fetch_history(self, around=None, before=None, after=None, limit=None):
+    async def fetch_history(
+        self,
+        around=None,
+        before=None,
+        after=None,
+        limit=None
+    ):
         around = _try_snowflake(around)
         before = _try_snowflake(before)
         after = _try_snowflake(after)
-        
+
         if isinstance(around, Snowflake):
             around = around.datetime
 
@@ -580,7 +624,7 @@ class MessageState(BaseState):
 
         if isinstance(around, datetime):
             around = around.timestamp()
-        
+
         if isinstance(before, datetime):
             before = before.timestamp()
 
@@ -588,7 +632,13 @@ class MessageState(BaseState):
             after = after.timestamp()
 
         rest = self._client.rest
-        resp = await rest.get_channel_messages(self._channel.id, around=around, before=before, after=after, limit=limit)
+        resp = await rest.get_channel_messages(
+            self._channel.id,
+            around=around,
+            before=before,
+            after=after,
+            limit=limit
+        )
         data = await resp.json()
         messages = []
         for message in data:

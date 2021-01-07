@@ -11,7 +11,13 @@ if TYPE_CHECKING:
 
 
 class Gateway:
-    def __init__(self, client: 'Client', *, max_shards: Optional[int] = None, intents: Optional[int] = None):
+    def __init__(
+        self,
+        client: 'Client',
+        *,
+        max_shards: Optional[int] = None,
+        intents: Optional[int] = None
+    ):
         self._client = client
         self.max_shards = max_shards
         self.intents = intents
@@ -36,8 +42,12 @@ class Gateway:
         self.reset_after = session_start_limit['reset_after']
         self.max_concurrency = session_start_limit['reset_after']
         if self.remaining == 0:
-            raise ConnectionError('This client is out of session starts, please try again in {}'.format(
-                self.reset_after))
+            raise ConnectionError(
+                'This client is out of session starts,'
+                ' please try again in {}'.format(
+                    self.reset_after
+                )
+            )
         shard_range = min((self.recommended_shards, self.max_shards))
         if shard_range > 1:
             self.multi_sharded = True
@@ -46,5 +56,8 @@ class Gateway:
             self.shards[shard_id] = shard
         for shard in self.shards.values():
             await shard.connect()
-            self.logger.info('Shard ID %s has connected to the WebSocket', 
-            shard.id, extra=dict(cls=self.__class__.__name__))
+            self.logger.info(
+                'Shard ID %s has connected to the WebSocket',
+                shard.id,
+                extra=dict(cls=self.__class__.__name__)
+            )

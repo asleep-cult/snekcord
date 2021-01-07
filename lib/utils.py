@@ -1,9 +1,26 @@
 import json
 from datetime import datetime
 
+from typing import (
+    Dict,
+    Any
+)
+
+JSON = Dict[str, Any]
 SNOWFLAKE_MINIMUM_BIT_LENGTH = 51
 SNOWFLAKE_MAXIMUM_BIT_LENGTH = 111
 DISCORD_EPOCH = 1420070400000
+
+
+class _Undefined:
+    def __bool__(self):
+        return False
+
+    def __repr__(self):
+        return '<undefined>'
+
+
+undefined = _Undefined()
 
 
 class JsonStructure:
@@ -24,8 +41,9 @@ class JsonStructure:
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, name, value)
-            except:
+            except BaseException:
                 setattr(self, name, field.default)
+
         if init_class:
             self.__init__(*args, **kwargs)
         return self
@@ -41,13 +59,13 @@ class JsonStructure:
         for name, field in json_fields.items():
             try:
                 attr = getattr(self, name)
-                if attr is None and field.omitemoty:
+                if attr is undefined and field.omitemoty:
                     continue
                 try:
                     value = field.marshal(attr)
-                except:
+                except BaseException:
                     continue
-                if value is None and field.omitemoty:
+                if value is undefined and field.omitemoty:
                     continue
                 dct[field.name] = value
             except AttributeError:
@@ -60,14 +78,14 @@ class JsonStructure:
 
 class JsonField:
     def __init__(
-            self,
-            key,
-            unmarshal_callable=None,
-            marshal_callable=None,
-            default=None,
-            struct=None,
-            init_struct_class=True,
-            omitemoty=False
+        self,
+        key,
+        unmarshal_callable=None,
+        marshal_callable=None,
+        default=undefined,
+        struct=None,
+        init_struct_class=True,
+        omitemoty=False
     ):
         if struct is not None:
             self.unmarshal_callable = lambda *args, **kwargs: struct.unmarshal(
@@ -110,29 +128,41 @@ class Snowflake(int):
 
     def __new__(cls, *args, **kwargs):
         self = int.__new__(cls, *args, **kwargs)
-        if not SNOWFLAKE_MINIMUM_BIT_LENGTH <= self.bit_length() <= SNOWFLAKE_MAXIMUM_BIT_LENGTH:
-            raise ValueError('Snowflake\'s bit length should be {} to {}'.format(
-                SNOWFLAKE_MINIMUM_BIT_LENGTH, SNOWFLAKE_MAXIMUM_BIT_LENGTH))
+        if not (
+            SNOWFLAKE_MINIMUM_BIT_LENGTH <=
+            self.bit_length() <=
+            SNOWFLAKE_MAXIMUM_BIT_LENGTH
+        ):
+            raise ValueError(
+                'Snowflake\'s bit length should be {} to {}'.format(
+                    SNOWFLAKE_MINIMUM_BIT_LENGTH, SNOWFLAKE_MAXIMUM_BIT_LENGTH
+                )
+            )
         return self
 
     @property
-    def datetime(self):
+    def datetime(self) -> datetime:
         return datetime.fromtimestamp(((self >> 22) + DISCORD_EPOCH) / 1000)
 
     @property
-    def worker_id(self):
+    def worker_id(self) -> int:
         return (self & 0x3E0000) >> 17
 
     @property
-    def process_id(self):
+    def process_id(self) -> int:
         return (self & 0x1F000) >> 12
 
     @property
-    def increment(self):
+    def increment(self) -> int:
         return self & 0xFFF
 
 
 def _try_snowflake(value):
+    from .bases import BaseObject
+
+    if isinstance(value, BaseObject):
+        value = value.id
+
     try:
         value = Snowflake(value)
     except (ValueError, TypeError):

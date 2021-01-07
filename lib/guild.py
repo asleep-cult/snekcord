@@ -1,13 +1,11 @@
-from .user import User
 from .invite import GuildInviteState
 
 from .channel import (
-    _Channel,
     GuildChannelState
 )
 
 from .bases import (
-    BaseObject, 
+    BaseObject,
     BaseState
 )
 
@@ -37,7 +35,7 @@ class RoleTags(JsonStructure):
 
 class Role(BaseObject):
     __slots__ = (
-        'id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed', 
+        'id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed',
         'mentionable', 'tags'
     )
 
@@ -78,14 +76,14 @@ class Role(BaseObject):
     ):
         rest = self._state._client.rest
         resp = await rest.modify_guild_role(
-            self.guild.id, self.id, name=name, 
-            permission=permissions, color=color, 
+            self.guild.id, self.id, name=name,
+            permission=permissions, color=color,
             hoist=hoist, mentionable=mentionable
         )
         data = await resp.json()
         role = self._state._add(data)
         return role
-    
+
     async def delete(self):
         rest = self._state._client.rest
         await rest.delete_guild_role(
@@ -137,7 +135,10 @@ class RoleState(BaseState):
 
     async def modify_postions(self, positions):
         rest = self._client.rest
-        resp = await rest.modify_guild_role_permissions(self._guild.id, positions)
+        resp = await rest.modify_guild_role_permissions(
+            self._guild.id,
+            positions
+        )
         data = await resp.json()
         roles = []
         for role in data:
@@ -148,8 +149,8 @@ class RoleState(BaseState):
 
 class GuildMember(JsonStructure):
     __json_slots__ = (
-        '_user', 'nick', '_roles', 'joined_at', 'premium_since', 'deaf', 'mute', 
-        'pending', '_state', 'guild', 'user'
+        '_user', 'nick', '_roles', 'joined_at', 'premium_since',
+        'deaf', 'mute', 'pending', '_state', 'guild', 'user'
     )
 
     __json_fields__ = {
@@ -172,7 +173,13 @@ class GuildMember(JsonStructure):
     mute: bool
     pending: bool
 
-    def __init__(self, *, state: 'GuildMemberState', guild: 'Guild', user=None):
+    def __init__(
+        self,
+        *,
+        state: 'GuildMemberState',
+        guild: 'Guild',
+        user=None
+    ):
         self._state: GuildMemberState = state
         self.guild = guild
         self.roles = GuildMemberRoleState(self._state._client, member=self)
@@ -192,14 +199,21 @@ class GuildMember(JsonStructure):
     def _update(self, *args, **kwargs):
         pass
 
-    async def edit(self, nick=None, roles=None, mute=None, deaf=None, channel=None):
+    async def edit(
+        self,
+        nick=None,
+        roles=None,
+        mute=None,
+        deaf=None,
+        channel=None
+    ):
         rest = self._state._client.rest
 
         if channel is not None:
             channel = channel.id
 
         resp = await rest.modify_guild_member(
-            self.guild.id, self.user.id, roles=roles, 
+            self.guild.id, self.user.id, roles=roles,
             mute=mute, deaf=deaf, channel=channel
         )
         data = await resp.json()
@@ -207,7 +221,11 @@ class GuildMember(JsonStructure):
         return member
 
     async def ban(self, *, reason=None, delete_message_days=None):
-        ban = await self.guild.bans.add(self, reason=reason, delete_message_days=delete_message_days)
+        ban = await self.guild.bans.add(
+            self,
+            reason=reason,
+            delete_message_days=delete_message_days
+        )
         return ban
 
 
@@ -227,11 +245,19 @@ class GuildMemberRoleState(BaseState):
 
     async def add(self, role):
         rest = self._client.rest
-        await rest.add_guild_member_role(self._member.guild.id, self._member.id, role.id)
+        await rest.add_guild_member_role(
+            self._member.guild.id,
+            self._member.id,
+            role.id
+        )
 
     async def remove(self, role):
         rest = self._client.rest
-        await rest.remove_guild_member_role(self._member.guild.id, self._member.id, role.id)
+        await rest.remove_guild_member_role(
+            self._member.guild.id,
+            self._member.id,
+            role.id
+        )
 
 
 class GuildMemberState(BaseState):
@@ -246,7 +272,12 @@ class GuildMemberState(BaseState):
         if member is not None:
             member._update(data)
             return member
-        member = GuildMember.unmarshal(data, state=self, guild=self._guild, user=user)
+        member = GuildMember.unmarshal(
+            data,
+            state=self,
+            guild=self._guild,
+            user=user
+        )
         self._values[member.user.id] = member
         return member
 
@@ -266,7 +297,16 @@ class GuildMemberState(BaseState):
             members.append(member)
         return members
 
-    async def add(self, user, access_token, *, nick=None, roles=None, mute=None, deaf=None):
+    async def add(
+        self,
+        user,
+        access_token,
+        *,
+        nick=None,
+        roles=None,
+        mute=None,
+        deaf=None
+    ):
         rest = self._client.rest
         if roles is not None:
             roles = {role.id for role in roles}
@@ -305,7 +345,7 @@ class GuildEmoji(BaseObject):
         self.guild = guild
         self.roles = []
         self.user = None
-        
+
         if self._user is not None:
             self.user = self._state._client.users._add(self._user)
 
@@ -381,7 +421,12 @@ class GuildEmojiState(BaseState):
 
     async def create(self, name, image, roles=None):
         rest = self._client.rest
-        resp = await rest.create_guild_emoji(self._guild.id, name, image, roles)
+        resp = await rest.create_guild_emoji(
+            self._guild.id,
+            name,
+            image,
+            roles
+        )
         data = await resp.json()
         emoji = self._add(data)
         return emoji
@@ -391,7 +436,7 @@ class GuildIntegrationAccount(BaseObject):
     __json_fields__ = {
         'name': JsonField('name'),
     }
-    
+
     id: Snowflake
     name: ...
 
@@ -414,7 +459,7 @@ class GuildIntegrationApplication(BaseObject):
 
     def __init__(self, state):
         self._state = state
-        
+
         if self._bot is not None:
             self.bot = self._state._client.users.add(self._bot)
 
@@ -461,8 +506,10 @@ class GuildIntegration(BaseObject):
             self.user = self._state._client.users._add(self._user)
 
         if self._application is not None:
-            self.application = GuildIntegrationApplication.unmarshal(self._application, 
-            state=self._state)
+            self.application = GuildIntegrationApplication.unmarshal(
+                self._application,
+                state=self._state
+            )
 
     async def edit(
         self,
@@ -475,7 +522,7 @@ class GuildIntegration(BaseObject):
         await rest.modify_guild_integration(
             self.guild.id, self.id, expire_behavior=expire_behavior,
             expire_grace_period=expire_grace_period,
-            enable_emoticons=enable_emoticons 
+            enable_emoticons=enable_emoticons
         )
 
     async def delete(self):
@@ -497,7 +544,11 @@ class GuildIntegrationState(BaseState):
         if integration is not None:
             integration._update(data)
             return integration
-        integration = GuildIntegration.unmarshal(data, state=self, guild=self._guild)
+        integration = GuildIntegration.unmarshal(
+            data,
+            state=self,
+            guild=self._guild
+        )
         self._values[integration.id] = integration
         return integration
 
@@ -560,7 +611,7 @@ class GuildWidget(BaseObject):
         self.guild = guild
 
     def edit(self, *, enabled=None, channel=None):
-        return self.guild.edit_widget(enabled=enabled, channel=channel) 
+        return self.guild.edit_widget(enabled=enabled, channel=channel)
 
 
 class GuildWidgetSettings(JsonStructure):
@@ -615,13 +666,34 @@ class GuildPreview(BaseObject):
 
     def __init__(self, state):
         self._state = state
-        self.emojis = GuildEmojiState(self._state._client, guild=self)
-        self.roles: Iterable[Role] = RoleState(self._state._client, guild=self)
-        self.members: Iterable[GuildMember] = GuildMemberState(self._state._client, guild=self)
-        self.invites = GuildInviteState(self._state._client.invites, guild=self)
-        self.bans = GuildBanState(self._state._client, guild=self)
-        self.channels = GuildChannelState(self._state._client.channels, guild=self)
-        self.integrations = GuildIntegrationState(self._state._client, guild=self)
+        self.emojis = GuildEmojiState(
+            self._state._client,
+            guild=self
+        )
+        self.roles: Iterable[Role] = RoleState(
+            self._state._client,
+            guild=self
+        )
+        self.members: Iterable[GuildMember] = GuildMemberState(
+            self._state._client,
+            guild=self
+        )
+        self.invites = GuildInviteState(
+            self._state._client.invites,
+            guild=self
+        )
+        self.bans = GuildBanState(
+            self._state._client,
+            guild=self
+        )
+        self.channels = GuildChannelState(
+            self._state._client.channels,
+            guild=self
+        )
+        self.integrations = GuildIntegrationState(
+            self._state._client,
+            guild=self
+        )
 
         for emoji in self._emojis:
             self.emojis._add(emoji)
@@ -631,9 +703,9 @@ class GuildPreview(BaseObject):
     async def edit(
         self,
         *,
-        name=None, 
+        name=None,
         region=None,
-        verification_level=None, 
+        verification_level=None,
         default_message_notifications=None,
         explicit_content_filter=None,
         afk_channel=None,
@@ -672,7 +744,7 @@ class GuildPreview(BaseObject):
             afk_channel_id=afk_channel, afk_timeout=afk_timeout,
             icon=icon, owner_id=owner, splash=splash,
             banner=banner, system_channel_id=system_channel,
-            rules_channel_id=rules_channel, 
+            rules_channel_id=rules_channel,
             public_updates_channel_id=public_updates_channel,
             preferred_locale=preferred_locale
         )
@@ -700,10 +772,19 @@ class GuildPreview(BaseObject):
         data = await resp.json()
         return data['pruned']
 
-    async def begin_prune(self, days=None, include_roles=None, compute_prune_count=None):
+    async def begin_prune(
+        self,
+        days=None,
+        include_roles=None,
+        compute_prune_count=None
+    ):
         rest = self._state._client.rest
-        resp = await rest.begin_guild_prune(self.id, days=days, include_roles=include_roles, 
-        compute_prune_count=compute_prune_count)
+        resp = await rest.begin_guild_prune(
+            self.id,
+            days=days,
+            include_roles=include_roles,
+            compute_prune_count=compute_prune_count
+        )
         data = await resp.json()
         return data['pruned']
 
@@ -723,11 +804,15 @@ class GuildPreview(BaseObject):
 
     async def edit_widget_settings(self, *, enabled=None, channel=None):
         rest = self._state._client.rest
-        
+
         if channel is not None:
             channel = channel.id
 
-        resp = await rest.modify_guild_widget(self.id, enabled=enabled, channel_id=channel)
+        resp = await rest.modify_guild_widget(
+            self.id,
+            enabled=enabled,
+            channel_id=channel
+        )
         data = await resp.json()
         widget = GuildWidgetSettings.unmarshal(data, guild=self)
         return widget
@@ -740,7 +825,7 @@ class GuildPreview(BaseObject):
             emojis.append(emoji.to_dict())
 
         dct['emojis'] = emojis
-    
+
         return dct
 
 
@@ -794,7 +879,12 @@ class GuildBanState(BaseState):
 
     async def add(self, user, *, reason=None, delete_message_days=None):
         rest = self._client.rest
-        resp = await rest.create_guild_ban(self._guild.id, user.id, delete_message_days, reason)
+        resp = await rest.create_guild_ban(
+            self._guild.id,
+            user.id,
+            delete_message_days,
+            reason
+        )
         data = await resp.json()
         ban = self._add(data)
         return ban
@@ -817,7 +907,9 @@ class Guild(GuildPreview):
         'widget_enabled': JsonField('widget_enabled'),
         'widget_channel_id': JsonField('widget_channel_id', Snowflake, str),
         'verification_level': JsonField('verification_level'),
-        'default_message_notifications': JsonField('default_message_notifications'),
+        'default_message_notifications': JsonField(
+            'default_message_notifications'
+        ),
         'explicit_content_filter': JsonField('explicit_content_filter'),
         '_roles': JsonArray('roles'),
         'mfa_level': JsonField('mfa_level'),
@@ -840,7 +932,11 @@ class Guild(GuildPreview):
         'premium_tier': JsonField('permium_tier'),
         'premium_subscription_count': JsonField('premium_subscription_count'),
         'preferred_locale': JsonField('preferred_locale'),
-        'public_updates_channel_id': JsonField('public_updates_channel_id', Snowflake, str),
+        'public_updates_channel_id': JsonField(
+            'public_updates_channel_id',
+            Snowflake,
+            str
+        ),
         'max_video_channel_users': JsonField('max_video_channel_users'),
     }
 
@@ -892,7 +988,7 @@ class Guild(GuildPreview):
 
     def __init__(self, *, state: 'GuildState'):
         super().__init__(state)
- 
+
         if self.owner is not None:
             owner = self._state._client.guilds._add(self._owner)
             if owner is not None:
@@ -936,7 +1032,7 @@ class Guild(GuildPreview):
     @property
     def rules_channel(self):
         return self._state._client.channels.get(self.rules_channel_id)
-    
+
     @property
     def everyone_role(self):
         return self.roles.get(self.id)

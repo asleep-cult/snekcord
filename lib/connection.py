@@ -3,7 +3,6 @@ import asyncio
 import sys
 import time
 import functools
-import struct
 import threading
 
 from .utils import (
@@ -13,7 +12,7 @@ from .utils import (
 
 from typing import (
     Dict,
-    Any, 
+    Any,
     Callable,
     Awaitable,
     Optional,
@@ -39,16 +38,16 @@ class ShardOpcode:
 
 
 class VoiceConnectionOpcode:
-    IDENTIFY = 0 
-    SELECT = 1  
-    READY = 2	
-    HEARTBEAT = 3	
+    IDENTIFY = 0
+    SELECT = 1
+    READY = 2
+    HEARTBEAT = 3
     SESSION_DESCRIPTION = 4
-    SPEAKING = 5	
-    HEARTBEAT_ACK = 6	
-    RESUME = 7	
-    HELLO = 8	
-    RESUMED = 9	
+    SPEAKING = 5
+    HEARTBEAT_ACK = 6
+    RESUME = 7
+    HELLO = 8
+    RESUMED = 9
     CLIENT_DISCONNECT = 13
 
 
@@ -65,9 +64,10 @@ class DiscordResponse(JsonStructure):
     event_name: Optional[str]
     data: Optional[dict]
 
+
 class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
     def new(
-        self, 
+        self,
         *,
         loop: asyncio.AbstractEventLoop,
         heartbeat_payload: Dict[str, Any],
@@ -79,7 +79,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
         self.heartbeat_payload = heartbeat_payload
         self.dispatch_function = dispatch_function
-    
+
         self.heartbeat_interval = float('inf')
         self.last_sent = float('inf')
         self.last_acked = float('inf')
@@ -103,8 +103,12 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
     def do_heartbeat(self) -> None:
         interval = self.heartbeat_interval if self.heartbeats_sent != 0 else 0
-        create_task = functools.partial(self.loop.create_task, self.send_heartbeat())
-        self.current_heartbeat_handle = self.loop.call_later(interval, create_task)
+        create_task = functools.partial(
+            self.loop.create_task,
+            self.send_heartbeat()
+        )
+        self.current_heartbeat_handle = \
+            self.loop.call_later(interval, create_task)
         self.current_zombie_thread = threading.Timer(10, self.zombie_function)
         self.current_zombie_thread.start()
 
@@ -125,7 +129,10 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
             self.current_zombie_thread = None
 
     def do_poll(self) -> None:
-        create_task = functools.partial(self.loop.create_task, self.poll_event())
+        create_task = functools.partial(
+            self.loop.create_task,
+            self.poll_event()
+        )
         self.current_poll_handle = self.loop.call_soon(create_task)
 
     async def poll_event(self) -> None:
@@ -140,7 +147,11 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
             await self.dispatch_function(resp)
 
-        elif payload.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
+        elif payload.type in (
+            aiohttp.WSMsgType.CLOSE,
+            aiohttp.WSMsgType.CLOSED,
+            aiohttp.WSMsgType.CLOSING
+        ):
             return
 
         self.do_poll()
@@ -151,7 +162,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
         if self.current_poll_handle is not None:
             self.current_poll_handle.cancel()
-        
+
         return super().close(*args, **kwargs)
 
     def wait_for(self, event):
@@ -165,7 +176,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
     @property
     def latency(self) -> float:
-        return self.last_acked - self.last_sent  
+        return self.last_acked - self.last_sent
 
 
 class ConnectionBase:
@@ -195,7 +206,7 @@ class ConnectionBase:
         )
 
         self.websocket.new(
-            loop=self._client.loop, 
+            loop=self._client.loop,
             heartbeat_payload=self.heartbeat_payload,
             dispatch_function=self.dispatch,
             zombie_function=self.handle_zombie_connection
@@ -208,13 +219,13 @@ class Shard(ConnectionBase):
         self.id = shard_id
 
     def handle_zombie_connection(self):
-        pass
-        #self._client.ws.logger.critical(
-        #    'Shard ID %s hasn\'t received a heartbeat ack from the gateway in %s',
-        #    self.id, time.monotonic() - self.websocket.last_acked,
-        #    exc_info=sys._current_frames().get(threading.main_thread().ident),
-        #    extra=dict(cls=self.__class__.__name__)
-       # )
+        self._client.ws.logger.critical(
+            'Shard ID %s hasn\'t received a heartbeat'
+            'ack from the gateway in %s',
+            self.id, time.monotonic() - self.websocket.last_acked,
+            exc_info=sys._current_frames().get(threading.main_thread().ident),
+            extra=dict(cls=self.__class__.__name__)
+        )
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -242,7 +253,13 @@ class Shard(ConnectionBase):
             payload['shard'] = [self.id, self._client.ws.recommended_shards]
         return payload
 
-    async def update_voice_state(self, guild_id, channel_id, self_mute=False, self_deaf=False):
+    async def update_voice_state(
+        self,
+        guild_id,
+        channel_id,
+        self_mute=False,
+        self_deaf=False
+    ):
         payload = {
             'op': ShardOpcode.VOICE_STATE_UPDATE,
             'd': {
@@ -263,8 +280,9 @@ class Shard(ConnectionBase):
     async def dispatch(self, resp: DiscordResponse) -> None:
         if resp.opcode == ShardOpcode.HELLO:
             await self.websocket.send_json(self.identify_payload)
-            
-            self.websocket.heartbeat_interval = resp.data['heartbeat_interval'] / 1000
+
+            self.websocket.heartbeat_interval = \
+                resp.data['heartbeat_interval'] / 1000
             self.websocket.do_heartbeat()
 
         elif resp.opcode == ShardOpcode.HEARTBEAT_ACK:
@@ -308,7 +326,7 @@ class VoiceWSProtocol(ConnectionBase):
                 'protocol': 'udp',
                 'data': {
                     'address': self.voice_connection.protocol.ip,
-                    'port': self.voice_connection.protocol.port, 
+                    'port': self.voice_connection.protocol.port,
                     'mode': self.voice_connection.mode
                 }
             }
@@ -322,7 +340,8 @@ class VoiceWSProtocol(ConnectionBase):
         if resp.opcode == VoiceConnectionOpcode.HELLO:
             await self.websocket.send_json(self.identify_payload)
 
-            self.websocket.heartbeat_interval = resp.data['heartbeat_interval'] / 1000
+            self.websocket.heartbeat_interval = \
+                resp.data['heartbeat_interval'] / 1000
             self.websocket.do_heartbeat()
 
         elif resp.opcode == VoiceConnectionOpcode.HEARTBEAT_ACK:

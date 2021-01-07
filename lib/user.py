@@ -1,5 +1,5 @@
 from .bases import (
-    BaseObject, 
+    BaseObject,
     BaseState
 )
 
@@ -11,8 +11,8 @@ from .utils import (
 
 class User(BaseObject):
     __slots__ = (
-        '_state', 'name', 'discriminator', 'avatar', 'bot', 'system', 
-        'mfa_enabled', 'locale', 'verified', 'email', 'flags', 
+        '_state', 'name', 'discriminator', 'avatar', 'bot', 'system',
+        'mfa_enabled', 'locale', 'verified', 'email', 'flags',
         'premium_type', 'public_flags'
     )
 

@@ -46,14 +46,14 @@ class Ratelimiter:
     @property
     def ready(self):
         return all(
-            attr != float('inf') 
+            attr != float('inf')
             for attr in (
-                self.limit, 
-                self._reset, 
+                self.limit,
+                self._reset,
                 self._remaining
             )
         )
-    
+
     def _task_done_callback(self, task, fut):
         def set_result(task):
             self._tasks.remove(task)
@@ -78,7 +78,7 @@ class Ratelimiter:
                     if self.remaining == 0:
                         await asyncio.sleep(self.reset_after)
 
-                    self.remaining -= 1 #good safety mesaure
+                    self.remaining -= 1
                     self._burst_run_once()
 
             self.current_burst_task = None
@@ -130,7 +130,8 @@ class RestSession:
             r = RatelimitedResponse.unmarshal(data)
 
             ratelimiter.remaining = 0
-            ratelimiter._reset = datetime.now().timestamp() + (r.retry_after / 1000)
+            ratelimiter._reset = \
+                datetime.now().timestamp() + (r.retry_after / 1000)
 
             return await ratelimiter.request(req)
 
@@ -153,9 +154,9 @@ class RestSession:
         url = self.URL + url.format(**path_params)
 
         bucket = '{0}-{1}-{2}-{3}'.format(
-                    meth, 
-                    path_params.get("guild_id"), 
-                    path_params.get("channel_id"), 
+                    meth,
+                    path_params.get("guild_id"),
+                    path_params.get("channel_id"),
                     path_params.get("webhook_id")
                 )
         headers = kwargs.pop('headers', {})
@@ -171,12 +172,26 @@ class RestSession:
             ratelimiter = Ratelimiter(self)
             self.ratelimiters[bucket] = ratelimiter
 
-        req = functools.partial(self.client_session.request, meth, url, headers=headers, **kwargs)
+        req = functools.partial(
+            self.client_session.request,
+            meth,
+            url,
+            headers=headers,
+            **kwargs
+        )
         actual_req = functools.partial(self._request, ratelimiter, req)
 
         return ratelimiter.request(actual_req)
 
-    def get_guild_audit_log(self, guild_id, *, user_id=None, action_type=None, before=None, limit=None):
+    def get_guild_audit_log(
+        self,
+        guild_id,
+        *,
+        user_id=None,
+        action_type=None,
+        before=None,
+        limit=None
+    ):
         params = {}
 
         if user_id is not None:
@@ -201,7 +216,7 @@ class RestSession:
 
     def get_channel(self, channel_id):
         fut = self.request(
-            'GET', 
+            'GET',
             'channels/{channel_id}',
             dict(channel_id=channel_id)
         )
@@ -250,7 +265,15 @@ class RestSession:
         )
         return fut
 
-    def get_channel_messages(self, channel_id, *, around=None, before=None, after=None, limit=None):
+    def get_channel_messages(
+        self,
+        channel_id,
+        *,
+        around=None,
+        before=None,
+        after=None,
+        limit=None
+    ):
         params = {}
 
         if around is not None:
@@ -281,7 +304,15 @@ class RestSession:
         )
         return fut
 
-    def send_message(self, channel_id, *, content=None, nonce=None, tts=False, embed=None):
+    def send_message(
+        self,
+        channel_id,
+        *,
+        content=None,
+        nonce=None,
+        tts=False,
+        embed=None
+    ):
         payload = {}
 
         if content is not None:
@@ -314,7 +345,8 @@ class RestSession:
     def create_reaction(self, channel_id, message_id, emoji):
         fut = self.request(
             'PUT',
-            'channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me',
+            'channels/{channel_id}/messages/{message_id}'
+            '/reactions/{emoji}/@me',
             dict(channel_id=channel_id, message_id=message_id, emoji=emoji)
         )
         return fut
@@ -325,8 +357,14 @@ class RestSession:
 
         fut = self.request(
             'DELETE',
-            'channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}',
-            dict(channel_id=channel_id, message_id=message_id, emoji=emoji, user_id=user_id)
+            'channels/{channel_id}/messages/{message_id}'
+            '/reactions/{emoji}/{user_id}',
+            dict(
+                channel_id=channel_id,
+                message_id=message_id,
+                emoji=emoji,
+                user_id=user_id
+            )
         )
         return fut
 
@@ -351,7 +389,16 @@ class RestSession:
         )
         return fut
 
-    def edit_message(self, channel_id, message_id, *, content=None, embed=None, flags=None, allowed_mentions=None):
+    def edit_message(
+        self,
+        channel_id,
+        message_id,
+        *,
+        content=None,
+        embed=None,
+        flags=None,
+        allowed_mentions=None
+    ):
         payload = {}
 
         if content is not None:
@@ -395,7 +442,14 @@ class RestSession:
         )
         return fut
 
-    def edit_channel_permissions(self, channel_id, overwrite_id, allow, deny, overwrite_type):
+    def edit_channel_permissions(
+        self,
+        channel_id,
+        overwrite_id,
+        allow,
+        deny,
+        overwrite_type
+    ):
         payload = {
             'allow': allow,
             'deny': deny,
@@ -613,11 +667,11 @@ class RestSession:
 
     def modify_guild(
         self,
-        guild_id, 
+        guild_id,
         *,
-        name=None, 
+        name=None,
         region=None,
-        verification_level=None, 
+        verification_level=None,
         default_message_notifications=None,
         explicit_content_filter=None,
         afk_channel_id=None,
@@ -643,7 +697,8 @@ class RestSession:
             payload['verification_level'] = verification_level
 
         if default_message_notifications is not None:
-            payload['default_message_notifications'] = default_message_notifications
+            payload['default_message_notifications'] = \
+                default_message_notifications
 
         if explicit_content_filter is not None:
             payload['explicit_content_filter'] = explicit_content_filter
@@ -706,7 +761,7 @@ class RestSession:
         self,
         guild_id,
         *,
-        name=None, 
+        name=None,
         channel_type=None,
         topic=None,
         bitrate=None,
@@ -741,7 +796,7 @@ class RestSession:
             payload['position'] = position
 
         if permission_overwrites is not None:
-            payload['permission_overwrites'] =  permission_overwrites
+            payload['permission_overwrites'] = permission_overwrites
 
         if parent_id is not None:
             payload['parent_id'] = parent_id
@@ -912,7 +967,13 @@ class RestSession:
         )
         return fut
 
-    def create_guild_ban(self, guild_id, user_id, delete_message_days=None, reason=None):
+    def create_guild_ban(
+        self,
+        guild_id,
+        user_id,
+        delete_message_days=None,
+        reason=None
+    ):
         payload = {}
 
         if delete_message_days is not None:
@@ -1033,7 +1094,13 @@ class RestSession:
         )
         return fut
 
-    def get_guild_prune_count(self, guild_id, *, days=None, include_roles=None):
+    def get_guild_prune_count(
+        self,
+        guild_id,
+        *,
+        days=None,
+        include_roles=None
+    ):
         params = {}
 
         if days is not None:
@@ -1050,7 +1117,14 @@ class RestSession:
         )
         return fut
 
-    def begin_guild_prune(self, guild_id, *, days=None, include_roles=None, compute_prune_count=None):
+    def begin_guild_prune(
+        self,
+        guild_id,
+        *,
+        days=None,
+        include_roles=None,
+        compute_prune_count=None
+    ):
         payload = {}
 
         if days is not None:
@@ -1094,7 +1168,12 @@ class RestSession:
         )
         return fut
 
-    def create_guild_integration(self, guild_id, integration_type, integration_id):
+    def create_guild_integration(
+        self,
+        guild_id,
+        integration_type,
+        integration_id
+    ):
         payload = {
             'type': integration_type,
             'id': integration_id
@@ -1237,7 +1316,13 @@ class RestSession:
         )
         return fut
 
-    def create_guild_from_template(self, template_code, *, name=None, icon=None):
+    def create_guild_from_template(
+        self,
+        template_code,
+        *,
+        name=None,
+        icon=None
+    ):
         payload = {}
 
         if name is not None:
@@ -1287,7 +1372,13 @@ class RestSession:
         )
         return fut
 
-    def modify_guild_template(self, guild_id, template_code, name=None, description=None):
+    def modify_guild_template(
+        self,
+        guild_id,
+        template_code,
+        name=None,
+        description=None
+    ):
         payload = {}
 
         if name is not None:
@@ -1418,6 +1509,11 @@ class RestSession:
             'Authorization': f'Bot {self._client.token}'
         }
 
-        req = functools.partial(self.client_session.request, 'GET', url, headers=base_headers)
+        req = functools.partial(
+            self.client_session.request,
+            'GET',
+            url,
+            headers=base_headers
+        )
         actual_req = functools.partial(self._request, ratelimiter, req)
         return ratelimiter.request(actual_req)

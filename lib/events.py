@@ -22,10 +22,16 @@ class EventHandler:
             self.message_create,
             self.guild_create
         )
-        self.handlers = {handler.__name__.lower(): handler for handler in handlers}
-        self.listeners = {handler.__name__.lower(): [] for handler in handlers}
+        self.handlers = {
+            handler.__name__.lower(): handler for handler in handlers
+        }
+        self.listeners = {
+            handler.__name__.lower(): [] for handler in handlers
+        }
         self._client = client
-        self.formatter = logging.Formatter('[%(name)s] [%(cls)s] [%(asctime)s] %(message)s')
+        self.formatter = logging.Formatter(
+            '[%(name)s] [%(cls)s] [%(asctime)s] %(message)s'
+        )
 
     def getLogger(self, name):
         logger = logging.getLogger(name)

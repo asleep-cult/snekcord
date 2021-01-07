@@ -7,6 +7,7 @@ from .utils import (
 
 INVITE_BASE_URL = 'https://discord.com/invite/'
 
+
 class Invite(JsonStructure):
     __json_fields__ = {
         'code': JsonField('code'),
@@ -20,13 +21,13 @@ class Invite(JsonStructure):
         'approximate_presence_count': JsonField('approximate_presence_count'),
         'approximate_member_count': JsonField('approximate_member_count'),
 
-        #metadata
+        # metadata
         'uses': JsonField('uses'),
         'max_uses': JsonField('max_uses'),
         'temporary': JsonField('temporary'),
         'created_at': JsonField('created_at'),
     }
-    
+
     code: ...
     _guild: ...
     _channel: ...
@@ -41,7 +42,6 @@ class Invite(JsonStructure):
     max_uses: ...
     temporary: ...
     created_at: ...
-    
 
     def __init__(self, state=None):
         self._state = state
@@ -59,8 +59,10 @@ class Invite(JsonStructure):
         if self._inviter is not None:
             self.inviter = self._state._client.users._add(self._inviter)
         if self._target_user is not None:
-            self.target_user = self._state._client.users._add(self._target_user)
-        
+            self.target_user = self._state._client.users._add(
+                self._target_user
+            )
+
         del self._guild
         del self._channel
         del self._target_user
@@ -122,6 +124,7 @@ class GuildInviteState:
             invites.append(invite)
         return invites
 
+
 class ChannelInviteState:
     def __init__(self, invite_state, channel):
         self._invite_state = invite_state
@@ -160,7 +163,7 @@ class ChannelInviteState:
         resp = await rest.create_channel_invite(
             max_age=max_age, max_uses=max_uses,
             temporary=temporary, unique=unique,
-            target_user_id=target_user, 
+            target_user_id=target_user,
             target_user_type=target_user_type
         )
         data = await resp.json()

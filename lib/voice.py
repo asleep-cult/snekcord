@@ -65,7 +65,11 @@ class VoiceServerUpdate(JsonStructure):
 
 
 class VoiceConnection:
-    def __init__(self, voice_state: VoiceState, voice_server_update: VoiceServerUpdate):
+    def __init__(
+        self,
+        voice_state: VoiceState,
+        voice_server_update: VoiceServerUpdate
+    ):
         self.token = voice_server_update.token
         self.guild_id = voice_server_update.guild_id
         endpoint = voice_server_update.endpoint + '?v=4'
@@ -95,11 +99,14 @@ class VoiceConnection:
             self.port = resp.data['port']
             self.mode = resp.data['modes'][0]
             self.ssrc = resp.data['ssrc']
-            
+
             buffer = bytearray(70)
             struct.pack_into('!I', buffer, 4, self.ssrc)
 
-            self.transport, self.protocol = await self.loop.create_datagram_endpoint(VoiceUDPProtocol, remote_addr=(self.ip, self.port))
+            self.transport, self.protocol = \
+                await self.loop.create_datagram_endpoint(
+                    VoiceUDPProtocol, remote_addr=(self.ip, self.port)
+                )
             self.protocol.loop = self.loop
             self.protocol.voice_connection = self
 

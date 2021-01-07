@@ -1,9 +1,7 @@
-from .user import User
 from .invite import ChannelInviteState
 
 from .message import (
     MessageState,
-    Message
 )
 
 from .bases import (
@@ -15,7 +13,7 @@ from .utils import (
     JsonField,
     JsonArray,
     Snowflake,
-    JsonStructure,
+    JSON
 )
 
 from .voice import (
@@ -26,8 +24,6 @@ from .voice import (
 
 from typing import (
     Union,
-    Iterable,
-    List,
     Optional,
     TYPE_CHECKING
 )
@@ -75,14 +71,14 @@ class PermissionFlag:
     USE_VAD = 0x02000000
     CHANGE_NICKNAME = 0x04000000
     MANAGE_NICKNAMES = 0x08000000
-    MANAGE_ROLES  = 0x10000000
+    MANAGE_ROLES = 0x10000000
     MANAGE_WEBHOOKS = 0x20000000
     MANAGE_EMOJIS = 0x40000000
 
 
 class GuildChannel(BaseObject):
     __slots__ = (
-        '_state', 'id', 'name', 'guild_id', 'permission_overwrites', 
+        '_state', 'id', 'name', 'guild_id', 'permission_overwrites',
         'position', 'nsfw', 'parent_id', 'type'
     )
 
@@ -99,17 +95,26 @@ class GuildChannel(BaseObject):
     id: Snowflake
     name: str
     guild_id: Snowflake
-    _permission_overwrites: ...
+    _permission_overwrites: JSON
     position: int
     nsfw: bool
     parent_id: Snowflake
-    type: ...
+    type: int
 
-    def __init__(self, *, state, guild=None):
-        self._state: ChannelState = state
-        self.messages: Iterable[Message] = MessageState(state._client, self)
+    def __init__(
+        self,
+        *,
+        state: 'ChannelState',
+        guild: Optional['Guild'] = None
+    ):
+        self._state = state
+        self.messages: MessageState = MessageState(state._client, self)
         self.guild: 'Guild' = guild or state._client.guilds.get(self.guild_id)
-        self.permission_overwrites = PermissionOverwriteState(self._state._client, self)
+        self.permission_overwrites: PermissionOverwriteState = \
+            PermissionOverwriteState(
+                self._state._client,
+                self
+            )
 
         for overwrite in self._permission_overwrites:
             self.permission_overwrites._add(overwrite)
@@ -171,7 +176,7 @@ class PermissionOverwrite(BaseObject):
     manage_webhooks: Optional[bool]
     manage_emojis: Optional[bool]
 
-    def __init__(self, state):
+    def __init__(self, state: 'PermissionOverwriteState'):
         self._state = state
 
         for name, flag in PermissionFlag.__dict__.items():
@@ -188,12 +193,12 @@ class PermissionOverwrite(BaseObject):
             else:
                 setattr(self, name.lower(), None)
 
-    async def edit(self, overwrite):
+    async def edit(self, overwrite: 'PermissionOverwrite'):
         rest = self._state._client.rest
         await rest.edit_channel_permissions(
-            self._state._channel.id, 
-            self.id, overwrite.allow, 
-            overwrite.deny, 
+            self._state._channel.id,
+            self.id, overwrite.allow,
+            overwrite.deny,
             overwrite.type
         )
 
@@ -228,27 +233,28 @@ class TextChannel(GuildChannel):
     id: Snowflake
     name: str
     guild_id: Snowflake
-    _permission_overwrites: ...
+    _permission_overwrites: JSON
     position: int
     nsfw: bool
     parent_id: Snowflake
-    type: ...
+    type: int
     last_message_id: Snowflake
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.invites = ChannelInviteState(self._state._client.invites, self)
+        self.invites: ChannelInviteState = \
+            ChannelInviteState(self._state._client.invites, self)
 
     async def edit(
-        self, 
-        *, 
-        name=None, 
-        channel_type=None, 
-        position=None, 
-        topic=None, 
-        nsfw=None, 
-        slowmode=None, 
-        permission_overwrites=None, 
+        self,
+        *,
+        name=None,
+        channel_type=None,
+        position=None,
+        topic=None,
+        nsfw=None,
+        slowmode=None,
+        permission_overwrites=None,
         perent=None
     ) -> None:
         rest = self._state._client.rest
@@ -257,8 +263,8 @@ class TextChannel(GuildChannel):
             perent = perent.id
 
         resp = await rest.modify_channel(
-            self.id, name=name, channel_type=channel_type, 
-            position=position, topic=topic, nsfw=nsfw, 
+            self.id, name=name, channel_type=channel_type,
+            position=position, topic=topic, nsfw=nsfw,
             slowmode=slowmode, permission_overwrites=permission_overwrites,
             perent_id=perent
         )
@@ -266,11 +272,24 @@ class TextChannel(GuildChannel):
         message = self.messages._add(data)
         return message
 
-    async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
+    async def send(
+        self,
+        content=None,
+        *,
+        nonce=None,
+        tts=False,
+        embed=None
+    ) -> None:
         rest = self._state._client.rest
         if embed is not None:
             embed = embed.to_dict()
-        resp = await rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
+        resp = await rest.send_message(
+            self.id,
+            content=content,
+            nonce=nonce,
+            tts=tts,
+            embed=embed
+        )
         data = await resp.json()
         message = self.messages._add(data)
         return message
@@ -301,10 +320,11 @@ class VoiceChannel(GuildChannel):
     user_limit: int
 
     async def connect(self):
-        voice_state_update, voice_server_update = await self.guild.shard.update_voice_state(
-            self.guild.id, 
-            self.id
-        )
+        voice_state_update, voice_server_update = \
+            await self.guild.shard.update_voice_state(
+                self.guild.id,
+                self.id
+            )
         state_data = await voice_state_update
         server_data = await voice_server_update
         voice_state = VoiceState.unmarshal(state_data.data, voice_channel=self)
@@ -334,8 +354,8 @@ class VoiceChannel(GuildChannel):
 
         resp = await rest.modify_channel(
             self.id, name=name, channel_type=channel_type,
-            position=position, topic=topic, nsfw=nsfw, 
-            bitrate=bitrate, user_limit=user_limit, 
+            position=position, topic=topic, nsfw=nsfw,
+            bitrate=bitrate, user_limit=user_limit,
             permission_overwrites=permission_overwrites,
             parent_id=parent
         )
@@ -353,22 +373,22 @@ class CategoryChannel(GuildChannel):
     nsfw: bool
     parent_id: Snowflake
     type: ...
-    
+
     async def edit(
-        self, 
-        *, 
-        name=None, 
-        channel_type=None, 
-        position=None, 
-        topic=None, 
-        nsfw=None, 
-        slowmode=None, 
-        permission_overwrites=None, 
+        self,
+        *,
+        name=None,
+        channel_type=None,
+        position=None,
+        topic=None,
+        nsfw=None,
+        slowmode=None,
+        permission_overwrites=None,
     ) -> None:
         rest = self._state._client.rest
         resp = await rest.modify_channel(
-            self.id, name=name, channel_type=channel_type, 
-            position=position, topic=topic, nsfw=nsfw, 
+            self.id, name=name, channel_type=channel_type,
+            position=position, topic=topic, nsfw=nsfw,
             slowmode=slowmode, permission_overwrites=permission_overwrites,
         )
         data = await resp.json()
@@ -378,7 +398,7 @@ class CategoryChannel(GuildChannel):
 
 class DMChannel(BaseObject):
     __slots__ = (
-        *GuildChannel.__slots__, 
+        *GuildChannel.__slots__,
         'last_message_id', 'type', '_recipients', 'recipients'
     )
 
@@ -394,7 +414,10 @@ class DMChannel(BaseObject):
 
     def __init__(self, state):
         self._state: ChannelState = state
-        self.recipients = ChannelRecipientState(self._state.client, channel=self)
+        self.recipients = ChannelRecipientState(
+            self._state.client,
+            channel=self
+        )
 
         for recipient in self._recipients:
             self.recipients._add(recipient)
@@ -414,7 +437,12 @@ class ChannelRecipientState(BaseState):
 
     async def add(self, user, access_token, *, nick):
         rest = self._client.rest
-        await rest.add_dm_recipient(self._channel.id, user.id, access_token, nick)
+        await rest.add_dm_recipient(
+            self._channel.id,
+            user.id,
+            access_token,
+            nick
+        )
 
     async def remove(self, user):
         rest = self._client.rest
@@ -447,6 +475,7 @@ class ChannelState(BaseState):
         data = await self._client.rest.get_channel(channel_id)
         return self._add(data)
 
+
 class GuildChannelState:
     def __init__(self, channel_state, guild):
         self._channel_state = channel_state
@@ -470,7 +499,7 @@ class GuildChannelState:
     async def create(
         self,
         *,
-        name=None, 
+        name=None,
         channel_type=None,
         topic=None,
         bitrate=None,
@@ -489,7 +518,8 @@ class GuildChannelState:
         await rest.create_guild_channel(
             self._guild.id, name=name, channel_type=channel_type,
             topic=topic, bitrate=bitrate, user_limit=user_limit,
-            slowmode=slowmode, position=position, permission_overwrites=permission_overwrites,
+            slowmode=slowmode, position=position,
+            permission_overwrites=permission_overwrites,
             parent=parent, nsfw=nsfw
         )
 
@@ -497,4 +527,5 @@ class GuildChannelState:
         rest = self._channel_state._client.rest
         await rest.modify_guild_channel_positions(self._guild.id, positions)
 
-_Channel = Union[DMChannel, CategoryChannel, VoiceChannel, TextChannel, GuildChannel]
+
+_Channel = Union[DMChannel, CategoryChannel, VoiceChannel, TextChannel]

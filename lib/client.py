@@ -10,15 +10,15 @@ from .gateway import Gateway
 
 class Client:
     def __init__(
-        self, 
-        loop=None, 
-        rest=None, 
-        channel_state=None, 
+        self,
+        loop=None,
+        rest=None,
+        channel_state=None,
         guild_state=None,
         user_state=None,
         invite_state=None,
-        event_handler=None, 
-        ws=None, 
+        event_handler=None,
+        ws=None,
         max_shards=1
     ):
         self.loop = loop or asyncio.get_event_loop()
