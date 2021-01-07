@@ -48,15 +48,12 @@ class User(BaseObject):
     def __init__(self, *, state):
         self._state = state
 
-    def _update(self, *args, **kwargs):
-        pass
-
 
 class UserState(BaseState):
     def _add(self, data) -> User:
         user = self.get(data['id'])
         if user is not None:
-            user._update(data)
+            user._update(data, set_default=False)
             return user
         user = User.unmarshal(data, state=self)
         self._values[user.id] = user

@@ -99,7 +99,7 @@ class RoleState(BaseState):
     def _add(self, data):
         role = self.get(data['id'])
         if role is not None:
-            role._update(data)
+            role._update(data, set_default=False)
             return role
         role = Role.unmarshal(data, state=self, guild=self._guild)
         self._values[role.id] = role
@@ -182,22 +182,7 @@ class GuildMember(JsonStructure):
     ):
         self._state: GuildMemberState = state
         self.guild = guild
-        self.roles = GuildMemberRoleState(self._state._client, member=self)
-
-        if self._roles is not None:
-            for role in self._roles:
-                self.roles._add(role)
-
-        if user is not None:
-            self.user = user
-        else:
-            self.user = self._state._client.users._add(self._user)
-
-        del self._user
-        del self._roles
-
-    def _update(self, *args, **kwargs):
-        pass
+        self.user = user
 
     async def edit(
         self,
@@ -227,6 +212,20 @@ class GuildMember(JsonStructure):
             delete_message_days=delete_message_days
         )
         return ban
+
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        self.roles = GuildMemberRoleState(self._state._client, member=self)
+
+        if self._roles is not None:
+            for role in self._roles:
+                self.roles._add(role)
+
+        if self._user is not None:
+            self.user = self._state._client.users._add(self._user)
+
+        del self._user
+        del self._roles
 
 
 class GuildMemberRoleState(BaseState):
@@ -270,7 +269,7 @@ class GuildMemberState(BaseState):
             user = self._client.users._add(data['user'])
         member = self.get(user.id)
         if member is not None:
-            member._update(data)
+            member._update(data, set_default=False)
             return member
         member = GuildMember.unmarshal(
             data,
@@ -343,19 +342,6 @@ class GuildEmoji(BaseObject):
     def __init__(self, state, guild):
         self._state = state
         self.guild = guild
-        self.roles = []
-        self.user = None
-
-        if self._user is not None:
-            self.user = self._state._client.users._add(self._user)
-
-        for role in self._roles:
-            role = self.guild.roles.get(role)
-            if role is not None:
-                self.roles.append(role)
-
-        del self._roles
-        del self._user
 
     def __str__(self):
         if self.id is None:
@@ -387,6 +373,19 @@ class GuildEmoji(BaseObject):
 
         return dct
 
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        if self._user is not None:
+            self.user = self._state._client.users._add(self._user)
+
+        for role in self._roles:
+            role = self.guild.roles.get(role)
+            if role is not None:
+                self.roles.append(role)
+
+        del self._roles
+        del self._user
+
 
 class GuildEmojiState(BaseState):
     def __init__(self, client, guild):
@@ -396,7 +395,7 @@ class GuildEmojiState(BaseState):
     def _add(self, data):
         emoji = self.get(data.get('id'))
         if emoji is not None:
-            emoji._update(data)
+            emoji._update(data, set_default=False)
             return emoji
         emoji = GuildEmoji.unmarshal(data, state=self, guild=self._guild)
         self._values[emoji.id] = emoji
@@ -502,15 +501,6 @@ class GuildIntegration(BaseObject):
         self._state = state
         self.guild = guild
 
-        if self._user is not None:
-            self.user = self._state._client.users._add(self._user)
-
-        if self._application is not None:
-            self.application = GuildIntegrationApplication.unmarshal(
-                self._application,
-                state=self._state
-            )
-
     async def edit(
         self,
         *,
@@ -533,6 +523,16 @@ class GuildIntegration(BaseObject):
         rest = self._state._client.rest
         await rest.delete_guild_integration(self.guild.id, self.id)
 
+    def _update(self, *args, **kwargs):
+        if self._user is not None:
+            self.user = self._state._client.users._add(self._user)
+
+        if self._application is not None:
+            self.application = GuildIntegrationApplication.unmarshal(
+                self._application,
+                state=self._state
+            )
+
 
 class GuildIntegrationState(BaseState):
     def __init__(self, client, guild):
@@ -542,7 +542,7 @@ class GuildIntegrationState(BaseState):
     def _add(self, data):
         integration = self.get(data['id'])
         if integration is not None:
-            integration._update(data)
+            integration._update(data, set_default=False)
             return integration
         integration = GuildIntegration.unmarshal(
             data,
@@ -625,7 +625,11 @@ class GuildWidgetSettings(JsonStructure):
     channel: ...
 
     def __init__(self, guild):
-        channels = guild._state._client.channels
+        self.guild = guild
+
+    def _updadte(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        channels = self.guild._state._client.channels
         self.channel = channels.get(self.channel_id)
 
 
@@ -666,15 +670,15 @@ class GuildPreview(BaseObject):
 
     def __init__(self, state):
         self._state = state
+        self.members: Iterable[GuildMember] = GuildMemberState(
+            self._state._client,
+            guild=self
+        )
         self.emojis = GuildEmojiState(
             self._state._client,
             guild=self
         )
         self.roles: Iterable[Role] = RoleState(
-            self._state._client,
-            guild=self
-        )
-        self.members: Iterable[GuildMember] = GuildMemberState(
             self._state._client,
             guild=self
         )
@@ -694,11 +698,6 @@ class GuildPreview(BaseObject):
             self._state._client,
             guild=self
         )
-
-        for emoji in self._emojis:
-            self.emojis._add(emoji)
-
-        del self._emojis
 
     async def edit(
         self,
@@ -828,6 +827,18 @@ class GuildPreview(BaseObject):
 
         return dct
 
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        emojis_seen = set()
+
+        for emoji in self._emojis:
+            emoji = self.emojis._add(emoji)
+            emojis_seen.add(emoji.id)
+
+        for emoji in self.emojis:
+            if emoji.id not in emojis_seen:
+                self.emojis.pop(emoji.id)
+
 
 class GuildBan(JsonStructure):
     __json_fields__ = {
@@ -841,7 +852,10 @@ class GuildBan(JsonStructure):
 
     def __init__(self, state):
         self._state = state
-        self.user = state._client._users.add(self._user)
+
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        self.user = self._state._client._users.add(self._user)
 
         del self._user
 
@@ -854,7 +868,7 @@ class GuildBanState(BaseState):
     def _add(self, data):
         ban = self.get(data['user']['id'])
         if ban is not None:
-            ban._update(data)
+            ban._update(data, set_default=False)
             return ban
         ban = GuildBan.unmarshal(data, state=self)
         self._values[ban.user.id] = ban
@@ -989,25 +1003,6 @@ class Guild(GuildPreview):
     def __init__(self, *, state: 'GuildState'):
         super().__init__(state)
 
-        if self.owner is not None:
-            owner = self._state._client.guilds._add(self._owner)
-            if owner is not None:
-                self.owner_id = owner.id
-
-        for role in self._roles:
-            self.roles._add(role)
-
-        for channel in self._channels:
-            self._state._client.channels._add(channel, guild=self)
-
-        for member in self._members:
-            self.members._add(member)
-
-        del self._roles
-        del self._channels
-        del self._members
-        del self._owner
-
     @property
     def shard(self):
         shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
@@ -1026,7 +1021,7 @@ class Guild(GuildPreview):
         return self._state._client.channels.get(self.system_channel_id)
 
     @property
-    def widdget_channel(self):
+    def widget_channel(self):
         return self._state._client.channels.get(self.widget_channel_id)
 
     @property
@@ -1061,12 +1056,47 @@ class Guild(GuildPreview):
 
         return dct
 
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        channels_seen = set()
+        members_seen = set()
+        roles_seen = set()
+
+        for channel in self._channels:
+            channel = self._state._client.channels._add(channel, guild=self)
+            channels_seen.add(channel.id)
+
+        for member in self._members:
+            member = self.members._add(member)
+            members_seen.add(member.user.id)
+
+        for role in self._roles:
+            role = self.roles._add(role)
+            roles_seen.add(role.id)
+
+        for channel in self.channels:
+            if channel.id not in channels_seen:
+                self.channels.pop(channel.id)
+
+        for member in self.members:
+            if member.user.id not in members_seen:
+                self.members.pop(member.id)
+
+        for role in self.roles:
+            if role.id not in roles_seen:
+                self.roles.pop(role.id)
+
+        if self._owner is not None:
+            owner = self._state._client.guilds._add(self._owner)
+            if owner is not None:
+                self.owner_id = owner.id
+
 
 class GuildState(BaseState):
     def _add(self, data) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
-            guild._update(data)
+            guild._update(data, set_default=False)
             return guild
         guild = Guild.unmarshal(data, state=self)
         self._values[guild.id] = guild

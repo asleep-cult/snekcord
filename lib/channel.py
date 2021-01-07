@@ -109,17 +109,13 @@ class GuildChannel(BaseObject):
     ):
         self._state = state
         self.messages: MessageState = MessageState(state._client, self)
-        self.guild: 'Guild' = guild or state._client.guilds.get(self.guild_id)
+        self.guild: 'Guild' = guild
+
         self.permission_overwrites: PermissionOverwriteState = \
             PermissionOverwriteState(
                 self._state._client,
                 self
             )
-
-        for overwrite in self._permission_overwrites:
-            self.permission_overwrites._add(overwrite)
-
-        del self._permission_overwrites
 
     @property
     def mention(self) -> str:
@@ -128,6 +124,23 @@ class GuildChannel(BaseObject):
     async def delete(self) -> None:
         rest = self._state._client.rest
         await rest.delete_channel(self.id)
+
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+        overwrites_seen = set()
+
+        for overwrite in self._permission_overwrites:
+            overwrite = self.permission_overwrites._add(overwrite)
+            overwrites_seen.add(overwrite.id)
+
+        for overwrite in self.permission_overwrites:
+            if overwrite.id not in overwrites_seen:
+                self.permission_overwrites.pop(overwrite.id)
+
+        if self.guild is None:
+            self.guild = self._state._client.guilds.get(self.guild_id)
+
+        del self._permission_overwrites
 
 
 class PermissionOverwrite(BaseObject):
@@ -179,6 +192,21 @@ class PermissionOverwrite(BaseObject):
     def __init__(self, state: 'PermissionOverwriteState'):
         self._state = state
 
+    async def edit(self, overwrite: 'PermissionOverwrite'):
+        rest = self._state._client.rest
+        await rest.edit_channel_permissions(
+            self._state._channel.id,
+            self.id, overwrite.allow,
+            overwrite.deny,
+            overwrite.type
+        )
+
+    async def delete(self):
+        rest = self._state._client.rest
+        await rest.delete_channel_permission(self._state._channel.id, self.id)
+
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
         for name, flag in PermissionFlag.__dict__.items():
             if name.startswith('_'):
                 continue
@@ -193,19 +221,6 @@ class PermissionOverwrite(BaseObject):
             else:
                 setattr(self, name.lower(), None)
 
-    async def edit(self, overwrite: 'PermissionOverwrite'):
-        rest = self._state._client.rest
-        await rest.edit_channel_permissions(
-            self._state._channel.id,
-            self.id, overwrite.allow,
-            overwrite.deny,
-            overwrite.type
-        )
-
-    async def delete(self):
-        rest = self._state._client.rest
-        await rest.delete_channel_permission(self._state._channel.id, self.id)
-
 
 class PermissionOverwriteState(BaseState):
     def __init__(self, client, channel):
@@ -215,7 +230,7 @@ class PermissionOverwriteState(BaseState):
     def _add(self, data):
         overwrite = self.get(data['id'])
         if overwrite is not None:
-            overwrite._update(data)
+            overwrite._update(data, set_default=False)
             return overwrite
         overwrite = PermissionOverwrite.unmarshal(data, state=self)
         self._values[overwrite.id] = overwrite
@@ -311,11 +326,12 @@ class VoiceChannel(GuildChannel):
     id: Snowflake
     name: str
     guild_id: Snowflake
-    _permission_overwrites: ...
+    _permission_overwrites: JSON
     position: int
     nsfw: bool
     parent_id: Snowflake
-    type: ...
+    type: int
+    last_message_id: Snowflake
     bitrate: int
     user_limit: int
 
@@ -368,11 +384,12 @@ class CategoryChannel(GuildChannel):
     id: Snowflake
     name: str
     guild_id: Snowflake
-    _permission_overwrites: ...
+    _permission_overwrites: JSON
     position: int
     nsfw: bool
     parent_id: Snowflake
-    type: ...
+    type: int
+    last_message_id: Snowflake
 
     async def edit(
         self,
@@ -398,7 +415,6 @@ class CategoryChannel(GuildChannel):
 
 class DMChannel(BaseObject):
     __slots__ = (
-        *GuildChannel.__slots__,
         'last_message_id', 'type', '_recipients', 'recipients'
     )
 
@@ -418,6 +434,9 @@ class DMChannel(BaseObject):
             self._state.client,
             channel=self
         )
+
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
 
         for recipient in self._recipients:
             self.recipients._add(recipient)
@@ -458,13 +477,10 @@ _CHANNEL_TYPE_MAP = {
 
 
 class ChannelState(BaseState):
-    def __init__(self, client):
-        super().__init__(client)
-
     def _add(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
-            channel._update(data)
+            channel._update(data, set_default=False)
             return channel
         cls = _CHANNEL_TYPE_MAP.get(data['type'])
         channel = cls.unmarshal(data, *args, state=self, **kwargs)

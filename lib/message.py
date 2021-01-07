@@ -458,9 +458,11 @@ class Message(BaseObject):
 
     def __init__(self, *, state: 'ChannelState', channel: '_Channel'):
         self._state = state
-
-        self.reactions = ReactionState(self._state._client, self)
         self.channel = channel
+        self.reactions = ReactionState(self._state._client, self)
+
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
 
         if self._reactions is not None:
             for reaction in self._reactions:
@@ -474,11 +476,7 @@ class Message(BaseObject):
                 self._member['user'] = self._author
             self.author = self.guild.members._add(self._member)
         else:
-            self.author = state._client.users._add(self._author)
-
-        del self._author
-        del self._member
-        del self._reactions
+            self.author = self._state._client.users._add(self._author)
 
     async def crosspost(self):
         rest = self._state._client.rest
@@ -529,7 +527,7 @@ class ReactionState(BaseState):
     def _add(self, data) -> Reaction:
         reaction = self.get(data['emoji'])
         if reaction is not None:
-            reaction._update(data)
+            reaction._update(data, set_default=False)
             return reaction
         reaction = Reaction.unmarshal(data)
         self._values[reaction.emoji] = reaction
@@ -589,7 +587,7 @@ class MessageState(BaseState):
     def _add(self, data) -> Message:
         message = self.get(data['id'])
         if message is not None:
-            message._update(data)
+            message._update(data, set_default=False)
             return message
         message = Message.unmarshal(data, state=self, channel=self._channel)
         self._values[message.id] = message

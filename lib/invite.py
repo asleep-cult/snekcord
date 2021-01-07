@@ -46,6 +46,9 @@ class Invite(JsonStructure):
     def __init__(self, state=None):
         self._state = state
 
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+
         if self._guild is not None:
             self.guild = self._state._client.guilds._add(self._guild)
         else:
@@ -63,10 +66,6 @@ class Invite(JsonStructure):
                 self._target_user
             )
 
-        del self._guild
-        del self._channel
-        del self._target_user
-
     @property
     def url(self):
         return INVITE_BASE_URL + self.code
@@ -79,7 +78,7 @@ class InviteState(BaseState):
     def _add(self, data):
         invite = self.get(data['code'])
         if invite is not None:
-            invite._update(data)
+            invite._update(data, set_default=False)
             return invite
         invite = Invite.unmarshal(data, state=self)
         self._values[invite.code] = invite

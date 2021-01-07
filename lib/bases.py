@@ -67,8 +67,10 @@ class BaseObject(JsonStructure):
     }
 
     id: Snowflake
+    _state: BaseState
 
     def __init_subclass__(cls):
+        super().__init_subclass__()
         cls.__json_fields__['id'] = JsonField('id', Snowflake, str)
 
     def __eq__(self, other):

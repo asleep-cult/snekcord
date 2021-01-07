@@ -35,18 +35,24 @@ class JsonStructure:
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
         if isinstance(data, (str, bytes, bytearray)):
             data = json.loads(data)
+
         self = object.__new__(cls)
 
+        if init_class:
+            self.__init__(*args, **kwargs)
+
+        self._update(data, set_default=True)
+
+        return self
+
+    def _update(self, data, set_default=False):
         for name, field in self.__json_fields__.items():
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, name, value)
             except BaseException:
-                setattr(self, name, field.default)
-
-        if init_class:
-            self.__init__(*args, **kwargs)
-        return self
+                if set_default:
+                    setattr(self, name, field.default)
 
     def to_dict(self, cls=None):
         dct = {}
@@ -59,13 +65,13 @@ class JsonStructure:
         for name, field in json_fields.items():
             try:
                 attr = getattr(self, name)
-                if attr is undefined and field.omitemoty:
+                if attr is None and field.omitemoty:
                     continue
                 try:
                     value = field.marshal(attr)
                 except BaseException:
                     continue
-                if value is undefined and field.omitemoty:
+                if value is None and field.omitemoty:
                     continue
                 dct[field.name] = value
             except AttributeError:
@@ -82,7 +88,7 @@ class JsonField:
         key,
         unmarshal_callable=None,
         marshal_callable=None,
-        default=undefined,
+        default=None,
         struct=None,
         init_struct_class=True,
         omitemoty=False
