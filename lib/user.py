@@ -4,7 +4,8 @@ from .bases import (
 )
 
 from .utils import (
-    JsonField
+    JsonField,
+    Snowflake
 )
 
 
@@ -30,6 +31,7 @@ class User(BaseObject):
         'public_flags': JsonField('public_flags'),
     }
 
+    id: Snowflake
     name: str
     discriminator: int
     avatar: str

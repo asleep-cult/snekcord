@@ -52,6 +52,7 @@ class Role(BaseObject):
         'tags': JsonField('tags', struct=RoleTags),
     }
 
+    id: Snowflake
     name: str
     color: int
     hoist: bool
@@ -145,13 +146,13 @@ class RoleState(BaseState):
         return roles
 
 
-class GuildMember(User):
+class GuildMember(JsonStructure):
     __json_slots__ = (
         '_user', 'nick', '_roles', 'joined_at', 'premium_since', 'deaf', 'mute', 
         'pending', '_state', 'guild', 'user'
     )
 
-    json_fields = {
+    __json_fields__ = {
         '_user': JsonField('user'),
         'nick': JsonField('nick'),
         '_roles': JsonField('roles'),
@@ -161,6 +162,7 @@ class GuildMember(User):
         'mute': JsonField('mute'),
         'pending': JsonField('pending'),
     }
+
     _user: ...
     nick: str
     _roles: list
@@ -187,31 +189,21 @@ class GuildMember(User):
         del self._user
         del self._roles
 
-    def __getattribute__(self, name):
-        try:
-            attr = super().__getattribute__(name)
-        except AttributeError as e:
-            try:
-                attr = self.user.__getattribute__(name)
-            except AttributeError:
-                raise e
-        return attr
-
     def _update(self, *args, **kwargs):
         pass
 
     async def edit(self, nick=None, roles=None, mute=None, deaf=None, channel=None):
-        rest = self._client.rest
+        rest = self._state._client.rest
 
         if channel is not None:
             channel = channel.id
 
         resp = await rest.modify_guild_member(
-            self.guild.id, self.id, roles=roles, 
+            self.guild.id, self.user.id, roles=roles, 
             mute=mute, deaf=deaf, channel=channel
         )
         data = await resp.json()
-        member = self._add(data)
+        member = self._state._add(data)
         return member
 
     async def ban(self, *, reason=None, delete_message_days=None):
@@ -255,7 +247,7 @@ class GuildMemberState(BaseState):
             member._update(data)
             return member
         member = GuildMember.unmarshal(data, state=self, guild=self._guild, user=user)
-        self._values[member.id] = member
+        self._values[member.user.id] = member
         return member
 
     async def fetch(self, member_id):
@@ -299,6 +291,7 @@ class GuildEmoji(BaseObject):
         'available': JsonField('available'),
     }
 
+    id: Snowflake
     name: ...
     _roles: ...
     _user: ...
@@ -399,6 +392,7 @@ class GuildIntegrationAccount(BaseObject):
         'name': JsonField('name'),
     }
     
+    id: Snowflake
     name: ...
 
 
@@ -411,6 +405,7 @@ class GuildIntegrationApplication(BaseObject):
         '_bot': JsonField('bot'),
     }
 
+    id: Snowflake
     name: ...
     icon: ...
     description: ...
@@ -442,6 +437,7 @@ class GuildIntegration(BaseObject):
         '_application': JsonField('application'),
     }
 
+    id: Snowflake
     name: ...
     type: ...
     enabled: ...
@@ -553,6 +549,7 @@ class GuildWidget(BaseObject):
         'presence_count': JsonField('presence_count'),
     }
 
+    id: Snowflake
     name: ...
     instant_invite: ...
     channels: ...
@@ -605,6 +602,7 @@ class GuildPreview(BaseObject):
         'description': JsonField('description'),
     }
 
+    id: Snowflake
     name: ...
     icon: ...
     splash: ...
@@ -846,6 +844,16 @@ class Guild(GuildPreview):
         'max_video_channel_users': JsonField('max_video_channel_users'),
     }
 
+    id: Snowflake
+    name: ...
+    icon: ...
+    splash: ...
+    discovery_splash: ...
+    _emojis: ...
+    features: ...
+    member_count: ...
+    presence_count: ...
+    description: ...
     icon_hash: ...
     _owner: ...
     owner_id: ...
@@ -884,7 +892,7 @@ class Guild(GuildPreview):
 
     def __init__(self, *, state: 'GuildState'):
         super().__init__(state)
-
+ 
         if self.owner is not None:
             owner = self._state._client.guilds._add(self._owner)
             if owner is not None:

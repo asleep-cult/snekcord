@@ -108,6 +108,7 @@ class MessageSticker(BaseObject):
         'format_type': JsonField('format_type'),
     }
     
+    id: Snowflake
     pack_id: Snowflake
     name: str
     description: str
@@ -596,9 +597,9 @@ class MessageState(BaseState):
 
     async def bulk_delete(self, messages):
         messages = {message.id for message in messages}
-        rest = self._client.reat
+        rest = self._client.rest
         await rest.bulk_delete_messages(self._channel.id, messages)
 
     async def fetch_pins(self):
-        rest = self._client.reat
+        rest = self._client.rest
         await rest.get_pinned_message(self._channel.id)

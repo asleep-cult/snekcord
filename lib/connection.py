@@ -208,12 +208,13 @@ class Shard(ConnectionBase):
         self.id = shard_id
 
     def handle_zombie_connection(self):
-        self._client.ws.logger.critical(
-            'Shard ID %s hasn\'t received a heartbeat ack from the gateway in %s',
-            self.id, time.monotonic() - self.websocket.last_acked,
-            exc_info=sys._current_frames().get(threading.main_thread().ident),
-            extra=dict(cls=self.__class__.__name__)
-        )
+        pass
+        #self._client.ws.logger.critical(
+        #    'Shard ID %s hasn\'t received a heartbeat ack from the gateway in %s',
+        #    self.id, time.monotonic() - self.websocket.last_acked,
+        #    exc_info=sys._current_frames().get(threading.main_thread().ident),
+        #    extra=dict(cls=self.__class__.__name__)
+       # )
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:

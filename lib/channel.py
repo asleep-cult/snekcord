@@ -225,6 +225,14 @@ class TextChannel(GuildChannel):
         'last_message_id': JsonField('last_message_id', Snowflake, str),
     }
 
+    id: Snowflake
+    name: str
+    guild_id: Snowflake
+    _permission_overwrites: ...
+    position: int
+    nsfw: bool
+    parent_id: Snowflake
+    type: ...
     last_message_id: Snowflake
 
     def __init__(self, *args, **kwargs):
@@ -281,6 +289,14 @@ class VoiceChannel(GuildChannel):
         'user_limit': JsonField('user_limit'),
     }
 
+    id: Snowflake
+    name: str
+    guild_id: Snowflake
+    _permission_overwrites: ...
+    position: int
+    nsfw: bool
+    parent_id: Snowflake
+    type: ...
     bitrate: int
     user_limit: int
 
@@ -329,6 +345,15 @@ class VoiceChannel(GuildChannel):
 
 
 class CategoryChannel(GuildChannel):
+    id: Snowflake
+    name: str
+    guild_id: Snowflake
+    _permission_overwrites: ...
+    position: int
+    nsfw: bool
+    parent_id: Snowflake
+    type: ...
+    
     async def edit(
         self, 
         *, 
