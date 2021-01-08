@@ -1,4 +1,5 @@
 from .connection import Shard
+from . import logger
 
 from typing import (
     Dict,
@@ -29,7 +30,6 @@ class Gateway:
         self.remaining: int = None
         self.reset_after: int = None
         self.max_concurrency: int = None
-        self.logger = self._client.events.getLogger(__name__)
 
     async def connect(self) -> None:
         resp = await self._client.rest.get_gateway_bot()
@@ -56,8 +56,3 @@ class Gateway:
             self.shards[shard_id] = shard
         for shard in self.shards.values():
             await shard.connect()
-            self.logger.info(
-                'Shard ID %s has connected to the WebSocket',
-                shard.id,
-                extra=dict(cls=self.__class__.__name__)
-            )

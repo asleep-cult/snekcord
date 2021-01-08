@@ -5,6 +5,7 @@ import time
 import functools
 import threading
 
+from . import logger
 from .utils import (
     JsonStructure,
     JsonField
@@ -98,6 +99,8 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         self.do_poll()
 
     def _zombie_connection(self):
+        if self.current_zombie_thread.cancelled:
+            return
         self.zombie_function()
         self.current_zombie_thread = None
 
@@ -109,7 +112,11 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         )
         self.current_heartbeat_handle = \
             self.loop.call_later(interval, create_task)
-        self.current_zombie_thread = threading.Timer(10, self.zombie_function)
+        self.current_zombie_thread = threading.Timer(
+            interval + 10,
+            self._zombie_connection
+        )
+        self.current_zombie_thread.cancelled = False
         self.current_zombie_thread.start()
 
     async def send_heartbeat(self) -> None:
@@ -125,8 +132,8 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         self.last_acked = time.monotonic()
 
         if self.current_zombie_thread is not None:
+            self.current_zombie_thread.cancelled = True
             self.current_zombie_thread.cancel()
-            self.current_zombie_thread = None
 
     def do_poll(self) -> None:
         create_task = functools.partial(
@@ -150,7 +157,8 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         elif payload.type in (
             aiohttp.WSMsgType.CLOSE,
             aiohttp.WSMsgType.CLOSED,
-            aiohttp.WSMsgType.CLOSING
+            aiohttp.WSMsgType.CLOSING,
+            aiohttp.WSMsgType.ERROR,
         ):
             return
 
@@ -219,11 +227,11 @@ class Shard(ConnectionBase):
         self.id = shard_id
 
     def handle_zombie_connection(self):
-        self._client.ws.logger.critical(
+        logger.CONNECTION_LOGGER.critical(
             'Shard ID %s hasn\'t received a heartbeat'
             'ack from the gateway in %s',
             self.id, time.monotonic() - self.websocket.last_acked,
-            exc_info=sys._current_frames().get(threading.main_thread().ident),
+            stack_info=True,
             extra=dict(cls=self.__class__.__name__)
         )
 
