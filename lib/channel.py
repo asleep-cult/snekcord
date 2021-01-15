@@ -485,6 +485,7 @@ class ChannelState(BaseState):
         cls = _CHANNEL_TYPE_MAP.get(data['type'])
         channel = cls.unmarshal(data, *args, state=self, **kwargs)
         self._values[channel.id] = channel
+        self._client.events.channel_cache(channel)
         return channel
 
     async def fetch(self, channel_id):

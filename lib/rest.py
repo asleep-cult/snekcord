@@ -6,7 +6,8 @@ from datetime import datetime
 
 from .utils import (
     JsonStructure,
-    JsonField
+    JsonField,
+    undefined
 )
 
 
@@ -187,23 +188,23 @@ class RestSession:
         self,
         guild_id,
         *,
-        user_id=None,
-        action_type=None,
-        before=None,
-        limit=None
+        user_id=undefined,
+        action_type=undefined,
+        before=undefined,
+        limit=undefined
     ):
         params = {}
 
-        if user_id is not None:
+        if user_id is not undefined:
             params['user_id'] = user_id
 
-        if action_type is not None:
+        if action_type is not undefined:
             params['action_type'] = action_type
 
-        if before is not None:
+        if before is not undefined:
             params['before'] = before
 
-        if limit is not None:
+        if limit is not undefined:
             params['before'] = before
 
         fut = self.request(
@@ -226,16 +227,16 @@ class RestSession:
         self,
         channel_id,
         *,
-        name=None,
-        channel_type=None,
-        position=None,
-        topic=None,
-        nsfw=None,
-        slowmode=None,
-        bitrate=None,
-        user_limit=None,
-        permission_overwrites=None,
-        parent_id=None
+        name=undefined,
+        channel_type=undefined,
+        position=undefined,
+        topic=undefined,
+        nsfw=undefined,
+        slowmode=undefined,
+        bitrate=undefined,
+        user_limit=undefined,
+        permission_overwrites=undefined,
+        parent_id=undefined
     ):
         payload = {
             'name': name,
@@ -269,23 +270,23 @@ class RestSession:
         self,
         channel_id,
         *,
-        around=None,
-        before=None,
-        after=None,
-        limit=None
+        around=undefined,
+        before=undefined,
+        after=undefined,
+        limit=undefined
     ):
         params = {}
 
-        if around is not None:
+        if around is not undefined:
             params['around'] = around
 
-        if before is not None:
+        if before is not undefined:
             params['before'] = before
 
-        if after is not None:
+        if after is not undefined:
             params['after'] = after
 
-        if limit is not None:
+        if limit is not undefined:
             params['limit'] = limit
 
         fut = self.request(
@@ -308,22 +309,22 @@ class RestSession:
         self,
         channel_id,
         *,
-        content=None,
-        nonce=None,
+        content=undefined,
+        nonce=undefined,
         tts=False,
-        embed=None
+        embed=undefined
     ):
         payload = {}
 
-        if content is not None:
+        if content is not undefined:
             payload['content'] = content
 
-        if nonce is not None:
+        if nonce is not undefined:
             payload['nonce'] = nonce
 
         payload['tts'] = tts
 
-        if embed is not None:
+        if embed is not undefined:
             payload['embed'] = embed
 
         fut = self.request(
@@ -351,7 +352,13 @@ class RestSession:
         )
         return fut
 
-    def delete_reaction(self, channel_id, message_id, emoji, user_id=None):
+    def delete_reaction(
+        self,
+        channel_id,
+        message_id,
+        emoji,
+        user_id=undefined
+    ):
         if user_id is None:
             user_id = '@me'
 
@@ -376,10 +383,10 @@ class RestSession:
         )
         return fut
 
-    def delete_reactions(self, channel_id, message_id, emoji=None):
+    def delete_reactions(self, channel_id, message_id, emoji=undefined):
         path = 'channels/{channel_id}/messages/{message_id}/reactions'
 
-        if emoji is not None:
+        if emoji is not undefined:
             path += '/{emoji}'
 
         fut = self.request(
@@ -394,23 +401,23 @@ class RestSession:
         channel_id,
         message_id,
         *,
-        content=None,
-        embed=None,
-        flags=None,
-        allowed_mentions=None
+        content=undefined,
+        embed=undefined,
+        flags=undefined,
+        allowed_mentions=undefined
     ):
         payload = {}
 
-        if content is not None:
+        if content is not undefined:
             payload['content'] = content
 
-        if embed is not None:
+        if embed is not undefined:
             payload['embed'] = embed
 
-        if flags is not None:
+        if flags is not undefined:
             payload['flags'] = flags
 
-        if allowed_mentions is not None:
+        if allowed_mentions is not undefined:
             payload['allowed_mentions'] = allowed_mentions
 
         fut = self.request(
@@ -476,31 +483,31 @@ class RestSession:
         self,
         channel_id,
         *,
-        max_age=None,
-        max_uses=None,
-        temporary=None,
-        unique=None,
-        target_user_id=None,
-        target_user_type=None
+        max_age=undefined,
+        max_uses=undefined,
+        temporary=undefined,
+        unique=undefined,
+        target_user_id=undefined,
+        target_user_type=undefined
     ):
         payload = {}
 
-        if max_age is not None:
+        if max_age is not undefined:
             payload['max_age'] = max_age
 
-        if max_uses is not None:
+        if max_uses is not undefined:
             payload['max_uses'] = max_uses
 
-        if temporary is not None:
+        if temporary is not undefined:
             payload['temporary'] = temporary
 
-        if unique is not None:
+        if unique is not undefined:
             payload['unique'] = unique
 
-        if target_user_id is not None:
+        if target_user_id is not undefined:
             payload['target_user'] = target_user_id
 
-        if target_user_type is not None:
+        if target_user_type is not undefined:
             payload['target_user_type'] = target_user_type
 
         fut = self.request(
@@ -602,13 +609,13 @@ class RestSession:
         )
         return fut
 
-    def create_guild_emoji(self, guild_id, name, image, roles=None):
+    def create_guild_emoji(self, guild_id, name, image, roles=undefined):
         payload = {
             'name': name,
             'image': image,
         }
 
-        if roles is not None:
+        if roles is not undefined:
             payload['roles'] = roles
 
         fut = self.request(
@@ -619,13 +626,19 @@ class RestSession:
         )
         return fut
 
-    def modify_guild_emoji(self, guild_id, emoji_id, name=None, roles=None):
+    def modify_guild_emoji(
+        self,
+        guild_id,
+        emoji_id,
+        name=undefined,
+        roles=undefined
+    ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if roles is not None:
+        if roles is not undefined:
             payload['roles'] = roles
 
         fut = self.request(
@@ -669,68 +682,68 @@ class RestSession:
         self,
         guild_id,
         *,
-        name=None,
-        region=None,
-        verification_level=None,
-        default_message_notifications=None,
-        explicit_content_filter=None,
-        afk_channel_id=None,
-        afk_timeout=None,
-        icon=None,
-        owner_id=None,
-        splash=None,
-        banner=None,
-        system_channel_id=None,
-        rules_channel_id=None,
-        public_updates_channel_id=None,
-        preferred_locale=None
+        name=undefined,
+        region=undefined,
+        verification_level=undefined,
+        default_message_notifications=undefined,
+        explicit_content_filter=undefined,
+        afk_channel_id=undefined,
+        afk_timeout=undefined,
+        icon=undefined,
+        owner_id=undefined,
+        splash=undefined,
+        banner=undefined,
+        system_channel_id=undefined,
+        rules_channel_id=undefined,
+        public_updates_channel_id=undefined,
+        preferred_locale=undefined
     ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if region is not None:
+        if region is not undefined:
             payload['region'] = region
 
-        if verification_level is not None:
+        if verification_level is not undefined:
             payload['verification_level'] = verification_level
 
-        if default_message_notifications is not None:
+        if default_message_notifications is not undefined:
             payload['default_message_notifications'] = \
                 default_message_notifications
 
-        if explicit_content_filter is not None:
+        if explicit_content_filter is not undefined:
             payload['explicit_content_filter'] = explicit_content_filter
 
-        if afk_channel_id is not None:
+        if afk_channel_id is not undefined:
             payload['adk_channel_id'] = afk_channel_id
 
-        if afk_timeout is not None:
+        if afk_timeout is not undefined:
             payload['afk_timeout'] = afk_timeout
 
-        if icon is not None:
+        if icon is not undefined:
             payload['icon'] = icon
 
-        if owner_id is not None:
+        if owner_id is not undefined:
             payload['owner_id'] = owner_id
 
-        if splash is not None:
+        if splash is not undefined:
             payload['splash'] = splash
 
-        if banner is not None:
+        if banner is not undefined:
             payload['banner'] = banner
 
-        if system_channel_id is not None:
+        if system_channel_id is not undefined:
             payload['system_channel_id'] = system_channel_id
 
-        if rules_channel_id is not None:
+        if rules_channel_id is not undefined:
             payload['rules_channel_id'] = rules_channel_id
 
-        if public_updates_channel_id is not None:
+        if public_updates_channel_id is not undefined:
             payload['public_updates_channel_id'] = public_updates_channel_id
 
-        if preferred_locale is not None:
+        if preferred_locale is not undefined:
             payload['preferred_locale'] = preferred_locale
 
         fut = self.request(
@@ -761,47 +774,47 @@ class RestSession:
         self,
         guild_id,
         *,
-        name=None,
-        channel_type=None,
-        topic=None,
-        bitrate=None,
-        user_limit=None,
-        slowmode=None,
-        position=None,
-        permission_overwrites=None,
-        parent_id=None,
-        nsfw=None
+        name=undefined,
+        channel_type=undefined,
+        topic=undefined,
+        bitrate=undefined,
+        user_limit=undefined,
+        slowmode=undefined,
+        position=undefined,
+        permission_overwrites=undefined,
+        parent_id=undefined,
+        nsfw=undefined
     ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if channel_type is not None:
+        if channel_type is not undefined:
             payload['type'] = channel_type
 
-        if topic is not None:
+        if topic is not undefined:
             payload['topic'] = topic
 
-        if bitrate is not None:
+        if bitrate is not undefined:
             payload['bitrate'] = bitrate
 
-        if user_limit is not None:
+        if user_limit is not undefined:
             payload['user_limit'] = user_limit
 
-        if slowmode is not None:
+        if slowmode is not undefined:
             payload['rate_limt_per_user'] = slowmode
 
-        if position is not None:
+        if position is not undefined:
             payload['position'] = position
 
-        if permission_overwrites is not None:
+        if permission_overwrites is not undefined:
             payload['permission_overwrites'] = permission_overwrites
 
-        if parent_id is not None:
+        if parent_id is not undefined:
             payload['parent_id'] = parent_id
 
-        if nsfw is not None:
+        if nsfw is not undefined:
             payload['nsfw'] = nsfw
 
         fut = self.request(
@@ -829,12 +842,12 @@ class RestSession:
         )
         return fut
 
-    def get_guild_members(self, guild_id, limit=1000, after=None):
+    def get_guild_members(self, guild_id, limit=1000, after=undefined):
         params = {
             'limit': limit
         }
 
-        if after is not None:
+        if after is not undefined:
             params['after'] = after
 
         fut = self.request(
@@ -851,23 +864,23 @@ class RestSession:
         user_id,
         access_token,
         *,
-        nick=None,
-        roles=None,
-        mute=None,
-        deaf=None
+        nick=undefined,
+        roles=undefined,
+        mute=undefined,
+        deaf=undefined
     ):
         payload = {}
 
-        if nick is not None:
+        if nick is not undefined:
             payload['nick'] = nick
 
-        if roles is not None:
+        if roles is not undefined:
             payload['roles'] = roles
 
-        if mute is not None:
+        if mute is not undefined:
             payload['mute'] = mute
 
-        if deaf is not None:
+        if deaf is not undefined:
             payload['deaf'] = deaf
 
         fut = self.request(
@@ -883,27 +896,27 @@ class RestSession:
         guild_id,
         user_id,
         *,
-        nick=None,
-        roles=None,
-        mute=None,
-        deaf=None,
-        channel_id=None
+        nick=undefined,
+        roles=undefined,
+        mute=undefined,
+        deaf=undefined,
+        channel_id=undefined
     ):
         payload = {}
 
-        if nick is not None:
+        if nick is not undefined:
             payload['nick'] = nick
 
-        if roles is not None:
+        if roles is not undefined:
             payload['roles'] = roles
 
-        if mute is not None:
+        if mute is not undefined:
             payload['mite'] = mute
 
-        if deaf is not None:
+        if deaf is not undefined:
             payload['deaf'] = deaf
 
-        if channel_id is not None:
+        if channel_id is not undefined:
             payload['channel_id'] = channel_id
 
         fut = self.request(
@@ -971,15 +984,15 @@ class RestSession:
         self,
         guild_id,
         user_id,
-        delete_message_days=None,
-        reason=None
+        delete_message_days=undefined,
+        reason=undefined
     ):
         payload = {}
 
-        if delete_message_days is not None:
+        if delete_message_days is not undefined:
             payload['delete_message_days'] = delete_message_days
 
-        if reason is not None:
+        if reason is not undefined:
             payload['reason'] = reason
 
         fut = self.request(
@@ -1010,27 +1023,27 @@ class RestSession:
         self,
         guild_id,
         *,
-        name=None,
-        permissions=None,
-        color=None,
-        hoist=None,
-        mentionable=None
+        name=undefined,
+        permissions=undefined,
+        color=undefined,
+        hoist=undefined,
+        mentionable=undefined
     ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if permissions is not None:
+        if permissions is not undefined:
             payload['permissions'] = permissions
 
-        if color is not None:
+        if color is not undefined:
             payload['color'] = color
 
-        if hoist is not None:
+        if hoist is not undefined:
             payload['hoist'] = hoist
 
-        if mentionable is not None:
+        if mentionable is not undefined:
             payload['mentionable'] = mentionable
 
         fut = self.request(
@@ -1055,27 +1068,27 @@ class RestSession:
         guild_id,
         role_id,
         *,
-        name=None,
-        permissions=None,
-        color=None,
-        hoist=None,
-        mentionable=None
+        name=undefined,
+        permissions=undefined,
+        color=undefined,
+        hoist=undefined,
+        mentionable=undefined
     ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if permissions is not None:
+        if permissions is not undefined:
             payload['permissions'] = permissions
 
-        if color is not None:
+        if color is not undefined:
             payload['color'] = color
 
-        if hoist is not None:
+        if hoist is not undefined:
             payload['hoist'] = hoist
 
-        if mentionable is not None:
+        if mentionable is not undefined:
             payload['mentionable'] = mentionable
 
         fut = self.request(
@@ -1098,15 +1111,15 @@ class RestSession:
         self,
         guild_id,
         *,
-        days=None,
-        include_roles=None
+        days=undefined,
+        include_roles=undefined
     ):
         params = {}
 
-        if days is not None:
+        if days is not undefined:
             params['days'] = days
 
-        if include_roles is not None:
+        if include_roles is not undefined:
             params['include_roles'] = include_roles
 
         fut = self.request(
@@ -1121,19 +1134,19 @@ class RestSession:
         self,
         guild_id,
         *,
-        days=None,
-        include_roles=None,
-        compute_prune_count=None
+        days=undefined,
+        include_roles=undefined,
+        compute_prune_count=undefined
     ):
         payload = {}
 
-        if days is not None:
+        if days is not undefined:
             payload['days'] = days
 
-        if include_roles is not None:
+        if include_roles is not undefined:
             payload['include_roles'] = include_roles
 
-        if compute_prune_count is not None:
+        if compute_prune_count is not undefined:
             payload['compute_prune_count'] = compute_prune_count
 
         fut = self.request(
@@ -1192,19 +1205,19 @@ class RestSession:
         guild_id,
         integration_id,
         *,
-        expire_behavior=None,
-        expire_grace_period=None,
-        enable_emoticons=None
+        expire_behavior=undefined,
+        expire_grace_period=undefined,
+        enable_emoticons=undefined
     ):
         payload = {}
 
-        if expire_behavior is not None:
+        if expire_behavior is not undefined:
             payload['expire_behavior'] = expire_behavior
 
-        if expire_grace_period is not None:
+        if expire_grace_period is not undefined:
             payload['expire_grace_period'] = expire_grace_period
 
-        if enable_emoticons is not None:
+        if enable_emoticons is not undefined:
             payload['enable_emoticons'] = enable_emoticons
 
         fut = self.request(
@@ -1239,13 +1252,19 @@ class RestSession:
         )
         return fut
 
-    def modify_guild_widget(self, guild_id, *, enabled=None, channel_id=None):
+    def modify_guild_widget(
+        self,
+        guild_id,
+        *,
+        enabled=undefined,
+        channel_id=undefined
+    ):
         payload = {}
 
-        if enabled is not None:
+        if enabled is not undefined:
             payload['enabled'] = enabled
 
-        if channel_id is not None:
+        if channel_id is not undefined:
             payload['channel_id'] = channel_id
 
         fut = self.request(
@@ -1272,10 +1291,10 @@ class RestSession:
         )
         return fut
 
-    def get_guild_widget_image(self, guild_id, style=None):
+    def get_guild_widget_image(self, guild_id, style=undefined):
         params = {}
 
-        if style is not None:
+        if style is not undefined:
             params['style'] = style
 
         fut = self.request(
@@ -1286,10 +1305,10 @@ class RestSession:
         )
         return fut
 
-    def get_invite(self, invite_code, with_counts=None):
+    def get_invite(self, invite_code, with_counts=undefined):
         params = {}
 
-        if with_counts is not None:
+        if with_counts is not undefined:
             params['with_counts'] = with_counts
 
         fut = self.request(
@@ -1320,15 +1339,15 @@ class RestSession:
         self,
         template_code,
         *,
-        name=None,
-        icon=None
+        name=undefined,
+        icon=undefined
     ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if icon is not None:
+        if icon is not undefined:
             payload['icon'] = icon
 
         fut = self.request(
@@ -1347,13 +1366,19 @@ class RestSession:
         )
         return fut
 
-    def create_guild_template(self, guild_id, *, name=None, description=None):
+    def create_guild_template(
+        self,
+        guild_id,
+        *,
+        name=undefined,
+        description=undefined
+    ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if description is not None:
+        if description is not undefined:
             payload['description'] = description
 
         fut = self.request(
@@ -1376,15 +1401,15 @@ class RestSession:
         self,
         guild_id,
         template_code,
-        name=None,
-        description=None
+        name=undefined,
+        description=undefined
     ):
         payload = {}
 
-        if name is not None:
+        if name is not undefined:
             payload['name'] = name
 
-        if description is not None:
+        if description is not undefined:
             payload['description'] = description
 
         fut = self.request(
@@ -1411,13 +1436,13 @@ class RestSession:
         )
         return fut
 
-    def modify_client_user(self, username=None, avatar=None):
+    def modify_client_user(self, username=undefined, avatar=undefined):
         payload = {}
 
-        if username is not None:
+        if username is not undefined:
             payload['username'] = username
 
-        if avatar is not None:
+        if avatar is not undefined:
             payload['avatar'] = avatar
 
         fut = self.request(
@@ -1428,16 +1453,21 @@ class RestSession:
         )
         return fut
 
-    def get_client_guilds(self, before=None, after=None, limit=None):
+    def get_client_guilds(
+        self,
+        before=undefined,
+        after=undefined,
+        limit=undefined
+    ):
         params = {}
 
-        if before is not None:
+        if before is not undefined:
             params['before'] = before
 
-        if after is not None:
+        if after is not undefined:
             params['after'] = after
 
-        if limit is not None:
+        if limit is not undefined:
             params['limit'] = limit
 
         fut = self.request(
@@ -1477,12 +1507,12 @@ class RestSession:
         )
         return fut
 
-    def create_group_dm_channel(self, access_tokens, nicks=None):
+    def create_group_dm_channel(self, access_tokens, nicks=undefined):
         payload = {
             'access_tokens': access_tokens
         }
 
-        if nicks is not None:
+        if nicks is not undefined:
             payload['nicks'] = nicks
 
         fut = self.request(

@@ -1,4 +1,5 @@
 from .invite import GuildInviteState
+from .user import User
 
 from .channel import (
     GuildChannelState
@@ -14,9 +15,14 @@ from .utils import (
     JsonField,
     JsonArray,
     Snowflake,
+    JSON
 )
 
-from typing import Iterable
+from typing import (
+    Iterable,
+    List,
+    Optional
+)
 
 
 class RoleTags(JsonStructure):
@@ -59,11 +65,10 @@ class Role(BaseObject):
     managed: bool
     mentionable: bool
     tags: RoleTags
-    guild: ...
 
     def __init__(self, state, guild):
         self._state = state
-        self.guild = guild
+        self.guild: Guild = guild
 
     async def edit(
         self,
@@ -164,14 +169,14 @@ class GuildMember(JsonStructure):
         'pending': JsonField('pending'),
     }
 
-    _user: ...
+    _user: Optional[JSON]
     nick: str
     _roles: list
     joined_at: str
-    premium_since: str
+    premium_since: Optional[str]
     deaf: bool
     mute: bool
-    pending: bool
+    pending: Optional[bool]
 
     def __init__(
         self,
@@ -278,6 +283,7 @@ class GuildMemberState(BaseState):
             user=user
         )
         self._values[member.user.id] = member
+        self._client.events.member_cache(member)
         return member
 
     async def fetch(self, member_id):
@@ -330,14 +336,14 @@ class GuildEmoji(BaseObject):
         'available': JsonField('available'),
     }
 
-    id: Snowflake
-    name: ...
-    _roles: ...
-    _user: ...
-    required_colons: ...
-    managed: ...
-    animated: ...
-    available: ...
+    id: Optional[Snowflake]
+    name: Optional[str]
+    _roles: Optional[List[JSON]]
+    _user: Optional[JSON]
+    required_colons: Optional[bool]
+    managed: Optional[bool]
+    animated: Optional[bool]
+    available: Optional[bool]
 
     def __init__(self, state, guild):
         self._state = state
@@ -437,7 +443,7 @@ class GuildIntegrationAccount(BaseObject):
     }
 
     id: Snowflake
-    name: ...
+    name: str
 
 
 class GuildIntegrationApplication(BaseObject):
@@ -450,11 +456,11 @@ class GuildIntegrationApplication(BaseObject):
     }
 
     id: Snowflake
-    name: ...
-    icon: ...
-    description: ...
-    summary: ...
-    _bot: ...
+    name: str
+    icon: Optional[str]
+    description: str
+    summary: str
+    _bot: Optional[JSON]
 
     def __init__(self, state):
         self._state = state
@@ -482,20 +488,20 @@ class GuildIntegration(BaseObject):
     }
 
     id: Snowflake
-    name: ...
-    type: ...
-    enabled: ...
-    syncing: ...
-    role_id: ...
-    enable_emoticons: ...
-    expire_behavior: ...
-    expire_grace_period: ...
-    _user: ...
-    account: ...
-    synced_at: ...
-    subscriber_count: ...
-    revoked: ...
-    _application: ...
+    name: str
+    type: int
+    enabled: bool
+    syncing: Optional[bool]
+    role_id: Optional[Snowflake]
+    enable_emoticons: Optional[bool]
+    expire_behavior: Optional[bool]
+    expire_grace_period: Optional[int]
+    _user: Optional[JSON]
+    account: GuildIntegrationAccount
+    synced_at: Optional[str]
+    subscriber_count: Optional[int]
+    revoked: Optional[bool]
+    _application: JSON
 
     def __init__(self, state, guild):
         self._state = state
@@ -573,8 +579,8 @@ class GuildWidgetChannel(BaseObject):
         'poosition': JsonField('position'),
     }
 
-    name: ...
-    poosition: ...
+    name: str
+    poosition: int
 
 
 class GuildWidgetMember(BaseObject):
@@ -585,10 +591,10 @@ class GuildWidgetMember(BaseObject):
         'avatar_url': JsonField('avatar_url'),
     }
 
-    username: ...
-    discriminator: ...
-    avatar: ...
-    avatar_url: ...
+    username: str
+    discriminator: str
+    avatar: Optional[str]
+    avatar_url: Optional[str]
 
 
 class GuildWidget(BaseObject):
@@ -601,11 +607,11 @@ class GuildWidget(BaseObject):
     }
 
     id: Snowflake
-    name: ...
-    instant_invite: ...
-    channels: ...
-    members: ...
-    presence_count: ...
+    name: str
+    instant_invite: str
+    channels: List[GuildWidgetChannel]
+    members: List[GuildWidgetMember]
+    presence_count: int
 
     def __init__(self, guild):
         self.guild = guild
@@ -620,14 +626,13 @@ class GuildWidgetSettings(JsonStructure):
         'channel_id': JsonField('channel_id'),
     }
 
-    enabled: ...
-    channel_id: ...
-    channel: ...
+    enabled: bool
+    channel_id: Snowflake
 
     def __init__(self, guild):
         self.guild = guild
 
-    def _updadte(self, *args, **kwargs):
+    def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
         channels = self.guild._state._client.channels
         self.channel = channels.get(self.channel_id)
@@ -639,8 +644,8 @@ class PartialInvite(JsonStructure):
         'uses': JsonField('uses'),
     }
 
-    code: ...
-    uses: ...
+    code: str
+    uses: int
 
 
 class GuildPreview(BaseObject):
@@ -658,19 +663,19 @@ class GuildPreview(BaseObject):
     }
 
     id: Snowflake
-    name: ...
-    icon: ...
-    splash: ...
-    discovery_splash: ...
-    _emojis: ...
-    features: ...
-    member_count: ...
-    presence_count: ...
-    description: ...
+    name: str
+    icon: Optional[str]
+    splash: Optional[str]
+    discovery_splash: Optional[str]
+    _emojis: List[JSON]
+    features: List[str]
+    member_count: int
+    presence_count: int
+    description: Optional[str]
 
     def __init__(self, state):
         self._state = state
-        self.members: Iterable[GuildMember] = GuildMemberState(
+        self.members = GuildMemberState(
             self._state._client,
             guild=self
         )
@@ -846,12 +851,12 @@ class GuildBan(JsonStructure):
         '_user': JsonField('user'),
     }
 
-    reason: ...
-    _user: ...
-    user: ...
+    reason: str
+    _user: JSON
 
-    def __init__(self, state):
+    def __init__(self, state, user):
         self._state = state
+        self.user: User = user
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
@@ -955,50 +960,50 @@ class Guild(GuildPreview):
     }
 
     id: Snowflake
-    name: ...
-    icon: ...
-    splash: ...
-    discovery_splash: ...
-    _emojis: ...
-    features: ...
-    member_count: ...
-    presence_count: ...
-    description: ...
-    icon_hash: ...
-    _owner: ...
-    owner_id: ...
-    permissions: ...
-    region: ...
-    afk_channel_id: ...
-    afk_timeout: ...
-    widget_enabled: ...
-    widget_channel_id: ...
-    verification_level: ...
-    default_message_notifications: ...
-    explicit_content_filter: ...
-    _roles: ...
-    mfa_level: ...
-    application_id: ...
-    system_channel_id: ...
-    system_channel_flags: ...
-    rules_channel_id: ...
-    joined_at: ...
-    large: ...
-    unavailable: ...
-    member_count: ...
-    _voice_states: ...
-    _members: ...
-    _channels: ...
-    _presences: ...
-    max_presences: ...
-    max_members: ...
-    vanity_url_code: ...
-    banner: ...
-    premium_tier: ...
-    premium_subscription_count: ...
-    preferred_locale: ...
-    public_updates_channel_id: ...
-    max_video_channel_users: ...
+    name: str
+    icon: Optional[str]
+    splash: Optional[str]
+    discovery_splash: Optional[str]
+    _emojis: List[JSON]
+    features: List[str]
+    member_count: int
+    presence_count: int
+    description: Optional[str]
+    icon_hash: Optional[str]
+    _owner: Optional[JSON]
+    owner_id: Snowflake
+    _permissions: Optional[str]
+    region: str
+    afk_channel_id: Optional[Snowflake]
+    afk_timeout: int
+    widget_enabled: Optional[bool]
+    widget_channel_id: Optional[Snowflake]
+    verification_level: int
+    default_message_notifications: int
+    explicit_content_filter: int
+    _roles: List[JSON]
+    mfa_level: int
+    application_id: Optional[int]
+    system_channel_id: Optional[Snowflake]
+    system_channel_flags: int
+    rules_channel_id: Optional[Snowflake]
+    joined_at: Optional[str]
+    large: Optional[bool]
+    unavailable: Optional[bool]
+    member_count: Optional[int]
+    _voice_states: Optional[List[JSON]]
+    _members: Optional[List[JSON]]
+    _channels: Optional[List[JSON]]
+    _presences: Optional[List[JSON]]
+    max_presences: Optional[int]
+    max_members: Optional[int]
+    vanity_url_code: Optional[str]
+    banner: Optional[str]
+    premium_tier: int
+    premium_subscription_count: Optional[int]
+    preferred_locale: str
+    public_updates_channel_id: Optional[Snowflake]
+    max_video_channel_users: Optional[int]
 
     def __init__(self, *, state: 'GuildState'):
         super().__init__(state)
@@ -1100,6 +1105,7 @@ class GuildState(BaseState):
             return guild
         guild = Guild.unmarshal(data, state=self)
         self._values[guild.id] = guild
+        self._client.events.guild_cache(guild)
         return guild
 
     async def fetch(self, guild_id) -> Guild:

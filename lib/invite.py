@@ -2,8 +2,11 @@ from .bases import BaseState
 
 from .utils import (
     JsonStructure,
-    JsonField
+    JsonField,
+    JSON
 )
+
+from typing import Optional
 
 INVITE_BASE_URL = 'https://discord.com/invite/'
 
@@ -28,20 +31,20 @@ class Invite(JsonStructure):
         'created_at': JsonField('created_at'),
     }
 
-    code: ...
-    _guild: ...
-    _channel: ...
-    guild_id: ...
-    channel_id: ...
-    _inviter: ...
-    _target_user: ...
-    target_user_type: ...
-    approximate_presence_count: ...
-    approximate_member_count: ...
-    uses: ...
-    max_uses: ...
-    temporary: ...
-    created_at: ...
+    code: str
+    _guild: Optional[JSON]
+    _channel: Optional[JSON]
+    guild_id: int
+    channel_id: int
+    _inviter: Optional[JSON]
+    _target_user: Optional[JSON]
+    target_user_type: Optional[int]
+    approximate_presence_count: Optional[int]
+    approximate_member_count: Optional[int]
+    uses: Optional[int]
+    max_uses: Optional[int]
+    temporary: Optional[bool]
+    created_at: Optional[str]
 
     def __init__(self, state=None):
         self._state = state

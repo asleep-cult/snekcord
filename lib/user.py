@@ -8,6 +8,8 @@ from .utils import (
     Snowflake
 )
 
+from typing import Optional
+
 
 class User(BaseObject):
     __slots__ = (
@@ -35,15 +37,15 @@ class User(BaseObject):
     name: str
     discriminator: int
     avatar: str
-    bot: bool
-    system: bool
-    mfa_enabled: bool
-    locale: str
-    verified: bool
-    email: str
-    flags: int
-    premium_type: int
-    public_flags: int
+    bot: Optional[bool]
+    system: Optional[bool]
+    mfa_enabled: Optional[bool]
+    locale: Optional[str]
+    verified: Optional[bool]
+    email: Optional[str]
+    flags: Optional[int]
+    premium_type: Optional[int]
+    public_flags: Optional[int]
 
     def __init__(self, *, state):
         self._state = state
@@ -57,6 +59,7 @@ class UserState(BaseState):
             return user
         user = User.unmarshal(data, state=self)
         self._values[user.id] = user
+        self._client.events.user_cache(user)
         return user
 
     async def fetch(self, user_id) -> User:

@@ -46,10 +46,11 @@ class VoiceState(JsonStructure):
         self.voice_channel = voice_channel
         self.guild = voice_channel.guild
 
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+
         if self._member is not None:
             self.member = self.guild.members._add(self._member)
-
-        del self._member
 
 
 class VoiceServerUpdate(JsonStructure):

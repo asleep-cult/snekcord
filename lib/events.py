@@ -8,19 +8,33 @@ class EventHandler:
         log_handler = logger.Handler(self)
         for log in logger.LOGGERS:
             log.addHandler(log_handler)
+
         handlers = (
             self.log_info,
             self.log_critical,
             self.invite_create,
             self.message_create,
-            self.guild_create
+            self.guild_create,
+            self.channel_cache,
+            self.guild_cache,
+            self.member_cache,
+            self.user_cache
         )
+
         self.handlers = {
             handler.__name__.lower(): handler for handler in handlers
         }
         self.listeners = {
             handler.__name__.lower(): [] for handler in handlers
         }
+
+        for name, listeners in self.listeners.items():
+            try:
+                attr = getattr(self._client, name)
+            except AttributeError:
+                continue
+            listeners.append(attr)
+
         self._client = client
         self.loop = self._client.loop
         self.formatter = logging.Formatter(
@@ -39,6 +53,7 @@ class EventHandler:
         if listeners is None:
             raise Exception
         listeners.append(func)
+        return func
 
     def _call_listeners(self, name, *args):
         for listener in self.listeners[name]:
@@ -66,3 +81,15 @@ class EventHandler:
     def log_critical(self, record):
         fmt = self.formatter.format(record)
         self._call_listeners('log_critical', fmt, record)
+
+    def channel_cache(self, channel):
+        self._call_listeners('channel_cache', channel)
+
+    def guild_cache(self, guild):
+        self._call_listeners('guild_cache', guild)
+
+    def member_cache(self, member):
+        self._call_listeners('member_cache', member)
+
+    def user_cache(self, user):
+        self._call_listeners('user_cache', user)

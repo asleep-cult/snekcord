@@ -319,7 +319,7 @@ class VoiceWSProtocol(ConnectionBase):
             'op': VoiceConnectionOpcode.IDENTIFY,
             'd': {
                 'server_id': self.voice_connection.guild_id,
-                'user_id': self.voice_connection.voice_state.member.id,
+                'user_id': self.voice_connection.voice_state.member.user.id,
                 'session_id': self.voice_connection.voice_state.session_id,
                 'token': self.voice_connection.token
             }
