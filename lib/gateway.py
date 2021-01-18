@@ -1,5 +1,4 @@
 from .connection import Shard
-from . import logger
 
 from typing import (
     Dict,

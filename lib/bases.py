@@ -47,9 +47,9 @@ class BaseState:
             return default
         return value
 
-    def pop(self, item):
+    def pop(self, item, default=None):
         item = _try_snowflake(item)
-        return self._values.pop(item)
+        return self._values.pop(item, default)
 
     def clear(self):
         self._values = {}

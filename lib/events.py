@@ -10,15 +10,22 @@ class EventHandler:
             log.addHandler(log_handler)
 
         handlers = (
-            self.log_info,
-            self.log_critical,
+            self.channel_create,
+            self.channel_update,
+            self.channel_delete,
+            self.channel_cache,
+            self.channel_pins_update,
+            self.guild_create,
+            self.guild_update,
+            self.guild_delete,
+            self.guild_ban_add,
             self.invite_create,
             self.message_create,
-            self.guild_create,
-            self.channel_cache,
+            self.log_info,
+            self.log_critical,
             self.guild_cache,
             self.member_cache,
-            self.user_cache
+            self.user_cache,
         )
 
         self.handlers = {
@@ -59,6 +66,52 @@ class EventHandler:
         for listener in self.listeners[name]:
             self.loop.create_task(listener(*args))
 
+    def channel_create(self, payload):
+        channel = self._client.channels._add(payload.data)
+        self._call_listeners('channel_create', channel)
+
+    def channel_update(self, payload):
+        channel = self._client.channels._add(payload.data)
+        self._call_listeners('channel_update', channel)
+
+    def channel_delete(self, payload):
+        channel_id = payload.data['id']
+        channel = self._client.channels.pop(channel_id)
+        if channel is not None:
+            self._call_listeners('channel_delete', channel)
+
+    def channel_cache(self, channel):
+        self._call_listeners('channel_cache', channel)
+
+    def channel_pins_update(self, payload):
+        channel_id = payload.data['channel_id']
+        channel = self._client.channels.get(channel_id)
+        if channel is not None:
+            channel.last_pin_timestamp = payload['last_pin_timestamp']
+            self._call_listeners('channel_pins_update', channel)
+
+    def guild_create(self, payload):
+        guild = self._client.guilds._add(payload.data)
+        self._call_listeners('guild_create', guild)
+
+    def guild_update(self, payload):
+        guild = self._client.guilds._add(payload.data)
+        self._call_listeners('guild_update', guild)
+
+    def guild_delete(self, payload):
+        guild_id = payload.data['id']
+        guild = self._client.guilds.pop(guild_id)
+        if guild is not None:
+            self._call_listeners('guild_delete', guild)
+
+    def guild_ban_add(self, payload):
+        guild_id = payload.data['guild_id']
+        guild = self._client.guilds.get(guild_id)
+        if guild is not None:
+            member_id = payload.data['id']
+            member = guild.members.pop(member_id)
+            self._call_listeners('guild_ban_add', member)
+
     def invite_create(self, payload):
         invite = self._client.invites._add(payload.data)
         self._call_listeners('invite_create', invite)
@@ -70,10 +123,6 @@ class EventHandler:
             message = channel.messages._add(data)
             self._call_listeners('message_create', message)
 
-    def guild_create(self, payload):
-        guild = self._client.guilds._add(payload.data)
-        self._call_listeners('guild_create', guild)
-
     def log_info(self, record):
         fmt = self.formatter.format(record)
         self._call_listeners('log_info', fmt, record)
@@ -81,9 +130,6 @@ class EventHandler:
     def log_critical(self, record):
         fmt = self.formatter.format(record)
         self._call_listeners('log_critical', fmt, record)
-
-    def channel_cache(self, channel):
-        self._call_listeners('channel_cache', channel)
 
     def guild_cache(self, guild):
         self._call_listeners('guild_cache', guild)

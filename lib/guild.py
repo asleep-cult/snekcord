@@ -389,6 +389,9 @@ class GuildEmoji(BaseObject):
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
+        self.user = None
+        self.roles = []
+
         if self._user is not None:
             self.user = self._state._client.users._add(self._user)
 
@@ -396,9 +399,6 @@ class GuildEmoji(BaseObject):
             role = self.guild.roles.get(role)
             if role is not None:
                 self.roles.append(role)
-
-        del self._roles
-        del self._user
 
 
 class GuildEmojiState(BaseState):

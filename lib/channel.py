@@ -109,6 +109,7 @@ class GuildChannel(BaseObject):
     ):
         self._state = state
         self.messages: MessageState = MessageState(state._client, self)
+        guild = guild or self._state._client.guilds.get(self.guild_id)
         self.guild: 'Guild' = guild
 
         self.permission_overwrites: PermissionOverwriteState = \
@@ -240,7 +241,9 @@ class PermissionOverwriteState(BaseState):
 
 
 class TextChannel(GuildChannel):
-    __slots__ = (*GuildChannel.__slots__, 'last_message_id')
+    __slots__ = (
+        *GuildChannel.__slots__, 'last_message_id', 'last_pin_timestamp'
+    )
 
     __json_fields__ = {
         **GuildChannel.__json_fields__,
@@ -256,9 +259,11 @@ class TextChannel(GuildChannel):
     parent_id: Snowflake
     type: int
     last_message_id: Snowflake
+    last_pin_timestamp: Optional[str]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.last_pin_timestamp = None
         self.invites: ChannelInviteState = \
             ChannelInviteState(self._state._client.invites, self)
 
