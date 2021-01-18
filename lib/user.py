@@ -52,12 +52,14 @@ class User(BaseObject):
 
 
 class UserState(BaseState):
+    __state_class__ = User
+
     def _add(self, data) -> User:
         user = self.get(data['id'])
         if user is not None:
             user._update(data, set_default=False)
             return user
-        user = User.unmarshal(data, state=self)
+        user = self.__state_class__.unmarshal(data, state=self)
         self._values[user.id] = user
         self._client.events.user_cache(user)
         return user

@@ -223,6 +223,8 @@ class PermissionOverwrite(BaseObject):
 
 
 class PermissionOverwriteState(BaseState):
+    __state_class__ = PermissionOverwrite
+
     def __init__(self, client, channel):
         super().__init__(client)
         self._channel = channel
@@ -232,7 +234,7 @@ class PermissionOverwriteState(BaseState):
         if overwrite is not None:
             overwrite._update(data, set_default=False)
             return overwrite
-        overwrite = PermissionOverwrite.unmarshal(data, state=self)
+        overwrite = self.__state_class__.unmarshal(data, state=self)
         self._values[overwrite.id] = overwrite
         return overwrite
 
@@ -477,16 +479,28 @@ _CHANNEL_TYPE_MAP = {
 
 
 class ChannelState(BaseState):
+    __state_class_map__ = _CHANNEL_TYPE_MAP
+
     def _add(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
             channel._update(data, set_default=False)
             return channel
-        cls = _CHANNEL_TYPE_MAP.get(data['type'])
+        cls = self.__state_class_map__.get(data['type'])
         channel = cls.unmarshal(data, *args, state=self, **kwargs)
         self._values[channel.id] = channel
         self._client.events.channel_cache(channel)
         return channel
+
+    def set_class(self, cls):
+        raise TypeError(
+            'ChannelState doesn\'t support set_class, '
+            'use set_class_map instead'
+        )
+
+    def set_class_map(self, class_map):
+        assert isinstance(class_map, dict), 'class_map should be a dict'
+        self.__class_map__ = class_map
 
     async def fetch(self, channel_id):
         data = await self._client.rest.get_channel(channel_id)

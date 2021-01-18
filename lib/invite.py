@@ -78,12 +78,14 @@ class Invite(JsonStructure):
 
 
 class InviteState(BaseState):
+    __state_class__ = Invite
+
     def _add(self, data):
         invite = self.get(data['code'])
         if invite is not None:
             invite._update(data, set_default=False)
             return invite
-        invite = Invite.unmarshal(data, state=self)
+        invite = self.__state_class__.unmarshal(data, state=self)
         self._values[invite.code] = invite
         return invite
 

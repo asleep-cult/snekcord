@@ -520,6 +520,8 @@ class Message(BaseObject):
 
 
 class ReactionState(BaseState):
+    __state_class__ = Reaction
+
     def __init__(self, client, message):
         super().__init__(client)
         self._message = message
@@ -529,7 +531,7 @@ class ReactionState(BaseState):
         if reaction is not None:
             reaction._update(data, set_default=False)
             return reaction
-        reaction = Reaction.unmarshal(data)
+        reaction = self.__state_class__.unmarshal(data)
         self._values[reaction.emoji] = reaction
         return reaction
 
@@ -580,6 +582,8 @@ class ReactionState(BaseState):
 
 
 class MessageState(BaseState):
+    __state_class__ = Message
+
     def __init__(self, client, channel: '_Channel'):
         super().__init__(client)
         self._channel = channel
@@ -589,7 +593,11 @@ class MessageState(BaseState):
         if message is not None:
             message._update(data, set_default=False)
             return message
-        message = Message.unmarshal(data, state=self, channel=self._channel)
+        message = self.__state_class__.unmarshal(
+            data,
+            state=self,
+            channel=self._channel
+        )
         self._values[message.id] = message
         return message
 

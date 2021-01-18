@@ -97,6 +97,8 @@ class Role(BaseObject):
 
 
 class RoleState(BaseState):
+    __state_class__ = Role
+
     def __init__(self, client, guild):
         super().__init__(client)
         self._guild = guild
@@ -106,7 +108,11 @@ class RoleState(BaseState):
         if role is not None:
             role._update(data, set_default=False)
             return role
-        role = Role.unmarshal(data, state=self, guild=self._guild)
+        role = self.__state_class__.unmarshal(
+            data,
+            state=self,
+            guild=self._guild
+        )
         self._values[role.id] = role
         return role
 
@@ -265,6 +271,8 @@ class GuildMemberRoleState(BaseState):
 
 
 class GuildMemberState(BaseState):
+    __state_class__ = GuildMember
+
     def __init__(self, client, guild):
         super().__init__(client)
         self._guild = guild
@@ -276,7 +284,7 @@ class GuildMemberState(BaseState):
         if member is not None:
             member._update(data, set_default=False)
             return member
-        member = GuildMember.unmarshal(
+        member = self.__state_class__.unmarshal(
             data,
             state=self,
             guild=self._guild,
@@ -394,6 +402,8 @@ class GuildEmoji(BaseObject):
 
 
 class GuildEmojiState(BaseState):
+    __state_class__ = GuildEmoji
+
     def __init__(self, client, guild):
         super().__init__(client)
         self._guild = guild
@@ -403,7 +413,11 @@ class GuildEmojiState(BaseState):
         if emoji is not None:
             emoji._update(data, set_default=False)
             return emoji
-        emoji = GuildEmoji.unmarshal(data, state=self, guild=self._guild)
+        emoji = self.__state_class__.unmarshal(
+            data,
+            state=self,
+            guild=self._guild
+        )
         self._values[emoji.id] = emoji
         return emoji
 
@@ -541,6 +555,8 @@ class GuildIntegration(BaseObject):
 
 
 class GuildIntegrationState(BaseState):
+    __state_class__ = GuildIntegration
+
     def __init__(self, client, guild):
         super().__init__(client)
         self._guild = guild
@@ -550,7 +566,7 @@ class GuildIntegrationState(BaseState):
         if integration is not None:
             integration._update(data, set_default=False)
             return integration
-        integration = GuildIntegration.unmarshal(
+        integration = self.__state_class__.unmarshal(
             data,
             state=self,
             guild=self._guild
@@ -866,6 +882,8 @@ class GuildBan(JsonStructure):
 
 
 class GuildBanState(BaseState):
+    __state_class__ = GuildBan
+
     def __init__(self, client, guild):
         super().__init__(client)
         self._guild = guild
@@ -875,7 +893,10 @@ class GuildBanState(BaseState):
         if ban is not None:
             ban._update(data, set_default=False)
             return ban
-        ban = GuildBan.unmarshal(data, state=self)
+        ban = self.__state_class__.unmarshal(
+            data,
+            state=self
+        )
         self._values[ban.user.id] = ban
         return ban
 
@@ -1098,12 +1119,14 @@ class Guild(GuildPreview):
 
 
 class GuildState(BaseState):
+    __state_class__ = Guild
+
     def _add(self, data) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
             guild._update(data, set_default=False)
             return guild
-        guild = Guild.unmarshal(data, state=self)
+        guild = self.__state_class__.unmarshal(data, state=self)
         self._values[guild.id] = guild
         self._client.events.guild_cache(guild)
         return guild
