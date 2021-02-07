@@ -1,12 +1,5 @@
-from .bases import (
-    BaseObject,
-    BaseState
-)
-
-from .utils import (
-    JsonField,
-    Snowflake
-)
+from .bases import BaseObject, BaseState
+from .utils import JsonField, Snowflake
 
 from typing import Optional
 

@@ -6,19 +6,8 @@ import functools
 import threading
 
 from . import logger
-from .utils import (
-    JsonStructure,
-    JsonField
-)
-
-from typing import (
-    Dict,
-    Any,
-    Callable,
-    Awaitable,
-    Optional,
-    TYPE_CHECKING
-)
+from .utils import JsonStructure, JsonField
+from typing import Dict, Any, Callable, Awaitable, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .client import Client

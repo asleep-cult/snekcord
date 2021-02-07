@@ -1,9 +1,4 @@
-from .utils import (
-    Snowflake,
-    JsonStructure,
-    JsonField,
-    _try_snowflake
-)
+from .utils import Snowflake, JsonStructure, JsonField, _try_snowflake
 
 from typing import TYPE_CHECKING
 

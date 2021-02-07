@@ -4,11 +4,7 @@ import functools
 
 from datetime import datetime
 
-from .utils import (
-    JsonStructure,
-    JsonField,
-    undefined
-)
+from .utils import JsonStructure, JsonField, undefined
 
 
 class Ratelimiter:

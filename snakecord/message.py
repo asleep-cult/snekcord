@@ -1,29 +1,12 @@
 from datetime import datetime
 
-from .bases import (
-    BaseObject,
-    BaseState
-)
-
-from .utils import (
-    JsonStructure,
-    JsonField,
-    JsonArray,
-    Snowflake,
+from .bases import BaseObject, BaseState
+from .utils import JsonStructure, JsonField, JsonArray, Snowflake, \
     _try_snowflake
-)
-
-from typing import (
-    TYPE_CHECKING,
-    List,
-    Union
-)
+from typing import TYPE_CHECKING, List, Union
 
 if TYPE_CHECKING:
-    from .channel import (
-        _Channel,
-        ChannelState,
-    )
+    from .channel import _Channel, ChannelState
 
 
 class MessageType:

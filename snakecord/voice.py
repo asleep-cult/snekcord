@@ -1,16 +1,9 @@
 import struct
 
-from .connection import (
-    VoiceWSProtocol,
-    VoiceUDPProtocol,
+from .connection import VoiceWSProtocol, VoiceUDPProtocol, \
     VoiceConnectionOpcode
-)
 
-from .utils import (
-    JsonStructure,
-    JsonField,
-    Snowflake
-)
+from .utils import JsonStructure, JsonField, Snowflake
 
 
 class VoiceState(JsonStructure):

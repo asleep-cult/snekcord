@@ -1,10 +1,7 @@
 import json
 from datetime import datetime
 
-from typing import (
-    Dict,
-    Any
-)
+from typing import Dict, Any
 
 JSON = Dict[str, Any]
 SNOWFLAKE_MINIMUM_BIT_LENGTH = 51

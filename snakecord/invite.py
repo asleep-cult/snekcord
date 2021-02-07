@@ -1,11 +1,5 @@
 from .bases import BaseState
-
-from .utils import (
-    JsonStructure,
-    JsonField,
-    JSON
-)
-
+from .utils import JsonStructure, JsonField, JSON
 from typing import Optional
 
 INVITE_BASE_URL = 'https://discord.com/invite/'
@@ -173,3 +167,13 @@ class ChannelInviteState:
         data = await resp.json()
         invite = self._invite_state._add(data)
         return invite
+
+
+class PartialInvite(JsonStructure):
+    __json_fields__ = {
+        'code': JsonField('code'),
+        'uses': JsonField('uses'),
+    }
+
+    code: str
+    uses: int
