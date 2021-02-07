@@ -1,2 +1,2 @@
-# shitty-discord.py
+# snakecord
  lol
