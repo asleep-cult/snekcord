@@ -26,7 +26,7 @@ class JsonStructure:
     __json_fields__: dict
 
     def __init_subclass__(cls):
-        assert hasattr(cls, '__json_fields__')
+        cls.__json_fields__ = cls.__json_fields__.copy()
         for bcls in cls.__bases__:
             if issubclass(bcls, JsonStructure):
                 cls.__json_fields__.update(bcls.__json_fields__)
