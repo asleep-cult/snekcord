@@ -1,13 +1,14 @@
-import aiohttp
 import asyncio
-import sys
-import time
 import functools
+import sys
 import threading
+import time
+from typing import Any, Awaitable, Callable, Dict, Optional, TYPE_CHECKING
+
+import aiohttp
 
 from . import logger
-from .utils import JsonStructure, JsonField
-from typing import Dict, Any, Callable, Awaitable, Optional, TYPE_CHECKING
+from .utils import JsonField, JsonStructure
 
 if TYPE_CHECKING:
     from .client import Client

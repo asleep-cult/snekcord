@@ -1,29 +1,8 @@
-from .bases import BaseObject, BaseState
-from .utils import JsonField, JsonArray, Snowflake, JSON
-
-from typing import Optional, List
+from . import structures
+from .bases import BaseState
 
 
-class GuildEmoji(BaseObject):
-    __json_fields__ = {
-        'name': JsonField('name'),
-        '_roles': JsonArray('roles'),
-        '_user': JsonField('user'),
-        'required_colons': JsonField('required_colons'),
-        'managed': JsonField('managed'),
-        'animated': JsonField('animated'),
-        'available': JsonField('available'),
-    }
-
-    id: Optional[Snowflake]
-    name: Optional[str]
-    _roles: Optional[List[JSON]]
-    _user: Optional[JSON]
-    required_colons: Optional[bool]
-    managed: Optional[bool]
-    animated: Optional[bool]
-    available: Optional[bool]
-
+class GuildEmoji(structures.GuildEmoji):
     def __init__(self, state, guild):
         self._state = state
         self.guild = guild
@@ -32,20 +11,16 @@ class GuildEmoji(BaseObject):
         if self.id is None:
             return self.name
         elif self.animated:
-            return '<a:%s:%s>' % (self.name, self.id)
+            return '<a:{0.name}:{0.id}>'.format(self)
         else:
-            return '<:%s:%s>' % (self.name, self.id)
-
-    def __repr__(self):
-        return '<GuildEmoji String: %r, Roles: %s, Guild: %s>' % (
-            str(self), self.roles, self.guild)
+            return '<:{0.name}:{0.id}>'.format(self)
 
     async def delete(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.delete_guild_emoji(self.guild.id, self.id)
 
     async def edit(self, name=None, roles=None):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.modify_guild_emoji(self.guild.id, self.id, name, roles)
 
     def to_dict(self):
@@ -73,50 +48,34 @@ class GuildEmoji(BaseObject):
 
 
 class GuildEmojiState(BaseState):
-    __state_class__ = GuildEmoji
-
     def __init__(self, client, guild):
         super().__init__(client)
-        self._guild = guild
+        self.guild = guild
 
     def _add(self, data):
-        emoji = self.get(data.get('id'))
+        emoji = self.get(data['id'])
         if emoji is not None:
             emoji._update(data, set_default=False)
             return emoji
-        emoji = self.__state_class__.unmarshal(
-            data,
-            state=self,
-            guild=self._guild
-        )
+
+        emoji = GuildEmoji.unmarshal(data, state=self, guild=self._guild)
         self._values[emoji.id] = emoji
         return emoji
 
     async def fetch(self, emoji_id):
         rest = self._client.rest
-        resp = await rest.get_guild_emoji(self._guild.id, emoji_id)
-        data = await resp.data()
+        data = await rest.get_guild_emoji(self._guild.id, emoji_id)
         emoji = self._add(data)
         return emoji
 
     async def fetch_all(self):
         rest = self._client.rest
-        resp = await rest.get_guild_emojis(self._guild.id)
-        data = await resp.data()
-        emojis = []
-        for emoji in data:
-            emoji = self._add(emoji)
-            emojis.append(emoji)
+        data = await rest.get_guild_emojis(self._guild.id)
+        emojis = [self._add(emoji) for emoji in data]
         return emojis
 
     async def create(self, name, image, roles=None):
         rest = self._client.rest
-        resp = await rest.create_guild_emoji(
-            self._guild.id,
-            name,
-            image,
-            roles
-        )
-        data = await resp.json()
+        data = await rest.create_guild_emoji(self.guild.id, name, image, roles)
         emoji = self._add(data)
         return emoji

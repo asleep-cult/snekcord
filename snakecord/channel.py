@@ -1,66 +1,29 @@
-from .invite import ChannelInviteState
-from .message import MessageState
-from .bases import BaseObject, BaseState
-from .utils import JsonField, JsonArray, Snowflake, JSON
-from .voice import VoiceConnection, VoiceState, VoiceServerUpdate
-from .permissions import PermissionOverwriteState
-from typing import Union, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .guild import Guild
 
+from . import structures
+from .enums import ChannelType
+from .invite import ChannelInviteState
+from .message import MessageState
+from .permissions import PermissionOverwriteState
+from .state import BaseState
+from .utils import _try_snowflake, undefined
+from .voice import VoiceConnection
 
-class ChannelType:
-    GUILD_TEXT = 0
-    DM = 1
-    GUILD_VOICE = 2
-    GROUP_DM = 3
-    GUILD_CATEGORY = 4
-    GUILD_NEWS = 5
-    GUILD_STORE = 6
 
-
-class GuildChannel(BaseObject):
+class GuildChannel(structures.GuildChannel):
     __slots__ = (
         '_state', 'id', 'name', 'guild_id', 'permission_overwrites',
         'position', 'nsfw', 'parent_id', 'type'
     )
 
-    __json_fields__ = {
-        'name': JsonField('name'),
-        'guild_id': JsonField('guild_id', Snowflake, str),
-        '_permission_overwrites': JsonField('permission_overwrites'),
-        'position': JsonField('position'),
-        'nsfw': JsonField('nsfw'),
-        'parent_id': JsonField('parent_id', Snowflake, str),
-        'type': JsonField('type'),
-    }
-
-    id: Snowflake
-    name: str
-    guild_id: Snowflake
-    _permission_overwrites: JSON
-    position: int
-    nsfw: bool
-    parent_id: Snowflake
-    type: int
-
-    def __init__(
-        self,
-        *,
-        state: 'ChannelState',
-        guild: Optional['Guild'] = None
-    ):
+    def __init__(self, *, state: 'ChannelState', guild: Optional['Guild'] = None):
         self._state = state
         self.messages: MessageState = MessageState(state._client, self)
-        guild = guild or self._state._client.guilds.get(self.guild_id)
-        self.guild: 'Guild' = guild
-
-        self.permission_overwrites: PermissionOverwriteState = \
-            PermissionOverwriteState(
-                self._state._client,
-                self
-            )
+        self.guild = guild or self._state._client.guilds.get(self.guild_id)
+        self.permission_overwrites = PermissionOverwriteState(self._state._client, self)
 
     @property
     def mention(self) -> str:
@@ -85,82 +48,33 @@ class GuildChannel(BaseObject):
         if self.guild is None:
             self.guild = self._state._client.guilds.get(self.guild_id)
 
-        del self._permission_overwrites
 
-
-class TextChannel(GuildChannel):
+class TextChannel(GuildChannel, structures.TextChannel):
     __slots__ = (
         *GuildChannel.__slots__, 'last_message_id', 'last_pin_timestamp'
     )
 
-    __json_fields__ = {
-        **GuildChannel.__json_fields__,
-        'last_message_id': JsonField('last_message_id', Snowflake, str),
-    }
-
-    id: Snowflake
-    name: str
-    guild_id: Snowflake
-    _permission_overwrites: JSON
-    position: int
-    nsfw: bool
-    parent_id: Snowflake
-    type: int
-    last_message_id: Snowflake
-    last_pin_timestamp: Optional[str]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_pin_timestamp = None
-        self.invites: ChannelInviteState = \
-            ChannelInviteState(self._state._client.invites, self)
+        self.invites = ChannelInviteState(self._state._client.invites, self)
 
-    async def edit(
-        self,
-        *,
-        name=None,
-        channel_type=None,
-        position=None,
-        topic=None,
-        nsfw=None,
-        slowmode=None,
-        permission_overwrites=None,
-        perent=None
-    ) -> None:
+    async def edit(self, **kwargs) -> None:
         rest = self._state._client.rest
 
-        if perent is not None:
-            perent = perent.id
+        parent = kwargs.pop('parent', undefined)
+        if parent is not undefined:
+            parent = _try_snowflake(parent)
 
-        resp = await rest.modify_channel(
-            self.id, name=name, channel_type=channel_type,
-            position=position, topic=topic, nsfw=nsfw,
-            slowmode=slowmode, permission_overwrites=permission_overwrites,
-            perent_id=perent
-        )
-        data = await resp.json()
+        data = await rest.modify_channel(**kwargs, parent_id=parent)
         message = self.messages._add(data)
         return message
 
-    async def send(
-        self,
-        content=None,
-        *,
-        nonce=None,
-        tts=False,
-        embed=None
-    ) -> None:
+    async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
         rest = self._state._client.rest
         if embed is not None:
             embed = embed.to_dict()
-        resp = await rest.send_message(
-            self.id,
-            content=content,
-            nonce=nonce,
-            tts=tts,
-            embed=embed
-        )
-        data = await resp.json()
+        data = await rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
         message = self.messages._add(data)
         return message
 
@@ -169,126 +83,50 @@ class TextChannel(GuildChannel):
         await rest.trigger_typing(self.id)
 
 
-class VoiceChannel(GuildChannel):
+class VoiceChannel(GuildChannel, structures.VoiceChannel):
     __slots__ = (*GuildChannel.__slots__, 'bitrate', 'user_limit')
 
-    __json_fields__ = {
-        **GuildChannel.__json_fields__,
-        'bitrate': JsonField('bitrate'),
-        'user_limit': JsonField('user_limit'),
-    }
-
-    id: Snowflake
-    name: str
-    guild_id: Snowflake
-    _permission_overwrites: JSON
-    position: int
-    nsfw: bool
-    parent_id: Snowflake
-    type: int
-    last_message_id: Snowflake
-    bitrate: int
-    user_limit: int
-
     async def connect(self):
+        shard = self.guild.shard
         voice_state_update, voice_server_update = \
-            await self.guild.shard.update_voice_state(
-                self.guild.id,
-                self.id
-            )
+            await shard.update_voice_state(self.guild.id, self.id)
+
         state_data = await voice_state_update
         server_data = await voice_server_update
-        voice_state = VoiceState.unmarshal(state_data.data, voice_channel=self)
-        voice_server = VoiceServerUpdate.unmarshal(server_data.data)
+
+        voice_state = structures.VoiceState.unmarshal(state_data.data, voice_channel=self)
+        voice_server = structures.VoiceServerUpdate.unmarshal(server_data.data)
+
         self.voice_connection = VoiceConnection(voice_state, voice_server)
         await self.voice_connection.connect()
+
         return self.voice_connection
 
-    async def edit(
-        self,
-        channel_id,
-        *,
-        name=None,
-        channel_type=None,
-        position=None,
-        topic=None,
-        nsfw=None,
-        bitrate=None,
-        user_limit=None,
-        permission_overwrites=None,
-        parent=None
-    ):
+    async def edit(self, **kwargs):
         rest = self._state._client.rest
 
-        if parent is not None:
-            parent = parent.id
+        parent = kwargs.pop('parent', undefined)
+        if parent is not undefined:
+            parent = _try_snowflake(parent)
 
-        resp = await rest.modify_channel(
-            self.id, name=name, channel_type=channel_type,
-            position=position, topic=topic, nsfw=nsfw,
-            bitrate=bitrate, user_limit=user_limit,
-            permission_overwrites=permission_overwrites,
-            parent_id=parent
-        )
+        resp = await rest.modify_channel(**kwargs, parent_id=parent)
         data = await resp.json()
         channel = self._state._add(data, guild=self.guild)
         return channel
 
 
 class CategoryChannel(GuildChannel):
-    id: Snowflake
-    name: str
-    guild_id: Snowflake
-    _permission_overwrites: JSON
-    position: int
-    nsfw: bool
-    parent_id: Snowflake
-    type: int
-    last_message_id: Snowflake
-
-    async def edit(
-        self,
-        *,
-        name=None,
-        channel_type=None,
-        position=None,
-        topic=None,
-        nsfw=None,
-        slowmode=None,
-        permission_overwrites=None,
-    ) -> None:
-        rest = self._state._client.rest
-        resp = await rest.modify_channel(
-            self.id, name=name, channel_type=channel_type,
-            position=position, topic=topic, nsfw=nsfw,
-            slowmode=slowmode, permission_overwrites=permission_overwrites,
-        )
-        data = await resp.json()
-        channel = self._state._add(data, guild=self.guild)
-        return channel
+    __slots__ = GuildChannel.__slots__
 
 
-class DMChannel(BaseObject):
+class DMChannel(structures.DMChannel):
     __slots__ = (
         'last_message_id', 'type', '_recipients', 'recipients'
     )
 
-    __json_fields__ = {
-        'last_message_id': JsonField('last_message_id', Snowflake, str),
-        'type': JsonField('type'),
-        '_recipients': JsonArray('recipients'),
-    }
-
-    last_message_id: Snowflake
-    type: int
-    _recipients: ...
-
     def __init__(self, state):
         self._state: ChannelState = state
-        self.recipients = ChannelRecipientState(
-            self._state.client,
-            channel=self
-        )
+        self.recipients = ChannelRecipientState(self._state.client, channel=self)
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
@@ -296,31 +134,26 @@ class DMChannel(BaseObject):
         for recipient in self._recipients:
             self.recipients._add(recipient)
 
-        del self._recipients
-
 
 class ChannelRecipientState(BaseState):
-    def __init__(self, client, channel):
+    def __init__(self, client, *, channel: DMChannel):
         super().__init__(client)
-        self._channel = channel
+        self.channel = channel
 
     def _add(self, data):
-        user = self._client.users._add(data)
+        user = self.client.users._add(data)
         self._values[user.id] = user
         return user
 
     async def add(self, user, access_token, *, nick):
-        rest = self._client.rest
-        await rest.add_dm_recipient(
-            self._channel.id,
-            user.id,
-            access_token,
-            nick
-        )
+        user = _try_snowflake(user)
+        rest = self.client.rest
+        await rest.add_dm_recipient(self.channel.id, user, access_token, nick)
 
     async def remove(self, user):
-        rest = self._client.rest
-        await rest.remove_dm_recipient(self._channel.id, user.id)
+        user = _try_snowflake(user)
+        rest = self.client.rest
+        await rest.remove_dm_recipient(self.channel.id, user)
 
 
 _CHANNEL_TYPE_MAP = {
@@ -332,84 +165,50 @@ _CHANNEL_TYPE_MAP = {
 
 
 class ChannelState(BaseState):
-    __state_class_map__ = _CHANNEL_TYPE_MAP
-
     def _add(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
-            channel._update(data, set_default=False)
+            channel._update(data)
             return channel
-        cls = self.__state_class_map__.get(data['type'])
-        channel = cls.unmarshal(data, *args, state=self, **kwargs)
-        self._values[channel.id] = channel
-        self._client.events.channel_cache(channel)
+
+        cls = _CHANNEL_TYPE_MAP[data['type']]
+        channel = cls.unmarshal(data, *args, **kwargs, state=self)
+        self._items[channel.id] = channel
         return channel
 
-    def set_class(self, cls):
-        raise TypeError(
-            'ChannelState doesn\'t support set_class, '
-            'use set_class_map instead'
-        )
-
-    def set_class_map(self, class_map):
-        assert isinstance(class_map, dict), 'class_map should be a dict'
-        self.__class_map__ = class_map
-
     async def fetch(self, channel_id):
-        data = await self._client.rest.get_channel(channel_id)
-        return self._add(data)
+        rest = self.client.rest
+        channel = await rest.get_channel(channel_id)
+        return self._add(channel)
 
 
-class GuildChannelState:
-    def __init__(self, channel_state, guild):
+class GuildChannelState(ChannelState):
+    def __init__(self, channel_state: ChannelState, guild: Guild):
+        self.guild = guild
+        self.client = channel_state.client
+        self._items = channel_state._items
         self._channel_state = channel_state
-        self._guild = guild
 
     def __iter__(self):
         for channel in self._channel_state:
-            if channel.guild == self._guild:
+            if channel.guild == self.guild:
                 yield channel
 
     async def fetch_all(self):
-        rest = self._channel_state._client.rest
-        resp = await rest.get_guild_channels(self._guild.id)
-        data = await resp.json()
-        channels = []
-        for channel in data:
-            channel = self._channel_state._add(channel)
-            channels.append(channel)
+        rest = self.client.rest
+        data = await rest.get_guild_channels(self.guild.id)
+        channels = [self._add(channel) for channel in data]
         return channels
 
-    async def create(
-        self,
-        *,
-        name=None,
-        channel_type=None,
-        topic=None,
-        bitrate=None,
-        user_limit=None,
-        slowmode=None,
-        position=None,
-        permission_overwrites=None,
-        parent=None,
-        nsfw=None
-    ):
-        rest = self._channel_state._client.rest
+    async def create(self, **kwargs):
+        rest = self.client.rest
 
-        if parent is not None:
-            parent = parent.id
+        parent = kwargs.pop('parent', undefined)
+        if parent is not undefined:
+            parent = _try_snowflake(parent)
 
-        await rest.create_guild_channel(
-            self._guild.id, name=name, channel_type=channel_type,
-            topic=topic, bitrate=bitrate, user_limit=user_limit,
-            slowmode=slowmode, position=position,
-            permission_overwrites=permission_overwrites,
-            parent=parent, nsfw=nsfw
-        )
+        await rest.create_guild_channel(self.guild.id, **kwargs, parent_id=parent)
 
     async def modify_positions(self, positions):
         rest = self._channel_state._client.rest
         await rest.modify_guild_channel_positions(self._guild.id, positions)
-
-
-_Channel = Union[DMChannel, CategoryChannel, VoiceChannel, TextChannel]

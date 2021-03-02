@@ -1,9 +1,9 @@
 import json
 from datetime import datetime
-
-from typing import Dict, Any
+from typing import Any, Dict
 
 JSON = Dict[str, Any]
+
 SNOWFLAKE_MINIMUM_BIT_LENGTH = 51
 SNOWFLAKE_MAXIMUM_BIT_LENGTH = 111
 DISCORD_EPOCH = 1420070400000
@@ -27,6 +27,9 @@ class JsonStructure:
 
     def __init_subclass__(cls):
         assert hasattr(cls, '__json_fields__')
+        for bcls in cls.__bases__:
+            if issubclass(bcls, JsonStructure):
+                cls.__json_fields__.update(bcls.__json_fields__)
 
     @classmethod
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
@@ -170,4 +173,5 @@ def _try_snowflake(value):
         value = Snowflake(value)
     except (ValueError, TypeError):
         pass
+
     return value
