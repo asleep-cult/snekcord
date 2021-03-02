@@ -36,7 +36,7 @@ class BaseState:
         item = _try_snowflake(item)
         return self._items.get(item, default)
 
-    def pop(self, item, args, **kwargs):
+    def pop(self, item, *args, **kwargs):
         item = _try_snowflake(item)
         return self._items.pop(item, *args, **kwargs)
 

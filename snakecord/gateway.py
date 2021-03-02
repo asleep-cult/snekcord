@@ -14,7 +14,7 @@ class Gateway:
         max_shards: Optional[int] = None,
         intents: Optional[int] = None
     ):
-        self._client = client
+        self.client = client
         self.max_shards = max_shards
         self.intents = intents
         self.shards: Dict[int, Shard] = {}
@@ -27,7 +27,7 @@ class Gateway:
         self.max_concurrency: int = None
 
     async def connect(self) -> None:
-        resp = await self._client.rest.get_gateway_bot()
+        resp = await self.client.rest.get_gateway_bot()
         data = await resp.json()
 
         self.url = data['url']

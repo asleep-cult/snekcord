@@ -50,9 +50,8 @@ class GuildPreview(BaseObject):
     }
 
 
-class Guild(GuildPreview):
+class Guild:
     __json_fields__ = {
-        **GuildPreview.__json_fields__,
         'icon_hash': JsonField('icon_hash'),
         '_owner': JsonField('owner'),
         'owner_id': JsonField('owner_id', Snowflake, str),

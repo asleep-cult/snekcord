@@ -6,6 +6,7 @@ class GuildEmoji(structures.GuildEmoji):
     def __init__(self, state, guild):
         self._state = state
         self.guild = guild
+        self.roles = []
 
     def __str__(self):
         if self.id is None:
@@ -35,16 +36,16 @@ class GuildEmoji(structures.GuildEmoji):
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
-        self.user = None
-        self.roles = []
-
-        if self._user is not None:
-            self.user = self._state._client.users._add(self._user)
+        roles_seen = set()
 
         for role in self._roles:
             role = self.guild.roles.get(role)
             if role is not None:
                 self.roles.append(role)
+
+        for role in self.roles:
+            if role.id not in roles_seen:
+                self.roles.pop(role.id)
 
 
 class GuildEmojiState(BaseState):
