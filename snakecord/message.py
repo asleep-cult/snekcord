@@ -83,7 +83,7 @@ class ReactionState(BaseState):
             return reaction
 
         reaction = Reaction.unmarshal(data)
-        self._values[reaction.emoji] = reaction
+        self._items[reaction.emoji] = reaction
         return reaction
 
     async def add(self, emoji):
@@ -123,7 +123,7 @@ class MessageState(BaseState):
             return message
 
         message = Message.unmarshal(data, state=self, channel=self.channel)
-        self._values[message.id] = message
+        self._items[message.id] = message
         return message
 
     async def fetch(self, message_id) -> Message:

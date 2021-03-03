@@ -85,5 +85,5 @@ class PermissionOverwriteState(BaseState):
             return overwrite
 
         overwrite = PermissionOverwrite.unmarshal(data, state=self)
-        self._values[overwrite.id] = overwrite
+        self._items[overwrite.id] = overwrite
         return overwrite

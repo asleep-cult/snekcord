@@ -147,7 +147,7 @@ class ChannelRecipientState(BaseState):
 
     def _add(self, data):
         user = self.client.users._add(data)
-        self._values[user.id] = user
+        self._items[user.id] = user
         return user
 
     async def add(self, user, access_token, *, nick):

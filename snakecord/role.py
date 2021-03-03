@@ -35,7 +35,7 @@ class RoleState(BaseState):
             return role
 
         role = Role.unmarshal(data, state=self, guild=self.guild)
-        self._values[role.id] = role
+        self._items[role.id] = role
         return role
 
     async def fetch_all(self):

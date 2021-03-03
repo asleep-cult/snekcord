@@ -60,7 +60,7 @@ class GuildEmojiState(BaseState):
             return emoji
 
         emoji = GuildEmoji.unmarshal(data, state=self, guild=self.guild)
-        self._values[emoji.id] = emoji
+        self._items[emoji.id] = emoji
         return emoji
 
     async def fetch(self, emoji_id):

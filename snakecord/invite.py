@@ -43,7 +43,7 @@ class InviteState(BaseState):
             return invite
 
         invite = Invite.unmarshal(data, state=self)
-        self._values[invite.code] = invite
+        self._items[invite.code] = invite
         return invite
 
     async def fetch(self, code, with_counts=False):

@@ -53,7 +53,7 @@ class GuildIntegrationState(BaseState):
             return integration
 
         integration = GuildIntegration.unmarshal(data, state=self, guild=self.guild)
-        self._values[integration.id] = integration
+        self._items[integration.id] = integration
         return integration
 
     async def fetch_all(self):

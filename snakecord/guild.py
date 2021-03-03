@@ -255,7 +255,7 @@ class GuildState(BaseState):
             return guild
 
         guild = Guild.unmarshal(data, state=self)
-        self._values[guild.id] = guild
+        self._items[guild.id] = guild
         self.client.events.guild_cache(guild)
         return guild
 
@@ -284,7 +284,7 @@ class GuildBanState(BaseState):
             return ban
 
         ban = GuildBan.unmarshal(data, state=self)
-        self._values[ban.user.id] = ban
+        self._items[ban.user.id] = ban
         return ban
 
     async def fetch(self, user):

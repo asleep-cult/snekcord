@@ -53,7 +53,7 @@ class GuildMemberState(BaseState):
             return member
 
         member = GuildMember.unmarshal(data, state=self, guild=self.guild, user=user)
-        self._values[member.user.id] = member
+        self._items[member.user.id] = member
         return member
 
     async def fetch(self, member_id):
@@ -91,12 +91,12 @@ class GuildMemberRoleState(BaseState):
 
     def _add(self, role):
         if isinstance(role, Role):
-            self._values[role.id] = role
+            self._items[role.id] = role
             return role
 
         role = self.member.guild.roles.get(role)
         if role is not None:
-            self._values[role.id] = role
+            self._items[role.id] = role
         return role
 
     async def add(self, role):

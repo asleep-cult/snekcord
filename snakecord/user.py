@@ -21,7 +21,7 @@ class UserState(BaseState):
             return user
 
         user = User.unmarshal(data, state=self)
-        self._values[user.id] = user
+        self._items[user.id] = user
         return user
 
     async def fetch(self, user_id) -> User:
