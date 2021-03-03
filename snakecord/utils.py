@@ -48,10 +48,12 @@ class JsonStructure:
 
     def _update(self, data, set_default=False):
         for name, field in self.__json_fields__.items():
+            print(name)
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, name, value)
-            except BaseException:
+            except BaseException as e:
+                print(e)
                 if set_default:
                     setattr(self, name, field.default)
 

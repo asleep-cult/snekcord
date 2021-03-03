@@ -144,7 +144,7 @@ class GuildPreview(structures.GuildPreview):
         return dct
 
     def _update(self, *args, **kwargs):
-        super()._update(*args, **kwargs)
+        structures.GuildPreview._update(*args, **kwargs)
         emojis_seen = set()
 
         for emoji in self._emojis:
@@ -202,7 +202,7 @@ class Guild(GuildPreview, structures.Guild):
         return dct
 
     def _update(self, *args, **kwargs):
-        super()._update(*args, **kwargs)
+        GuildPreview._update(self, *args, **kwargs)
         channels_seen = set()
         members_seen = set()
         roles_seen = set()
