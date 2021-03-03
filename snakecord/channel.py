@@ -51,8 +51,6 @@ class GuildChannel(structures.GuildChannel):
         if self.guild is None:
             self.guild = self._state.client.guilds.get(self.guild_id)
 
-        self.guild = self._state.client.guilds.get(self.guild_id)
-
 
 class TextChannel(GuildChannel, structures.TextChannel):
     __slots__ = (
