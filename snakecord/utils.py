@@ -29,7 +29,8 @@ class JsonStructure:
         cls.__json_fields__ = cls.__json_fields__.copy()
         for bcls in cls.__bases__:
             if issubclass(bcls, JsonStructure):
-                cls.__json_fields__.update(bcls.__json_fields__)
+                if hasattr(bcls, '__json_fields__'):
+                    cls.__json_fields__.update(bcls.__json_fields__)
 
     @classmethod
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
