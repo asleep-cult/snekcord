@@ -64,19 +64,19 @@ class GuildEmojiState(BaseState):
         return emoji
 
     async def fetch(self, emoji_id):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_guild_emoji(self._guild.id, emoji_id)
         emoji = self._add(data)
         return emoji
 
     async def fetch_all(self):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_guild_emojis(self._guild.id)
         emojis = [self._add(emoji) for emoji in data]
         return emojis
 
     async def create(self, name, image, roles=None):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.create_guild_emoji(self.guild.id, name, image, roles)
         emoji = self._add(data)
         return emoji

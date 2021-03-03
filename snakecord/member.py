@@ -46,7 +46,7 @@ class GuildMemberState(BaseState):
 
     def _add(self, data, user=None):
         if user is None:
-            user = self._client.users._add(data['user'])
+            user = self.client.users._add(data['user'])
         member = self.get(user.id)
         if member is not None:
             member._update(data)
@@ -57,19 +57,19 @@ class GuildMemberState(BaseState):
         return member
 
     async def fetch(self, member_id):
-        rest = self._client.rest
-        data = await rest.get_guild_member(self._guild.id, member_id)
+        rest = self.client.rest
+        data = await rest.get_guild_member(self.guild.id, member_id)
         member = self._add(data)
         return member
 
     async def fetch_many(self, limit=1000, before=None):
-        rest = self._client.rest
-        data = await rest.get_guild_members(self._guild.id, limit, before)
+        rest = self.client.rest
+        data = await rest.get_guild_members(self.guild.id, limit, before)
         members = [self._add(member) for member in data]
         return members
 
     async def add(self, user, access_token, **kwargs):
-        rest = self._client.rest
+        rest = self.client.rest
 
         user = _try_snowflake(user)
 
@@ -94,19 +94,17 @@ class GuildMemberRoleState(BaseState):
             self._values[role.id] = role
             return role
 
-        role = self._member.guild.roles.get(role)
+        role = self.member.guild.roles.get(role)
         if role is not None:
             self._values[role.id] = role
         return role
 
     async def add(self, role):
-        rest = self._client.rest
-        await rest.add_guild_member_role(self.member.guild.id, self._member.id, role.id)
+        rest = self.client.rest
+        role = _try_snowflake(role)
+        await rest.add_guild_member_role(self.member.guild.id, self.member.id, role)
 
     async def remove(self, role):
-        rest = self._client.rest
-        await rest.remove_guild_member_role(
-            self._member.guild.id,
-            self._member.id,
-            role.id
-        )
+        rest = self.client.rest
+        role = _try_snowflake(role)
+        await rest.remove_guild_member_role(self.member.guild.id, self.member.id, role)

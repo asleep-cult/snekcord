@@ -256,17 +256,17 @@ class GuildState(BaseState):
 
         guild = Guild.unmarshal(data, state=self)
         self._values[guild.id] = guild
-        self._client.events.guild_cache(guild)
+        self.client.events.guild_cache(guild)
         return guild
 
     async def fetch(self, guild_id) -> Guild:
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_guild(guild_id)
         guild = self._add(data)
         return guild
 
     async def fetch_preview(self, guild_id):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_guild_preview(guild_id)
         guild = self._add(data)
         return guild
@@ -288,28 +288,25 @@ class GuildBanState(BaseState):
         return ban
 
     async def fetch(self, user):
-        rest = self._client.rest
-        data = await rest.get_guild_ban(self._guild.id, user.id)
+        rest = self.client.rest
+        data = await rest.get_guild_ban(self.guild.id, user.id)
         ban = self._add(data)
         return ban
 
     async def fetch_all(self):
-        rest = self._client.rest
-        data = await rest.get_guild_bans(self._guild.id)
+        rest = self.client.rest
+        data = await rest.get_guild_bans(self.guild.id)
         bans = [self._add(ban) for ban in data]
         return bans
 
-    async def add(self, user, *, reason=None, delete_message_days=None):
-        rest = self._client.rest
-        data = await rest.create_guild_ban(
-            self._guild.id,
-            user.id,
-            delete_message_days,
-            reason
-        )
+    async def add(self, user, **kwargs):
+        rest = self.client.rest
+        user = _try_snowflake(user)
+        data = await rest.create_guild_ban(self.guild.id, user.id)
         ban = self._add(data)
         return ban
 
     async def remove(self, user):
-        rest = self._client.rest
-        await rest.remove_guild_ban(self._guild.id, user.id)
+        rest = self.client.rest
+        user = _try_snowflake(user)
+        await rest.remove_guild_ban(self.guild.id, user)

@@ -38,16 +38,13 @@ class GuildIntegration(structures.GuildIntegration):
             self.user = self._state.client.users._add(self._user)
 
         if self._application is not None:
-            self.application = GuildIntegrationApplication.unmarshal(
-                self._application,
-                state=self._state
-            )
+            self.application = GuildIntegrationApplication.unmarshal(self._application, state=self._state)
 
 
 class GuildIntegrationState(BaseState):
     def __init__(self, client, guild):
         super().__init__(client)
-        self._guild = guild
+        self.guild = guild
 
     def _add(self, data):
         integration = self.get(data['id'])
@@ -55,16 +52,16 @@ class GuildIntegrationState(BaseState):
             integration._update(data)
             return integration
 
-        integration = GuildIntegration.unmarshal(data, state=self, guild=self._guild)
+        integration = GuildIntegration.unmarshal(data, state=self, guild=self.guild)
         self._values[integration.id] = integration
         return integration
 
     async def fetch_all(self):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_guild_integrations(self._guild.id)
         integrations = [self._add(integration) for integration in data]
         return integrations
 
     async def create(self, integration_id, integration_type):
-        rest = self._client.rest
+        rest = self.client.rest
         await rest.create_guild_integration(integration_type, integration_id)
