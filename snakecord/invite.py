@@ -36,8 +36,6 @@ class Invite(structures.Invite):
 
 
 class InviteState(BaseState):
-    __state_class__ = Invite
-
     def _add(self, data):
         invite = self.get(data['code'])
         if invite is not None:
