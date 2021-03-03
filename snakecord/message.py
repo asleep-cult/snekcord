@@ -32,7 +32,7 @@ class Message(structures.Message):
             embed=embed, flags=flags,
             allowed_mentions=allowed_mentions
         )
-        message = self._state._add(data, channel=self.channel)
+        message = self._state._add(data)
         return message
 
     async def crosspost(self):
