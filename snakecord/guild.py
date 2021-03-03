@@ -2,7 +2,7 @@ from . import structures
 from .channel import GuildChannelState
 from .emoji import GuildEmojiState
 from .integration import GuildIntegrationState
-from .invite import GuildInviteState, PartialInvite
+from .invite import GuildInviteState
 from .member import GuildMemberState
 from .role import RoleState
 from .state import BaseState
@@ -79,7 +79,7 @@ class GuildPreview(structures.GuildPreview):
     async def fetch_vanity_url(self):
         rest = self._state._client.rest
         data = await rest.get_guild_vanity_url(self.id)
-        invite = PartialInvite.unmarshal(data)
+        invite = structures.PartialInvite.unmarshal(data)
         return invite
 
     async def get_prune_count(self, *, days=None, include_roles=None):
