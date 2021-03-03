@@ -1,40 +1,10 @@
 import struct
 
-from .connection import VoiceWSProtocol, VoiceUDPProtocol, \
-    VoiceConnectionOpcode
-
-from .utils import JsonStructure, JsonField, Snowflake
+from . import structures
+from .connection import VoiceUDPProtocol, VoiceWSProtocol
 
 
-class VoiceState(JsonStructure):
-    __json_fields__ = {
-        'guild_id': JsonField('guild_id', Snowflake, str),
-        'channel_id': JsonField('channel_id', Snowflake, str),
-        'user_id': JsonField('user_id', Snowflake, str),
-        '_member': JsonField('member'),
-        'session_id': JsonField('session_id'),
-        'deaf': JsonField('deaf'),
-        'mute': JsonField('mute'),
-        'self_deaf': JsonField('self_deaf'),
-        'self_mute': JsonField('self_mute'),
-        'self_stream': JsonField('self_stream'),
-        'self_video': JsonField('self_video'),
-        'suppress': JsonField('suppress'),
-    }
-
-    guild_id: Snowflake
-    channel_id: Snowflake
-    user_id: Snowflake
-    _member: dict
-    session_id: str
-    deaf: bool
-    mute: bool
-    self_deaf: bool
-    self_mute: bool
-    self_stream: bool
-    self_video: bool
-    suppress: bool
-
+class VoiceState(structures.VoiceState):
     def __init__(self, voice_channel):
         self.voice_channel = voice_channel
         self.guild = voice_channel.guild
@@ -46,24 +16,8 @@ class VoiceState(JsonStructure):
             self.member = self.guild.members._add(self._member)
 
 
-class VoiceServerUpdate(JsonStructure):
-    __json_fields__ = {
-        'token': JsonField('token'),
-        'guild_id': JsonField('guild_id', Snowflake, str),
-        'endpoint': JsonField('endpoint'),
-    }
-
-    token: str
-    guild_id: Snowflake
-    endpoint: str
-
-
 class VoiceConnection:
-    def __init__(
-        self,
-        voice_state: VoiceState,
-        voice_server_update: VoiceServerUpdate
-    ):
+    def __init__(self, voice_state, voice_server_update):
         self.token = voice_server_update.token
         self.guild_id = voice_server_update.guild_id
         endpoint = voice_server_update.endpoint + '?v=4'

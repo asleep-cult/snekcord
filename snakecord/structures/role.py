@@ -2,7 +2,7 @@ from .base import BaseObject
 from ..utils import JsonField, JsonStructure, Snowflake
 
 
-class RoleTags(JsonStructure):
+class RoleTag(JsonStructure):
     __json_fields__ = {
         'bot_id': JsonField('bot_id', Snowflake, str),
         'integration_id': JsonField('integration_id', Snowflake, str),
@@ -19,5 +19,5 @@ class Role(BaseObject):
         'permissions': JsonField('permissions'),
         'managed': JsonField('managed'),
         'mentionable': JsonField('mentionable'),
-        'tags': JsonField('tags', struct=RoleTags),
+        'tags': JsonField('tags', struct=RoleTag),
     }
