@@ -183,7 +183,7 @@ class ChannelState(BaseState):
 
 
 class GuildChannelState(ChannelState):
-    def __init__(self, channel_state: ChannelState, guild: Guild):
+    def __init__(self, channel_state: ChannelState, guild: 'Guild'):
         self.guild = guild
         self.client = channel_state.client
         self._items = channel_state._items
