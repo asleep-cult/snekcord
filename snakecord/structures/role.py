@@ -3,8 +3,6 @@ from ..utils import JsonField, JsonStructure, Snowflake
 
 
 class RoleTags(JsonStructure):
-    __slots__ = ('bot_id', 'integration_id', 'premium_subscriber')
-
     __json_fields__ = {
         'bot_id': JsonField('bot_id', Snowflake, str),
         'integration_id': JsonField('integration_id', Snowflake, str),

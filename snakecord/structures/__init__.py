@@ -6,7 +6,7 @@ from .emoji import GuildEmoji # noqa
 from .guild import Guild, GuildBan, GuildPreview, GuildWidget, \
     GuildWidgetChannel, GuildWidgetMember, GuildWidgetSettings # noqa
 from .integration import GuildIntegration, GuildIntegrationAccount, GuildIntegrationApplication # noqa
-from .invite import Invite # noqa
+from .invite import Invite, PartialInvite # noqa
 from .member import GuildMember # noqa
 from .mentions import ChannelMention, AllowedMentions # noqa
 from .message import Message, MessageActivity, MessageApplication, \

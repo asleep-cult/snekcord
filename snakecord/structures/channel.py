@@ -1,5 +1,5 @@
 from .base import BaseObject
-from ..utils import JsonStructure, JsonArray, JsonField, Snowflake
+from ..utils import JsonArray, JsonField, JsonStructure, Snowflake
 
 
 class GuildChannel(BaseObject):

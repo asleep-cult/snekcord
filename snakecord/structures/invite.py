@@ -20,3 +20,10 @@ class Invite(JsonStructure):
         'temporary': JsonField('temporary'),
         'created_at': JsonField('created_at'),
     }
+
+
+class PartialInvite(JsonStructure):
+    __json_fields__ = {
+        'code': JsonField('code'),
+        'uses': JsonField('uses'),
+    }

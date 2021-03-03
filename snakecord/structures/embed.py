@@ -1,4 +1,4 @@
-from ..utils import JsonField, JsonArray, JsonStructure
+from ..utils import JsonArray, JsonField, JsonStructure
 
 
 class EmbedAttachment(JsonStructure):

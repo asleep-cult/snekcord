@@ -251,7 +251,7 @@ class GuildState(BaseState):
     def _add(self, data) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
-            guild._update(data, set_default=False)
+            guild._update(data)
             return guild
 
         guild = Guild.unmarshal(data, state=self)
@@ -280,7 +280,7 @@ class GuildBanState(BaseState):
     def _add(self, data):
         ban = self.get(data['user']['id'])
         if ban is not None:
-            ban._update(data, set_default=False)
+            ban._update(data)
             return ban
 
         ban = GuildBan.unmarshal(data, state=self)

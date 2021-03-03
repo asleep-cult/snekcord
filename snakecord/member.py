@@ -132,7 +132,7 @@ class GuildMemberState(BaseState):
             user = self._client.users._add(data['user'])
         member = self.get(user.id)
         if member is not None:
-            member._update(data, set_default=False)
+            member._update(data)
             return member
         member = self.__state_class__.unmarshal(
             data,

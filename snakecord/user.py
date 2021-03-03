@@ -50,7 +50,7 @@ class UserState(BaseState):
     def _add(self, data) -> User:
         user = self.get(data['id'])
         if user is not None:
-            user._update(data, set_default=False)
+            user._update(data)
             return user
         user = self.__state_class__.unmarshal(data, state=self)
         self._values[user.id] = user

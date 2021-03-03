@@ -512,7 +512,7 @@ class ReactionState(BaseState):
     def _add(self, data) -> Reaction:
         reaction = self.get(data['emoji'])
         if reaction is not None:
-            reaction._update(data, set_default=False)
+            reaction._update(data)
             return reaction
         reaction = self.__state_class__.unmarshal(data)
         self._values[reaction.emoji] = reaction
@@ -574,7 +574,7 @@ class MessageState(BaseState):
     def _add(self, data) -> Message:
         message = self.get(data['id'])
         if message is not None:
-            message._update(data, set_default=False)
+            message._update(data)
             return message
         message = self.__state_class__.unmarshal(
             data,

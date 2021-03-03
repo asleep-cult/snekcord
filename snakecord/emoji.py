@@ -56,7 +56,7 @@ class GuildEmojiState(BaseState):
     def _add(self, data):
         emoji = self.get(data['id'])
         if emoji is not None:
-            emoji._update(data, set_default=False)
+            emoji._update(data)
             return emoji
 
         emoji = GuildEmoji.unmarshal(data, state=self, guild=self._guild)

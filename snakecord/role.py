@@ -88,7 +88,7 @@ class RoleState(BaseState):
     def _add(self, data):
         role = self.get(data['id'])
         if role is not None:
-            role._update(data, set_default=False)
+            role._update(data)
             return role
         role = self.__state_class__.unmarshal(
             data,

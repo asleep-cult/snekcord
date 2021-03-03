@@ -126,7 +126,7 @@ class PermissionOverwriteState(BaseState):
     def _add(self, data):
         overwrite = self.get(data['id'])
         if overwrite is not None:
-            overwrite._update(data, set_default=False)
+            overwrite._update(data)
             return overwrite
         overwrite = self.__state_class__.unmarshal(data, state=self)
         self._values[overwrite.id] = overwrite
