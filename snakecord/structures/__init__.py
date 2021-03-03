@@ -13,6 +13,6 @@ from .message import Message, MessageActivity, MessageApplication, \
     MessageAttachment, MessageReference, MessageSticker # noqa
 from .overwrites import PermissionOverwrite # noqa
 from .reaction import Reaction # noqa
-from .role import Role, RoleTags # noqa
+from .role import Role, RoleTag # noqa
 from .user import User # noqa
 from .voice import VoiceServerUpdate, VoiceState # noqa
