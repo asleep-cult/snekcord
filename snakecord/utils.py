@@ -47,6 +47,7 @@ class JsonStructure:
         return self
 
     def _update(self, data, set_default=False):
+        print(self.__json_fields__)
         for name, field in self.__json_fields__.items():
             print(name)
             try:
