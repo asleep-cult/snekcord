@@ -2,8 +2,6 @@ import json
 from datetime import datetime
 from typing import Any, Dict
 
-from .structures import BaseObject
-
 JSON = Dict[str, Any]
 
 SNOWFLAKE_MINIMUM_BIT_LENGTH = 51
@@ -167,6 +165,8 @@ class Snowflake(int):
 
 
 def _try_snowflake(value):
+    from .structures import BaseObject
+
     if isinstance(value, BaseObject):
         value = value.id
 
