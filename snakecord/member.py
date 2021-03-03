@@ -78,7 +78,7 @@ class GuildMemberState(BaseState):
             roles = [_try_snowflake(role) for role in roles]
 
         data = await rest.add_guild_member(
-            self._guild.id, user, access_token, **kwargs, roles=roles
+            self.guild.id, user, access_token, **kwargs, roles=roles
         )
         member = self._add(data, user=user)
         return member

@@ -210,5 +210,5 @@ class GuildChannelState(ChannelState):
         await rest.create_guild_channel(self.guild.id, **kwargs, parent_id=parent)
 
     async def modify_positions(self, positions):
-        rest = self._channel_state._client.rest
-        await rest.modify_guild_channel_positions(self._guild.id, positions)
+        rest = self.client.rest
+        await rest.modify_guild_channel_positions(self.guild.id, positions)

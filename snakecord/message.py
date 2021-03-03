@@ -87,11 +87,11 @@ class ReactionState(BaseState):
         return reaction
 
     async def add(self, emoji):
-        rest = self._client.rest
+        rest = self.client.rest
         await rest.create_reaction(self.message.channel.id, self.message.id, emoji)
 
     async def fetch_all(self):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_reactions(self.message.channel.id, self.message.id)
         reactions = [self._add(reaction) for reaction in data]
         return reactions
@@ -99,15 +99,15 @@ class ReactionState(BaseState):
     async def remove(self, emoji, user=None):
         user = _try_snowflake(user)
 
-        rest = self._client.rest
+        rest = self.client.rest
         await rest.delete_reaction(self.message.channel.id, self.message.id, emoji, user)
 
     async def remove_emoji(self, emoji):
-        rest = self._client.rest
+        rest = self.client.rest
         await rest.delete_reactions(self.message.channel.id, self.message.id, emoji)
 
     async def remove_all(self, emoji):
-        rest = self._client.rest
+        rest = self.client.rest
         await rest.delete_reactions(self._message.channel.id, self._message.id)
 
 
@@ -127,7 +127,7 @@ class MessageState(BaseState):
         return message
 
     async def fetch(self, message_id) -> Message:
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_channel_message(self.channel.id, message_id)
         message = self._add(data)
         return message

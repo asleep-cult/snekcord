@@ -58,7 +58,7 @@ class GuildIntegrationState(BaseState):
 
     async def fetch_all(self):
         rest = self.client.rest
-        data = await rest.get_guild_integrations(self._guild.id)
+        data = await rest.get_guild_integrations(self.guild.id)
         integrations = [self._add(integration) for integration in data]
         return integrations
 

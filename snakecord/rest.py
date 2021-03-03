@@ -145,7 +145,7 @@ class RestSession:
         if reset is not None:
             ratelimiter._reset = float(reset)
 
-        return resp
+        return await resp.json()
 
     def request(self, meth, url, path_params, **kwargs):
         url = self.URL + url.format(**path_params)

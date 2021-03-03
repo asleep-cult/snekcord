@@ -59,19 +59,19 @@ class GuildEmojiState(BaseState):
             emoji._update(data)
             return emoji
 
-        emoji = GuildEmoji.unmarshal(data, state=self, guild=self._guild)
+        emoji = GuildEmoji.unmarshal(data, state=self, guild=self.guild)
         self._values[emoji.id] = emoji
         return emoji
 
     async def fetch(self, emoji_id):
         rest = self.client.rest
-        data = await rest.get_guild_emoji(self._guild.id, emoji_id)
+        data = await rest.get_guild_emoji(self.guild.id, emoji_id)
         emoji = self._add(data)
         return emoji
 
     async def fetch_all(self):
         rest = self.client.rest
-        data = await rest.get_guild_emojis(self._guild.id)
+        data = await rest.get_guild_emojis(self.guild.id)
         emojis = [self._add(emoji) for emoji in data]
         return emojis
 

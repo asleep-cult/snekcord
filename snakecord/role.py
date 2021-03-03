@@ -39,7 +39,7 @@ class RoleState(BaseState):
         return role
 
     async def fetch_all(self):
-        rest = self._client.rest
+        rest = self.client.rest
         data = await rest.get_guild_roles(self.guild.id)
         roles = [self._add(role) for role in data]
         return roles
