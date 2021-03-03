@@ -302,7 +302,7 @@ class GuildBanState(BaseState):
     async def add(self, user, **kwargs):
         rest = self.client.rest
         user = _try_snowflake(user)
-        data = await rest.create_guild_ban(self.guild.id, user.id)
+        data = await rest.create_guild_ban(self.guild.id, user)
         ban = self._add(data)
         return ban
 
