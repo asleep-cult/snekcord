@@ -11,7 +11,7 @@ from .member import GuildMember # noqa
 from .mentions import ChannelMention, AllowedMentions # noqa
 from .message import Message, MessageActivity, MessageApplication, \
     MessageAttachment, MessageReference, MessageSticker # noqa
-from .overwrites import PermissionOverwrite # noqa
+from .overwrite import PermissionOverwrite # noqa
 from .reaction import Reaction # noqa
 from .role import Role, RoleTag # noqa
 from .user import User # noqa
