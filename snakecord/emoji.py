@@ -1,5 +1,5 @@
 from . import structures
-from .bases import BaseState
+from .state import BaseState
 
 
 class GuildEmoji(structures.GuildEmoji):
