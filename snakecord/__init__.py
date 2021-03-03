@@ -1,4 +1,4 @@
-from .bases import BaseObject, BaseState # noqa
+from . import structures # noqa
 from .channel import * # noqa
 from .client import Client # noqa
 from .emoji import * # noqa
