@@ -1,5 +1,5 @@
 from .base import BaseObject
-from .utils import JsonField
+from ..utils import JsonField
 
 
 class User(BaseObject):
