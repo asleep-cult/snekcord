@@ -27,8 +27,7 @@ class Gateway:
         self.max_concurrency: int = None
 
     async def connect(self) -> None:
-        resp = await self.client.rest.get_gateway_bot()
-        data = await resp.json()
+        data = await self.client.rest.get_gateway_bot()
 
         self.url = data['url']
         self.recommended_shards = data['shards']
