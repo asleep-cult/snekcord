@@ -50,7 +50,7 @@ class GuildPreview(BaseObject):
     }
 
 
-class Guild:
+class Guild(JsonStructure):
     __json_fields__ = {
         'icon_hash': JsonField('icon_hash'),
         '_owner': JsonField('owner'),

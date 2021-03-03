@@ -28,9 +28,8 @@ class JsonStructure:
     def __init_subclass__(cls):
         cls.__json_fields__ = cls.__json_fields__.copy()
         for bcls in cls.__bases__:
-            if issubclass(bcls, JsonStructure):
-                if hasattr(bcls, '__json_fields__'):
-                    cls.__json_fields__.update(bcls.__json_fields__)
+            if hasattr(bcls, '__json_fields__'):
+                cls.__json_fields__.update(bcls.__json_fields__)
 
     @classmethod
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
@@ -47,14 +46,11 @@ class JsonStructure:
         return self
 
     def _update(self, data, set_default=False):
-        print(self.__json_fields__)
         for name, field in self.__json_fields__.items():
-            print(name)
             try:
                 value = field.unmarshal(data[field.name])
                 setattr(self, name, value)
-            except BaseException as e:
-                print(e)
+            except BaseException:
                 if set_default:
                     setattr(self, name, field.default)
 
