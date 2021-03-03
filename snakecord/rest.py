@@ -109,8 +109,8 @@ class RestSession:
     URL = 'https://discord.com/api/v7/'
 
     def __init__(self, client):
-        self._client = client
-        self.loop = self._client.loop
+        self.client = client
+        self.loop = self.client.loop
 
         self.ratelimiters = {}
         self.client_session = aiohttp.ClientSession()
@@ -159,7 +159,7 @@ class RestSession:
         headers = kwargs.pop('headers', {})
 
         base_headers = {
-            'Authorization': f'Bot {self._client.token}'
+            'Authorization': 'Bot {}'.format(self.client.token)
         }
 
         headers.update(base_headers)
@@ -1532,7 +1532,7 @@ class RestSession:
         ratelimiter = Ratelimiter(self)
 
         base_headers = {
-            'Authorization': f'Bot {self._client.token}'
+            'Authorization': 'Bot {}'.format(self.client.token)
         }
 
         req = functools.partial(

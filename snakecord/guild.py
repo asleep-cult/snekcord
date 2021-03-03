@@ -68,16 +68,16 @@ class GuildPreview(structures.GuildPreview):
         )
 
     async def delete(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.delete_guild(self.id)
 
     async def fetch_voice_region(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         data = await rest.get_guild_voice_region(self.id)
         return data
 
     async def fetch_vanity_url(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         data = await rest.get_guild_vanity_url(self.id)
         invite = structures.PartialInvite.unmarshal(data)
         return invite
@@ -93,7 +93,7 @@ class GuildPreview(structures.GuildPreview):
         include_roles=None,
         compute_prune_count=None
     ):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         resp = await rest.begin_guild_prune(
             self.id,
             days=days,
@@ -104,21 +104,21 @@ class GuildPreview(structures.GuildPreview):
         return data['pruned']
 
     async def fetch_widget(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         resp = await rest.get_guild_widget(self.id)
         data = await resp.json()
         widget = GuildWidget.unmarshal(data)
         return widget
 
     async def fetch_widget_settings(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         resp = await rest.get_guild_widget_settings(self.id)
         data = await resp.json()
         settings = GuildWidgetSettings.unmarshal(data, guild=self)
         return settings
 
     async def edit_widget_settings(self, *, enabled=None, channel=None):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
 
         if channel is not None:
             channel = channel.id
@@ -162,8 +162,8 @@ class Guild(GuildPreview, structures.Guild):
 
     @property
     def shard(self):
-        shard_id = ((self.id >> 22) % len(self._state._client.ws.shards))
-        return self._state._client.ws.shards.get(shard_id)
+        shard_id = ((self.id >> 22) % len(self._state.client.ws.shards))
+        return self._state.client.ws.shards.get(shard_id)
 
     @property
     def owner(self):
@@ -208,7 +208,7 @@ class Guild(GuildPreview, structures.Guild):
         roles_seen = set()
 
         for channel in self._channels:
-            channel = self._state._client.channels._add(channel, guild=self)
+            channel = self._state.client.channels._add(channel, guild=self)
             channels_seen.add(channel.id)
 
         for member in self._members:
@@ -232,7 +232,7 @@ class Guild(GuildPreview, structures.Guild):
                 self.roles.pop(role.id)
 
         if self._owner is not None:
-            owner = self._state._client.guilds._add(self._owner)
+            owner = self._state.client.guilds._add(self._owner)
             if owner is not None:
                 self.owner_id = owner.id
 

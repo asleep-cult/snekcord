@@ -27,9 +27,9 @@ class VoiceConnection:
             self.endpoint = endpoint
         self.voice_state = voice_state
         self.voice_channel = voice_state.voice_channel
-        self._client = self.voice_channel._state._client
+        self.client = self.voice_channel._state.client
         self.ws = VoiceWSProtocol(self)
-        self.loop = self._client.loop
+        self.loop = self.client.loop
         self.mode = []
         self.ip = None
         self.port = None

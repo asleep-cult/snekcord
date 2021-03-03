@@ -9,10 +9,10 @@ class GuildMember(structures.GuildMember):
         self._state = state
         self.guild = guild
         self.user = user
-        self.roles = GuildMemberRoleState(self._state._client, member=self)
+        self.roles = GuildMemberRoleState(self._state.client, member=self)
 
     async def edit(self, **kwargs):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
 
         channel = kwargs.pop('channel', undefined)
         if channel is not undefined:

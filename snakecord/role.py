@@ -19,7 +19,7 @@ class Role(structures.Role):
         return role
 
     async def delete(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.delete_guild_role(self.guild.id, self.id)
 
 

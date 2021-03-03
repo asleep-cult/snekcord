@@ -8,6 +8,7 @@ from typing import Any, Awaitable, Callable, Dict, Optional, TYPE_CHECKING
 import aiohttp
 
 from . import logger
+from .enums import ShardOpcode, VoiceConnectionOpcode
 from .utils import JsonField, JsonStructure
 
 if TYPE_CHECKING:
@@ -151,7 +152,7 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
 class ConnectionBase:
     def __init__(self, client: 'Client', endpoint: str):
-        self._client = client
+        self.client = client
         self.endpoint = endpoint
         self.websocket: ConnectionProtocol = None
 
@@ -167,7 +168,7 @@ class ConnectionBase:
 
     async def connect(self) -> None:
         session = aiohttp.ClientSession(
-            loop=self._client.loop,
+            loop=self.client.loop,
             ws_response_class=ConnectionProtocol
         )
 
@@ -176,7 +177,7 @@ class ConnectionBase:
         )
 
         self.websocket.new(
-            loop=self._client.loop,
+            loop=self.client.loop,
             heartbeat_payload=self.heartbeat_payload,
             dispatch_function=self.dispatch,
             zombie_function=self.handle_zombie_connection
@@ -210,7 +211,7 @@ class Shard(ConnectionBase):
         payload = {
             'op': ShardOpcode.IDENTIFY,
             'd': {
-                'token': self._client.token,
+                'token': self.client.token,
                 # 'intents': self.manager.intents,
                 'properties': {
                     '$os': sys.platform,
@@ -219,8 +220,8 @@ class Shard(ConnectionBase):
                 }
             }
         }
-        if self._client.ws.multi_sharded:
-            payload['shard'] = [self.id, self._client.ws.recommended_shards]
+        if self.client.ws.multi_sharded:
+            payload['shard'] = [self.id, self.client.ws.recommended_shards]
         return payload
 
     async def update_voice_state(
@@ -259,13 +260,13 @@ class Shard(ConnectionBase):
             self.websocket.heartbeat_ack()
 
         elif resp.opcode == ShardOpcode.DISPATCH:
-            self._client.events.dispatch(resp)
+            self.client.events.dispatch(resp)
 
 
 class VoiceWSProtocol(ConnectionBase):
     def __init__(self, voice_connection):
         self.voice_connection = voice_connection
-        super().__init__(voice_connection._client, voice_connection.endpoint)
+        super().__init__(voice_connection.client, voice_connection.endpoint)
 
     @property
     def heartbeat_payload(self):

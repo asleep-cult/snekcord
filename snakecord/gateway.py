@@ -50,7 +50,7 @@ class Gateway:
             self.multi_sharded = True
 
         for shard_id in range(shard_range):
-            shard = Shard(self._client, self.url, shard_id)
+            shard = Shard(self.client, self.url, shard_id)
             self.shards[shard_id] = shard
 
         for shard in self.shards.values():

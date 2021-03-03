@@ -22,7 +22,7 @@ class Message(structures.Message):
         self.reactions = ReactionState(self._state.client, self)
 
     async def edit(self, content=None, *, embed=None, flags=None, allowed_mentions=None):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
 
         if embed is not None:
             embed = embed.to_dict()
@@ -36,17 +36,17 @@ class Message(structures.Message):
         return message
 
     async def crosspost(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         data = await rest.crosspost_message(self.channel.id, self.id)
         message = self._state._add(data, channel=self.channel)
         return message
 
     async def delete(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.edit_message(self.channel.id, self.id)
 
     async def pin(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.pin_message(self.id)
 
     async def unpin(self):
@@ -68,7 +68,7 @@ class Message(structures.Message):
                 self._member['user'] = self._author
             self.author = self.guild.members._add(self._member)
         else:
-            self.author = self._state._client.users._add(self._author)
+            self.author = self._state.client.users._add(self._author)
 
 
 class ReactionState(BaseState):

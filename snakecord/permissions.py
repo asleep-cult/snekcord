@@ -44,7 +44,7 @@ class PermissionOverwrite(structures.PermissionOverwrite):
         self._state = state
 
     async def edit(self, overwrite: 'PermissionOverwrite'):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.edit_channel_permissions(
             self._state._channel.id,
             self.id, overwrite.allow,
@@ -53,7 +53,7 @@ class PermissionOverwrite(structures.PermissionOverwrite):
         )
 
     async def delete(self):
-        rest = self._state._client.rest
+        rest = self._state.client.rest
         await rest.delete_channel_permission(self._state._channel.id, self.id)
 
     def _update(self, *args, **kwargs):
