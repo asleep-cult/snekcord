@@ -1,41 +1,37 @@
-from typing import Callable, List
-from asyncio import iscoroutinefunction
+from asyncio import iscoroutine
 
-class CheckError(Exception):
-    """An exception raised when a check fails."""
-    pass
+from .exceptions import InvokeGuardFailure
 
-class Check:
-    """Checks made for commands."""
 
-    def __init__(self, func: Callable):
+class InvokeGuard:
+    def __init__(self, func):
         self.func = func
-    
-    def __call__(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+
+    async def __call__(self, *args, **kwargs):
+        ret = self.func(*args, **kwargs)
+        if iscoroutine(ret):
+            ret = await ret
+        return ret
+
 
 class Command:
-    """Commands for the ClientCommands bot."""
-    def __init__(self, func: Callable, *, name: str = None, description: str = None,
-                 example: str = None):
-        if not iscoroutinefunction(func):
-            raise TypeError("The function must be async.")
-        self.callback = func
-        self.checks: List[Check] = []
+    def __init__(self, func, *, name=None, description=None, guards=None):
+        self.func = func
         self.name = name or func.__name__
-        if hasattr(func, 'checks'):
-            if isinstance(func.checks, list):
-                self.checks.extend(func.checks)
+        self.description = description or func.__doc__
+        self.guards = guards or []
 
-        
-        
-    async def __call__(self, message, *args, **kwargs):
-        if await self.can_run(message):
-            return await self.callback(message, *args, **kwargs)
-        raise CheckError(f"Checks failed for {self.name}.")
+    async def call_guards(self, message):
+        for guard in self.guards:
+            ret = await guard(message)
+            if ret is False:
+                raise InvokeGuardFailure('InvokeGuard {!r} returned False'.format(guard))
 
-    async def can_run(self, message):
-        for check in self.checks:
-            if not check(message):
-                return False
-        return True 
+    async def invoke(self, message):
+        await self.call_guards(message)
+        await self()
+
+    async def __call__(self, message):
+        ret = self.func(message)
+        if iscoroutine(ret):
+            await ret
