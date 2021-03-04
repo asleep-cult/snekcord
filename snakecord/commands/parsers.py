@@ -70,6 +70,8 @@ class FunctionArgParser:
         self.pos_only = []
         self.pos_or_kw = []
         self.kw_only = []
+        self.vararg = False
+        self.varkwarg = False
         self.parse()
 
     def parse(self):
@@ -88,9 +90,13 @@ class FunctionArgParser:
 
             if param.kind == param.POSITIONAL_ONLY:
                 args = self.pos_only
+            elif param.kind == param.VAR_POSITIONAL:
+                self.vararg = True
             elif param.kind in (param.POSITIONAL_OR_KEYWORD, param.POSITIONAL_ONLY):
                 args = self.pos_or_kw
-            elif param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD):
+            elif param.kind == param.VAR_KEYWORD:
+                self.varkwarg = True
+            elif param.kind == param.KEYWORD_ONLY:
                 args = self.kw_only
 
             args.append(arg)

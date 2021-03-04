@@ -25,6 +25,11 @@ class Command:
 
         args = FunctionArgParser(func)
 
+        self.vararg = args.vararg
+        self.varkwargs = args.varkwarg
+
+        assert not (self.vararg and overflow), "can't have variadic positional argument with overflow"
+
         if overflow:
             self.overflow = args.kw_only.pop()
         else:
@@ -55,8 +60,8 @@ class Command:
                 break
             if char == '-':
                 name = parser.read_until('=', '').strip()
-                if name not in self.flags:
-                    self.buffer.seek(position)
+                if not self.varkwargs and name not in self.flags:
+                    parser.buffer.seek(position)
                 else:
                     value = parser.get_argument()
                     call_kwargs[name] = value
@@ -66,19 +71,25 @@ class Command:
             else:
                 parser.buffer.seek(position)
 
+            if not self.vararg and len(args) == len(self.args):
+                break
+
             args.append(parser.get_argument())
 
         call_args = [message]
 
-        for arg in self.args.values():
-            try:
-                call_args.append(args.pop(0))
-            except IndexError:
-                if arg.optional:
-                    default = None if arg.default is not undefined else arg.default
-                    args.append(default)
-                else:
-                    raise
+        if not self.vararg:
+            for arg in self.args.values():
+                try:
+                    call_args.append(args.pop(0))
+                except IndexError:
+                    if arg.optional:
+                        default = None if arg.default is not undefined else arg.default
+                        args.append(default)
+                    else:
+                        raise
+        else:
+            call_args.extend(args)
 
         if self.overflow is not None:
             call_kwargs[self.overflow.name] = parser.buffer.read()
