@@ -87,6 +87,3 @@ class FunctionArgParser:
                 args = self.kw_only
 
             args.append(arg)
-
-        if not self.pos_or_kw:
-            self.pos_or_kw = self.pos_only
