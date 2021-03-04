@@ -4,6 +4,8 @@ from .exceptions import InvokeGuardFailure
 from .parsers import FunctionArgParser, StringParser
 from ..utils import undefined
 
+WHITESPACE = (' ', '\t', '\r', '\n')
+
 
 class InvokeGuard:
     def __init__(self, func):
@@ -59,14 +61,14 @@ class Command:
             except EOFError:
                 break
             if char == '-':
-                name = parser.read_until('=', '').strip()
+                name = parser.read_until(('=', *WHITESPACE), '').strip()
                 if not self.varkwargs and name not in self.flags:
                     parser.buffer.seek(position)
                 else:
                     value = parser.get_argument()
                     call_kwargs[name] = value
                     continue
-            elif char in (' ', '\t', '\r', '\n'):
+            elif char in WHITESPACE:
                 continue
             else:
                 parser.buffer.seek(position)

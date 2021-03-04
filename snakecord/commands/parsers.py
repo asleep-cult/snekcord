@@ -40,12 +40,14 @@ class StringParser:
         return string
 
     def read_until(self, terminator, string):
+        if isinstance(terminator, str):
+            terminator = (terminator,)
         while True:
             try:
                 char = self.get()
             except EOFError:
                 break
-            if char == terminator:
+            if char in terminator:
                 break
             string += char
         return string
