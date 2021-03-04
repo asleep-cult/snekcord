@@ -1,6 +1,8 @@
 from asyncio import iscoroutine
 
 from .exceptions import InvokeGuardFailure
+from .parsers import FunctionArgParser, StringParser
+from ..utils import undefined
 
 
 class InvokeGuard:
@@ -15,11 +17,21 @@ class InvokeGuard:
 
 
 class Command:
-    def __init__(self, func, *, name=None, description=None, guards=None):
+    def __init__(self, func, *, name=None, description=None, guards=None, overflow=False):
         self.func = func
         self.name = name or func.__name__
         self.description = description or func.__doc__
         self.guards = guards or []
+
+        args = FunctionArgParser(func)
+
+        if overflow:
+            self.overflow = args.kw_only.pop()
+        else:
+            self.overflow = None
+
+        self.flags = {arg.name: arg for arg in args.kw_only}
+        self.args = {arg.name: arg for arg in (args.pos_only + args.pos_or_kw)[1:]}
 
     async def call_guards(self, message):
         for guard in self.guards:
@@ -29,9 +41,51 @@ class Command:
 
     async def invoke(self, message):
         await self.call_guards(message)
-        await self()
 
-    async def __call__(self, message):
-        ret = self.func(message)
+        parser = StringParser(message.content)
+
+        args = []
+        call_kwargs = {}
+
+        while True:
+            position = parser.buffer.tell()
+            try:
+                char = parser.get()
+            except EOFError:
+                break
+            if char == '-':
+                name = parser.read_until('=', '').strip()
+                if name not in self.flags:
+                    self.buffer.seek(position)
+                else:
+                    value = parser.get_argument()
+                    call_kwargs[name] = value
+                    continue
+            elif char in (' ', '\t', '\r', '\n'):
+                continue
+            else:
+                parser.buffer.seek(position)
+
+            args.append(parser.get_argument())
+
+        call_args = [message]
+
+        for arg in self.args.values():
+            try:
+                call_args.append(args.pop(0))
+            except IndexError:
+                if arg.optional:
+                    default = None if arg.default is not undefined else arg.default
+                    args.append(default)
+                else:
+                    raise
+
+        if self.overflow is not None:
+            call_kwargs[self.overflow.name] = parser.buffer.read()
+
+        await self(*call_args, **call_kwargs)
+
+    async def __call__(self, *args, **kwargs):
+        ret = self.func(*args, **kwargs)
         if iscoroutine(ret):
             await ret

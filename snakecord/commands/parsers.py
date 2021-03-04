@@ -17,15 +17,14 @@ WRAP_TABLE = {
 class StringParser:
     def __init__(self, string, separator=' ', wrap_table=WRAP_TABLE):
         self.buffer = StringIO(string)
+        self.string = string
         self.separator = separator
         self.wrap_table = wrap_table
 
     def get(self):
+        if self.buffer.tell() >= len(self.string):
+            raise EOFError
         return self.buffer.read(1)
-
-    def backup(self, amount=1):
-        position = self.buffer.tell() - amount
-        self.buffer.seek(position)
 
     def get_argument(self):
         string = self.get()
@@ -36,12 +35,19 @@ class StringParser:
         else:
             terminator = self.separator
 
+        string = self.read_until(terminator, string)
+
+        return string
+
+    def read_until(self, terminator, string):
         while True:
-            char = self.get()
+            try:
+                char = self.get()
+            except EOFError:
+                break
             if char == terminator:
                 break
             string += char
-
         return string
 
 
@@ -64,6 +70,7 @@ class FunctionArgParser:
         self.pos_only = []
         self.pos_or_kw = []
         self.kw_only = []
+        self.parse()
 
     def parse(self):
         for name, param in self.signiature.parameters.items():
