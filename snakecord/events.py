@@ -30,8 +30,6 @@ class EventWaiter:
     async def __await__impl(self):
         try:
             ret = await self._do_wait()
-        except asyncio.TimeoutError:
-            raise
         finally:
             self._cleanup()
         return ret
@@ -72,15 +70,9 @@ class EventHandler:
             self.log_critical,
         )
 
-        self.handlers = {
-            handler.__name__.lower(): handler for handler in handlers
-        }
-        self.listeners = {
-            handler.__name__.lower(): [] for handler in handlers
-        }
-        self.waiters = {
-            handler.__name__.lower(): weakref.WeakSet() for handler in handlers
-        }
+        self.handlers = {handler.__name__.lower(): handler for handler in handlers}
+        self.listeners = {handler.__name__.lower(): [] for handler in handlers}
+        self.waiters = {handler.__name__.lower(): weakref.WeakSet() for handler in handlers}
 
         for name, listeners in self.listeners.items():
             try:
