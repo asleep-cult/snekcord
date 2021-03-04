@@ -1,6 +1,53 @@
+import asyncio
 import logging
+import weakref
 
 from . import logger
+
+
+class EventWaiter:
+    def __init__(self, handler, name, timeout, filter):
+        self.handler = handler
+        self.name = name
+        self.timeout = timeout
+        self.filter = filter
+        self._new_future()
+
+    def _new_future(self):
+        self.future = self.handler.loop.create_future()
+
+    def _do_wait(self):
+        return asyncio.wait_for(self.future, timeout=self.timeout)
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        ret = await self._do_wait()
+        self._new_future()
+        return ret
+
+    async def __await__impl(self):
+        try:
+            ret = await self._do_wait()
+        except asyncio.TimeoutError:
+            raise
+        finally:
+            self._cleanup()
+        return ret
+
+    def __await__(self):
+        return self.__await__impl().__await__()
+
+    def _cleanup(self):
+        try:
+            self.handler.waiters[self.name].remove(self)
+            self.future.cancel()
+        except BaseException:
+            return
+
+    def __del__(self):
+        self._cleanup()
 
 
 class EventHandler:
@@ -23,9 +70,6 @@ class EventHandler:
             self.message_create,
             self.log_info,
             self.log_critical,
-            self.guild_cache,
-            self.member_cache,
-            self.user_cache,
         )
 
         self.handlers = {
@@ -33,6 +77,9 @@ class EventHandler:
         }
         self.listeners = {
             handler.__name__.lower(): [] for handler in handlers
+        }
+        self.waiters = {
+            handler.__name__.lower(): weakref.WeakSet() for handler in handlers
         }
 
         for name, listeners in self.listeners.items():
@@ -65,6 +112,16 @@ class EventHandler:
     def _call_listeners(self, name, *args):
         for listener in self.listeners[name]:
             self.loop.create_task(listener(*args))
+
+        for waiter in self.waiters[name]:
+            args = (args,) if len(args) > 1 else args
+            if waiter.filter is not None:
+                if not waiter.filter(*args):
+                    continue
+            try:
+                waiter.future.set_result(*args)
+            except asyncio.InvalidStateError:
+                waiter._cleanup()
 
     def channel_create(self, payload):
         channel = self.client.channels._add(payload.data)
@@ -131,11 +188,7 @@ class EventHandler:
         fmt = self.formatter.format(record)
         self._call_listeners('log_critical', fmt, record)
 
-    def guild_cache(self, guild):
-        self._call_listeners('guild_cache', guild)
-
-    def member_cache(self, member):
-        self._call_listeners('member_cache', member)
-
-    def user_cache(self, user):
-        self._call_listeners('user_cache', user)
+    def wait(self, name, *, timeout=None, filter=None):
+        waiter = EventWaiter(self, name, timeout, filter)
+        self.waiters[name].add(waiter)
+        return waiter
