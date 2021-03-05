@@ -2,6 +2,7 @@ import struct
 
 from . import structures
 from .connection import VoiceUDPProtocol, VoiceWSProtocol
+from .enums import VoiceConnectionOpcode
 
 
 class VoiceState(structures.VoiceState):
