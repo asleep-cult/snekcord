@@ -256,7 +256,6 @@ class GuildState(BaseState):
 
         guild = Guild.unmarshal(data, state=self)
         self._items[guild.id] = guild
-        self.client.events.guild_cache(guild)
         return guild
 
     async def fetch(self, guild_id) -> Guild:
