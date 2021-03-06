@@ -1,5 +1,7 @@
 import struct
 
+import nacl.secret
+
 from . import structures
 from .connection import VoiceUDPProtocol, VoiceWSProtocol
 from .enums import VoiceConnectionOpcode
@@ -37,16 +39,17 @@ class VoiceConnection:
         self.transport = None
         self.protocol = None
         self.ssrc = None
+        self.secret_key = None
 
     async def connect(self):
         await self.ws.connect()
 
     async def dispatch(self, resp):
-        print(resp.data)
+        print(resp.data, resp.opcode)
         if resp.opcode == VoiceConnectionOpcode.READY:
             self.ip = resp.data['ip']
             self.port = resp.data['port']
-            self.mode = resp.data['modes'][0]
+            self.mode = resp.data['modes'][3]
             self.ssrc = resp.data['ssrc']
 
             buffer = bytearray(70)
@@ -60,5 +63,6 @@ class VoiceConnection:
             self.protocol.voice_connection = self
 
             self.transport.sendto(buffer)
-        else:
-            print(resp.data)
+        elif resp.opcode == VoiceConnectionOpcode.SESSION_DESCRIPTION:
+            self.secret_key = bytes(resp.data['secret_key'])
+            self.secret_box = nacl.secret.SecretBox(self.secret_key)

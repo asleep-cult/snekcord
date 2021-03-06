@@ -63,6 +63,13 @@ class VoiceConnectionOpcode(IntEnum):
     CLIENT_DISCONNECT = 13
 
 
+class SpeakingState(Enum):
+    NONE = 0
+    VOICE = 1
+    SOUNDSHARE = 2
+    PRIORITY = 4
+
+
 class ChannelType(IntEnum):
     GUILD_TEXT = 0
     DM = 1

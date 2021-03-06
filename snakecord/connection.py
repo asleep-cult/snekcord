@@ -8,7 +8,7 @@ from typing import Any, Awaitable, Callable, Dict, Optional, TYPE_CHECKING
 import aiohttp
 
 from . import logger
-from .enums import ShardOpcode, VoiceConnectionOpcode
+from .enums import ShardOpcode, VoiceConnectionOpcode, SpeakingState
 from .utils import JsonField, JsonStructure
 
 if TYPE_CHECKING:
@@ -303,6 +303,16 @@ class VoiceWSProtocol(ConnectionBase):
             }
         }
         return payload
+
+    async def send_speaking(self, state=SpeakingState.VOICE):
+        payload = {
+            'op': VoiceConnectionOpcode.SPEAKING,
+            'd': {
+                'speaking': state.value,
+                'delay': 0
+            }
+        }
+        await self.websocket.send_json(payload)
 
     async def select(self):
         await self.websocket.send_json(self.select_payload)
