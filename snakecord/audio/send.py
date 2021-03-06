@@ -69,8 +69,6 @@ class FFmpegOpusEncoder(FFmpegSubprocess):
 
 
 class AudioPlayer:
-    DELAY = 0.02
-
     def __init__(self, connection, stream):
         self.connection = connection
         self.stream = stream

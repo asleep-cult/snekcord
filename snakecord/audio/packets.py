@@ -53,10 +53,9 @@ async def get_packets(reader):
         for segment in page.segment_table:
             packet_end += segment
 
-            if segment == 0xFF:
-                pending += page.data[packet_start:packet_end]
-            else:
-                pending += page.data[packet_start:packet_end]
+            pending += page.data[packet_start:packet_end]
+
+            if segment != 0xFF:
                 yield pending
                 pending = b''
 
