@@ -1,9 +1,10 @@
 import asyncio
 import queue
-import struct
 import subprocess
 import threading
 import time
+
+from .packets import OggPage
 
 
 class WorkerThread(threading.Thread):
@@ -73,19 +74,22 @@ class AudioPlayer:
     def __init__(self, connection, stream):
         self.connection = connection
         self.stream = stream
-        self._start = asyncio.Event()
+        self._start_playing = asyncio.Event()
         self.sequence = 0
         self.timestamp = 0
+        self.page_index = 0
+        self.started_at = 0
+        self.connection.player = self
 
     def make_header(self):
         header = bytearray(12)
 
         header[0] = 0x80
         header[1] = 0x78
-        struct.pack_into(
-            '>HII', header, 2,
-            self.sequence, self.timestamp, self.connection.ssrc
-        )
+        header[2:4] = self.sequence.to_bytes(2, 'big', signed=False)
+        header[4:8] = self.timestamp.to_bytes(4, 'big', signed=False)
+        header[8:12] = self.connection.ssrc.to_bytes(4, 'big', signed=False)
+
         return header
 
     def encrypt(self, data):
@@ -109,21 +113,30 @@ class AudioPlayer:
         if self.timestamp >= 2 ** 32:
             self.timestamp = 0
 
+        self.page_index += 1
+
     async def start(self):
         await self.connection.ws.send_speaking()
 
-        start = time.perf_counter()
-        i = 0
+        self.started_at = time.perf_counter()
 
         async for packet in self.stream:
-            i += 1
+            await self._start_playing.wait()
 
             data = self.encrypt(packet)
             self.connection.transport.sendto(data)
 
-            delay = self.DELAY + ((start + self.DELAY * i) - time.perf_counter())
+            expected_time = self.started_at + self.expected_elapsed
+            offset = expected_time - time.perf_counter()
+            delay = offset + OggPage.DURATION
             await asyncio.sleep(delay)
 
             self.increment()
 
-        print('Done')
+    @property
+    def expected_elapsed(self):
+        return OggPage.DURATION * self.page_index
+
+    @property
+    def elapsed(self):
+        return time.perf_counter() - self.started_at

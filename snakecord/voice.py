@@ -40,6 +40,7 @@ class VoiceConnection:
         self.protocol = None
         self.ssrc = None
         self.secret_key = None
+        self.player = None
 
     async def connect(self):
         await self.ws.connect()

@@ -6,6 +6,7 @@ class Sentinel(Exception):
 
 
 class OggPage:
+    DURATION = 0.02
     LENGTH = 27
 
     @classmethod
