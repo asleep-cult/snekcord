@@ -89,7 +89,7 @@ class AsyncPipeReader(asyncio.StreamReader):
 
     def readline(self):
         self._check_eof()
-        return super().readline
+        return super().readline()
 
     def read(self, n):
         self._check_eof()
@@ -112,5 +112,5 @@ class AudioPlayer:
         self.encoder = encoder
         self.pipe = self.encoder.stdout_read
         self.loop = self.connect.loop
-        self.reader = await AsyncPipeReader.new(self.pipe, self.loop)
+        self.reader = await AsyncPipeReader.new(self.encoder, self.loop)
         return self
