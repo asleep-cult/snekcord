@@ -12,7 +12,7 @@ class WorkerThread(threading.Thread):
     EXIT = object()
 
     def __init__(self, daemon=False):
-        threading.Thread.__init__(daemon=daemon)
+        threading.Thread.__init__(self, daemon=daemon)
         self.in_queue = queue.Queue()
         self.out_queue = asyncio.Queue()
         self.working = False
