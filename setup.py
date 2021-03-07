@@ -2,13 +2,13 @@ import gzip
 import io
 import ctypes.util
 import shutil
-import atexit
 import platform
 import struct
 import tarfile
 import urllib.request
 
 from setuptools import setup, find_packages, Extension
+from setuptools.command.build_ext import build_ext
 
 
 ARCHITECTURE = 8 * struct.calcsize('P')
@@ -57,11 +57,21 @@ def get_opus_headers():
 
 
 def cleanup_opus_headers():
-    shutil.rmtree(opus_include_dir.split('/')[0])
+    try:
+        shutil.rmtree(opus_include_dir.split('/')[0])
+    except Exception:
+        pass
 
 
-get_opus_headers()
-atexit.register(cleanup_opus_headers)
+class BuildExtension(build_ext):
+    def run(self):
+        try:
+            get_opus_headers()
+            return super().run()
+        except Exception:
+            cleanup_opus_headers()
+            return
+
 
 setup(
     name='snakecord',
@@ -76,5 +86,6 @@ setup(
             library_dirs=['./snakecord/.libs'],
             libraries=LIBRARIES
         )
-   ]
+   ],
+   cmd_class={'build': BuildExtension}
 )
