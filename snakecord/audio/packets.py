@@ -2,6 +2,11 @@ import asyncio
 import queue
 import threading
 
+try:
+    import opus
+except ImportError:
+    opus = None
+
 
 class WorkerThread(threading.Thread):
     EXIT = object()
@@ -90,3 +95,39 @@ async def get_packets(reader):
                 pending = b''
 
             packet_start = packet_end
+
+
+async def get_packets_encoded(reader):
+    if opus is None:
+        raise Exception
+
+    encoder = opus.OpusEncoder()
+    encoder.set_bitrate(128)
+    encoder.set_fec(True)
+
+    iterator = get_packets(reader)
+
+    def _do_encode():
+        coro = iterator.asend(None)
+        future = asyncio.run_coroutine_threadsafe(coro, asyncio.get_event_loop())
+
+        try:
+            packet = future.result()
+        except StopAsyncIteration:
+            worker.close()
+            return worker.EXIT
+
+        return encoder.encode(packet, 960)
+
+        worker.put(_do_encode)
+
+    worker = WorkerThread()
+    worker.put(_do_encode)
+
+    while True:
+        result = await worker.out_queue.get()
+
+        if result is worker.EXIT:
+            return
+
+        yield result
