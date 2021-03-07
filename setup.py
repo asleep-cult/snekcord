@@ -29,8 +29,7 @@ if WINDOWS:
     else:
         LIBRARIES = ['opus-win32']
 else:
-    if ARCHITECTURE == 64:
-        LIBRARIES = ['opus-x64']
+    LIBRARIES = ['opus']
 
 
 def get_header(name):
