@@ -1,5 +1,6 @@
 import gzip
 import io
+import ctypes.util
 import shutil
 import atexit
 import platform
@@ -29,7 +30,9 @@ if WINDOWS:
     else:
         LIBRARIES = ['opus-win32']
 else:
-    LIBRARIES = ['opus']
+    lib = ctypes.util.find_library('opus')
+    LIBRARIES = [':' + lib]
+    print(LIBRARIES)
 
 
 def get_header(name):
