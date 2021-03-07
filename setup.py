@@ -1,5 +1,6 @@
 import gzip
 import io
+import atexit
 import ctypes.util
 import shutil
 import platform
@@ -8,7 +9,6 @@ import tarfile
 import urllib.request
 
 from setuptools import setup, find_packages, Extension
-from setuptools.command.build_ext import build_ext
 
 
 ARCHITECTURE = 8 * struct.calcsize('P')
@@ -72,15 +72,7 @@ try:
 except Exception:
     CAN_COMPILE = False
 
-
-class BuildExtension(build_ext):
-    def run(self):
-        try:
-            return super().run()
-        except Exception:
-            return
-        finally:
-            cleanup_opus_headers()
+atexit.register(cleanup_opus_headers)
 
 
 if CAN_COMPILE:
@@ -102,5 +94,4 @@ setup(
     url='https://github.com/blanketsucks/snakecord',
     packages=find_packages(),
     ext_modules=ext_modules,
-    cmd_class={'build': BuildExtension}
 )
