@@ -32,7 +32,6 @@ if WINDOWS:
 else:
     lib = ctypes.util.find_library('opus')
     LIBRARIES = [':' + lib]
-    print(LIBRARIES)
 
 
 def get_header(name):
@@ -44,8 +43,6 @@ def get_header(name):
 def get_opus_headers():
     global opus_include_dir
 
-    print('Getting Opus headers from {}'.format(OPUS_RELEASE))
-
     buffer = io.BytesIO(urllib.request.urlopen(OPUS_RELEASE).read())
 
     with gzip.GzipFile(fileobj=buffer) as fp:
@@ -56,8 +53,6 @@ def get_opus_headers():
 
             if header is not None:
                 opus_include_dir = name[:-len(header)]
-
-                print('Extracting file {}'.format(name))
                 tfile.extract(name)
 
 
@@ -65,9 +60,9 @@ def cleanup_opus_headers():
     shutil.rmtree(opus_include_dir.split('/')[0])
 
 
+get_opus_headers()
 atexit.register(cleanup_opus_headers)
 
-get_opus_headers()
 setup(
     name='snakecord',
     version='0.0.1',
