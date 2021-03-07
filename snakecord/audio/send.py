@@ -27,16 +27,16 @@ class FFmpegPCMEncoder(FFmpegSubprocess):
     FORMAT = 's16le'
 
     @classmethod
-    def new(self, *args, **kwargs):
-        return FFmpegSubprocess.new(self.FORMAT, *args, **kwargs)
+    def new(cls, *args, **kwargs):
+        return FFmpegSubprocess.new(cls.FORMAT, *args, **kwargs)
 
 
 class FFmpegOpusEncoder(FFmpegSubprocess):
     FORMAT = 'opus'
 
     @classmethod
-    def new(self, *args, **kwargs):
-        return FFmpegSubprocess.new(self.FORMAT, *args, **kwargs)
+    def new(cls, *args, **kwargs):
+        return FFmpegSubprocess.new(cls.FORMAT, *args, **kwargs)
 
 
 class AudioPlayer:

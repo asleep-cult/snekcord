@@ -72,17 +72,21 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     OpusEncoderObject* opus_encoder = (OpusEncoderObject*)self;
 
     PyObject* bytes = PyTuple_GetItem(args, 0);
-    size_t size = PyBytes_Size(bytes);
+    opus_int32 size = PyBytes_Size(bytes);
     const opus_int16* pcm = (const opus_int16*)PyBytes_AsString(bytes);
 
     int frame_size = PyLong_AsLong(PyTuple_GetItem(args, 1));
 
-    unsigned char* buffer = PyMem_Calloc(1, size); /* calloc 0s out the buffer */
+    unsigned char* buffer = PyMem_Malloc(size); /* calloc 0s out the buffer */
+    if (buffer == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
 
     opus_int32 val;
 
     Py_BEGIN_ALLOW_THREADS
-        val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, (opus_int16)size);
+        val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
     Py_END_ALLOW_THREADS
 
     if (val < 0) {

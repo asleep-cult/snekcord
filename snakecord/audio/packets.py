@@ -7,6 +7,8 @@ try:
 except ImportError:
     opus = None
 
+SILENCE = b'\xF8\xFF\xFE'
+
 
 class WorkerThread(threading.Thread):
     EXIT = object()
@@ -42,18 +44,22 @@ class Sentinel(Exception):
 class OggPage:
     DURATION = 0.02
     LENGTH = 27
-    SILENCE = b'\xF8\xFF\xFE'
+    PREFIX = b'OggS'
 
     @classmethod
     async def new(cls, reader):
         self = cls()
 
-        try:
-            data = await reader.readexactly(self.LENGTH)
-        except EOFError:
-            raise Sentinel
+        while True:
+            try:
+                prefix = await reader.readexactly(len(self.PREFIX))
+            except EOFError:
+                raise Sentinel
 
-        assert data[:4] == b'OggS'
+            if prefix == self.PREFIX:
+                break
+
+        data = await reader.readexactly(self.LENGTH - len(self.PREFIX))
 
         self.version = data[4]
         self.type = data[5]
@@ -79,7 +85,7 @@ async def get_packets(reader):
             page = await OggPage.new(reader)
         except Sentinel:
             for _ in range(5):
-                yield OggPage.SILENCE
+                yield SILENCE
             return
 
         packet_start = 0
@@ -97,7 +103,11 @@ async def get_packets(reader):
             packet_start = packet_end
 
 
-async def get_packets_encoded(reader):
+SAMPLES_PER_FRAME = 960
+FRAME_SIZE = SAMPLES_PER_FRAME * 4
+
+
+async def get_packets_encoded(reader, loop):
     if opus is None:
         raise Exception
 
@@ -105,21 +115,19 @@ async def get_packets_encoded(reader):
     encoder.set_bitrate(128)
     encoder.set_fec(True)
 
-    iterator = get_packets(reader)
-
     def _do_encode():
-        coro = iterator.asend(None)
-        future = asyncio.run_coroutine_threadsafe(coro, asyncio.get_event_loop())
+        coro = reader.read(FRAME_SIZE)
+        future = asyncio.run_coroutine_threadsafe(coro, loop)
 
         try:
             packet = future.result()
-        except StopAsyncIteration:
+        except EOFError:
             worker.close()
             return worker.EXIT
 
-        return encoder.encode(packet, 960)
-
         worker.put(_do_encode)
+
+        return encoder.encode(packet, SAMPLES_PER_FRAME)
 
     worker = WorkerThread()
     worker.put(_do_encode)
@@ -127,8 +135,11 @@ async def get_packets_encoded(reader):
 
     while True:
         result = await worker.out_queue.get()
+        print(result)
 
         if result is worker.EXIT:
+            for _ in range(5):
+                yield SILENCE
             return
 
         yield result
