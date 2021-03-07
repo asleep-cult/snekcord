@@ -90,8 +90,6 @@ class AudioPlayer:
         self.started_at = time.perf_counter()
 
         async for packet in self.stream:
-            await self._start_playing.wait()
-
             data = self.encrypt(packet)
             self.connection.transport.sendto(data)
 
