@@ -12,7 +12,7 @@ class WorkerThread(threading.Thread):
     EXIT = object()
 
     def __init__(self, daemon=False):
-        super().__init__(daemon=daemon)
+        threading.Thread.__init__(daemon=daemon)
         self.in_queue = queue.Queue()
         self.out_queue = asyncio.Queue()
         self.working = False
@@ -123,6 +123,7 @@ async def get_packets_encoded(reader):
 
     worker = WorkerThread()
     worker.put(_do_encode)
+    worker.start()
 
     while True:
         result = await worker.out_queue.get()
