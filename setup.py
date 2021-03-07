@@ -63,22 +63,25 @@ def cleanup_opus_headers():
         pass
 
 
+try:
+    get_opus_headers()
+    HAVE_HEADERS = True
+except Exception:
+    HAVE_HEADERS = False
+
+
 class BuildExtension(build_ext):
     def run(self):
         try:
-            get_opus_headers()
             return super().run()
         except Exception:
-            cleanup_opus_headers()
             return
+        finally:
+            cleanup_opus_headers()
 
 
-setup(
-    name='snakecord',
-    version='0.0.1',
-    url='https://github.com/blanketsucks/snakecord',
-    packages=find_packages(),
-    ext_modules=[
+if HAVE_HEADERS:
+    ext_modules = [
         Extension(
             name='opus',
             sources=['./snakecord/audio/_opusmodule.c'],
@@ -86,6 +89,15 @@ setup(
             library_dirs=['./snakecord/.libs'],
             libraries=LIBRARIES
         )
-   ],
-   cmd_class={'build': BuildExtension}
+    ]
+else:
+    ext_modules = None
+
+setup(
+    name='snakecord',
+    version='0.0.1',
+    url='https://github.com/blanketsucks/snakecord',
+    packages=find_packages(),
+    ext_modules=ext_modules,
+    cmd_class={'build': BuildExtension}
 )
