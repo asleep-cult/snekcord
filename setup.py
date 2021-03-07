@@ -4,14 +4,13 @@ import atexit
 import ctypes.util
 import shutil
 import platform
-import struct
 import tarfile
 import urllib.request
 
 from setuptools import setup, find_packages, Extension
 
 
-ARCHITECTURE = 8 * struct.calcsize('P')
+ARCHITECTURE = 8 * ctypes.sizeof(ctypes.c_voidp)
 
 if platform.system() == 'Windows':
     WINDOWS = True
