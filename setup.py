@@ -31,7 +31,10 @@ if WINDOWS:
         LIBRARIES = ['opus-win32']
 else:
     lib = ctypes.util.find_library('opus')
-    LIBRARIES = [':' + lib]
+    if lib is None:
+        CAN_COMPILE = False
+    else:
+        LIBRARIES = [':' + lib]
 
 
 def get_header(name):
@@ -65,9 +68,9 @@ def cleanup_opus_headers():
 
 try:
     get_opus_headers()
-    HAVE_HEADERS = True
+    CAN_COMPILE = True
 except Exception:
-    HAVE_HEADERS = False
+    CAN_COMPILE = False
 
 
 class BuildExtension(build_ext):
@@ -80,7 +83,7 @@ class BuildExtension(build_ext):
             cleanup_opus_headers()
 
 
-if HAVE_HEADERS:
+if CAN_COMPILE:
     ext_modules = [
         Extension(
             name='opus',
