@@ -1,11 +1,6 @@
 #include "opus.h"
 
-#ifdef _DEBUG
-#undef _DEBUG
 #include "Python.h"
-#else
-#include "Python.h"
-#endif
 
 #define SAMPLING_RATE 48000
 #define CHANNELS 2

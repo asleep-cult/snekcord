@@ -1,4 +1,33 @@
-SILENCE = b'\xF8\xFF\xFE'
+import asyncio
+import queue
+import threading
+
+
+class WorkerThread(threading.Thread):
+    EXIT = object()
+
+    def __init__(self, daemon=False):
+        super().__init__(daemon=daemon)
+        self.in_queue = queue.Queue()
+        self.out_queue = asyncio.Queue()
+        self.working = False
+
+    def put(self, func, *args, **kwargs):
+        self.in_queue.put_nowait((func, args, kwargs))
+
+    def close(self):
+        self.in_queue.put_nowait(self.EXIT)
+
+    def run(self):
+        while True:
+            todo = self.in_queue.get()
+            if todo is self.EXIT:
+                return
+            func, args, kwargs = todo
+            self.working = True
+            result = func(*args, **kwargs)
+            self.working = False
+            self.out_queue.put_nowait(result)
 
 
 class Sentinel(Exception):
@@ -8,6 +37,7 @@ class Sentinel(Exception):
 class OggPage:
     DURATION = 0.02
     LENGTH = 27
+    SILENCE = b'\xF8\xFF\xFE'
 
     @classmethod
     async def new(cls, reader):
@@ -44,7 +74,7 @@ async def get_packets(reader):
             page = await OggPage.new(reader)
         except Sentinel:
             for _ in range(5):
-                yield SILENCE
+                yield OggPage.SILENCE
             return
 
         packet_start = 0

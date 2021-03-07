@@ -1,37 +1,8 @@
 import asyncio
-import queue
 import subprocess
-import threading
 import time
 
 from .packets import OggPage
-
-
-class WorkerThread(threading.Thread):
-    EXIT = object()
-
-    def __init__(self, daemon=False):
-        super().__init__(daemon=daemon)
-        self.in_queue = queue.Queue()
-        self.out_queue = asyncio.Queue()
-        self.working = False
-
-    def put(self, func, *args, **kwargs):
-        self.in_queue.put_nowait((func, args, kwargs))
-
-    def close(self):
-        self.in_queue.put_nowait(self.EXIT)
-
-    def run(self):
-        while True:
-            todo = self.in_queue.get()
-            if todo is self.EXIT:
-                return
-            func, args, kwargs = todo
-            self.working = True
-            result = func(*args, **kwargs)
-            self.working = False
-            self.out_queue.put_nowait(result)
 
 
 class FFmpegSubprocess:
