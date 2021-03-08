@@ -1,5 +1,5 @@
 #include "opus.h"
-
+#include "stdio.h"
 #include "Python.h"
 
 #define SAMPLING_RATE 48000
@@ -72,7 +72,7 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     OpusEncoderObject* opus_encoder = (OpusEncoderObject*)self;
 
     PyObject* bytes = PyTuple_GetItem(args, 0);
-    opus_int32 size = PyBytes_Size(bytes);
+    int size = PyBytes_Size(bytes);
     const opus_int16* pcm = (const opus_int16*)PyBytes_AsString(bytes);
 
     int frame_size = PyLong_AsLong(PyTuple_GetItem(args, 1));
@@ -83,11 +83,13 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
         return NULL;
     }
 
-    opus_int32 val;
+    int val;
 
     Py_BEGIN_ALLOW_THREADS
         val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
     Py_END_ALLOW_THREADS
+
+    printf("%d%d", val, size);
 
     if (val < 0) {
         return OpusSetException(val, NULL);
