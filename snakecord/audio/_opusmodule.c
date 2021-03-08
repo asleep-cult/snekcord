@@ -74,7 +74,7 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     int size = PyBytes_Size(bytes);
     const opus_int16* pcm = (const opus_int16*)PyBytes_AsString(bytes);
 
-    int frame_size = PyLong_AsLong(PyTuple_GetItem(args, 1));
+    int frame_size = (int)PyLong_AsLong(PyTuple_GetItem(args, 1));
 
     unsigned char* buffer = PyMem_Malloc(size);
     if (buffer == NULL) {
@@ -88,7 +88,7 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
         val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
     Py_END_ALLOW_THREADS
 
-    PyObject *bytes = PyBytes_FromStringAndSize(buffer, val);
+    PyObject *encoded = PyBytes_FromStringAndSize(buffer, val);
 
     PyMem_Free(buffer);
 
@@ -96,7 +96,7 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
         return OpusSetException(val, NULL);
     }
 
-    return bytes;
+    return encoded;
 }
 
 PyObject* OpusEncoder_SetBitrate(PyObject* self, PyObject* args)
