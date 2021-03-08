@@ -5,30 +5,51 @@
 #define CHANNELS 2
 #define APPLICATION OPUS_APPLICATION_VOIP
 
+
 typedef struct OpusEncoderObject {
     PyObject_HEAD
     OpusEncoder* encoder;
 } OpusEncoderObject;
 
+
+typedef struct OpusDecoderObject {
+    PyObject_HEAD
+    OpusDecoder* decoder;
+} OpusDecoderObject;
+
+
 static PyObject* OpusEncoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds);
 static void OpusEncoder_Dealloc(OpusEncoderObject* self);
 static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args);
-static PyObject* OpusEncoder_SetBitrate(PyObject* self, PyObject* args);
-static PyObject* OpusEncoder_SetFec(PyObject* self, PyObject* args);
-static PyObject* OpusEncoder_SetPLP(PyObject* self, PyObject* args);
+
+
+static PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds);
+static void OpusDecoder_Dealloc(OpusEncoderObject* self);
+static PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args);
+static PyObject* OpusDecoder_GetLastPacketDuration(PyObject *self, PyObject *args);
+
+
+static PyObject* OpusPacket_GetNBFrames(PyObject* self, PyObject* args);
+static PyObject* OpusPacket_GetNBChannels(PyObject* self, PyObject* args);
+static PyObject* OpusPacket_GetSamplesPerFrame(PyObject* self, PyObject* args);
 
 
 static PyMethodDef OpusEncoderMethods[] = {
     {"encode", OpusEncoder_Encode, METH_VARARGS, NULL},
-    {"set_bitrate", OpusEncoder_SetBitrate, METH_VARARGS, NULL},
-    {"set_fec", OpusEncoder_SetFec, METH_VARARGS, NULL},
-    {"set_expected_plp", OpusEncoder_SetPLP, METH_VARARGS, NULL},
     {NULL, NULL, 0, NULL}
 };
 
+
+static PyMethodDef OpusDecoderMethods[] = {
+    {"decode", OpusDecoder_New, METH_VARARGS, NULL},
+    {"get_last_packet_duration", OpusDecoder_GetLastPacketDuration, METH_VARARGS, NULL},
+    {NULL, NULL, 0, NULL}
+};
+
+
 static PyTypeObject OpusEncoderType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "snakecord.OpusEncoder",
+    .tp_name = "opus.OpusEncoder",
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT,
     .tp_basicsize = sizeof(OpusEncoderObject),
@@ -36,6 +57,19 @@ static PyTypeObject OpusEncoderType = {
     .tp_dealloc = (destructor)OpusEncoder_Dealloc,
     .tp_methods = OpusEncoderMethods
 };
+
+
+static PyTypeObject OpusDecoderType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "opus.OpusDecoder",
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_basicsize = sizeof(OpusDecoderObject),
+    .tp_new = OpusDecoder_New,
+    .tp_dealloc = (destructor)OpusDecoder_Dealloc,
+    .tp_methods = OpusDecoderMethods
+};
+
 
 static PyObject* OpusSetException(int error, PyObject* ret)
 {
@@ -58,23 +92,26 @@ static PyObject* OpusSetException(int error, PyObject* ret)
     return ret;
 }
 
+
 PyObject* OpusEncoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
     int error;
-    OpusEncoderObject* opus_encoder = (OpusEncoderObject*)PyType_GenericNew(type, args, kwds);
+    OpusEncoderObject* opus_encoder;
+    opus_encoder = PyObject_New(OpusEncoderObject, &OpusEncoderType);
     opus_encoder->encoder = opus_encoder_create(SAMPLING_RATE, CHANNELS, APPLICATION, &error);
     return OpusSetException(error, (PyObject*)opus_encoder);
 }
 
-static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
+
+PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
 {
     OpusEncoderObject* opus_encoder = (OpusEncoderObject*)self;
 
-    PyObject* bytes = PyTuple_GetItem(args, 0);
-    int size = PyBytes_Size(bytes);
-    const opus_int16* pcm = (const opus_int16*)PyBytes_AsString(bytes);
+    PyObject* data = PyTuple_GetItem(args, 0);
+    int size = PyBytes_Size(data);
+    const opus_int16* pcm = (const opus_int16*)PyBytes_AsString(data);
 
-    int frame_size = (int)PyLong_AsLong(PyTuple_GetItem(args, 1));
+    int frame_size = PyLong_AsLong(PyTuple_GetItem(args, 1));
 
     unsigned char* buffer = PyMem_Malloc(size);
     if (buffer == NULL) {
@@ -85,10 +122,10 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     int val;
 
     Py_BEGIN_ALLOW_THREADS
-        val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
+    val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
     Py_END_ALLOW_THREADS
 
-    PyObject *encoded = PyBytes_FromStringAndSize(buffer, val);
+    PyObject* encoded = PyBytes_FromStringAndSize((const char*)buffer, val);
 
     PyMem_Free(buffer);
 
@@ -99,29 +136,6 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     return encoded;
 }
 
-PyObject* OpusEncoder_SetBitrate(PyObject* self, PyObject* args)
-{
-    OpusEncoderObject* opus_encoder = (OpusEncoderObject*)self;
-    opus_int32 bitrate = PyLong_AsLong(PyTuple_GetItem(args, 0));
-    opus_encoder_ctl(opus_encoder->encoder, OPUS_SET_BITRATE(bitrate));
-    Py_RETURN_NONE;
-}
-
-PyObject* OpusEncoder_SetFec(PyObject* self, PyObject* args)
-{
-    OpusEncoderObject* opus_encoder = (OpusEncoderObject*)self;
-    opus_int32 fec = PyObject_IsTrue(PyTuple_GetItem(args, 0));
-    opus_encoder_ctl(opus_encoder->encoder, OPUS_SET_INBAND_FEC(fec));
-    Py_RETURN_NONE;
-}
-
-PyObject* OpusEncoder_SetPLP(PyObject* self, PyObject* args)
-{
-    OpusEncoderObject* opus_encoder = (OpusEncoderObject*)self;
-    opus_int32 plp = PyLong_AsLong(PyTuple_GetItem(args, 0));
-    opus_encoder_ctl(opus_encoder->encoder, OPUS_SET_PACKET_LOSS_PERC(plp));
-    Py_RETURN_NONE;
-}
 
 void OpusEncoder_Dealloc(OpusEncoderObject* self)
 {
@@ -130,9 +144,107 @@ void OpusEncoder_Dealloc(OpusEncoderObject* self)
     tp->tp_free(self);
 }
 
+
+PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds)
+{
+    int err;
+    OpusDecoderObject *decoder;
+    decoder = PyObject_New(OpusEncoderObject, &OpusDecoderType);
+    decoder->decoder = opus_decoder_create(SAMPLING_RATE, CHANNELS, &err);
+    return OpusSetException(err, (PyObject*)decoder);
+}
+
+
+PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
+{
+    OpusDecoderObject* opus_decoder = (OpusDecoderObject*)self;
+
+    PyObject* bytes = PyTuple_GetItem(args, 0);
+    int size = PyBytes_Size(bytes);
+    const unsigned char* data = (const unsigned char*)PyBytes_AsString(bytes);
+
+    int frame_size = PyLong_AsLong(PyTuple_GetItem(args, 1));
+
+    int channels = PyLong_AsLong(PyTuple_GetItem(args, 2));
+
+    int decode_fec = PyObject_IsTrue(PyTuple_GetItem(args, 3));
+
+    opus_int16 *buffer = PyMem_Malloc(size);
+
+    int val;
+
+    Py_BEGIN_ALLOW_THREADS
+    val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
+    Py_END_ALLOW_THREADS
+
+    PyObject* encoded = PyBytes_FromStringAndSize((const char *)buffer, val * channels);
+
+    PyMem_Free(buffer);
+
+    if (val < 0) {
+        return OpusSetException(val, NULL);
+    }
+
+    return encoded;
+}
+
+PyObject* OpusDecoder_GetLastPacketDuration(PyObject *self, PyObject *args)
+{
+    int duration;
+    OpusDecoderObject* opus_decoder = (OpusDecoderObject*)self;
+    opus_decoder_ctl(opus_decoder->decoder, &duration);
+    return PyLong_FromLong(duration);
+}
+
+
+void OpusDecoder_Dealloc(OpusDecoderObject* self)
+{
+    opus_encoder_destroy(self->decoder);
+    PyTypeObject* tp = Py_TYPE(self);
+    tp->tp_free(self);
+}
+
+
+PyObject* OpusPacket_GetNBFrames(PyObject* self, PyObject* args)
+{
+    PyObject* bytes = PyTuple_GetItem(args, 0);
+    int size = PyBytes_Size(bytes);
+    const unsigned char* data = (const unsigned char*)PyBytes_AsString(bytes);
+
+    int val = opus_packet_get_nb_frames(data, size);
+    return PyLong_FromLong(val);
+}
+
+
+PyObject* OpusPacket_GetNBChannels(PyObject* self, PyObject* args)
+{
+    PyObject* bytes = PyTuple_GetItem(args, 0);
+    int size = PyBytes_Size(bytes);
+    const unsigned char* data = (const unsigned char*)PyBytes_AsString(bytes);
+
+    int val = opus_packet_get_nb_channels(data, size);
+    return PyLong_FromLong(val);
+}
+
+
+PyObject* OpusPacket_GetSamplesPerFrame(PyObject* self, PyObject* args)
+{
+    PyObject* bytes = PyTuple_GetItem(args, 0);
+    int size = PyBytes_Size(bytes);
+    const unsigned char* data = (const unsigned char*)PyBytes_AsString(bytes);
+
+    int val = opus_packet_get_samples_per_frame(data, SAMPLING_RATE);
+    return PyLong_FromLong(val);
+}
+
+
 static PyMethodDef OpusMethods[] = {
+    {"get_nb_frames", OpusPacket_GetNBFrames, METH_VARARGS, NULL},
+    {"get_nb_channels", OpusPacket_GetNBChannels, METH_VARARGS, NULL},
+    {"get_samples_per_frame", OpusPacket_GetSamplesPerFrame, METH_VARARGS, NULL},
     {NULL, NULL, 0, NULL}
 };
+
 
 static struct PyModuleDef opusmodule = {
     PyModuleDef_HEAD_INIT,
@@ -142,18 +254,37 @@ static struct PyModuleDef opusmodule = {
     OpusMethods
 };
 
+
 PyMODINIT_FUNC PyInit_opus(void)
 {
     PyObject* module = PyModule_Create(&opusmodule);
     PyTypeObject* encoder_type = &OpusEncoderType;
+    PyTypeObject* decoder_type = &OpusDecoderType;
+
     Py_INCREF(encoder_type);
+    Py_INCREF(decoder_type);
+
     if (PyType_Ready(encoder_type) < 0) {
-        Py_DECREF(&OpusEncoderType);
+        Py_DECREF(encoder_type);
         return NULL;
     }
-    int status = PyModule_AddObject(module, "OpusEncoder", (PyObject*)encoder_type);
+
+    if (PyType_Ready(decoder_type) < 0) {
+        Py_DECREF(decoder_type);
+        return NULL;
+    }
+
+    int status;
+
+    status = PyModule_AddObject(module, "OpusEncoder", (PyObject*)encoder_type);
     if (status < 0) {
         return NULL;
     }
+
+    status = PyModule_AddObject(module, "OpusDecoder", (PyObject*)decoder_type);
+    if (status < 0) {
+        return NULL;
+    }
+
     return module;
 }
