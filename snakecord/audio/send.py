@@ -2,7 +2,7 @@ import asyncio
 import subprocess
 import time
 
-from .packets import RTPHeader, OggPage
+from . import packets
 
 
 class FFmpegSubprocess:
@@ -40,6 +40,9 @@ class FFmpegOpusEncoder(FFmpegSubprocess):
 
 
 class AudioPlayer:
+    MAX_SEQUENCE = 0xFFFF
+    MAX_TIMESTAMP = 0xFFFFFFFF
+
     def __init__(self, connection, stream):
         self.connection = connection
         self.stream = stream
@@ -51,7 +54,7 @@ class AudioPlayer:
         self.connection.player = self
 
     def make_header(self):
-        return RTPHeader.pack(
+        return packets.RTPHeader.pack(
             fbyte=b'\x80', sbyte=b'\x78',
             sequence=self.sequence,
             timestamp=self.timestamp,
@@ -71,12 +74,12 @@ class AudioPlayer:
 
     def increment(self):
         self.sequence += 1
-        self.timestamp += (48000 // 100) * 2
+        self.timestamp += packets.OPUS_FRAME_SIZE
 
-        if self.sequence >= 2 ** 16:
+        if self.sequence > self.MAX_SEQUENCE:
             self.sequence = 0
 
-        if self.timestamp >= 2 ** 32:
+        if self.timestamp > self.MAX_TIMESTAMP:
             self.timestamp = 0
 
         self.page_index += 1
@@ -92,14 +95,14 @@ class AudioPlayer:
 
             expected_time = self.started_at + self.expected_elapsed
             offset = expected_time - time.perf_counter()
-            delay = offset + OggPage.DURATION
+            delay = offset + packets.OPUS_FRAME_DURATION
             await asyncio.sleep(delay)
 
             self.increment()
 
     @property
     def expected_elapsed(self):
-        return OggPage.DURATION * self.page_index
+        return packets.OPUS_FRAME_DURATION * self.page_index
 
     @property
     def elapsed(self):

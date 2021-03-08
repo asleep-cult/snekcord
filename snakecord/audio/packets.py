@@ -7,9 +7,15 @@ except ImportError:
 
 from ..utils import cstruct, undefined
 
+
 SILENCE = b'\xF8\xFF\xFE'
-SAMPLES_PER_FRAME = 960
-FRAME_SIZE = SAMPLES_PER_FRAME * 4
+
+OPUS_FRAME_DURATION = 0.02
+OPUS_SAMPLING_RATE = 48000
+OPUS_CHANNELS = 2
+OPUS_SAMPLE_SIZE = cstruct.Short.size * OPUS_CHANNELS
+OPUS_FRAME_SIZE = int(OPUS_SAMPLING_RATE * OPUS_FRAME_DURATION)
+OPUS_FRAME_LENGTH = OPUS_SAMPLE_SIZE * OPUS_FRAME_SIZE
 
 
 class RTPHeader(cstruct):
@@ -46,7 +52,6 @@ class RTPHeader(cstruct):
 
 
 class OggPage(cstruct):
-    DURATION = 0.02
     PREFIX = b'OggS'
 
     byteorder = '<'
@@ -103,22 +108,23 @@ async def get_packets_encoded(reader, loop, encoder=None):
     queue = asyncio.Queue()
 
     def do_encode():
-        coro = reader.read(FRAME_SIZE)
+        coro = reader.read(OPUS_FRAME_LENGTH)
         future = asyncio.run_coroutine_threadsafe(coro, loop)
 
         try:
             packet = future.result()
         except asyncio.IncompleteReadError:
-            return
-
-        if len(packet) != FRAME_SIZE:
             queue.put_nowait(undefined)
             return
 
-        loop.run_in_executor(None, do_encode)
+        if len(packet) != OPUS_FRAME_LENGTH:
+            queue.put_nowait(undefined)
+            return
 
-        encoded = encoder.encode(packet, SAMPLES_PER_FRAME)
+        encoded = encoder.encode(packet, OPUS_FRAME_SIZE)
         queue.put_nowait(encoded)
+
+        loop.run_in_executor(None, do_encode)
 
     loop.run_in_executor(None, do_encode)
 
