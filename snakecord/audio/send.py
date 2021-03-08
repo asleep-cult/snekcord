@@ -2,7 +2,7 @@ import asyncio
 import subprocess
 import time
 
-from .packets import OggPage
+from .packets import RTPHeader, OggPage
 
 
 class FFmpegSubprocess:
@@ -51,15 +51,12 @@ class AudioPlayer:
         self.connection.player = self
 
     def make_header(self):
-        header = bytearray(12)
-
-        header[0] = 0x80
-        header[1] = 0x78
-        header[2:4] = self.sequence.to_bytes(2, 'big', signed=False)
-        header[4:8] = self.timestamp.to_bytes(4, 'big', signed=False)
-        header[8:12] = self.connection.ssrc.to_bytes(4, 'big', signed=False)
-
-        return header
+        return RTPHeader.pack(
+            fbyte=b'\x80', sbyte=b'\x78',
+            sequence=self.sequence,
+            timestamp=self.timestamp,
+            ssrc=self.connection.ssrc
+        )
 
     def encrypt(self, data):
         header = self.make_header()

@@ -1,4 +1,6 @@
 import json
+import struct
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict
 
@@ -76,6 +78,7 @@ class JsonStructure:
                 dct[field.name] = value
             except AttributeError:
                 continue
+
         return dct
 
     def marshal(self):
@@ -127,6 +130,108 @@ class JsonArray(JsonField):
         for item in data:
             items.append(super().marshal(item))
         return items
+
+
+class CType:
+    def __init__(self, format_char):
+        self.format_char = format_char
+
+    @property
+    def size(self):
+        return struct.calcsize(self.format_char)
+
+
+class CStructInstance:
+    def __init__(self, struct, **kwargs):
+        self.struct = struct
+        self.values = kwargs
+
+        for name, value in kwargs.items():
+            setattr(self, name, value)
+
+    def pack(self):
+        return self.struct.pack(**self.values)
+
+    def pack_into(self, buffer, offet):
+        return self.struct.pack_into(buffer, offet, **self.values)
+
+
+class cstruct:
+    Pad = CType('x')
+    Char = CType('c')
+    SignedChar = CType('b')
+    UnsignedChar = CType('B')
+    Bool = CType('?')
+    Short = CType('h')
+    UnsignedShort = CType('H')
+    Int = CType('i')
+    UnsignedInt = CType('I')
+    Long = CType('l')
+    UnsignedLong = CType('L')
+    LongLong = CType('q')
+    UnsignedLongLong = CType('Q')
+    SizeT = CType('n')
+    SSizeT = CType('N')
+    HalfPrecisionFloat = CType('e')
+    Float = CType('f')
+    Double = CType('d')
+    String = CType('s')
+    PascalString = CType('p')
+    VoidP = CType('P')
+
+    def __init_subclass__(cls):
+        cls.fields = OrderedDict()
+
+        for name, annotation in cls.__annotations__.items():
+            if isinstance(annotation, CType):
+                cls.fields[name] = annotation
+
+        format_string = ''.join(tp.format_char for tp in cls.fields.values())
+        cls.struct = struct.Struct(cls.byteorder + format_string)
+
+    @classmethod
+    def _get_args(cls, kwargs, name):
+        args = []
+
+        for field in cls.fields:
+            try:
+                args.append(kwargs.pop(field))
+            except KeyError:
+                msg = '"{}" missing required keyword argument "{}"'.format(name, field)
+                raise TypeError(msg) from None
+
+        if kwargs:
+            arg = next(iter(kwargs))
+            msg = '"{}" received unexpected keyword argument, "{}"'.format(name, arg)
+            raise TypeError(msg)
+
+        return args
+
+    @classmethod
+    def iter_unpack(cls, buffer):
+        return cls.struct.iter_unpack(buffer)
+
+    @classmethod
+    def unpack(cls, buffer):
+        values = cls.struct.unpack(buffer)
+        return CStructInstance(cls, **dict(zip(cls.fields, values)))
+
+    @classmethod
+    def unpack_from(cls, buffer, offset):
+        values = cls.struct.unpack_from(buffer, offset)
+        return CStructInstance(cls, **dict(zip(cls.fields, values)))
+
+    @classmethod
+    def pack(cls, **kwargs):
+        args = cls._get_args(kwargs, 'pack')
+        return cls.struct.pack(*args)
+
+    @classmethod
+    def pack_into(cls, buffer, offset, **kwargs):
+        args = cls._get_args(kwargs, 'pack_into')
+        return cls.struct.pack_into(buffer, offset, *args)
+
+    __call__ = pack
 
 
 class Snowflake(int):
