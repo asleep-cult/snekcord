@@ -8,6 +8,8 @@ except ImportError:
     opus = None
 
 SILENCE = b'\xF8\xFF\xFE'
+SAMPLES_PER_FRAME = 960
+FRAME_SIZE = SAMPLES_PER_FRAME * 4
 
 
 class WorkerThread(threading.Thread):
@@ -37,14 +39,13 @@ class WorkerThread(threading.Thread):
             self.out_queue.put_nowait(result)
 
 
-class Sentinel(Exception):
-    ...
-
-
 class OggPage:
     DURATION = 0.02
     LENGTH = 27
     PREFIX = b'OggS'
+
+    class Sentinel(Exception):
+        pass
 
     @classmethod
     async def new(cls, reader):
@@ -54,7 +55,7 @@ class OggPage:
             try:
                 prefix = await reader.readexactly(len(self.PREFIX))
             except EOFError:
-                raise Sentinel
+                raise cls.Sentinel
 
             if prefix == self.PREFIX:
                 break
@@ -83,7 +84,7 @@ async def get_packets(reader):
     while True:
         try:
             page = await OggPage.new(reader)
-        except Sentinel:
+        except OggPage.Sentinel:
             for _ in range(5):
                 yield SILENCE
             return
@@ -103,39 +104,33 @@ async def get_packets(reader):
             packet_start = packet_end
 
 
-SAMPLES_PER_FRAME = 960
-FRAME_SIZE = SAMPLES_PER_FRAME * 4
+async def get_packets_encoded(reader, loop, encoder=None):
+    if encoder is None:
+        if opus is None:
+            raise Exception
 
+        encoder = opus.OpusEncoder()
 
-async def get_packets_encoded(reader, loop):
-    if opus is None:
-        raise Exception
-
-    encoder = opus.OpusEncoder()
-    encoder.set_bitrate(128)
-    encoder.set_fec(True)
-
-    def _do_encode():
+    def do_encode():
         coro = reader.read(FRAME_SIZE)
         future = asyncio.run_coroutine_threadsafe(coro, loop)
 
         try:
             packet = future.result()
-        except EOFError:
+        except (EOFError, MemoryError):
             worker.close()
             return worker.EXIT
 
-        worker.put(_do_encode)
+        worker.put(do_encode)
 
         return encoder.encode(packet, SAMPLES_PER_FRAME)
 
     worker = WorkerThread()
-    worker.put(_do_encode)
+    worker.put(do_encode)
     worker.start()
 
     while True:
         result = await worker.out_queue.get()
-        print(result)
 
         if result is worker.EXIT:
             for _ in range(5):

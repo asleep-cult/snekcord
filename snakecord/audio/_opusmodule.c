@@ -89,7 +89,7 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
         val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
     Py_END_ALLOW_THREADS
 
-    printf("%d\n%d\n", val, size);
+    PyMem_Free(buffer);
 
     if (val < 0) {
         return OpusSetException(val, NULL);
