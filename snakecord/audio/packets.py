@@ -117,7 +117,7 @@ async def get_packets_encoded(reader, loop, encoder=None):
 
         try:
             packet = future.result()
-        except (EOFError, MemoryError):
+        except EOFError:
             worker.close()
             return worker.EXIT
 
