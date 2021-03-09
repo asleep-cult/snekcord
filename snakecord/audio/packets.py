@@ -1,4 +1,5 @@
 import asyncio
+import struct
 
 try:
     import opus
@@ -49,6 +50,21 @@ class RTPHeader(cstruct):
     @staticmethod
     def get_payload_type(byte):
         return byte & 0b01111111
+
+    @classmethod
+    def new(cls, data):
+        self = cls.unpack_from(data)
+        self.header = data[:cls.struct.size]
+
+        self.csrc_list = []
+        csrc_count = min((cls.get_csrc_count(ord(self.fbyte)), 15))
+        if csrc_count:
+            fmt = '>{}I'.format(csrc_count)
+            self.csrc_list.extend(struct.unpack_from(fmt, data, cls.struct.size))
+
+        offset = cls.struct.size + cstruct.UnsignedInt.size * csrc_count
+        self.data = data[offset:]
+        return self
 
 
 class OggPage(cstruct):

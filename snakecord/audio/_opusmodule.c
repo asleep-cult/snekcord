@@ -183,7 +183,7 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     RETURN_IF_NULL(decode_feco = PyTuple_GetItem(args, 3));
     int decode_fec = PyLong_AsLong(decode_feco);
 
-    opus_int16 *buffer = PyMem_Malloc(size);
+    opus_int16 *buffer = PyMem_Malloc(sizeof(opus_int16) * frame_size * channels);
 
     int val;
 

@@ -83,21 +83,25 @@ class AudioPlayer:
 
         self.page_index += 1
 
+    def send_packet(self, packet):
+        data = self.encrypt(packet)
+        self.connection.transport.sendto(data)
+        self.increment()
+
+    async def wait(self):
+        expected_time = self.started_at + self.expected_elapsed
+        offset = expected_time - time.perf_counter()
+        delay = offset + packets.OPUS_FRAME_DURATION
+        await asyncio.sleep(delay)
+
     async def start(self):
         await self.connection.ws.send_speaking()
 
         self.started_at = time.perf_counter()
 
         async for packet in self.stream:
-            data = self.encrypt(packet)
-            self.connection.transport.sendto(data)
-
-            expected_time = self.started_at + self.expected_elapsed
-            offset = expected_time - time.perf_counter()
-            delay = offset + packets.OPUS_FRAME_DURATION
-            await asyncio.sleep(delay)
-
-            self.increment()
+            self.send_packet(packet)
+            await self.wait()
 
     @property
     def expected_elapsed(self):

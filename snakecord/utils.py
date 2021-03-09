@@ -217,7 +217,7 @@ class cstruct:
         return CStructInstance(cls, **dict(zip(cls.fields, values)))
 
     @classmethod
-    def unpack_from(cls, buffer, offset):
+    def unpack_from(cls, buffer, offset=0):
         values = cls.struct.unpack_from(buffer, offset)
         return CStructInstance(cls, **dict(zip(cls.fields, values)))
 
@@ -230,8 +230,6 @@ class cstruct:
     def pack_into(cls, buffer, offset, **kwargs):
         args = cls._get_args(kwargs, 'pack_into')
         return cls.struct.pack_into(buffer, offset, *args)
-
-    __call__ = pack
 
 
 class Snowflake(int):
