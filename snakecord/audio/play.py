@@ -51,7 +51,6 @@ class AudioPlayer:
         self.timestamp = 0
         self.page_index = 0
         self.started_at = 0
-        self.connection.player = self
 
     def make_header(self):
         return packets.RTPHeader.pack(
@@ -74,7 +73,7 @@ class AudioPlayer:
 
     def increment(self):
         self.sequence += 1
-        self.timestamp += packets.OPUS_FRAME_SIZE
+        self.timestamp += packets.OPUS_SAMPLES_PER_FRAME
 
         if self.sequence > self.MAX_SEQUENCE:
             self.sequence = 0

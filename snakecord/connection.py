@@ -351,6 +351,8 @@ class VoiceUDPProtocol(asyncio.DatagramProtocol):
 
             await self.voice_connection.ws.select()
             self.selected = True
+        else:
+            await self.voice_connection.datagram_received(data)
 
     def datagram_received(self, data, addr):
         self.voice_connection.loop.create_task(self._datagram_received(data))

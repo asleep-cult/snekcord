@@ -5,7 +5,7 @@
 #define CHANNELS 2
 #define APPLICATION OPUS_APPLICATION_VOIP
 
-#define RETURN_IF_NULL(value) if (value == NULL) { \
+#define RETURN_IF_NULL(value) if ((value) == NULL) { \
                                     return NULL; \
                                 }
 

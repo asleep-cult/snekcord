@@ -41,6 +41,7 @@ class VoiceConnection:
         self.ssrc = None
         self.secret_key = None
         self.player = None
+        self.receiver = None
 
     async def connect(self):
         await self.ws.connect()
@@ -67,3 +68,7 @@ class VoiceConnection:
         elif resp.opcode == VoiceConnectionOpcode.SESSION_DESCRIPTION:
             self.secret_key = bytes(resp.data['secret_key'])
             self.secret_box = nacl.secret.SecretBox(self.secret_key)
+
+    async def datagram_received(self, data):
+        if self.receiver is not None:
+            await self.receiver.received(data)

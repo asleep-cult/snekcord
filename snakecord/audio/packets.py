@@ -14,8 +14,8 @@ OPUS_FRAME_DURATION = 0.02
 OPUS_SAMPLING_RATE = 48000
 OPUS_CHANNELS = 2
 OPUS_SAMPLE_SIZE = cstruct.Short.size * OPUS_CHANNELS
-OPUS_FRAME_SIZE = int(OPUS_SAMPLING_RATE * OPUS_FRAME_DURATION)
-OPUS_FRAME_LENGTH = OPUS_SAMPLE_SIZE * OPUS_FRAME_SIZE
+OPUS_SAMPLES_PER_FRAME = int(OPUS_SAMPLING_RATE * OPUS_FRAME_DURATION)
+OPUS_FRAME_SIZE = OPUS_SAMPLE_SIZE * OPUS_SAMPLES_PER_FRAME
 
 
 class RTPHeader(cstruct):
@@ -108,7 +108,7 @@ async def get_packets_encoded(reader, loop, encoder=None):
     queue = asyncio.Queue()
 
     def do_encode():
-        coro = reader.read(OPUS_FRAME_LENGTH)
+        coro = reader.read(OPUS_FRAME_SIZE)
         future = asyncio.run_coroutine_threadsafe(coro, loop)
 
         try:
@@ -117,11 +117,11 @@ async def get_packets_encoded(reader, loop, encoder=None):
             queue.put_nowait(undefined)
             return
 
-        if len(packet) != OPUS_FRAME_LENGTH:
+        if len(packet) != OPUS_FRAME_SIZE:
             queue.put_nowait(undefined)
             return
 
-        encoded = encoder.encode(packet, OPUS_FRAME_SIZE)
+        encoded = encoder.encode(packet, OPUS_SAMPLES_PER_FRAME)
         queue.put_nowait(encoded)
 
         loop.run_in_executor(None, do_encode)
