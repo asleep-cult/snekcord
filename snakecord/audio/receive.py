@@ -23,7 +23,7 @@ class AudioReceiver:
             nonce = bytearray(24)
             nonce[:12] = packet.header
 
-            data = self.connection.secret_box.decrypt(packet.data, bytes(nonce))
+            return self.connection.secret_box.decrypt(packet.data, bytes(nonce))
 
     def decode(self, data):
         frames = opus.get_nb_frames(data)
@@ -41,12 +41,12 @@ class AudioReceiver:
         if tp != packets.RTPHeader.TYPE:
             return
 
-        self.decrypt(packet)
+        data = self.decrypt(packet)
 
         if packets.RTPHeader.has_extension(ord(packet.fbyte)):
             packet.extension, packet.data = packets.RTPHeaderExtension.new(packet.data)
 
-        self.connection.loop.run_in_executor(None, self.decode, packet.data)
+        self.connection.loop.run_in_executor(None, self.decode, data)
 
     async def voice_packet_received(self, data):
         pass
