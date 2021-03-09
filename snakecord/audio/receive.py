@@ -46,7 +46,7 @@ class AudioReceiver:
         if packets.RTPHeader.has_extension(ord(packet.fbyte)):
             packet.extension, packet.data = packets.RTPHeaderExtension.new(packet.data)
 
-        self.connection.loop.run_in_executor(None, self.decode, data)
+        self.connection.loop.run_in_executor(None, self.decode, packet.data)
 
     async def voice_packet_received(self, data):
         pass

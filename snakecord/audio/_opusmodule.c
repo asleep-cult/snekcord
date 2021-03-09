@@ -191,7 +191,7 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, sizeof(opus_int16) * frame_size * channels);
+    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, val * channels);
 
     PyMem_Free(buffer);
 
