@@ -132,13 +132,13 @@ PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     val = opus_encode(opus_encoder->encoder, pcm, frame_size, buffer, size);
     Py_END_ALLOW_THREADS
 
-    PyObject* encoded = PyBytes_FromStringAndSize((const char*)buffer, val);
-
-    PyMem_Free(buffer);
-
     if (val < 0) {
+        PyMem_Free(buffer);
         return OpusSetException(val, NULL);
     }
+
+    PyObject* encoded = PyBytes_FromStringAndSize((const char*)buffer, val);
+    PyMem_Free(buffer);
 
     return encoded;
 }
@@ -184,6 +184,10 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     int decode_fec = PyObject_IsTrue(decode_feco);
 
     opus_int16 *buffer = PyMem_Malloc(sizeof(opus_int16) * frame_size * channels);
+    if (buffer == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
 
     int val;
 
@@ -191,13 +195,13 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, val * channels);
-
-    PyMem_Free(buffer);
-
     if (val < 0) {
+        PyMem_Free(buffer);
         return OpusSetException(val, NULL);
     }
+
+    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, val * channels);
+    PyMem_Free(buffer);
 
     return decoded;
 }
