@@ -183,24 +183,18 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     RETURN_IF_NULL(decode_feco = PyTuple_GetItem(args, 3));
     int decode_fec = PyObject_IsTrue(decode_feco);
 
-    opus_int16 *buffer = PyMem_Malloc(sizeof(opus_int16) * frame_size * channels);
+    int buffer_size = sizeof(opus_int16) * frame_size * channels;
+    opus_int16 *buffer = PyMem_Malloc(buffer_size);
     if (buffer == NULL) {
         PyErr_NoMemory();
         return NULL;
     }
 
-    int val;
-
     Py_BEGIN_ALLOW_THREADS
-    val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
+    opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
-    if (val < 0) {
-        PyMem_Free(buffer);
-        return OpusSetException(val, NULL);
-    }
-
-    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, val * channels);
+    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, buffer_size);
     PyMem_Free(buffer);
 
     return decoded;
