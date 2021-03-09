@@ -20,6 +20,8 @@ OPUS_FRAME_SIZE = OPUS_SAMPLE_SIZE * OPUS_SAMPLES_PER_FRAME
 
 
 class RTPHeader(cstruct):
+    TYPE = 120
+
     byteorder = '>'
     fbyte: cstruct.Char
     sbyte: cstruct.Char
@@ -36,7 +38,7 @@ class RTPHeader(cstruct):
         return byte & 0b00100000
 
     @staticmethod
-    def get_extension(byte):
+    def has_extension(byte):
         return byte & 0b00010000
 
     @staticmethod
@@ -54,6 +56,7 @@ class RTPHeader(cstruct):
     @classmethod
     def new(cls, data):
         self = cls.unpack_from(data)
+        self.extension = None
         self.header = data[:cls.struct.size]
 
         self.csrc_list = []
@@ -64,7 +67,20 @@ class RTPHeader(cstruct):
 
         offset = cls.struct.size + cstruct.UnsignedInt.size * csrc_count
         self.data = data[offset:]
+
         return self
+
+
+class RTPHeaderExtension(cstruct):
+    byteorder = '>'
+    profile: cstruct.UnsignedShort
+    length: cstruct.UnsignedShort
+
+    @classmethod
+    def new(cls, data):
+        self = cls.unpack_from(data)
+        self.data = data[cls.struct.size:cls.struct.size + cstruct.UnsignedInt.size]
+        return self, data[:cls.struct.size + cstruct.UnsignedInt.size]
 
 
 class OggPage(cstruct):

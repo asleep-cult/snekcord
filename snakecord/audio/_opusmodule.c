@@ -185,19 +185,19 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
 
     opus_int16 *buffer = PyMem_Malloc(sizeof(opus_int16) * frame_size * channels);
 
-    // int val;
+    int val;
 
     Py_BEGIN_ALLOW_THREADS
-    opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
+    val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
     PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, sizeof(opus_int16) * frame_size * channels);
 
     PyMem_Free(buffer);
 
-    /* if (val < 0) {
+    if (val < 0) {
         return OpusSetException(val, NULL);
-    } */
+    }
 
     return decoded;
 }
