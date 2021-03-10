@@ -199,8 +199,8 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
 
     PyObject* decoded = PyBytes_FromString((const char *)buffer);
     printf("Made string\n");
-    PyMem_Free(buffer);
-    printf("Freed\n");
+    // PyMem_Free(buffer);
+    // printf("Freed\n");
 
     return decoded;
 }
