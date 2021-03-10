@@ -164,7 +164,7 @@ PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds)
     int err;
     OpusDecoderObject* decoder;
     decoder = PyObject_New(OpusDecoderObject, &OpusDecoderType);
-    decoder->buffer = PyMem_Calloc(1, MAX_FRAME_SIZE);
+    decoder->buffer = PyMem_Calloc(1, MAX_FRAME_SIZE * SAMPLE_SIZE);
     if (decoder->buffer == NULL) {
         PyErr_NoMemory();
         return NULL;
