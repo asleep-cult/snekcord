@@ -202,6 +202,7 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
         printf("Failed\n");
         return OpusSetException(val, NULL);
     }
+    printf("Value: %d", val);
 
     PyObject* decoded = PyBytes_FromStringAndSize((const char*)buffer, val);
     printf("Created string\n");
