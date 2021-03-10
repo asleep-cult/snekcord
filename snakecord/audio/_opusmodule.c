@@ -204,7 +204,7 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     }
     printf("Value: %d", val);
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char*)buffer, val);
+    PyObject* decoded = PyBytes_FromStringAndSize((const char*)buffer, val * channels);
     printf("Created string\n");
     PyMem_Free(buffer);
     printf("Freed\n");
