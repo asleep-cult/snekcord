@@ -44,7 +44,7 @@ class AudioReceiver:
         data = self.decrypt(packet)
 
         if packets.RTPHeader.has_extension(ord(packet.fbyte)):
-            packet.extension, packet.data = packets.RTPHeaderExtension.new(packet.data)
+            packet.extension, data = packets.RTPHeaderExtension.new(data)
 
         self.connection.loop.run_in_executor(None, self.decode, data)
 

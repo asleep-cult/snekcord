@@ -28,7 +28,7 @@ static PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args);
 
 
 static PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds);
-static void OpusDecoder_Dealloc(OpusEncoderObject* self);
+static void OpusDecoder_Dealloc(OpusDecoderObject* self);
 static PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args);
 static PyObject* OpusDecoder_GetLastPacketDuration(PyObject *self, PyObject *args);
 
@@ -156,7 +156,7 @@ PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
     int err;
     OpusDecoderObject *decoder;
-    decoder = PyObject_New(OpusEncoderObject, &OpusDecoderType);
+    decoder = PyObject_New(OpusDecoderObject, &OpusDecoderType);
     decoder->decoder = opus_decoder_create(SAMPLING_RATE, CHANNELS, &err);
     return OpusSetException(err, (PyObject*)decoder);
 }
@@ -200,18 +200,19 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     return decoded;
 }
 
+
 PyObject* OpusDecoder_GetLastPacketDuration(PyObject *self, PyObject *args)
 {
     int duration;
     OpusDecoderObject* opus_decoder = (OpusDecoderObject*)self;
-    opus_decoder_ctl(opus_decoder->decoder, &duration);
+    opus_decoder_ctl(opus_decoder->decoder, OPUS_GET_LAST_PACKET_DURATION(&duration));
     return PyLong_FromLong(duration);
 }
 
 
 void OpusDecoder_Dealloc(OpusDecoderObject* self)
 {
-    opus_encoder_destroy(self->decoder);
+    opus_decoder_destroy(self->decoder);
     PyTypeObject* tp = Py_TYPE(self);
     tp->tp_free(self);
 }
@@ -233,10 +234,9 @@ PyObject* OpusPacket_GetNBChannels(PyObject* self, PyObject* args)
 {
     PyObject* bytes;
     RETURN_IF_NULL(bytes = PyTuple_GetItem(args, 0));
-    int size = PyBytes_Size(bytes);
     const unsigned char* data = (const unsigned char*)PyBytes_AsString(bytes);
 
-    int val = opus_packet_get_nb_channels(data, size);
+    int val = opus_packet_get_nb_channels(data);
     return PyLong_FromLong(val);
 }
 
@@ -245,7 +245,6 @@ PyObject* OpusPacket_GetSamplesPerFrame(PyObject* self, PyObject* args)
 {
     PyObject* bytes;
     RETURN_IF_NULL(bytes = PyTuple_GetItem(args, 0));
-    int size = PyBytes_Size(bytes);
     const unsigned char* data = (const unsigned char*)PyBytes_AsString(bytes);
 
     int val = opus_packet_get_samples_per_frame(data, SAMPLING_RATE);

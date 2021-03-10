@@ -80,7 +80,7 @@ class RTPHeaderExtension(cstruct):
     def new(cls, data):
         self = cls.unpack_from(data)
         self.data = data[cls.struct.size:cls.struct.size + cstruct.UnsignedInt.size]
-        return self, data[:cls.struct.size + cstruct.UnsignedInt.size]
+        return self, data[cls.struct.size + cstruct.UnsignedInt.size:]
 
 
 class OggPage(cstruct):
