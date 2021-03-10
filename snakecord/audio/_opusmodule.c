@@ -3,6 +3,12 @@
 
 #define SAMPLING_RATE 48000
 #define CHANNELS 2
+#define FRAME_DURATION 0.02
+#define SAMPLE_SIZE sizeof(short) * CHANNELS
+#define SAMPLES_PER_FRAME (int)(SAMPLING_RATE * FRAME_DURATION)
+#define FRAME_SIZE SAMPLE_SIZE * SAMPLES_PER_FRAME
+#define MAX_FRAME_SIZE SAMPLES_PER_FRAME * 6
+
 #define APPLICATION OPUS_APPLICATION_VOIP
 
 #define RETURN_IF_NULL(value) if ((value) == NULL) { \
@@ -18,6 +24,7 @@ typedef struct OpusEncoderObject {
 
 typedef struct OpusDecoderObject {
     PyObject_HEAD
+    opus_int16* buffer;
     OpusDecoder* decoder;
 } OpusDecoderObject;
 
@@ -157,6 +164,11 @@ PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds)
     int err;
     OpusDecoderObject *decoder;
     decoder = PyObject_New(OpusDecoderObject, &OpusDecoderType);
+    decoder->buffer = PyMem_Calloc(1, MAX_FRAME_SIZE);
+    if (decoder->buffer == NULL) {
+        PyErr_NoMemory();
+        return NULL;
+    }
     decoder->decoder = opus_decoder_create(SAMPLING_RATE, CHANNELS, &err);
     return OpusSetException(err, (PyObject*)decoder);
 }
@@ -183,31 +195,17 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     RETURN_IF_NULL(decode_feco = PyTuple_GetItem(args, 3));
     int decode_fec = PyObject_IsTrue(decode_feco);
 
-    int buffer_size = sizeof(opus_int16) * frame_size * channels;
-    printf("Buffer Size: %d\n", buffer_size);
-    opus_int16* buffer = PyMem_Calloc(1, buffer_size);
-    if (buffer == NULL) {
-        PyErr_NoMemory();
-        return NULL;
-    }
-
     int val;
 
     Py_BEGIN_ALLOW_THREADS
-    val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
-    printf("Decoded\n");
+    val = opus_decode(opus_decoder->decoder, data, size, opus_decoder->buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
     if (val < 0) {
-        printf("Failed\n");
         return OpusSetException(val, NULL);
     }
-    printf("Value: %d", val);
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char*)buffer, val * channels);
-    printf("Created string\n");
-    PyMem_Free(buffer);
-    printf("Freed\n");
+    PyObject* decoded = PyBytes_FromStringAndSize((const char*)opus_decoder->buffer, val * channels);
 
     return decoded;
 }
@@ -224,6 +222,7 @@ PyObject* OpusDecoder_GetLastPacketDuration(PyObject *self, PyObject *args)
 
 void OpusDecoder_Dealloc(OpusDecoderObject* self)
 {
+    PyMem_Free(self->buffer);
     opus_decoder_destroy(self->decoder);
     PyTypeObject* tp = Py_TYPE(self);
     tp->tp_free(self);
@@ -311,6 +310,14 @@ PyMODINIT_FUNC PyInit_opus(void)
     if (status < 0) {
         return NULL;
     }
+
+    PyModule_AddIntConstant(module, "SAMPLING_RATE", SAMPLING_RATE);
+    PyModule_AddIntConstant(module, "CHANNELS", CHANNELS);
+    PyModule_AddObject(module, "FRAME_SIZE", PyFloat_FromDouble(FRAME_DURATION));
+    PyModule_AddIntConstant(module, "SAMPLE_SIZE", SAMPLE_SIZE);
+    PyModule_AddIntConstant(module, "SAMPLES_PER_FRAME", SAMPLES_PER_FRAME);
+    PyModule_AddIntConstant(module, "FRAME_SIZE", FRAME_SIZE);
+    PyModule_AddIntConstant(module, "MAX_FRAME_SIZE", MAX_FRAME_SIZE);
 
     return module;
 }
