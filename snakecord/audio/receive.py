@@ -26,11 +26,12 @@ class AudioReceiver:
             return self.connection.secret_box.decrypt(packet.data, bytes(nonce))
 
     def decode(self, data):
-        # frames = opus.get_nb_frames(data)
-        # samples_per_frame = opus.get_samples_per_frame(data)
+        frames = opus.get_nb_frames(data)
+        samples_per_frame = opus.get_samples_per_frame(data)
         channels = opus.get_nb_channels(data)
+        print(frames * samples_per_frame)
 
-        decoded = self.decoder.decode(data, 960*6, channels, False)
+        decoded = self.decoder.decode(data, 960+50, channels, False)
 
         asyncio.run_coroutine_threadsafe(self.voice_packet_received(decoded), self.connection.loop)
 
