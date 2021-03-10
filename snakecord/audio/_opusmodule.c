@@ -192,11 +192,15 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     }
 
     Py_BEGIN_ALLOW_THREADS
+    printf("Encoding\n");
     opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
+    printf("Encoded\n");
     Py_END_ALLOW_THREADS
 
     PyObject* decoded = PyBytes_FromString((const char *)buffer);
+    printf("Made string\n");
     PyMem_Free(buffer);
+    printf("Freed\n");
 
     return decoded;
 }
