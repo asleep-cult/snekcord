@@ -201,13 +201,11 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     val = opus_decode(opus_decoder->decoder, data, size, opus_decoder->buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
-    printf("%d\n", val);
-
     if (val < 0) {
         return OpusSetException(val, NULL);
     }
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char*)opus_decoder->buffer, (val << 1) * channels);
+    PyObject* decoded = PyBytes_FromStringAndSize((const char*)opus_decoder->buffer, val * channels * 2);
 
     return decoded;
 }
