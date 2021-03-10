@@ -184,6 +184,7 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     int decode_fec = PyObject_IsTrue(decode_feco);
 
     int buffer_size = sizeof(opus_int16) * frame_size * channels;
+    printf("Buffer Size: %d\n", buffer_size);
     opus_int16* buffer = PyMem_Calloc(1, buffer_size);
     if (buffer == NULL) {
         PyErr_NoMemory();
@@ -194,14 +195,18 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
 
     Py_BEGIN_ALLOW_THREADS
     val = opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
+    printf("Decoded\n");
     Py_END_ALLOW_THREADS
 
     if (val < 0) {
+        printf("Failed\n");
         return OpusSetException(val, NULL);
     }
 
     PyObject* decoded = PyBytes_FromStringAndSize((const char*)buffer, val);
+    printf("Created string\n");
     PyMem_Free(buffer);
+    printf("Freed\n");
 
     return decoded;
 }
