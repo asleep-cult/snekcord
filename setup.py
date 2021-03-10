@@ -89,7 +89,7 @@ else:
 
 setup(
     name='snakecord',
-    version='0.1.3',
+    version='0.1.4',
     url='https://github.com/blanketsucks/snakecord',
     packages=find_packages(),
     ext_modules=ext_modules,

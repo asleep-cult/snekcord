@@ -120,7 +120,7 @@ PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     RETURN_IF_NULL(frame_sizeo = PyTuple_GetItem(args, 1));
     int frame_size = PyLong_AsLong(frame_sizeo);
 
-    unsigned char* buffer = PyMem_Malloc(size);
+    unsigned char* buffer = PyMem_Calloc(1, size);
     if (buffer == NULL) {
         PyErr_NoMemory();
         return NULL;
@@ -184,7 +184,8 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     int decode_fec = PyObject_IsTrue(decode_feco);
 
     int buffer_size = sizeof(opus_int16) * frame_size * channels;
-    opus_int16 *buffer = PyMem_Malloc(buffer_size);
+    printf("%d\n", buffer_size);
+    opus_int16 *buffer = PyMem_Calloc(1, buffer_size);
     if (buffer == NULL) {
         PyErr_NoMemory();
         return NULL;
@@ -194,7 +195,7 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     opus_decode(opus_decoder->decoder, data, size, buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char *)buffer, buffer_size);
+    PyObject* decoded = PyBytes_FromString((const char *)buffer);
     PyMem_Free(buffer);
 
     return decoded;
