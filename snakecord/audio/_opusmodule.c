@@ -123,7 +123,7 @@ PyObject* OpusEncoder_Encode(PyObject* self, PyObject* args)
     int size = PyBytes_Size(data);
     const opus_int16* pcm = (const opus_int16*)PyBytes_AsString(data);
 
-    PyObject *frame_sizeo;
+    PyObject* frame_sizeo;
     RETURN_IF_NULL(frame_sizeo = PyTuple_GetItem(args, 1));
     int frame_size = PyLong_AsLong(frame_sizeo);
 
@@ -162,7 +162,7 @@ void OpusEncoder_Dealloc(OpusEncoderObject* self)
 PyObject* OpusDecoder_New(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
     int err;
-    OpusDecoderObject *decoder;
+    OpusDecoderObject* decoder;
     decoder = PyObject_New(OpusDecoderObject, &OpusDecoderType);
     decoder->buffer = PyMem_Calloc(1, MAX_FRAME_SIZE);
     if (decoder->buffer == NULL) {
@@ -201,11 +201,13 @@ PyObject* OpusDecoder_Decode(PyObject* self, PyObject* args)
     val = opus_decode(opus_decoder->decoder, data, size, opus_decoder->buffer, frame_size, decode_fec);
     Py_END_ALLOW_THREADS
 
+    printf("%d\n", val);
+
     if (val < 0) {
         return OpusSetException(val, NULL);
     }
 
-    PyObject* decoded = PyBytes_FromStringAndSize((const char*)opus_decoder->buffer, val * channels);
+    PyObject* decoded = PyBytes_FromStringAndSize((const char*)opus_decoder->buffer, (val << 1) * channels);
 
     return decoded;
 }
@@ -299,21 +301,11 @@ PyMODINIT_FUNC PyInit_opus(void)
         return NULL;
     }
 
-    int status;
-
-    status = PyModule_AddObject(module, "OpusEncoder", (PyObject*)encoder_type);
-    if (status < 0) {
-        return NULL;
-    }
-
-    status = PyModule_AddObject(module, "OpusDecoder", (PyObject*)decoder_type);
-    if (status < 0) {
-        return NULL;
-    }
-
+    PyModule_AddObject(module, "OpusEncoder", (PyObject*)encoder_type);
+    PyModule_AddObject(module, "OpusDecoder", (PyObject*)decoder_type);
     PyModule_AddIntConstant(module, "SAMPLING_RATE", SAMPLING_RATE);
     PyModule_AddIntConstant(module, "CHANNELS", CHANNELS);
-    PyModule_AddObject(module, "FRAME_SIZE", PyFloat_FromDouble(FRAME_DURATION));
+    PyModule_AddObject(module, "FRAME_DURATION", PyFloat_FromDouble(FRAME_DURATION));
     PyModule_AddIntConstant(module, "SAMPLE_SIZE", SAMPLE_SIZE);
     PyModule_AddIntConstant(module, "SAMPLES_PER_FRAME", SAMPLES_PER_FRAME);
     PyModule_AddIntConstant(module, "FRAME_SIZE", FRAME_SIZE);
