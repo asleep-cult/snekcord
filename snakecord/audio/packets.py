@@ -144,13 +144,11 @@ async def get_packets_encoded(reader, loop, encoder=None):
     queue = asyncio.Queue()
 
     def do_encode():
-        coro = reader.read(OPUS_FRAME_SIZE)
+        coro = reader.readexactly(OPUS_FRAME_SIZE)
         future = asyncio.run_coroutine_threadsafe(coro, loop)
 
         try:
-            print('a')
             packet = future.result()
-            print('b')
         except asyncio.IncompleteReadError:
             queue.put_nowait(undefined)
             return

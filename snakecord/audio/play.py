@@ -94,14 +94,16 @@ class AudioPlayer:
         delay = offset + packets.OPUS_FRAME_DURATION
         await asyncio.sleep(delay)
 
-    async def start(self):
+    async def start(self, *, wait=True):
         await self.connection.ws.send_speaking()
 
         self.started_at = time.perf_counter()
 
         async for packet in self.stream:
             self.send_packet(packet)
-            await self.wait()
+
+            if wait:
+                await self.wait()
 
     @property
     def expected_elapsed(self):
