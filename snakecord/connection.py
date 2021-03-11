@@ -7,12 +7,9 @@ from typing import Any, Awaitable, Callable, Dict, Optional, TYPE_CHECKING
 
 import aiohttp
 
-from . import logger
+from .exceptions import InvalidPusherHandler
 from .enums import ShardOpcode, VoiceConnectionOpcode, SpeakingState
 from .utils import JsonField, JsonStructure
-
-if TYPE_CHECKING:
-    from .client import Client
 
 
 class DiscordResponse(JsonStructure):
@@ -56,8 +53,6 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         self.current_zombie_thread = None
 
         self.zombie_function = zombie_function
-
-        self.waiters = {}
 
         self.do_poll()
 
@@ -110,11 +105,6 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
         if payload.type == aiohttp.WSMsgType.TEXT:
             resp = DiscordResponse.unmarshal(payload.data)
 
-            if resp.event_name is not None:
-                waiters = self.waiters.pop(resp.event_name.lower(), [])
-                for waiter in waiters:
-                    waiter.set_result(resp)
-
             await self.dispatch_function(resp)
 
         elif payload.type in (
@@ -136,25 +126,16 @@ class ConnectionProtocol(aiohttp.ClientWebSocketResponse):
 
         return super().close(*args, **kwargs)
 
-    def wait_for(self, event):
-        waiters = self.waiters.get(event.lower())
-        if waiters is None:
-            waiters = []
-            self.waiters[event] = waiters
-        fut = self.loop.create_future()
-        waiters.append(fut)
-        return fut
-
     @property
     def latency(self) -> float:
         return self.last_acked - self.last_sent
 
 
 class ConnectionBase:
-    def __init__(self, client: 'Client', endpoint: str):
-        self.client = client
+    def __init__(self, event_pusher, endpoint):
+        self.event_pusher = event_pusher
         self.endpoint = endpoint
-        self.websocket: ConnectionProtocol = None
+        self.websocket = None
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -168,16 +149,14 @@ class ConnectionBase:
 
     async def connect(self) -> None:
         session = aiohttp.ClientSession(
-            loop=self.client.loop,
+            loop=self.event_pusher.loop,
             ws_response_class=ConnectionProtocol
         )
 
-        self.websocket: ConnectionProtocol = await session.ws_connect(
-            self.endpoint
-        )
+        self.websocket: ConnectionProtocol = await session.ws_connect(self.endpoint)
 
         self.websocket.new(
-            loop=self.client.loop,
+            loop=self.event_pusher.loop,
             heartbeat_payload=self.heartbeat_payload,
             dispatch_function=self.dispatch,
             zombie_function=self.handle_zombie_connection
@@ -185,18 +164,9 @@ class ConnectionBase:
 
 
 class Shard(ConnectionBase):
-    def __init__(self, client, endpoint, shard_id):
-        super().__init__(client, endpoint)
+    def __init__(self, sharder, endpoint, shard_id):
+        super().__init__(sharder, endpoint)
         self.id = shard_id
-
-    def handle_zombie_connection(self):
-        logger.CONNECTION_LOGGER.critical(
-            'Shard ID %s hasn\'t received a heartbeat'
-            'ack from the gateway in %s',
-            self.id, time.monotonic() - self.websocket.last_acked,
-            stack_info=True,
-            extra=dict(cls=self.__class__.__name__)
-        )
 
     @property
     def heartbeat_payload(self) -> Dict[str, Any]:
@@ -211,7 +181,7 @@ class Shard(ConnectionBase):
         payload = {
             'op': ShardOpcode.IDENTIFY,
             'd': {
-                'token': self.client.token,
+                'token': self.event_pusher.token,
                 # 'intents': self.manager.intents,
                 'properties': {
                     '$os': sys.platform,
@@ -220,8 +190,8 @@ class Shard(ConnectionBase):
                 }
             }
         }
-        if self.client.ws.multi_sharded:
-            payload['shard'] = [self.id, self.client.ws.recommended_shards]
+        if self.event_pusher.multi_sharded:
+            payload['shard'] = [self.id, self.event_pusher.recommended_shards]
         return payload
 
     async def update_voice_state(
@@ -255,12 +225,13 @@ class Shard(ConnectionBase):
             self.websocket.heartbeat_interval = \
                 resp.data['heartbeat_interval'] / 1000
             self.websocket.do_heartbeat()
-
         elif resp.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.websocket.heartbeat_ack()
-
         elif resp.opcode == ShardOpcode.DISPATCH:
-            self.client.events.dispatch(resp)
+            try:
+                self.event_pusher.push_event(resp.event_name, resp.data)
+            except InvalidPusherHandler:
+                pass  # Unknown event
 
 
 class VoiceWSProtocol(ConnectionBase):
@@ -324,10 +295,8 @@ class VoiceWSProtocol(ConnectionBase):
             self.websocket.heartbeat_interval = \
                 resp.data['heartbeat_interval'] / 1000
             self.websocket.do_heartbeat()
-
         elif resp.opcode == VoiceConnectionOpcode.HEARTBEAT_ACK:
             self.websocket.heartbeat_ack()
-
         else:
             await self.voice_connection.dispatch(resp)
 

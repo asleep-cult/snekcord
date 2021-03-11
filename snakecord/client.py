@@ -4,8 +4,8 @@ from .guild import GuildState
 from .user import UserState
 from .rest import RestSession
 from .invite import InviteState
-from .events import EventHandler
-from .gateway import Gateway
+from .events import EventPusher
+from .gateway import Sharder
 
 
 class Client:
@@ -17,7 +17,6 @@ class Client:
         guild_state=None,
         user_state=None,
         invite_state=None,
-        event_handler=None,
         ws=None,
         max_shards=1
     ):
@@ -27,12 +26,12 @@ class Client:
         self.guilds = guild_state or GuildState(self)
         self.users = user_state or UserState(self)
         self.invites = invite_state or InviteState(self)
-        self.events = event_handler or EventHandler(self)
-        self.ws = ws or Gateway(self, max_shards=max_shards)
+        self.ws = ws or Sharder(self, max_shards=max_shards)
         self.token = None
 
     def on(self, func):
-        return self.events.add_listener(func)
+        self.ws.register_listener(func.__name__, func)
+        return self
 
     def start(self, token):
         self.token = token
