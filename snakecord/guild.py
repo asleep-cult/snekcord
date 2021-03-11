@@ -162,8 +162,8 @@ class Guild(GuildPreview, structures.Guild):
 
     @property
     def shard(self):
-        shard_id = ((self.id >> 22) % len(self._state.client.ws.shards))
-        return self._state.client.ws.shards.get(shard_id)
+        shard_id = ((self.id >> 22) % len(self._state.client.sharder.shards))
+        return self._state.client.sharder.shards.get(shard_id)
 
     @property
     def owner(self):

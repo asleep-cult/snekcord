@@ -10,21 +10,19 @@ class EventWaiter:
         self.name = name
         self.timeout = timeout
         self.filter = filter
-        self._new_future()
+        self._queue = asyncio.Queue()
 
-    def _new_future(self):
-        self.future = self.handler.loop.create_future()
-
-    def _do_wait(self):
-        return asyncio.wait_for(self.future, timeout=self.timeout)
+    async def _do_wait(self):
+        coro = self._queue.get()
+        ret = await asyncio.wait_for(coro, timeout=self.timeout)
+        if len(ret) == 1:
+            return ret[0]
+        return ret
 
     def __aiter__(self):
         return self
 
-    async def __anext__(self):
-        ret = await self._do_wait()
-        self._new_future()
-        return ret
+    __anext__ = _do_wait
 
     async def __await__impl(self):
         try:
@@ -37,7 +35,10 @@ class EventWaiter:
         return self.__await__impl().__await__()
 
     def _cleanup(self):
-        self.pusher.remove_waiter(self)
+        try:
+            self.pusher.remove_waiter(self)
+        except KeyError:
+            pass
 
     __del__ = _cleanup
 
@@ -78,7 +79,7 @@ class EventPusher:
 
         listeners.remove(func)
 
-    def register_waiter(self, name, *, timeout=0, filter=None):
+    def register_waiter(self, name, *, timeout=None, filter=None):
         name = name.lower()
         waiters = self._waiters.get(name)
 
@@ -86,6 +87,7 @@ class EventPusher:
             raise InvalidPusherHandler(self, name)
 
         waiter = EventWaiter(self, name, timeout, filter)
+
         waiters.add(waiter)
 
         return waiter
@@ -97,11 +99,6 @@ class EventPusher:
 
         if waiters is None:
             raise InvalidPusherHandler(self, waiter.name)
-
-        try:
-            waiter.future.cancel()
-        except asyncio.InvalidStateError:
-            pass
 
         waiters.remove(waiter)
 
@@ -120,7 +117,7 @@ class EventPusher:
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
 
-        if listeners is None or waiters is None:
+        if listeners is None is None or waiters is None:
             raise InvalidPusherHandler(self, name)
 
         for listener in listeners:
@@ -131,7 +128,15 @@ class EventPusher:
                 if not waiter.filter(*args):
                     continue
 
-            if len(args) > 1:
-                waiter.future.set_result(args)
-            else:
-                waiter.future.set_result(*args)
+            waiter._queue.put_nowait(args)
+
+    def on(self, func):
+        self.register_listener(func.__name__, func)
+        return func
+
+    def once(self, func):
+        def callback(*args):
+            run_coroutine(func(*args), self.loop)
+            self.remove_listener(func.__name__, callback)
+        self.register_listener(func.__name__, callback)
+        return func

@@ -17,7 +17,7 @@ class Client:
         guild_state=None,
         user_state=None,
         invite_state=None,
-        ws=None,
+        sharder=None,
         max_shards=1
     ):
         self.loop = loop or asyncio.get_event_loop()
@@ -26,16 +26,12 @@ class Client:
         self.guilds = guild_state or GuildState(self)
         self.users = user_state or UserState(self)
         self.invites = invite_state or InviteState(self)
-        self.ws = ws or Sharder(self, max_shards=max_shards)
+        self.events = self.sharder = sharder or Sharder(self, max_shards=max_shards)
         self.token = None
-
-    def on(self, func):
-        self.ws.register_listener(func.__name__, func)
-        return self
 
     def start(self, token):
         self.token = token
-        self.loop.create_task(self.ws.connect())
+        self.loop.create_task(self.sharder.connect())
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
