@@ -26,8 +26,11 @@ class Client:
         self.guilds = guild_state or GuildState(self)
         self.users = user_state or UserState(self)
         self.invites = invite_state or InviteState(self)
-        self.events = self.sharder = sharder or Sharder(self, max_shards=max_shards)
+        self.sharder = sharder or Sharder(self, max_shards=max_shards)
         self.token = None
+
+        self.events = EventPusher(self.loop)
+        self.events.subscribe(self.sharder)
 
     def start(self, token):
         self.token = token
