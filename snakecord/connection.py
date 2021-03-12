@@ -92,10 +92,12 @@ class WebsocketFrame(cstruct):
             buffer[1] |= length
         elif length <= 0xFFFF:
             buffer[1] |= 126
-            buffer.extend(length.to_bytes(2, 'big', signed=False))
+            size = cstruct.UnsignedShort.size
         else:
             buffer[1] |= 127
-            buffer.extend(length.to_bytes(8, 'big', signed=False))
+            size = cstruct.UnsignedLongLong.size
+
+        buffer.extend(length.to_bytes(size, 'big', signed=False))
 
         if masked:
             data = bytearray(data)
@@ -166,7 +168,7 @@ class WebsocketProtocol(asyncio.Protocol):
                 self.frame.length_buffer += length_bytes
 
                 if self.frame.bytes_needed == 0:
-                    self.frame.length = int.from_bytes(self.frame.length_buffer, 'big')
+                    self.frame.length = int.from_bytes(self.frame.length_buffer, 'big', signed=False)
                     self.frame.bytes_needed = self.frame.length
                     self.state = WebsocketProtocolState.WAITING_DATA
 
