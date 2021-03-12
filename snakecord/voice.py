@@ -3,8 +3,8 @@ import struct
 import nacl.secret
 
 from . import structures
-from .connection import VoiceUDPProtocol, VoiceWSProtocol
-from .enums import VoiceConnectionOpcode
+# from .connection import VoiceUDPProtocol, VoiceWSProtocol
+# from .enums import VoiceConnectionOpcode
 
 
 class VoiceState(structures.VoiceState):

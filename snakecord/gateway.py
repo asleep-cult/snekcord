@@ -139,8 +139,8 @@ class Sharder(EventPusher):
         shards = min((self.max_shards, self.gateway_data['shards']))
 
         for shard_id in range(shards):
-            shard = Shard(self, self.gateway_data['url'], shard_id)
+            shard = Shard(self.gateway_data['url'], self, shard_id)
             self.shards[shard_id] = shard
 
         for shard in self.shards.values():
-            await shard.connect()
+            await shard.connect(port=443, ssl=True)

@@ -1,5 +1,5 @@
-class InvalidPusherHandler(Exception):
-    def __init__(self, pusher, name):
+class BadWsHttpResponse(Exception):
+    def __init__(self, tp, expected, got):
         super().__init__(
-            'EventPusher "{.__class__.__name__}" has no handler "{}"'.format(pusher, name)
+            "Expected {} {}, got {}".format(tp, expected, got)
         )

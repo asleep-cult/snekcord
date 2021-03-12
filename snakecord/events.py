@@ -101,15 +101,15 @@ class EventPusher:
         name = name.lower()
         handler = self._handlers.get(name)
 
-        if handler is None:
-            return
+        if handler is not None:
+            listener_args = (handler._execute(self, *args, **kwargs),)
+        else:
+            listener_args = args
 
-        event = handler._execute(self, *args, **kwargs)
-
-        self.call_listeners(name, event)
+        self.call_listeners(name, *listener_args)
 
         for subscriber in self._subscribers:
-            subscriber.call_listeners(name, event)
+            subscriber.call_listeners(name, *listener_args)
 
     def call_listeners(self, name, *args):
         name = name.lower()
