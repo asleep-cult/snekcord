@@ -126,7 +126,7 @@ class EventPusher:
                     if not waiter.filter(*args):
                         continue
 
-            waiter._queue.put_nowait(args)
+                waiter._queue.put_nowait(args)
 
     def on(self, func):
         self.register_listener(func.__name__, func)
@@ -143,7 +143,7 @@ class EventPusher:
     def subscribe(self, pusher):
         pusher._subscribers.append(self)
 
-    def ubsubscribe(self, pusher):
+    def unsubscribe(self, pusher):
         pusher._subscribers.remove(self)
 
         for name in pusher._listeners:
