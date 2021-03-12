@@ -63,30 +63,6 @@ class WebsocketFrame(cstruct):
             data[i] ^= mask[i % 4]
 
     @classmethod
-    async def new(cls, reader):
-        self = cls.unpack(await reader.readexactly(cls.struct.size))
-        self.length = cls.get_length(self.sbyte)
-
-        if self.length == 126:
-            length = await reader.readexactly(cstruct.UnsignedShort.size)
-            self.length = int.from_bytes(length, 'big', signed=False)
-        elif self.length == 127:
-            length = await reader.readexactly(cstruct.UnsignedLongLong.size)
-            self.length = int.from_bytes(length, 'big', signed=False)
-
-        if cls.get_mask(self.sbyte):
-            self.mask = await reader.readexactly(cstruct.UnsignedInt.size)
-        else:
-            self.mask = None
-
-        self.data = bytearray(await reader.read(self.length))
-
-        if self.mask is not None:
-            cls.apply_mask(self.data)
-
-        return self
-
-    @classmethod
     def create_frame(
         cls, data, *, opcode=WebsocketOpcode.TEXT,
         fin=True, rsv1=False, rsv2=False, rsv3=False,
