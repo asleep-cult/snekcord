@@ -175,7 +175,7 @@ class WebsocketProtocol(asyncio.Protocol):
 
             if self.state == WebsocketProtocolState.WAITING_DATA:
                 data_bytes = data[position:position + self.frame.bytes_needed]
-                position += len(data)
+                position += len(data_bytes)
                 self.frame.bytes_needed -= len(data_bytes)
                 self.frame.data += data_bytes
 
