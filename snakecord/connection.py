@@ -90,14 +90,15 @@ class WebsocketFrame(cstruct):
         length = len(data)
         if length <= 125:
             buffer[1] |= length
-        elif length <= 0xFFFF:
-            buffer[1] |= 126
-            size = cstruct.UnsignedShort.size
         else:
-            buffer[1] |= 127
-            size = cstruct.UnsignedLongLong.size
+            if length <= 0xFFFF:
+                buffer[1] |= 126
+                size = cstruct.UnsignedShort.size
+            else:
+                buffer[1] |= 127
+                size = cstruct.UnsignedLongLong.size
 
-        buffer.extend(length.to_bytes(size, 'big', signed=False))
+            buffer.extend(length.to_bytes(size, 'big', signed=False))
 
         if masked:
             data = bytearray(data)
