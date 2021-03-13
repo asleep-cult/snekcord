@@ -162,8 +162,8 @@ class Guild(GuildPreview, structures.Guild):
 
     @property
     def shard(self):
-        shard_id = ((self.id >> 22) % len(self._state.client.ws.shards))
-        return self._state.client.ws.shards.get(shard_id)
+        shard_id = ((self.id >> 22) % len(self._state.client.sharder.shards))
+        return self._state.client.sharder.shards.get(shard_id)
 
     @property
     def owner(self):
@@ -256,7 +256,6 @@ class GuildState(BaseState):
 
         guild = Guild.unmarshal(data, state=self)
         self._items[guild.id] = guild
-        self.client.events.guild_cache(guild)
         return guild
 
     async def fetch(self, guild_id) -> Guild:

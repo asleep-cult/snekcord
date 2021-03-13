@@ -43,6 +43,11 @@ class BaseState:
     def clear(self):
         self._items.clear()
 
+    def find(self, func):
+        for item in self:
+            if func(item):
+                return item
+
     def _add(self, *args, **kwargs):
         raise NotImplementedError
 

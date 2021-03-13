@@ -1,141 +1,153 @@
-import logging
+import asyncio
+import weakref
 
-from . import logger
+
+class EventWaiter:
+    def __init__(self, pusher, name, timeout, filter):
+        self.pusher = pusher
+        self.name = name
+        self.timeout = timeout
+        self.filter = filter
+        self._queue = asyncio.Queue()
+
+    async def _do_wait(self):
+        coro = self._queue.get()
+        ret = await asyncio.wait_for(coro, timeout=self.timeout)
+        if len(ret) == 1:
+            return ret[0]
+        return ret
+
+    def __aiter__(self):
+        return self
+
+    __anext__ = _do_wait
+
+    async def __await__impl(self):
+        try:
+            ret = await self._do_wait()
+        finally:
+            self._cleanup()
+        return ret
+
+    def __await__(self):
+        return self.__await__impl().__await__()
+
+    def _cleanup(self):
+        try:
+            self.pusher.remove_waiter(self)
+        except KeyError:
+            pass
+
+    __del__ = _cleanup
 
 
-class EventHandler:
-    def __init__(self, client):
-        log_handler = logger.Handler(self)
-        for log in logger.LOGGERS:
-            log.addHandler(log_handler)
+def run_coroutine(coro, loop):
+    if asyncio.iscoroutine(coro):
+        loop.create_task(coro)
 
-        handlers = (
-            self.channel_create,
-            self.channel_update,
-            self.channel_delete,
-            self.channel_cache,
-            self.channel_pins_update,
-            self.guild_create,
-            self.guild_update,
-            self.guild_delete,
-            self.guild_ban_add,
-            self.invite_create,
-            self.message_create,
-            self.log_info,
-            self.log_critical,
-            self.guild_cache,
-            self.member_cache,
-            self.user_cache,
-        )
 
-        self.handlers = {
-            handler.__name__.lower(): handler for handler in handlers
-        }
-        self.listeners = {
-            handler.__name__.lower(): [] for handler in handlers
-        }
+class EventPusher:
+    handlers = ()
 
-        for name, listeners in self.listeners.items():
-            try:
-                attr = getattr(self.client, name)
-            except AttributeError:
-                continue
-            listeners.append(attr)
+    def __init__(self, loop):
+        self.loop = loop
+        self._handlers = {handler.name: handler for handler in self.handlers}
+        self._listeners = {}
+        self._waiters = {}
+        self._subscribers = []
 
-        self.client = client
-        self.loop = self.client.loop
-        self.formatter = logging.Formatter(
-            '[%(name)s] [%(cls)s] [%(asctime)s] %(message)s'
-        )
+    def register_listener(self, name, func):
+        name = name.lower()
+        listeners = self._listeners.get(name)
 
-    def dispatch(self, payload):
-        name = payload.event_name.lower()
-        handler = self.handlers.get(name)
-        if handler is not None:
-            handler(payload)
-
-    def add_listener(self, func):
-        name = func.__name__.lower()
-        listeners = self.listeners.get(name)
         if listeners is None:
-            raise Exception
+            listeners = []
+            self._listeners[name] = listeners
+
         listeners.append(func)
+
+    def remove_listener(self, name, func):
+        name = name.lower()
+        listeners = self._listeners.get(name)
+
+        if listeners is None:
+            return
+
+        listeners.remove(func)
+
+    def register_waiter(self, name, *, timeout=None, filter=None):
+        name = name.lower()
+        waiters = self._waiters.get(name)
+
+        if waiters is None:
+            waiters = weakref.WeakSet()
+            self._waiters[name] = waiters
+
+        waiter = EventWaiter(self, name, timeout, filter)
+        waiters.add(waiter)
+        return waiter
+
+    wait = register_waiter
+
+    def remove_waiter(self, waiter):
+        waiters = self._waiters.get(waiter.name)
+
+        if waiters is None:
+            return
+
+        waiters.remove(waiter)
+
+    def push_event(self, name, *args, **kwargs):
+        name = name.lower()
+        handler = self._handlers.get(name)
+
+        if handler is not None:
+            listener_args = (handler._execute(self, *args, **kwargs),)
+        else:
+            listener_args = args
+
+        self.call_listeners(name, *listener_args)
+
+        for subscriber in self._subscribers:
+            subscriber.call_listeners(name, *listener_args)
+
+    def call_listeners(self, name, *args):
+        name = name.lower()
+        listeners = self._listeners.get(name)
+        waiters = self._waiters.get(name)
+
+        if listeners is not None:
+            for listener in listeners:
+                run_coroutine(listener(*args), self.loop)
+
+        if waiters is not None:
+            for waiter in waiters:
+                if waiter.filter is not None:
+                    if not waiter.filter(*args):
+                        continue
+
+                waiter._queue.put_nowait(args)
+
+    def on(self, func):
+        self.register_listener(func.__name__, func)
         return func
 
-    def _call_listeners(self, name, *args):
-        for listener in self.listeners[name]:
-            self.loop.create_task(listener(*args))
+    def once(self, func):
+        def callback(*args):
+            run_coroutine(func(*args), self.loop)
+            self.remove_listener(func.__name__, callback)
 
-    def channel_create(self, payload):
-        channel = self.client.channels._add(payload.data)
-        self._call_listeners('channel_create', channel)
+        self.register_listener(func.__name__, callback)
+        return func
 
-    def channel_update(self, payload):
-        channel = self.client.channels._add(payload.data)
-        self._call_listeners('channel_update', channel)
+    def subscribe(self, pusher):
+        pusher._subscribers.append(self)
 
-    def channel_delete(self, payload):
-        channel_id = payload.data['id']
-        channel = self.client.channels.pop(channel_id)
-        if channel is not None:
-            self._call_listeners('channel_delete', channel)
+    def unsubscribe(self, pusher):
+        pusher._subscribers.remove(self)
 
-    def channel_cache(self, channel):
-        self._call_listeners('channel_cache', channel)
+        for name in pusher._listeners:
+            self._listeners.pop(name, None)
 
-    def channel_pins_update(self, payload):
-        channel_id = payload.data['channel_id']
-        channel = self.client.channels.get(channel_id)
-        if channel is not None:
-            channel.last_pin_timestamp = payload['last_pin_timestamp']
-            self._call_listeners('channel_pins_update', channel)
-
-    def guild_create(self, payload):
-        guild = self.client.guilds._add(payload.data)
-        self._call_listeners('guild_create', guild)
-
-    def guild_update(self, payload):
-        guild = self.client.guilds._add(payload.data)
-        self._call_listeners('guild_update', guild)
-
-    def guild_delete(self, payload):
-        guild_id = payload.data['id']
-        guild = self.client.guilds.pop(guild_id)
-        if guild is not None:
-            self._call_listeners('guild_delete', guild)
-
-    def guild_ban_add(self, payload):
-        guild_id = payload.data['guild_id']
-        guild = self.client.guilds.get(guild_id)
-        if guild is not None:
-            member_id = payload.data['id']
-            member = guild.members.pop(member_id)
-            self._call_listeners('guild_ban_add', member)
-
-    def invite_create(self, payload):
-        invite = self.client.invites._add(payload.data)
-        self._call_listeners('invite_create', invite)
-
-    def message_create(self, payload):
-        data = payload.data
-        channel = self.client.channels.get(data.get('channel_id'))
-        if channel is not None:
-            message = channel.messages._add(data)
-            self._call_listeners('message_create', message)
-
-    def log_info(self, record):
-        fmt = self.formatter.format(record)
-        self._call_listeners('log_info', fmt, record)
-
-    def log_critical(self, record):
-        fmt = self.formatter.format(record)
-        self._call_listeners('log_critical', fmt, record)
-
-    def guild_cache(self, guild):
-        self._call_listeners('guild_cache', guild)
-
-    def member_cache(self, member):
-        self._call_listeners('member_cache', member)
-
-    def user_cache(self, user):
-        self._call_listeners('user_cache', user)
+        for name in pusher._waiters:
+            self._waiters.pop(name, None)

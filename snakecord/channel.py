@@ -10,7 +10,7 @@ from .message import MessageState
 from .permissions import PermissionOverwriteState
 from .state import BaseState
 from .utils import _try_snowflake, undefined
-from .voice import VoiceConnection
+from .voice import VoiceConnection, VoiceState
 
 
 class GuildChannel(structures.GuildChannel):
@@ -97,7 +97,7 @@ class VoiceChannel(GuildChannel, structures.VoiceChannel):
         state_data = await voice_state_update
         server_data = await voice_server_update
 
-        voice_state = structures.VoiceState.unmarshal(state_data.data, voice_channel=self)
+        voice_state = VoiceState.unmarshal(state_data.data, voice_channel=self)
         voice_server = structures.VoiceServerUpdate.unmarshal(server_data.data)
 
         self.voice_connection = VoiceConnection(voice_state, voice_server)
