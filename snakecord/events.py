@@ -128,17 +128,28 @@ class EventPusher:
 
                 waiter._queue.put_nowait(args)
 
-    def on(self, func):
-        self.register_listener(func.__name__, func)
-        return func
+    def on(self, name=None):
+        def wrapped(func):
+            nonlocal name
+            name = name or func.__name__
+            self.register_listener(name, func)
 
-    def once(self, func):
-        def callback(*args):
-            run_coroutine(func(*args), self.loop)
-            self.remove_listener(func.__name__, callback)
+        return wrapped
 
-        self.register_listener(func.__name__, callback)
-        return func
+    def once(self, name=None):
+        def wrapped(func):
+            nonlocal name
+            name = name or func.__name__
+
+            def callback(*args):
+                run_coroutine(func(*args), self.loop)
+                self.remove_listener(name, callback)
+
+            self.register_listener(name, callback)
+
+            return func
+
+        return wrapped
 
     def subscribe(self, pusher):
         pusher._subscribers.append(self)

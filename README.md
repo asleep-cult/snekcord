@@ -9,13 +9,11 @@ TOKEN = ''
 client = snakecord.Client()
 
 
-@client.events.on
-async def message_create(event):
-    message = event.message
-
-    if message.content == '!ping':
-        shard = message.guild.shard
-        await message.channel.send(f'Latency: {shard.websocket.latency}')
+@client.on()
+async def message_create(evnt):
+    message = evnt.message
+    if message.content == '.ping':
+        await message.channel.send('Pong!')
 
 
 client.start(TOKEN)

@@ -8,7 +8,7 @@ from .events import EventPusher
 from .gateway import Sharder
 
 
-class Client:
+class Client(EventPusher):
     def __init__(
         self,
         loop=None,
@@ -21,6 +21,9 @@ class Client:
         max_shards=1
     ):
         self.loop = loop or asyncio.get_event_loop()
+
+        super().__init__(self.loop)
+
         self.rest = rest or RestSession(self)
         self.channels = channel_state or ChannelState(self)
         self.guilds = guild_state or GuildState(self)
@@ -29,8 +32,7 @@ class Client:
         self.sharder = sharder or Sharder(self, max_shards=max_shards)
         self.token = None
 
-        self.events = EventPusher(self.loop)
-        self.events.subscribe(self.sharder)
+        self.subscribe(self.sharder)
 
     def start(self, token):
         self.token = token

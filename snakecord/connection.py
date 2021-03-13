@@ -183,7 +183,7 @@ class WebsocketProtocol(asyncio.Protocol):
                 self.frame.data += data_bytes
 
                 if self.frame.bytes_needed == 0:
-                    self.connection.streamer.push_event('ws_frame_receive', self.frame)
+                    self.connection.push_event('ws_frame_receive', self.frame)
                     self.frame = WebsocketFrame()
                     self.state = WebsocketProtocolState.WAITING_FBYTE
 
@@ -212,16 +212,17 @@ class DiscordResponse(JsonStructure):
     }
 
 
-class BaseConnection:
+class BaseConnection(EventPusher):
     def __init__(self, endpoint, pusher):
+        super().__init__(pusher.loop)
+
         self.endpoint = endpoint
         self.loop = pusher.loop
         self.pusher = pusher
 
-        self.streamer = EventPusher(pusher.loop)
-        self.streamer.on(self.ws_frame_receive)
-        self.streamer.on(self.ws_receive)
-        self.streamer.on(self.connection_stale)
+        self.register_listener('connection_stale', self.connection_stale)
+        self.register_listener('ws_frame_receive', self.ws_frame_receive)
+        self.register_listener('ws_receive', self.ws_receive)
 
         self.heartbeat_handler = HeartbeatHandler(self)
 
@@ -240,7 +241,7 @@ class BaseConnection:
     def ws_frame_receive(self, frame):
         if WebsocketFrame.get_opcode(frame.fbyte) == WebsocketOpcode.TEXT:
             response = DiscordResponse.unmarshal(frame.data)
-            self.streamer.push_event('ws_receive', response)
+            self.push_event('ws_receive', response)
 
     async def ws_receive(self, response):
         raise NotImplementedError
@@ -351,7 +352,7 @@ class HeartbeatHandler:
 
     async def wait_ack(self):
         try:
-            await self.connection.streamer.wait(
+            await self.connection.wait(
                 'heartbeat_ack',
                 timeout=self.timeout,
             )
@@ -359,7 +360,7 @@ class HeartbeatHandler:
             self.heartbeats_acked += 1
         except asyncio.TimeoutError:
             self.stop()
-            self.connection.streamer.push_event('connection_stale')
+            self.connection.push_event('connection_stale')
 
     def start(self):
         self.loop.create_task(self.send_heartbeat())
@@ -426,7 +427,7 @@ class Shard(BaseConnection):
             self.heartbeat_handler.heartbeat_interval = interval
             self.heartbeat_handler.start()
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
-            self.streamer.push_event('heartbeat_ack')
+            self.push_event('heartbeat_ack')
         elif response.opcode == ShardOpcode.DISPATCH:
             self.pusher.push_event(response.event_name, response.data)
 
