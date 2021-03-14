@@ -141,21 +141,6 @@ class CType:
         return struct.calcsize(self.format_char)
 
 
-class CStructInstance:
-    def __init__(self, struct, **kwargs):
-        self.struct = struct
-        self.values = kwargs
-
-        for name, value in kwargs.items():
-            setattr(self, name, value)
-
-    def pack(self):
-        return self.struct.pack(**self.values)
-
-    def pack_into(self, buffer, offet):
-        return self.struct.pack_into(buffer, offet, **self.values)
-
-
 class cstruct:
     Pad = CType('x')
     Char = CType('c')
@@ -208,18 +193,29 @@ class cstruct:
         return args
 
     @classmethod
+    def _create(cls, **values):
+        self = object.__new__(cls)
+
+        self.fields = values
+
+        for name, value in values.items():
+            setattr(self, name, value)
+
+        return self
+
+    @classmethod
     def iter_unpack(cls, buffer):
         return cls.struct.iter_unpack(buffer)
 
     @classmethod
     def unpack(cls, buffer):
         values = cls.struct.unpack(buffer)
-        return CStructInstance(cls, **dict(zip(cls.fields, values)))
+        return cls._create(**dict(zip(cls.fields, values)))
 
     @classmethod
     def unpack_from(cls, buffer, offset=0):
         values = cls.struct.unpack_from(buffer, offset)
-        return CStructInstance(cls, **dict(zip(cls.fields, values)))
+        return cls._create(**dict(zip(cls.fields, values)))
 
     @classmethod
     def pack(cls, **kwargs):

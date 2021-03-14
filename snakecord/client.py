@@ -20,9 +20,7 @@ class Client(EventPusher):
         sharder=None,
         max_shards=1
     ):
-        self.loop = loop or asyncio.get_event_loop()
-
-        super().__init__(self.loop)
+        super().__init__(loop or asyncio.get_event_loop())
 
         self.rest = rest or RestSession(self)
         self.channels = channel_state or ChannelState(self)

@@ -29,65 +29,81 @@ class WebsocketFrame(cstruct):
     fbyte: cstruct.UnsignedChar
     sbyte: cstruct.UnsignedChar
 
-    @staticmethod
-    def get_fin(byte):
-        return byte & 0b10000000
+    def __init__(
+        self, data, *, opcode=WebsocketOpcode.TEXT, fin=True,
+        rsv1=False, rsv2=False, rsv3=False, masked=True
+    ):
+        self.data = data
+        self.opcode = opcode
+        self.fin = fin
+        self.rsv1 = rsv1
+        self.rsv2 = rsv2
+        self.rsv3 = rsv3
+        self.masked = masked
 
-    @staticmethod
-    def get_rsv1(byte):
-        return byte & 0b01000000
+    def get_fin(self):
+        return self.fbyte & 0b10000000
 
-    @staticmethod
-    def get_rsv2(byte):
-        return byte & 0b00100000
+    def get_rsv1(self):
+        return self.fbyte & 0b01000000
 
-    @staticmethod
-    def get_rsv3(byte):
-        return byte & 0b00010000
+    def get_rsv2(self):
+        return self.fbyte & 0b00100000
 
-    @staticmethod
-    def get_opcode(byte):
-        return byte & 0b00001111
+    def get_rsv3(self):
+        return self.fbyte & 0b00010000
 
-    @staticmethod
-    def get_mask(byte):
-        return byte & 0b10000000
+    def get_opcode(self):
+        return self.fbyte & 0b00001111
 
-    @staticmethod
-    def get_length(byte):
-        return byte & 0b01111111
+    def get_masked(self):
+        return self.sbyte & 0b10000000
+
+    def get_length(self):
+        return self.sbyte & 0b01111111
 
     @staticmethod
     def apply_mask(mask, data):
         for i in range(len(data)):
             data[i] ^= mask[i % 4]
+        return data
 
     @classmethod
-    def create_frame(
-        cls, data, *, opcode=WebsocketOpcode.TEXT,
-        fin=True, rsv1=False, rsv2=False, rsv3=False,
-        masked=True
-    ):
+    def from_head(cls, head):
+        self = cls.unpack(head)
+        self.data = b''
+        self.fin = self.get_fin()
+        self.rsv1 = self.get_rsv1()
+        self.rsv2 = self.get_rsv2()
+        self.rsv3 = self.get_rsv3()
+        self.opcode = self.get_opcode()
+        self.masked = self.get_masked()
+        self.length = self.get_length()
+        return self
+
+    def encode(self):
+        data = self.data
         buffer = bytearray(2)
 
-        if fin:
+        if self.fin:
             buffer[0] |= 0b10000000
 
-        if rsv1:
+        if self.rsv1:
             buffer[0] |= 0b01000000
 
-        if rsv2:
+        if self.rsv2:
             buffer[0] |= 0b00100000
 
-        if rsv3:
+        if self.rsv3:
             buffer[0] |= 0b00010000
 
-        buffer[0] |= opcode
+        buffer[0] |= self.opcode
 
-        if masked:
+        if self.masked:
             buffer[1] |= 0b10000000
 
         length = len(data)
+
         if length <= 125:
             buffer[1] |= length
         else:
@@ -100,11 +116,10 @@ class WebsocketFrame(cstruct):
 
             buffer.extend(length.to_bytes(size, 'big', signed=False))
 
-        if masked:
-            data = bytearray(data)
+        if self.masked:
             mask = os.urandom(4)
             buffer.extend(mask)
-            cls.apply_mask(mask, data)
+            data = self.apply_mask(mask, bytearray(self.data))
 
         buffer.extend(data)
 
@@ -122,73 +137,79 @@ class WebsocketProtocol(asyncio.Protocol):
     def __init__(self, connection):
         self.connection = connection
         self.state = WebsocketProtocolState.WAITING_FBYTE
-        self.frame = WebsocketFrame()
+        self.frame = None
+        self.bytes_needed = 0
+        self.length_buffer = b''
+        self.head_buffer = bytearray(2)
         self.headers = b''
         self.have_headers = asyncio.Event()
 
-    def create_frames(self, data):
+    def _check_position(self, position, data):
+        if position >= len(data):
+            raise EOFError
+
+    def _create_frames(self, data):
         position = 0
         while True:
-            if position >= len(data):
-                return
+            self._check_position(position, data)
 
             if self.state == WebsocketProtocolState.WAITING_FBYTE:
-                self.frame.fbyte = data[position]
+                self.head_buffer[0] = data[position]
                 position += 1
                 self.state = WebsocketProtocolState.WAITING_SBYTE
 
-            if position >= len(data):
-                return
+            self._check_position(position, data)
 
             if self.state == WebsocketProtocolState.WAITING_SBYTE:
-                self.frame.data = b''
-
-                self.frame.sbyte = data[position]
+                self.head_buffer[1] = data[position]
                 position += 1
-                self.frame.length = WebsocketFrame.get_length(self.frame.sbyte)
+                self.frame = WebsocketFrame.from_head(self.head_buffer)
 
                 if self.frame.length > 125:
-                    self.frame.length_buffer = b''
                     self.state = WebsocketProtocolState.WAITING_LENGTH
 
                     if self.frame.length == 126:
-                        self.frame.bytes_needed = cstruct.UnsignedShort.size
+                        self.bytes_needed = cstruct.UnsignedShort.size
                     elif self.frame.length == 127:
-                        self.frame.bytes_needed = cstruct.UnsignedLongLong.size
+                        self.bytes_needed = cstruct.UnsignedLongLong.size
                 else:
-                    self.frame.bytes_needed = self.frame.length
+                    self.bytes_needed = self.frame.length
                     self.state = WebsocketProtocolState.WAITING_DATA
 
-            if position >= len(data):
-                return
+            self._check_position(position, data)
 
             if self.state == WebsocketProtocolState.WAITING_LENGTH:
-                length_bytes = data[position:position + self.frame.bytes_needed]
+                length_bytes = data[position:position + self.bytes_needed]
                 position += len(length_bytes)
-                self.frame.bytes_needed -= len(length_bytes)
-                self.frame.length_buffer += length_bytes
+                self.bytes_needed -= len(length_bytes)
+                self.length_buffer += length_bytes
 
-                if self.frame.bytes_needed == 0:
-                    self.frame.length = int.from_bytes(self.frame.length_buffer, 'big', signed=False)
-                    self.frame.bytes_needed = self.frame.length
+                if self.bytes_needed == 0:
+                    self.frame.length = int.from_bytes(self.length_buffer, 'big', signed=False)
+                    self.length_buffer = b''
+                    self.bytes_needed = self.frame.length
                     self.state = WebsocketProtocolState.WAITING_DATA
 
-            if position >= len(data):
-                return
+            self._check_position(position, data)
 
             if self.state == WebsocketProtocolState.WAITING_DATA:
-                data_bytes = data[position:position + self.frame.bytes_needed]
+                data_bytes = data[position:position + self.bytes_needed]
                 position += len(data_bytes)
-                self.frame.bytes_needed -= len(data_bytes)
+                self.bytes_needed -= len(data_bytes)
                 self.frame.data += data_bytes
 
-                if self.frame.bytes_needed == 0:
+                if self.bytes_needed == 0:
                     self.connection.push_event('ws_frame_receive', self.frame)
-                    self.frame = WebsocketFrame()
+                    self.frame = None
                     self.state = WebsocketProtocolState.WAITING_FBYTE
 
-            if position >= len(data):
-                return
+            self._check_position(position, data)
+
+    def create_frames(self, data):
+        try:
+            self._create_frames(data)
+        except EOFError:
+            pass
 
     def data_received(self, data):
         if not self.have_headers.is_set():
@@ -238,13 +259,13 @@ class BaseConnection(EventPusher):
     async def connection_stale(self):
         raise NotImplementedError
 
-    def ws_frame_receive(self, frame):
-        if WebsocketFrame.get_opcode(frame.fbyte) == WebsocketOpcode.TEXT:
-            response = DiscordResponse.unmarshal(frame.data)
-            self.push_event('ws_receive', response)
-
     async def ws_receive(self, response):
         raise NotImplementedError
+
+    def ws_frame_receive(self, frame):
+        if frame.opcode == WebsocketOpcode.TEXT:
+            response = DiscordResponse.unmarshal(frame.data)
+            self.push_event('ws_receive', response)
 
     def form_headers(self, meth, path, headers):
         parts = ['%s %s HTTP/1.0' % (meth, path)]
@@ -308,9 +329,12 @@ class BaseConnection(EventPusher):
         if upgrade != 'websocket':
             raise BadWsHttpResponse('upgrade', 'websocket', upgrade)
 
+    def send_frame(self, frame):
+        self.transport.write(frame.encode())
+
     def send(self, data, *args, **kwargs):
-        data = WebsocketFrame.create_frame(data, *args, **kwargs)
-        self.transport.write(data)
+        frame = WebsocketFrame(data, *args, **kwargs)
+        self.send_frame(frame)
 
     def send_json(self, data):
         self.send(json.dumps(data).encode())
@@ -423,8 +447,7 @@ class Shard(BaseConnection):
     async def ws_receive(self, response):
         if response.opcode == ShardOpcode.HELLO:
             self.send_json(self.identify_payload)
-            interval = response.data['heartbeat_interval'] / 1000
-            self.heartbeat_handler.heartbeat_interval = interval
+            self.heartbeat_handler.heartbeat_interval = response.data['heartbeat_interval'] / 1000
             self.heartbeat_handler.start()
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.push_event('heartbeat_ack')
