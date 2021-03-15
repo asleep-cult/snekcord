@@ -111,21 +111,25 @@ class EventPusher:
         handler = self._handlers.get(name)
 
         if handler is not None:
-            args = (handler(self, *args, **kwargs),)
+            evnt = handler(*args, **kwargs)
+            self.call_listeners(name, handler(self, evnt)
 
-        self.call_listeners(name, *args)
+            for subscriber in self._subscribers:
+                subscriber.call_listeners(name, evnt)
+        else:
+            self.call_listeners(name, *args, **kwargs)
 
-        for subscriber in self._subscribers:
-            subscriber.call_listeners(name, *args)
+            for subscriber in self._subscribers:
+                subscriber.call_listeners(name, *args, **kwargs)
 
-    def call_listeners(self, name, *args):
+    def call_listeners(self, name, *args, **kwargs):
         name = name.lower()
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
 
         if listeners is not None:
             for listener in listeners:
-                run_coroutine(listener(*args), self.loop)
+                run_coroutine(listener(*args, **kwargs), self.loop)
 
         if waiters is not None:
             for waiter in waiters:

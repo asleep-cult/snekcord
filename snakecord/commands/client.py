@@ -1,4 +1,5 @@
 from ..client import Client
+from .parsers import StringParser, FunctionArgParser
 
 
 class CommanderClient(Client):

@@ -1,31 +1,13 @@
-from asyncio import iscoroutine
-
-from .exceptions import InvokeGuardFailure
-from .parsers import FunctionArgParser, StringParser
 from ..utils import undefined
 
 WHITESPACE = (' ', '\t', '\r', '\n')
 
 
-class InvokeGuard:
-    def __init__(self, func):
-        self.func = func
-
-    async def __call__(self, *args, **kwargs):
-        ret = self.func(*args, **kwargs)
-        if iscoroutine(ret):
-            ret = await ret
-        return ret
-
-
 class Command:
-    def __init__(self, func, *, name=None, description=None, guards=None, overflow=False):
-        self.func = func
-        self.name = name or func.__name__
-        self.description = description or func.__doc__
-        self.guards = guards or []
-
-        args = FunctionArgParser(func)
+    def __init__(self, commander, name, args, *, description=None, overflow=False):
+        self.commander = commander
+        self.name = name
+        self.description = description
 
         self.vararg = args.vararg
         self.varkwargs = args.varkwarg
@@ -40,19 +22,10 @@ class Command:
         self.flags = {arg.name: arg for arg in args.kw_only}
         self.args = {arg.name: arg for arg in (args.pos_only + args.pos_or_kw)[1:]}
 
-    async def call_guards(self, message):
-        for guard in self.guards:
-            ret = await guard(message)
-            if ret is False:
-                raise InvokeGuardFailure('InvokeGuard {!r} returned False'.format(guard))
-
-    async def invoke(self, message):
-        await self.call_guards(message)
-
-        parser = StringParser(message.content)
+    def _parse_args(self, evnt):
+        parser = evnt.parser
 
         args = []
-        call_kwargs = {}
 
         while True:
             position = parser.buffer.tell()
@@ -66,7 +39,7 @@ class Command:
                     parser.buffer.seek(position)
                 else:
                     value = parser.get_argument()
-                    call_kwargs[name] = value
+                    evnt.kwargs[name] = value
                     continue
             elif char in WHITESPACE:
                 continue
@@ -77,8 +50,6 @@ class Command:
                 break
 
             args.append(parser.get_argument())
-
-        call_args = [message]
 
         if not self.vararg:
             for arg in self.args.values():
@@ -91,14 +62,11 @@ class Command:
                     else:
                         raise
         else:
-            call_args.extend(args)
+            evnt.args.extend(args)
 
         if self.overflow is not None:
-            call_kwargs[self.overflow.name] = parser.buffer.read()
+            evnt.kwargs[self.overflow.name] = parser.buffer.read()
 
-        await self(*call_args, **call_kwargs)
-
-    async def __call__(self, *args, **kwargs):
-        ret = self.func(*args, **kwargs)
-        if iscoroutine(ret):
-            await ret
+    def invoke(self, evnt):
+        self._parse_args(evnt)
+        self.commander.push_event('invoke_{}'.format(self.name), *evnt.args, **evnt.kwargs)
