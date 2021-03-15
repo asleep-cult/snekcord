@@ -72,7 +72,7 @@ class TextChannel(GuildChannel, structures.TextChannel):
             parent = _try_snowflake(parent)
 
         data = await rest.modify_channel(self.id, **kwargs, parent_id=parent)
-        message = self.messages._add(data)
+        message = self._state._add(data)
         return message
 
     async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
