@@ -137,10 +137,10 @@ class WebsocketProtocol(asyncio.Protocol):
     def __init__(self, connection):
         self.connection = connection
         self.state = WebsocketProtocolState.WAITING_FBYTE
+        self.head_buffer = bytearray(2)
         self.frame = None
         self.bytes_needed = 0
         self.length_buffer = b''
-        self.head_buffer = bytearray(2)
         self.headers = b''
         self.have_headers = asyncio.Event()
 
@@ -234,7 +234,7 @@ class DiscordResponse(JsonStructure):
 
 
 class BaseConnection(EventPusher):
-    def __init__(self, endpoint, pusher):
+    def __init__(self, endpoint, pusher, *, heartbeat_timeout=10):
         super().__init__(pusher.loop)
 
         self.endpoint = endpoint
@@ -245,7 +245,7 @@ class BaseConnection(EventPusher):
         self.register_listener('ws_frame_receive', self.ws_frame_receive)
         self.register_listener('ws_receive', self.ws_receive)
 
-        self.heartbeat_handler = HeartbeatHandler(self)
+        self.heartbeat_handler = HeartbeatHandler(self, timeout=heartbeat_timeout)
 
         self.transport = None
         self.protocol = None
@@ -414,9 +414,12 @@ class ShardOpcode(IntEnum):
 
 
 class Shard(BaseConnection):
-    def __init__(self, endpoint, pusher, shard_id):
-        super().__init__(endpoint, pusher)
+    def __init__(self, shard_id, *args, ready_timeout=10, guild_create_timeout=10, **kwargs):
         self.id = shard_id
+        self.ready_timeout = ready_timeout
+        self.guild_create_timeout = guild_create_timeout
+        self._guilds = set()
+        super().__init__(*args, **kwargs)
 
     @property
     def identify_payload(self):
@@ -444,6 +447,33 @@ class Shard(BaseConnection):
         }
         return payload
 
+    def _guilds_resolved(self, evnt):
+        try:
+            self._guilds.remove(evnt.guild.id)
+        except KeyError:
+            pass
+
+        return not self._guilds
+
+    async def connect(self, *args, **kwargs):
+        ready_waiter = self.pusher.wait('ready', timeout=self.ready_timeout)
+        guilds_waiter = self.pusher.wait(
+            'guild_create',
+            timeout=self.guild_create_timeout,
+            filter=self._guilds_resolved
+        )
+        await super().connect(*args, **kwargs)
+
+        data = await ready_waiter
+        self.pusher.push_event('shard_ready', data)
+
+        for guild in data['guilds']:
+            self._guilds.add(int(guild['id']))
+
+        await guilds_waiter
+
+        self.pusher.push_event('cache_ready')
+
     async def ws_receive(self, response):
         if response.opcode == ShardOpcode.HELLO:
             self.send_json(self.identify_payload)
@@ -452,6 +482,7 @@ class Shard(BaseConnection):
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.push_event('heartbeat_ack')
         elif response.opcode == ShardOpcode.DISPATCH:
+            print(response.event_name)
             self.pusher.push_event(response.event_name, response.data)
 
 

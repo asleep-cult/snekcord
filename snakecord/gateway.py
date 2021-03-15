@@ -8,6 +8,20 @@ class BaseGatewayEvent:
         self.payload = payload
 
 
+class ShardReadyHandler(BaseGatewayEvent):
+    name = 'shard_ready'
+
+    def __init__(self, sharder, payload, shard):
+        super().__init__(sharder, payload)
+        self.shard = shard
+
+    @classmethod
+    def _execute(cls, sharder, payload):
+        print(payload)
+        sharder.client.user = sharder.client.users._add(payload['user'])
+        return cls(sharder, payload, sharder)
+
+
 class ChannelCreateHandler(BaseGatewayEvent):
     name = 'channel_create'
 
@@ -116,9 +130,9 @@ class MessageCreateHandler(BaseGatewayEvent):
 
 class Sharder(EventPusher):
     handlers = (
-        ChannelCreateHandler, ChannelUpdateHandler, ChannelDeleteHandler,
-        ChannelPinsUpdateHandler, GuildCreateHandler, GuildUpdateHandler,
-        GuildDeleteHandler, MessageCreateHandler
+        ShardReadyHandler, ChannelCreateHandler, ChannelUpdateHandler,
+        ChannelDeleteHandler, ChannelPinsUpdateHandler, GuildCreateHandler,
+        GuildUpdateHandler, GuildDeleteHandler, MessageCreateHandler
     )
 
     def __init__(self, client, *, max_shards=None, intents=None):
@@ -139,7 +153,7 @@ class Sharder(EventPusher):
         shards = min((self.max_shards, self.gateway_data['shards']))
 
         for shard_id in range(shards):
-            shard = Shard(self.gateway_data['url'], self, shard_id)
+            shard = Shard(shard_id, self.gateway_data['url'], self)
             self.shards[shard_id] = shard
 
         for shard in self.shards.values():
