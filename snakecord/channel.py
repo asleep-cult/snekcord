@@ -51,6 +51,8 @@ class GuildChannel(structures.GuildChannel):
         if self.guild is None:
             self.guild = self._state.client.guilds.get(self.guild_id)
 
+        self.parent = self._state.get(self.parent_id)
+
 
 class TextChannel(GuildChannel, structures.TextChannel):
     __slots__ = (
@@ -69,8 +71,8 @@ class TextChannel(GuildChannel, structures.TextChannel):
         if parent is not undefined:
             parent = _try_snowflake(parent)
 
-        data = await rest.modify_channel(**kwargs, parent_id=parent)
-        message = self.messages._add(data)
+        data = await rest.modify_channel(self.id, **kwargs, parent_id=parent)
+        message = self._state._add(data)
         return message
 
     async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:

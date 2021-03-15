@@ -10,12 +10,21 @@ class EventWaiter:
         self.filter = filter
         self._queue = asyncio.Queue()
 
+    async def _wait_filtered(self):
+        while True:
+            ret = await self._queue.get()
+
+            if self.filter is not None:
+                if not self.filter(*ret):
+                    continue
+
+            if len(ret) == 1:
+                ret = ret[0]
+
+            return ret
+
     async def _do_wait(self):
-        coro = self._queue.get()
-        ret = await asyncio.wait_for(coro, timeout=self.timeout)
-        if len(ret) == 1:
-            return ret[0]
-        return ret
+        return await asyncio.wait_for(self._wait_filtered(), timeout=self.timeout)
 
     def __aiter__(self):
         return self
@@ -102,14 +111,12 @@ class EventPusher:
         handler = self._handlers.get(name)
 
         if handler is not None:
-            listener_args = (handler._execute(self, *args, **kwargs),)
-        else:
-            listener_args = args
+            args = (handler._execute(self, *args, **kwargs),)
 
-        self.call_listeners(name, *listener_args)
+        self.call_listeners(name, *args)
 
         for subscriber in self._subscribers:
-            subscriber.call_listeners(name, *listener_args)
+            subscriber.call_listeners(name, *args)
 
     def call_listeners(self, name, *args):
         name = name.lower()
@@ -122,23 +129,30 @@ class EventPusher:
 
         if waiters is not None:
             for waiter in waiters:
-                if waiter.filter is not None:
-                    if not waiter.filter(*args):
-                        continue
-
                 waiter._queue.put_nowait(args)
 
-    def on(self, func):
-        self.register_listener(func.__name__, func)
-        return func
+    def on(self, name=None):
+        def wrapped(func):
+            nonlocal name
+            name = name or func.__name__
+            self.register_listener(name, func)
 
-    def once(self, func):
-        def callback(*args):
-            run_coroutine(func(*args), self.loop)
-            self.remove_listener(func.__name__, callback)
+        return wrapped
 
-        self.register_listener(func.__name__, callback)
-        return func
+    def once(self, name=None):
+        def wrapped(func):
+            nonlocal name
+            name = name or func.__name__
+
+            def callback(*args):
+                run_coroutine(func(*args), self.loop)
+                self.remove_listener(name, callback)
+
+            self.register_listener(name, callback)
+
+            return func
+
+        return wrapped
 
     def subscribe(self, pusher):
         pusher._subscribers.append(self)
