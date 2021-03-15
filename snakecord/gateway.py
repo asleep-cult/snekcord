@@ -11,120 +11,75 @@ class BaseGatewayEvent:
 class ShardReadyHandler(BaseGatewayEvent):
     name = 'shard_ready'
 
-    def __init__(self, sharder, payload, shard):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.shard = shard
-
-    @classmethod
-    def _execute(cls, sharder, payload):
         sharder.client.user = sharder.client.users._add(payload['user'])
-        return cls(sharder, payload, sharder)
 
 
 class ChannelCreateHandler(BaseGatewayEvent):
     name = 'channel_create'
 
-    def __init__(self, sharder, payload, channel):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = channel
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        channel = sharder.client.channels._add(payload)
-        return cls(sharder, payload, channel)
+        self.channel = sharder.client.channels._add(payload)
 
 
 class ChannelUpdateHandler(BaseGatewayEvent):
     name = 'channel_update'
 
-    def __init__(self, sharder, payload, channel):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = channel
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        channel = sharder.client.channels._add(payload)
-        return cls(sharder, payload, channel)
+        self.channel = sharder.client.channels._add(payload)
 
 
 class ChannelDeleteHandler(BaseGatewayEvent):
     name = 'channel_delete'
 
-    def __init__(self, sharder, payload, channel):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = channel
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        channel = sharder.client.channels.pop(payload['id'])
-        return cls(sharder, payload, channel)
+        self.channel = sharder.client.channels.pop(payload['id'])
 
 
 class ChannelPinsUpdateHandler(BaseGatewayEvent):
     name = 'channel_pins_update'
 
-    def __init__(self, sharder, payload, channel):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = channel
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        channel = sharder.client.channels.get(payload['channel_id'])
-        channel.last_pin_timestamp = payload['last_pin_timestamp']
-        return cls(sharder, payload, channel)
+        self.channel = sharder.client.channels.get(payload['channel_id'])
+        self.channel.last_pin_timestamp = payload['last_pin_timestamp']
 
 
 class GuildCreateHandler(BaseGatewayEvent):
     name = 'guild_create'
 
-    def __init__(self, sharder, payload, guild):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = guild
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        guild = sharder.client.guilds._add(payload)
-        return cls(sharder, payload, guild)
+        self.guild = sharder.client.guilds._add(payload)
 
 
 class GuildUpdateHandler(BaseGatewayEvent):
     name = 'guild_update'
 
-    def __init__(self, sharder, payload, guild):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = guild
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        guild = sharder.client.guilds._add(payload)
-        return cls(sharder, payload, guild)
+        self.guild = sharder.client.guilds._add(payload)
 
 
 class GuildDeleteHandler(BaseGatewayEvent):
     name = 'guild_delete'
 
-    def __init__(self, sharder, payload, guild):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = guild
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        guild = sharder.client.guilds.pop(payload['id'])
-        return cls(sharder, payload, guild)
+        self.guild = sharder.client.guilds.pop(payload['id'])
 
 
 class MessageCreateHandler(BaseGatewayEvent):
     name = 'message_create'
 
-    def __init__(self, sharder, payload, message):
+    def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.message = message
-
-    @classmethod
-    def _execute(cls, sharder, payload):
-        channel = sharder.client.channels.get(payload['channel_id'])
-        message = channel.messages._add(payload)
-        return cls(sharder, payload, message)
+        self.channel = sharder.client.channels.get(payload['channel_id'])
+        self.message = self.channel.messages._add(payload)
 
 
 class Sharder(EventPusher):
