@@ -42,7 +42,7 @@ class TestTextChannelMethodsAsync(SnakecordTestCase):
     async def test5_edit_parent(self):
         channel = self.client.channels.get(CHANNEL_TEST_SETUP['TEXT_CHANNEL_ID'])
         await channel.edit(parent=self.PARENT_ID)
-        self.assertEqual(channel.parent.id, self.PARENT_ID)
+        self.assertEqual(channel.parent.id, CHANNEL_TEST_SETUP['PARENT_ID'])
 
     @asyncTest()
     async def test6_delete(self):
