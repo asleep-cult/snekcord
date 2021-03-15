@@ -234,18 +234,35 @@ class RestSession:
         permission_overwrites=undefined,
         parent_id=undefined
     ):
-        payload = {
-            'name': name,
-            'type': channel_type,
-            'position': position,
-            'topic': topic,
-            'nsfw': nsfw,
-            'ratelimit_per_user': slowmode,
-            'bitrate': bitrate,
-            'user_limit': user_limit,
-            'permission_overwrites': permission_overwrites,
-            'parent_id': parent_id
-        }
+        payload = {}
+
+        if name is not undefined:
+            payload['name'] = name
+
+        if channel_type is not undefined:
+            payload['type'] = channel_type
+
+        if topic is not undefined:
+            payload['topic'] = topic
+
+        if nsfw is not undefined:
+            payload['nsfw'] = nsfw
+
+        if slowmode is not undefined:
+            payload['ratelimit_per_user'] = slowmode
+
+        if bitrate is not undefined:
+            payload['bitrate'] = bitrate
+
+        if user_limit is not undefined:
+            payload['user_limit'] = user_limit
+
+        if permission_overwrites is not undefined:
+            payload['permission_overwrites'] = permission_overwrites
+
+        if parent_id is not undefined:
+            payload['parent_id'] = parent_id
+
         fut = self.request(
             'PATCH',
             'channels/{channel_id}',
