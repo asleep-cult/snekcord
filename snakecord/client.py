@@ -32,9 +32,13 @@ class Client(EventPusher):
 
         self.subscribe(self.sharder)
 
+    async def connect(self, token):
+        self.token = token
+        await self.sharder.connect()
+
     def start(self, token):
         self.token = token
-        self.loop.create_task(self.sharder.connect())
+        self.loop.create_task(self.connect(token))
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
