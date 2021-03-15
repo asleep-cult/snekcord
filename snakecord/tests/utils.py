@@ -18,8 +18,7 @@ class SnakecordTestCase(unittest.TestCase):
         cls._have_client = threading.Event()
         cls.loop = asyncio.get_event_loop()
 
-        start = functools.partial(cls.loop.run_forever)
-        cls.thread = threading.Thread(target=start)
+        cls.thread = threading.Thread(target=cls.loop.run_forever)
         cls.thread.start()
 
         cls.loop.call_soon_threadsafe(cls._create_client)
