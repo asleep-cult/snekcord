@@ -16,7 +16,7 @@ class SnakecordTestCase(unittest.TestCase):
         cls.thread.start()
 
         async def wait():
-            await cls.client.wait('guild_create')
+            await cls.client.wait('cache_ready')
 
         future = asyncio.run_coroutine_threadsafe(wait(), cls.loop)
         future.result()

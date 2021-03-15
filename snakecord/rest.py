@@ -249,7 +249,7 @@ class RestSession:
             payload['nsfw'] = nsfw
 
         if slowmode is not undefined:
-            payload['ratelimit_per_user'] = slowmode
+            payload['rate_limit_per_user'] = slowmode
 
         if bitrate is not undefined:
             payload['bitrate'] = bitrate

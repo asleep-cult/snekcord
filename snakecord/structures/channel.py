@@ -16,6 +16,7 @@ class GuildChannel(BaseObject):
 
 class TextChannel(JsonStructure):
     __json_fields__ = {
+        'slowmode': JsonField('rate_limit_per_user'),
         'last_message_id': JsonField('last_message_id', Snowflake, str),
     }
 
