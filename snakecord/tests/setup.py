@@ -1,4 +1,7 @@
 import json
+import os
 
-with open('./setup.json') as fp:
+print(os.getcwd())
+
+with open('setup.json') as fp:
     SETUP = json.load(fp)
