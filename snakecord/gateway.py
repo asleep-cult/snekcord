@@ -17,7 +17,6 @@ class ShardReadyHandler(BaseGatewayEvent):
 
     @classmethod
     def _execute(cls, sharder, payload):
-        print(payload)
         sharder.client.user = sharder.client.users._add(payload['user'])
         return cls(sharder, payload, sharder)
 

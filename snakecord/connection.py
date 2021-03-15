@@ -482,7 +482,6 @@ class Shard(BaseConnection):
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.push_event('heartbeat_ack')
         elif response.opcode == ShardOpcode.DISPATCH:
-            print(response.event_name)
             self.pusher.push_event(response.event_name, response.data)
 
 
