@@ -54,7 +54,7 @@ class Command:
         if not self.vararg:
             for arg in self.args.values():
                 try:
-                    call_args.append(args.pop(0))
+                    evnt.args.append(args.pop(0))
                 except IndexError:
                     if arg.optional:
                         default = None if arg.default is not undefined else arg.default

@@ -53,7 +53,7 @@ class GuildEmojiState(BaseState):
         super().__init__(client)
         self.guild = guild
 
-    def _add(self, data):
+    def append(self, data):
         emoji = self.get(data['id'])
         if emoji is not None:
             emoji._update(data)
@@ -66,17 +66,17 @@ class GuildEmojiState(BaseState):
     async def fetch(self, emoji_id):
         rest = self.client.rest
         data = await rest.get_guild_emoji(self.guild.id, emoji_id)
-        emoji = self._add(data)
+        emoji = self.append(data)
         return emoji
 
     async def fetch_all(self):
         rest = self.client.rest
         data = await rest.get_guild_emojis(self.guild.id)
-        emojis = [self._add(emoji) for emoji in data]
+        emojis = [self.append(emoji) for emoji in data]
         return emojis
 
     async def create(self, name, image, roles=None):
         rest = self.client.rest
         data = await rest.create_guild_emoji(self.guild.id, name, image, roles)
-        emoji = self._add(data)
+        emoji = self.append(data)
         return emoji

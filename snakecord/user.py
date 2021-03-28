@@ -14,7 +14,7 @@ class User(structures.User):
 
 
 class UserState(BaseState):
-    def _add(self, data) -> User:
+    def append(self, data) -> User:
         user = self.get(data['id'])
         if user is not None:
             user._update(data)
@@ -27,4 +27,4 @@ class UserState(BaseState):
     async def fetch(self, user_id) -> User:
         rest = self.client.rest
         data = await rest.get_user(user_id)
-        return self._add(data)
+        return self.append(data)

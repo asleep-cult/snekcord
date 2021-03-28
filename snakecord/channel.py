@@ -41,7 +41,7 @@ class GuildChannel(structures.GuildChannel):
         overwrites_seen = set()
 
         for overwrite in self._permission_overwrites:
-            overwrite = self.permission_overwrites._add(overwrite)
+            overwrite = self.permission_overwrites.append(overwrite)
             overwrites_seen.add(overwrite.id)
 
         for overwrite in self.permission_overwrites:
@@ -72,7 +72,7 @@ class TextChannel(GuildChannel, structures.TextChannel):
             parent = _try_snowflake(parent)
 
         data = await rest.modify_channel(self.id, **kwargs, parent_id=parent)
-        message = self._state._add(data)
+        message = self._state.append(data)
         return message
 
     async def send(self, content=None, *, nonce=None, tts=False, embed=None) -> None:
@@ -80,7 +80,7 @@ class TextChannel(GuildChannel, structures.TextChannel):
         if embed is not None:
             embed = embed.to_dict()
         data = await rest.send_message(self.id, content=content, nonce=nonce, tts=tts, embed=embed)
-        message = self.messages._add(data)
+        message = self.messages.append(data)
         return message
 
     async def trigger_typing(self):
@@ -116,7 +116,7 @@ class VoiceChannel(GuildChannel, structures.VoiceChannel):
 
         resp = await rest.modify_channel(**kwargs, parent_id=parent)
         data = await resp.json()
-        channel = self._state._add(data, guild=self.guild)
+        channel = self._state.append(data, guild=self.guild)
         return channel
 
 
@@ -137,7 +137,7 @@ class DMChannel(structures.DMChannel):
         super()._update(*args, **kwargs)
 
         for recipient in self._recipients:
-            self.recipients._add(recipient)
+            self.recipients.append(recipient)
 
 
 class ChannelRecipientState(BaseState):
@@ -145,8 +145,8 @@ class ChannelRecipientState(BaseState):
         super().__init__(client)
         self.channel = channel
 
-    def _add(self, data):
-        user = self.client.users._add(data)
+    def append(self, data):
+        user = self.client.users.append(data)
         self._items[user.id] = user
         return user
 
@@ -170,7 +170,7 @@ _CHANNEL_TYPE_MAP = {
 
 
 class ChannelState(BaseState):
-    def _add(self, data, *args, **kwargs):
+    def append(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
             channel._update(data)
@@ -184,7 +184,7 @@ class ChannelState(BaseState):
     async def fetch(self, channel_id):
         rest = self.client.rest
         channel = await rest.get_channel(channel_id)
-        return self._add(channel)
+        return self.append(channel)
 
 
 class GuildChannelState(ChannelState):
@@ -202,7 +202,7 @@ class GuildChannelState(ChannelState):
     async def fetch_all(self):
         rest = self.client.rest
         data = await rest.get_guild_channels(self.guild.id)
-        channels = [self._add(channel) for channel in data]
+        channels = [self.append(channel) for channel in data]
         return channels
 
     async def create(self, **kwargs):

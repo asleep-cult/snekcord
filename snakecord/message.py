@@ -32,13 +32,13 @@ class Message(structures.Message):
             embed=embed, flags=flags,
             allowed_mentions=allowed_mentions
         )
-        message = self._state._add(data)
+        message = self._state.append(data)
         return message
 
     async def crosspost(self):
         rest = self._state.client.rest
         data = await rest.crosspost_message(self.channel.id, self.id)
-        message = self._state._add(data, channel=self.channel)
+        message = self._state.append(data, channel=self.channel)
         return message
 
     async def delete(self):
@@ -58,7 +58,7 @@ class Message(structures.Message):
 
         if self._reactions is not None:
             for reaction in self._reactions:
-                self.reactions._add(reaction)
+                self.reactions.append(reaction)
 
         if self.channel is not None:
             self.guild = self.channel.guild
@@ -66,9 +66,9 @@ class Message(structures.Message):
         if self.guild is not None and self._member is not None:
             if self._member.get('user') is None:
                 self._member['user'] = self._author
-            self.author = self.guild.members._add(self._member)
+            self.author = self.guild.members.append(self._member)
         else:
-            self.author = self._state.client.users._add(self._author)
+            self.author = self._state.client.users.append(self._author)
 
 
 class ReactionState(BaseState):
@@ -76,7 +76,7 @@ class ReactionState(BaseState):
         super().__init__(client)
         self.message = message
 
-    def _add(self, data) -> Reaction:
+    def append(self, data) -> Reaction:
         reaction = self.get(data['emoji'])
         if reaction is not None:
             reaction._update(data)
@@ -93,7 +93,7 @@ class ReactionState(BaseState):
     async def fetch_all(self):
         rest = self.client.rest
         data = await rest.get_reactions(self.message.channel.id, self.message.id)
-        reactions = [self._add(reaction) for reaction in data]
+        reactions = [self.append(reaction) for reaction in data]
         return reactions
 
     async def remove(self, emoji, user=None):
@@ -116,7 +116,7 @@ class MessageState(BaseState):
         super().__init__(client)
         self.channel = channel
 
-    def _add(self, data) -> Message:
+    def append(self, data) -> Message:
         message = self.get(data['id'])
         if message is not None:
             message._update(data)
@@ -129,13 +129,13 @@ class MessageState(BaseState):
     async def fetch(self, message_id) -> Message:
         rest = self.client.rest
         data = await rest.get_channel_message(self.channel.id, message_id)
-        message = self._add(data)
+        message = self.append(data)
         return message
 
     async def fetch_history(self, **kwargs):
         rest = self.client.rest
         data = await rest.get_channel_messages(self.channel.id, **kwargs)
-        messages = [self._add(message) for message in data]
+        messages = [self.append(message) for message in data]
         return messages
 
     async def bulk_delete(self, messages):

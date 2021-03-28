@@ -48,7 +48,7 @@ class BaseState:
             if func(item):
                 return item
 
-    def _add(self, *args, **kwargs):
+    def append(self, *args, **kwargs):
         raise NotImplementedError
 
     async def fetch(self, object_id):

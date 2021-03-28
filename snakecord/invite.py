@@ -13,7 +13,7 @@ class Invite(structures.Invite):
         super()._update(*args, **kwargs)
 
         if self._guild is not None:
-            self.guild = self._state.client.guilds._add(self._guild)
+            self.guild = self._state.client.guilds.append(self._guild)
         else:
             self.guild = self._state.client.guilds.get(self.guild_id)
 
@@ -23,9 +23,9 @@ class Invite(structures.Invite):
             self.channel = self._state.client.channels.get(self.guild_id)
 
         if self._inviter is not None:
-            self.inviter = self._state.client.users._add(self._inviter)
+            self.inviter = self._state.client.users.append(self._inviter)
         if self._target_user is not None:
-            self.target_user = self._state.client.users._add(self._target_user)
+            self.target_user = self._state.client.users.append(self._target_user)
 
     @property
     def url(self):
@@ -36,7 +36,7 @@ class Invite(structures.Invite):
 
 
 class InviteState(BaseState):
-    def _add(self, data):
+    def append(self, data):
         invite = self.get(data['code'])
         if invite is not None:
             invite._update(data)
@@ -49,7 +49,7 @@ class InviteState(BaseState):
     async def fetch(self, code, with_counts=False):
         rest = self.client.rest
         data = await rest.get_invite(code, with_counts)
-        invite = self._add(data)
+        invite = self.append(data)
         return invite
 
     async def delete(self, code):
@@ -79,7 +79,7 @@ class GuildInviteState(InviteState):
     async def fetch_all(self):
         rest = self._invite_state.client.rest
         data = await rest.get_guild_invites(self.guild.id)
-        invites = [self._add(invite) for invite in data]
+        invites = [self.append(invite) for invite in data]
         return invites
 
 
@@ -98,7 +98,7 @@ class ChannelInviteState(InviteState):
     async def fetch_all(self):
         rest = self._invite_state.client.rest
         data = await rest.get_channel_invites(self._channel.id)
-        invites = [self._add(invite) for invite in data]
+        invites = [self.append(invite) for invite in data]
         return invites
 
     async def create(self, **kwargs):
@@ -109,5 +109,5 @@ class ChannelInviteState(InviteState):
             target_user = _try_snowflake(target_user)
 
         data = await rest.create_channel_invite(**kwargs, target_user_id=target_user)
-        invite = self._add(data)
+        invite = self.append(data)
         return invite

@@ -111,8 +111,8 @@ class EventPusher:
         handler = self._handlers.get(name)
 
         if handler is not None:
-            evnt = handler(*args, **kwargs)
-            self.call_listeners(name, handler(self, evnt)
+            evnt = handler(self, *args, **kwargs)
+            self.call_listeners(name, evnt)
 
             for subscriber in self._subscribers:
                 subscriber.call_listeners(name, evnt)
