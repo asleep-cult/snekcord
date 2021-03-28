@@ -18,7 +18,7 @@ class Invite(structures.Invite):
             self.guild = self._state.client.guilds.get(self.guild_id)
 
         if self._channel is not None:
-            self.channel = self._state.client.channels.add(self._channel)
+            self.channel = self._state.client.channels.append(self._channel)
         else:
             self.channel = self._state.client.channels.get(self.guild_id)
 

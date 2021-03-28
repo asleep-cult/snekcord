@@ -119,6 +119,10 @@ class JsonField:
 
 
 class JsonArray(JsonField):
+    def __init__(self, *args, **kwargs):
+        default = kwargs.pop('default', [])
+        super().__init__(*args, **kwargs, default=default)
+
     def unmarshal(self, data):
         items = []
         for item in data:
