@@ -214,10 +214,10 @@ class WebsocketProtocol(asyncio.Protocol):
     def data_received(self, data):
         if not self.have_headers.is_set():
             try:
-                index = data.index(b'\r\n\r\n')
-                self.headers += data[:index + 4]
+                index = data.index(b'\r\n\r\n') + 4
+                self.headers += data[:index]
                 self.have_headers.set()
-                self.create_frames(data[index + 4:])
+                self.create_frames(data[index:])
             except ValueError:
                 self.headers += data
         else:
