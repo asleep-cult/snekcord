@@ -1,5 +1,5 @@
 from . import structures
-from .state import BaseState
+from .state import BaseState, BaseSubState
 from .utils import _try_snowflake, undefined
 
 INVITE_BASE_URL = 'https://discord.com/invite/'
@@ -20,7 +20,7 @@ class Invite(structures.Invite):
         if self._channel is not None:
             self.channel = self._state.client.channels.append(self._channel)
         else:
-            self.channel = self._state.client.channels.get(self.guild_id)
+            self.channel = self._state.client.channels.get(self.channel_id)
 
         if self._inviter is not None:
             self.inviter = self._state.client.users.append(self._inviter)
@@ -57,52 +57,37 @@ class InviteState(BaseState):
         await rest.delete_invite(code)
 
 
-# GuildInviteState and ChannelInviteState essentialy wrap InviteState
-# their __iter__ methods yield all invites associated with them
-# and their fetch_all methods fetch all invites associated with them
-# but they are actually stored in InvteState, Invites being cached
-# is not garunteed because they are only received through the gateway
-# when they are created and can only be retrieved through fetching after that
-
-class GuildInviteState(InviteState):
-    def __init__(self, invite_state, guild):
-        self._items = invite_state._items
-        self.client = invite_state.client
+class GuildInviteState(BaseSubState):
+    def __init__(self, superstate, guild):
+        super().__init__(superstate)
         self.guild = guild
-        self._invite_state = invite_state
 
-    def __iter__(self):
-        for invite in self._invite_state:
-            if invite.guild == self.guild:
-                yield invite
+    def _check_relation(self, item):
+        return isinstance(item, Invite) and item.guild == self.guild
 
     async def fetch_all(self):
-        rest = self._invite_state.client.rest
+        rest = self.superstate.client.rest
         data = await rest.get_guild_invites(self.guild.id)
         invites = [self.append(invite) for invite in data]
         return invites
 
 
-class ChannelInviteState(InviteState):
-    def __init__(self, invite_state, channel):
-        self._items = invite_state._items
-        self.client = invite_state.client
+class ChannelInviteState(BaseSubState):
+    def __init__(self, superstate, channel):
+        super().__init__(superstate)
         self.channel = channel
-        self._invite_state = invite_state
 
-    def __iter__(self):
-        for invite in self._invite_state:
-            if invite.channel == self.channel:
-                yield invite
+    def _check_relation(self, item):
+        return isinstance(item, Invite) and item.channel == self.channel
 
     async def fetch_all(self):
-        rest = self._invite_state.client.rest
+        rest = self.superstate.client.rest
         data = await rest.get_channel_invites(self._channel.id)
         invites = [self.append(invite) for invite in data]
         return invites
 
     async def create(self, **kwargs):
-        rest = self._invite_state.client.rest
+        rest = self.superstate.client.rest
 
         target_user = kwargs.pop('target_user', undefined)
         if target_user is not undefined:

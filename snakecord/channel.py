@@ -1,14 +1,9 @@
-from typing import Optional, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .guild import Guild
-
 from . import structures
 from .enums import ChannelType
 from .invite import ChannelInviteState
 from .message import MessageState
 from .permissions import PermissionOverwriteState
-from .state import BaseState
+from .state import BaseState, BaseSubState
 from .utils import _try_snowflake, undefined
 from .voice import VoiceConnection, VoiceState
 
@@ -19,7 +14,7 @@ class GuildChannel(structures.GuildChannel):
         'position', 'nsfw', 'parent_id', 'type'
     )
 
-    def __init__(self, *, state: 'ChannelState', guild: Optional['Guild'] = None):
+    def __init__(self, *, state, guild=None):
         self._state = state
         self.guild = guild
         self.messages: MessageState = MessageState(self._state.client, self)
@@ -161,22 +156,37 @@ class ChannelRecipientState(BaseState):
         await rest.remove_dm_recipient(self.channel.id, user)
 
 
-_CHANNEL_TYPE_MAP = {
-    ChannelType.GUILD_TEXT: TextChannel,
-    ChannelType.DM: DMChannel,
-    ChannelType.GUILD_VOICE: VoiceChannel,
-    ChannelType.GUILD_CATEGORY: CategoryChannel
-}
-
-
 class ChannelState(BaseState):
+    _channel_type_map = {
+        ChannelType.GUILD_TEXT: TextChannel,
+        ChannelType.DM: DMChannel,
+        ChannelType.GUILD_VOICE: VoiceChannel,
+        ChannelType.GUILD_CATEGORY: CategoryChannel
+    }
+
+    @classmethod
+    def set_guildtext_class(cls, klass):
+        cls._channel_type_map[ChannelType.GUILD_TEXT] = klass
+
+    @classmethod
+    def set_guildvoice_class(cls, klass):
+        cls._channel_type_map[ChannelType.GUILD_VOICE] = klass
+
+    @classmethod
+    def set_guildcategory_class(cls, klass):
+        cls._channel_type_map[ChannelType.GUILD_CATEGORY] = klass
+
+    @classmethod
+    def set_dm_class(cls, klass):
+        cls._channel_type_map[ChannelType.DM] = klass
+
     def append(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
             channel._update(data)
             return channel
 
-        cls = _CHANNEL_TYPE_MAP[data['type']]
+        cls = self._channel_type_map[data['type']]
         channel = cls.unmarshal(data, *args, **kwargs, state=self)
         self._items[channel.id] = channel
         return channel
@@ -187,27 +197,22 @@ class ChannelState(BaseState):
         return self.append(channel)
 
 
-class GuildChannelState(ChannelState):
-    def __init__(self, channel_state: ChannelState, guild: 'Guild'):
+class GuildChannelState(BaseSubState):
+    def __init__(self, superstate, guild):
+        super().__init__(superstate)
         self.guild = guild
-        self.client = channel_state.client
-        self._items = channel_state._items
-        self._channel_state = channel_state
 
-    def __iter__(self):
-        for channel in self._channel_state:
-            if channel.guild == self.guild:
-                yield channel
+    def _check_relation(self, item):
+        return isinstance(item, GuildChannel) and item.guild == self.guild
 
     async def fetch_all(self):
-        rest = self.client.rest
+        rest = self.superstate.client.rest
         data = await rest.get_guild_channels(self.guild.id)
         channels = [self.append(channel) for channel in data]
         return channels
 
     async def create(self, **kwargs):
-        rest = self.client.rest
-
+        rest = self.superstate.client.rest
         parent = kwargs.pop('parent', undefined)
         if parent is not undefined:
             parent = _try_snowflake(parent)
@@ -215,5 +220,5 @@ class GuildChannelState(ChannelState):
         await rest.create_guild_channel(self.guild.id, **kwargs, parent_id=parent)
 
     async def modify_positions(self, positions):
-        rest = self.client.rest
+        rest = self.superstate.client.rest
         await rest.modify_guild_channel_positions(self.guild.id, positions)
