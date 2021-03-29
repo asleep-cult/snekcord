@@ -1322,7 +1322,7 @@ class RestSession:
         params = {}
 
         if with_counts is not undefined:
-            params['with_counts'] = with_counts
+            params['with_counts'] = str(with_counts).lower()
 
         fut = self.request(
             'GET',

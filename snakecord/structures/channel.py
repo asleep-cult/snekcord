@@ -6,7 +6,7 @@ class GuildChannel(BaseObject):
     __json_fields__ = {
         'name': JsonField('name'),
         'guild_id': JsonField('guild_id', Snowflake, str),
-        '_permission_overwrites': JsonField('permission_overwrites'),
+        '_permission_overwrites': JsonArray('permission_overwrites'),
         'position': JsonField('position'),
         'nsfw': JsonField('nsfw'),
         'parent_id': JsonField('parent_id', Snowflake, str),

@@ -8,12 +8,13 @@ class BaseGatewayEvent:
         self.payload = payload
 
 
-class ShardReadyHandler(BaseGatewayEvent):
-    name = 'shard_ready'
+class ShardReadyReceiveHandler(BaseGatewayEvent):
+    name = 'shard_ready_receive'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder, shard, payload):
         super().__init__(sharder, payload)
-        sharder.client.user = sharder.client.users._add(payload['user'])
+        self.shard = shard
+        sharder.client.user = sharder.client.users.append(payload['user'])
 
 
 class ChannelCreateHandler(BaseGatewayEvent):
@@ -21,7 +22,7 @@ class ChannelCreateHandler(BaseGatewayEvent):
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = sharder.client.channels._add(payload)
+        self.channel = sharder.client.channels.append(payload)
 
 
 class ChannelUpdateHandler(BaseGatewayEvent):
@@ -29,7 +30,7 @@ class ChannelUpdateHandler(BaseGatewayEvent):
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = sharder.client.channels._add(payload)
+        self.channel = sharder.client.channels.append(payload)
 
 
 class ChannelDeleteHandler(BaseGatewayEvent):
@@ -54,7 +55,7 @@ class GuildCreateHandler(BaseGatewayEvent):
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = sharder.client.guilds._add(payload)
+        self.guild = sharder.client.guilds.append(payload)
 
 
 class GuildUpdateHandler(BaseGatewayEvent):
@@ -62,7 +63,7 @@ class GuildUpdateHandler(BaseGatewayEvent):
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = sharder.client.guilds._add(payload)
+        self.guild = sharder.client.guilds.append(payload)
 
 
 class GuildDeleteHandler(BaseGatewayEvent):
@@ -79,12 +80,12 @@ class MessageCreateHandler(BaseGatewayEvent):
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
         self.channel = sharder.client.channels.get(payload['channel_id'])
-        self.message = self.channel.messages._add(payload)
+        self.message = self.channel.messages.append(payload)
 
 
 class Sharder(EventPusher):
     handlers = (
-        ShardReadyHandler, ChannelCreateHandler, ChannelUpdateHandler,
+        ShardReadyReceiveHandler, ChannelCreateHandler, ChannelUpdateHandler,
         ChannelDeleteHandler, ChannelPinsUpdateHandler, GuildCreateHandler,
         GuildUpdateHandler, GuildDeleteHandler, MessageCreateHandler
     )

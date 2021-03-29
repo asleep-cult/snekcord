@@ -78,7 +78,7 @@ class PermissionOverwriteState(BaseState):
         super().__init__(client)
         self.channel = channel
 
-    def _add(self, data):
+    def append(self, data):
         overwrite = self.get(data['id'])
         if overwrite is not None:
             overwrite._update(data)

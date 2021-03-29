@@ -148,7 +148,7 @@ class GuildPreview(structures.GuildPreview):
         emojis_seen = set()
 
         for emoji in self._emojis:
-            emoji = self.emojis._add(emoji)
+            emoji = self.emojis.append(emoji)
             emojis_seen.add(emoji.id)
 
         for emoji in self.emojis:
@@ -208,15 +208,15 @@ class Guild(GuildPreview, structures.Guild):
         roles_seen = set()
 
         for channel in self._channels:
-            channel = self._state.client.channels._add(channel, guild=self)
+            channel = self._state.client.channels.append(channel, guild=self)
             channels_seen.add(channel.id)
 
         for member in self._members:
-            member = self.members._add(member)
+            member = self.members.append(member)
             members_seen.add(member.user.id)
 
         for role in self._roles:
-            role = self.roles._add(role)
+            role = self.roles.append(role)
             roles_seen.add(role.id)
 
         for channel in self.channels:
@@ -232,7 +232,7 @@ class Guild(GuildPreview, structures.Guild):
                 self.roles.pop(role.id)
 
         if self._owner is not None:
-            owner = self._state.client.guilds._add(self._owner)
+            owner = self._state.client.guilds.append(self._owner)
             if owner is not None:
                 self.owner_id = owner.id
 
@@ -244,11 +244,11 @@ class GuildBan(structures.GuildBan):
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
-        self.user = self._state.client.users._add(self.user)
+        self.user = self._state.client.users.append(self.user)
 
 
 class GuildState(BaseState):
-    def _add(self, data) -> Guild:
+    def append(self, data) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
             guild._update(data)
@@ -261,13 +261,13 @@ class GuildState(BaseState):
     async def fetch(self, guild_id) -> Guild:
         rest = self.client.rest
         data = await rest.get_guild(guild_id)
-        guild = self._add(data)
+        guild = self.append(data)
         return guild
 
     async def fetch_preview(self, guild_id):
         rest = self.client.rest
         data = await rest.get_guild_preview(guild_id)
-        guild = self._add(data)
+        guild = self.append(data)
         return guild
 
 
@@ -276,7 +276,7 @@ class GuildBanState(BaseState):
         super().__init__(client)
         self.guild = guild
 
-    def _add(self, data):
+    def append(self, data):
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban._update(data)
@@ -289,20 +289,20 @@ class GuildBanState(BaseState):
     async def fetch(self, user):
         rest = self.client.rest
         data = await rest.get_guild_ban(self.guild.id, user.id)
-        ban = self._add(data)
+        ban = self.append(data)
         return ban
 
     async def fetch_all(self):
         rest = self.client.rest
         data = await rest.get_guild_bans(self.guild.id)
-        bans = [self._add(ban) for ban in data]
+        bans = [self.append(ban) for ban in data]
         return bans
 
     async def add(self, user, **kwargs):
         rest = self.client.rest
         user = _try_snowflake(user)
         data = await rest.create_guild_ban(self.guild.id, user)
-        ban = self._add(data)
+        ban = self.append(data)
         return ban
 
     async def remove(self, user):

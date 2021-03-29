@@ -21,7 +21,7 @@ class GuildMember(structures.GuildMember):
         data = await rest.modify_guild_member(
             self.guild.id, self.user.id, **kwargs, channel_id=channel
         )
-        member = self._state._add(data)
+        member = self._state.append(data)
         return member
 
     async def ban(self, *args, **kwargs):
@@ -33,10 +33,10 @@ class GuildMember(structures.GuildMember):
 
         if self._roles is not None:
             for role in self._roles:
-                self.roles._add(role)
+                self.roles.append(role)
 
         if self._user is not None:
-            self.user = self._state.client.users._add(self._user)
+            self.user = self._state.client.users.append(self._user)
 
 
 class GuildMemberState(BaseState):
@@ -44,9 +44,9 @@ class GuildMemberState(BaseState):
         super().__init__(client)
         self.guild = guild
 
-    def _add(self, data, user=None):
+    def append(self, data, user=None):
         if user is None:
-            user = self.client.users._add(data['user'])
+            user = self.client.users.append(data['user'])
         member = self.get(user.id)
         if member is not None:
             member._update(data)
@@ -59,13 +59,13 @@ class GuildMemberState(BaseState):
     async def fetch(self, member_id):
         rest = self.client.rest
         data = await rest.get_guild_member(self.guild.id, member_id)
-        member = self._add(data)
+        member = self.append(data)
         return member
 
     async def fetch_many(self, limit=1000, before=None):
         rest = self.client.rest
         data = await rest.get_guild_members(self.guild.id, limit, before)
-        members = [self._add(member) for member in data]
+        members = [self.append(member) for member in data]
         return members
 
     async def add(self, user, access_token, **kwargs):
@@ -80,7 +80,7 @@ class GuildMemberState(BaseState):
         data = await rest.add_guild_member(
             self.guild.id, user, access_token, **kwargs, roles=roles
         )
-        member = self._add(data, user=user)
+        member = self.append(data, user=user)
         return member
 
 
@@ -89,7 +89,7 @@ class GuildMemberRoleState(BaseState):
         super().__init__(client)
         self.member = member
 
-    def _add(self, role):
+    def append(self, role):
         if isinstance(role, Role):
             self._items[role.id] = role
             return role

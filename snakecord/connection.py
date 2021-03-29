@@ -456,7 +456,7 @@ class Shard(BaseConnection):
         return not self._guilds
 
     async def connect(self, *args, **kwargs):
-        ready_waiter = self.pusher.wait('ready', timeout=self.ready_timeout)
+        ready_waiter = self.wait('ready', timeout=self.ready_timeout)
         guilds_waiter = self.pusher.wait(
             'guild_create',
             timeout=self.guild_create_timeout,
@@ -465,14 +465,14 @@ class Shard(BaseConnection):
         await super().connect(*args, **kwargs)
 
         data = await ready_waiter
-        self.pusher.push_event('shard_ready', data)
+        self.pusher.push_event('shard_ready_receive', self, data)
 
         for guild in data['guilds']:
             self._guilds.add(int(guild['id']))
 
         await guilds_waiter
 
-        self.pusher.push_event('cache_ready')
+        self.pusher.push_event('shard_ready')
 
     async def ws_receive(self, response):
         if response.opcode == ShardOpcode.HELLO:
@@ -482,7 +482,8 @@ class Shard(BaseConnection):
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.push_event('heartbeat_ack')
         elif response.opcode == ShardOpcode.DISPATCH:
-            self.pusher.push_event(response.event_name, response.data)
+            pusher = self if response.event_name in ('READY', 'RESUME') else self.pusher
+            pusher.push_event(response.event_name, response.data)
 
 
 class VoiceConnectionOpcode(IntEnum):

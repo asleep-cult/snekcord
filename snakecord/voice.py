@@ -16,7 +16,7 @@ class VoiceState(structures.VoiceState):
         super()._update(*args, **kwargs)
 
         if self._member is not None:
-            self.member = self.guild.members._add(self._member)
+            self.member = self.guild.members.append(self._member)
 
 
 class VoiceConnection:
