@@ -110,9 +110,6 @@ class BaseSubState:
     def pop(self, item, default=undefined):
         raise NotImplementedError
 
-    def clear(self):
-        self.superstate.clear()
-
     def find(self, func):
         item = self.superstate.find(func)
         return item if self._check_relation(item) else None
