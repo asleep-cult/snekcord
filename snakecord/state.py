@@ -111,5 +111,6 @@ class BaseSubState:
         raise NotImplementedError
 
     def find(self, func):
-        item = self.superstate.find(func)
-        return item if self._check_relation(item) else None
+        for item in self:
+            if func(item):
+                return item
