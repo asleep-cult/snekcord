@@ -87,11 +87,12 @@ class BaseSubState:
 
     def __getitem__(self, item):
         item = self.superstate[item]
-        return item if self._check_relation(item) else None
+        if not self._check_relation(item):
+            raise KeyError(item)
+        return item
 
     def __contains__(self, item):
-        item = self.superstate[item]
-        return self._check_relation(item)
+        return self._check_relation(self.get(item))
 
     def __reversed__(self):
         for item in reversed(self.superstate):
