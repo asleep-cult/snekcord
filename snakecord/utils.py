@@ -249,6 +249,22 @@ class Snowflake(int):
             )
         return self
 
+    @classmethod
+    def build(cls, timestamp=None, worker_id=0, process_id=0, increment=0):
+        if timestamp is None:
+            timestamp = datetime.now().timestamp()
+
+        timestamp *= 1000
+        timestamp -= DISCORD_EPOCH
+
+        snowflake = 0
+        snowflake |= int(timestamp) << 22
+        snowflake |= worker_id << 17
+        snowflake |= process_id << 12
+        snowflake |= increment
+
+        return cls(snowflake)
+
     @property
     def datetime(self) -> datetime:
         return datetime.fromtimestamp(((self >> 22) + DISCORD_EPOCH) / 1000)
