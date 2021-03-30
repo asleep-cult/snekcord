@@ -6,8 +6,6 @@ from typing import Any, Dict
 
 JSON = Dict[str, Any]
 
-SNOWFLAKE_MINIMUM_BIT_LENGTH = 51
-SNOWFLAKE_MAXIMUM_BIT_LENGTH = 111
 DISCORD_EPOCH = 1420070400000
 
 
@@ -234,20 +232,6 @@ class cstruct:
 
 class Snowflake(int):
     __slots__ = ()
-
-    def __new__(cls, *args, **kwargs):
-        self = int.__new__(cls, *args, **kwargs)
-        if not (
-            SNOWFLAKE_MINIMUM_BIT_LENGTH <=
-            self.bit_length() <=
-            SNOWFLAKE_MAXIMUM_BIT_LENGTH
-        ):
-            raise ValueError(
-                'Snowflake\'s bit length should be {} to {}'.format(
-                    SNOWFLAKE_MINIMUM_BIT_LENGTH, SNOWFLAKE_MAXIMUM_BIT_LENGTH
-                )
-            )
-        return self
 
     @classmethod
     def build(cls, timestamp=None, worker_id=0, process_id=0, increment=0):
