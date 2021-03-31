@@ -69,4 +69,4 @@ class Command:
 
     def invoke(self, evnt):
         self._parse_args(evnt)
-        self.commander.push_event('invoke_{}'.format(self.name), *evnt.args, **evnt.kwargs)
+        self.commander.push_event('invoke_{}'.format(self.name), evnt, *evnt.args, **evnt.kwargs)
