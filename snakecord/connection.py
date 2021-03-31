@@ -472,7 +472,7 @@ class Shard(BaseConnection):
 
         await guilds_waiter
 
-        self.pusher.push_event('shard_ready')
+        self.pusher.push_event('shard_ready', self)
 
     async def ws_receive(self, response):
         if response.opcode == ShardOpcode.HELLO:

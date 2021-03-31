@@ -3,78 +3,147 @@ from .events import EventPusher
 
 
 class BaseGatewayEvent:
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder, payload=None):
+        self.sharder = sharder
         self.client = sharder.client
         self.payload = payload
 
 
-class ShardReadyReceiveHandler(BaseGatewayEvent):
+class ShardReadyReceiveEvent(BaseGatewayEvent):
     name = 'shard_ready_receive'
 
     def __init__(self, sharder, shard, payload):
         super().__init__(sharder, payload)
         self.shard = shard
-        sharder.client.user = sharder.client.users.append(payload['user'])
+        self.client.user = self.client.users.append(payload['user'])
 
 
-class ChannelCreateHandler(BaseGatewayEvent):
+class ShardReadyEvent(BaseGatewayEvent):
+    name = 'shard_ready'
+
+    def __init__(self, sharder, shard):
+        super().__init__(sharder)
+        self.shard = sharder
+
+
+class ChannelCreateEvent(BaseGatewayEvent):
     name = 'channel_create'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = sharder.client.channels.append(payload)
+        self.channel = self.client.channels.append(payload)
 
 
-class ChannelUpdateHandler(BaseGatewayEvent):
+class ChannelUpdateEvent(BaseGatewayEvent):
     name = 'channel_update'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = sharder.client.channels.append(payload)
+        self.channel = self.client.channels.append(payload)
 
 
-class ChannelDeleteHandler(BaseGatewayEvent):
+class ChannelDeleteEvent(BaseGatewayEvent):
     name = 'channel_delete'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = sharder.client.channels.pop(payload['id'])
+        self.channel = self.client.channels.pop(payload['id'])
 
 
-class ChannelPinsUpdateHandler(BaseGatewayEvent):
+class ChannelPinsUpdateEvent(BaseGatewayEvent):
     name = 'channel_pins_update'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.channel = sharder.client.channels.get(payload['channel_id'])
+        self.channel = self.client.channels.get(payload['channel_id'])
         self.channel.last_pin_timestamp = payload['last_pin_timestamp']
 
 
-class GuildCreateHandler(BaseGatewayEvent):
+class GuildCreateEvent(BaseGatewayEvent):
     name = 'guild_create'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = sharder.client.guilds.append(payload)
+        self.guild = self.client.guilds.append(payload)
 
 
-class GuildUpdateHandler(BaseGatewayEvent):
+class GuildUpdateEvent(BaseGatewayEvent):
     name = 'guild_update'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = sharder.client.guilds.append(payload)
+        self.guild = self.client.guilds.append(payload)
 
 
-class GuildDeleteHandler(BaseGatewayEvent):
+class GuildDeleteEvent(BaseGatewayEvent):
     name = 'guild_delete'
 
     def __init__(self, sharder, payload):
         super().__init__(sharder, payload)
-        self.guild = sharder.client.guilds.pop(payload['id'])
+        self.guild = self.client.guilds.pop(payload['id'])
 
 
-class MessageCreateHandler(BaseGatewayEvent):
+class GuildBanAddEvent(BaseGatewayEvent):
+    name = 'guild_ban_add'
+
+    def __init__(self, sharder, payload):
+        super().__init__(sharder, payload)
+        self.guild = self.client.guilds.get(payload['guild_id'])
+        self.ban = self.guild.bans.append(payload)
+
+
+class GuildBanRemoveEvent(BaseGatewayEvent):
+    name = 'guild_ban_remove'
+
+    def __init__(self, sharder, payload):
+        super().__init__(sharder, payload)
+        self.guild = self.client.guilds.get(payload['guild_id'])
+        self.client.users.append(payload['user'])  # maybe the user was updated?
+        self.ban = self.guild.bans.pop(payload['user']['id'])
+
+
+class GuildEmojisUpdateEvent(BaseGatewayEvent):
+    name = 'guild_emojis_update'
+
+    def __init__(self, sharder, payload):
+        super().__init__(sharder, payload)
+        self.guild = self.client.guilds.get(payload['guild_id'])
+        self.guild.emojis.clear()
+        self.emojis = self.guild.emojis
+
+        for emoji in payload['emojis']:
+            self.guild.emojis.append(emoji)
+
+
+class GuildMemberAddEvent(BaseGatewayEvent):
+    name = 'guild_member_add'
+
+    def __init__(self, sharder, payload):
+        super().__init__(sharder, payload)
+        self.guild = self.client.guilds.get(payload['guild_id'])
+        self.member = self.guild.members.append(payload)
+
+
+class GuildMemberUpdateEvent(BaseGatewayEvent):
+    name = 'guild_member_update'
+
+    def __init__(self, sharder, payload):
+        super().__init__(sharder, payload)
+        self.guild = self.client.guilds.get(payload['guild_id'])
+        self.member = self.guild.members.append(payload)
+
+
+class GuildMemberRemoveEvent(BaseGatewayEvent):
+    name = 'guild_member_remove'
+
+    def __init__(self, sharder, payload):
+        super().__init__(sharder, payload)
+        self.guild = self.client.guilds.get(payload['guild_id'])
+        user = self.client.users.append(payload['user'])  # maybe the user was updated?
+        self.member = self.guild.members.pop(user.id)
+
+
+class MessageCreateEvent(BaseGatewayEvent):
     name = 'message_create'
 
     def __init__(self, sharder, payload):
@@ -85,9 +154,12 @@ class MessageCreateHandler(BaseGatewayEvent):
 
 class Sharder(EventPusher):
     handlers = (
-        ShardReadyReceiveHandler, ChannelCreateHandler, ChannelUpdateHandler,
-        ChannelDeleteHandler, ChannelPinsUpdateHandler, GuildCreateHandler,
-        GuildUpdateHandler, GuildDeleteHandler, MessageCreateHandler
+        ShardReadyReceiveEvent, ShardReadyEvent, ChannelCreateEvent,
+        ChannelUpdateEvent, ChannelDeleteEvent, ChannelPinsUpdateEvent,
+        GuildCreateEvent, GuildUpdateEvent, GuildDeleteEvent,
+        GuildBanAddEvent, GuildBanRemoveEvent, GuildEmojisUpdateEvent,
+        GuildMemberAddEvent, GuildMemberUpdateEvent, GuildMemberRemoveEvent,
+        MessageCreateEvent
     )
 
     def __init__(self, client, *, max_shards=None, intents=None):
