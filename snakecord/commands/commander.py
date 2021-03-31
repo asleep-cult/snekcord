@@ -19,22 +19,6 @@ class CommandInvokeEvent:
         for name, command in commander.commands.items():
             if cmd == name:
                 self.command = command
-
-    @property
-    def channel(self):
-        return self.message.channel
-
-    @property
-    def invoker(self):
-        return self.message.author
-
-    @property
-    def guild(self):
-        return self.message.guild
-    
-    @property
-    def send(self):
-        return self.channel.send
     
     def invoke(self):
         if not self.command:
