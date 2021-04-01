@@ -268,7 +268,7 @@ class BaseConnection(EventPusher):
             self.push_event('ws_receive', response)
 
     def form_headers(self, meth, path, headers):
-        parts = ['%s %s HTTP/1.0' % (meth, path)]
+        parts = ['%s %s HTTP/1.1' % (meth, path)]
 
         for name, value in headers.items():
             parts.append('%s: %s' % (name, value))
@@ -291,13 +291,14 @@ class BaseConnection(EventPusher):
         headers = kwargs.pop('headers', {})
 
         url = urllib.parse.urlparse(self.endpoint)
+        port = url.port or kwargs.pop('port', None)
 
         self.transport, self.protocol = await self.loop.create_connection(
-            lambda: WebsocketProtocol(self), url.hostname, **kwargs
+            lambda: WebsocketProtocol(self), url.hostname, port, **kwargs
         )
 
         headers.update({
-            'Host': url.hostname,
+            'Host': '{}:{}'.format(url.hostname, port),
             'Connection': 'Upgrade',
             'Upgrade': 'websocket',
             'Sec-WebSocket-Key': self.sec_ws_key.decode(),
@@ -370,7 +371,7 @@ class HeartbeatHandler:
         self.last_sent = time.perf_counter()
         self.connection.send_json(paylod)
 
-        await self.wait_ack()
+        # await self.wait_ack()
 
         self.do_heartbeat()
 
@@ -485,6 +486,19 @@ class Shard(BaseConnection):
             pusher = self if response.event_name in ('READY', 'RESUME') else self.pusher
             pusher.push_event(response.event_name, response.data)
 
+    def update_voice_state(self, guild_id, channel_id, self_mute=False, self_deaf=False):
+        payload = {
+            'op': ShardOpcode.VOICE_STATE_UPDATE,
+            'd': {
+                'guild_id': guild_id,
+                'channel_id': channel_id,
+                'self_mute': self_mute,
+                'self_deaf': self_deaf
+            }
+        }
+        self.send_json(payload)
+        return self.pusher.wait('VOICE_STATE_UPDATE'), self.pusher.wait('VOICE_SERVER_UPDATE')
+
 
 class VoiceConnectionOpcode(IntEnum):
     IDENTIFY = 0
@@ -507,12 +521,7 @@ class SpeakingState(IntEnum):
     PRIORITY = 4
 
 
-"""
-class VoiceWSProtocol(ConnectionBase):
-    def __init__(self, voice_connection):
-        self.voice_connection = voice_connection
-        super().__init__(voice_connection.client, voice_connection.endpoint)
-
+class VoiceWebSocket(BaseConnection):
     @property
     def heartbeat_payload(self):
         payload = {
@@ -526,77 +535,53 @@ class VoiceWSProtocol(ConnectionBase):
         payload = {
             'op': VoiceConnectionOpcode.IDENTIFY,
             'd': {
-                'server_id': self.voice_connection.guild_id,
-                'user_id': self.voice_connection.voice_state.member.user.id,
-                'session_id': self.voice_connection.voice_state.session_id,
-                'token': self.voice_connection.token
+                'server_id': self.pusher.voice_state.guild.id,
+                'user_id': self.pusher.voice_state.member.user.id,
+                'session_id': self.pusher.voice_state.session_id,
+                'token': self.pusher.voice_server_update.token
             }
         }
         return payload
 
-    @property
-    def select_payload(self):
+    def set_speaking_state(self, state=SpeakingState.VOICE, delay=0):
+        payload = {
+            'op': VoiceConnectionOpcode.SPEAKING,
+            'd': {
+                'speaking': state,
+                'delay': delay
+            }
+        }
+        self.send_json(payload)
+
+    def select(self, address, port, mode):
         payload = {
             'op': VoiceConnectionOpcode.SELECT,
             'd': {
                 'protocol': 'udp',
                 'data': {
-                    'address': self.voice_connection.protocol.ip,
-                    'port': self.voice_connection.protocol.port,
-                    'mode': self.voice_connection.mode
+                    'address': address,
+                    'port': port,
+                    'mode': mode
                 }
             }
         }
-        return payload
+        self.send_json(payload)
 
-    # async def send_speaking(self, state=SpeakingState.VOICE):
-    #     payload = {
-    #        'op': VoiceConnectionOpcode.SPEAKING,
-    #        'd': {
-    #            'speaking': state.value,
-    #            'delay': 0
-    #        }
-    #    }
-    #    await self.websocket.send_json(payload)
-
-    async def select(self):
-        await self.websocket.send_json(self.select_payload)
-
-    async def dispatch(self, resp):
-        if resp.opcode == VoiceConnectionOpcode.HELLO:
-            await self.websocket.send_json(self.identify_payload)
-
-            self.websocket.heartbeat_interval = \
-                resp.data['heartbeat_interval'] / 1000
-            self.websocket.do_heartbeat()
-        elif resp.opcode == VoiceConnectionOpcode.HEARTBEAT_ACK:
-            self.websocket.heartbeat_ack()
+    async def ws_receive(self, response):
+        if response.opcode == VoiceConnectionOpcode.HELLO:
+            self.send_json(self.identify_payload)
+            self.heartbeat_handler.heartbeat_interval = response.data['heartbeat_interval'] / 1000
+            self.heartbeat_handler.start()
+        elif response.opcode == VoiceConnectionOpcode.HEARTBEAT_ACK:
+            self.push_event('heartbeat_ack')
         else:
-            await self.voice_connection.dispatch(resp)
+            self.pusher.push_event(
+                'op_' + VoiceConnectionOpcode(response.opcode).name, response.data)
 
 
-class VoiceUDPProtocol(asyncio.DatagramProtocol):
-    def __init__(self):
-        self.ip = None
-        self.port = None
-        self.mode = None
-        self.selected = False
-        self.voice_connection = None
+class VoiceDatagramProtocol(asyncio.DatagramProtocol):
+    def __init__(self, connection):
+        self.connection = connection
 
-    async def _datagram_received(self, data):
-        if not self.selected:
-            end = data.index(0, 4)
-            ip = data[4:end]
-            self.ip = ip.decode()
-
-            port = data[-2:]
-            self.port = int.from_bytes(port, 'big')
-
-            await self.voice_connection.ws.select()
-            self.selected = True
-        else:
-            await self.voice_connection.datagram_received(data)
-
-    def datagram_received(self, data, addr):
-        self.voice_connection.loop.create_task(self._datagram_received(data))
-"""
+    def datagram_received(self, data, endpoint):
+        self.connection.push_event('datagram_received', data)
