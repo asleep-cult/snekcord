@@ -5,7 +5,7 @@ from ..events import EventPusher
 from .commander import CommandInvokeEvent, CommandInvokeHandler
 from .command import Command
 
-from asyncio import get_event_loop
+from asyncio import get_event_loop, iscoroutine
 
 class Commander(EventPusher):
     def __init__(self, **kwargs):
@@ -49,10 +49,25 @@ class CommanderClient(Client):
             if handler is None:
                 handler = self.commander._handlers[name] = CommandInvokeHandler(name)
 
-            @wraps(func)
-            def inner(handler):
-                return func(handler.evnt, *handler.args, **handler.kwargs)
+            wrapped = self._wrap_callback(func)
 
-            self.commander.register_listener(name, inner)
+            self.commander.register_listener(name, wrapped)
             return cmd
         return deco
+    
+    @staticmethod
+    def _wrap_callback(func):
+        @wraps(func)
+        async def wrapped(handler):
+            cmd = handler.evnt.command
+
+            for guard in cmd.guards:
+                await guard.check(handler.evnt)
+
+            ret = func(handler.evnt, *handler.args, **handler.kwargs)
+
+            if iscoroutine(ret):
+                ret = await ret
+            
+            return ret
+        return wrapped
