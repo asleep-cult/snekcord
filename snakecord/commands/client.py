@@ -8,8 +8,8 @@ from .command import Command
 from asyncio import get_event_loop, iscoroutine
 
 class Commander(EventPusher):
-    def __init__(self, **kwargs):
-        loop = kwargs.get("loop") or get_event_loop()
+    def __init__(self, loop=None):
+        loop = loop or get_event_loop()
         super().__init__(loop)
         self.commands = {}
 
