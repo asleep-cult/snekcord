@@ -95,7 +95,7 @@ class AudioPlayer:
         await asyncio.sleep(delay)
 
     async def start(self, *, wait=True):
-        await self.connection.ws.send_speaking()
+        self.connection.ws.set_speaking_state()
 
         self.started_at = time.perf_counter()
 
