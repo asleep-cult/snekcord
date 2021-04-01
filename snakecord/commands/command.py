@@ -4,10 +4,11 @@ WHITESPACE = (' ', '\t', '\r', '\n')
 
 
 class Command:
-    def __init__(self, commander, name, args, *, description=None, overflow=False):
+    def __init__(self, commander, name, args, *, description=None, overflow=False, aliases=None):
         self.commander = commander
         self.name = name
         self.description = description
+        self.aliases = [] if aliases is None else list(aliases)
 
         self.vararg = args.vararg
         self.varkwargs = args.varkwarg
@@ -70,3 +71,16 @@ class Command:
     def invoke(self, evnt):
         self._parse_args(evnt)
         self.commander.push_event('invoke_{}'.format(self.name), evnt, *evnt.args, **evnt.kwargs)
+
+    def add_alias(self, alias):
+        if not isinstance(alias, str):
+            raise ValueError("Alias must be a str.")
+        elif alias in self.aliases:
+            raise ValueError("This is already an existing alias.")
+        try:
+            self.aliases.append(alias)
+        except AttributeError:
+            if hasattr(self, 'aliases'):
+                raise ValueError("Aliases is not a list.") from None
+            raise
+        

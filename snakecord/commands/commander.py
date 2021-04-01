@@ -17,7 +17,7 @@ class CommandInvokeEvent:
         except EOFError:
             return
         for name, command in commander.commands.items():
-            if cmd == name:
+            if cmd == name or cmd in command.aliases:
                 self.command = command
     
     def invoke(self):
