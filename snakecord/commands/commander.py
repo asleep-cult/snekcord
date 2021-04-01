@@ -21,9 +21,8 @@ class CommandInvokeEvent:
                 self.command = command
     
     def invoke(self):
-        if not self.command:
-            return
-        self.command.invoke(self)
+        if self.command is not None:
+            self.command.invoke(self)
 
 class CommandInvokeHandler:
     def __init__(self, name):
