@@ -58,6 +58,7 @@ def get_opus_headers():
                 tfile.extract(name)
 
 
+@atexit.register
 def cleanup_opus_headers():
     try:
         shutil.rmtree(opus_include_dir.split('/')[0])
@@ -70,8 +71,6 @@ try:
     CAN_COMPILE = True
 except Exception:
     CAN_COMPILE = False
-
-atexit.register(cleanup_opus_headers)
 
 
 if CAN_COMPILE:

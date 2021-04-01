@@ -47,6 +47,7 @@ class GuildMemberState(BaseState):
     def append(self, data, user=None):
         if user is None:
             user = self.client.users.append(data['user'])
+
         member = self.get(user.id)
         if member is not None:
             member._update(data)
