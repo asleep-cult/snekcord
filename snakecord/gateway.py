@@ -23,7 +23,7 @@ class ShardReadyEvent(BaseGatewayEvent):
 
     def __init__(self, sharder, shard):
         super().__init__(sharder)
-        self.shard = sharder
+        self.shard = shard
 
 
 class ChannelCreateEvent(BaseGatewayEvent):

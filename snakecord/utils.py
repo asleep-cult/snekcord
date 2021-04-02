@@ -100,8 +100,11 @@ class JsonStructureMeta(type):
             except AttributeError:
                 continue
 
-        slots = attrs.pop('__slots__', ())
-        slots += tuple(json_fields)
+        slots = list(attrs.pop('__slots__', []))
+        slots.extend(json_fields)
+
+        for base in bases:
+            slots = mcs.fix_slots(base, slots)
 
         attrs['__json_fields__'] = json_fields
         attrs['__json_base__'] = base
@@ -111,6 +114,13 @@ class JsonStructureMeta(type):
             bases.append(JsonStructureBase)
 
         return super().__new__(mcs, name, tuple(bases), attrs)
+
+    @classmethod
+    def fix_slots(cls, klass, slots):
+        slots = [slot for slot in slots if slot not in getattr(klass, '__slots__', ())]
+        for base in klass.__bases__:
+            slots = cls.fix_slots(base, slots)
+        return slots
 
 
 class JsonStructure(metaclass=JsonStructureMeta, base=False):
