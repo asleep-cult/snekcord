@@ -1,5 +1,8 @@
+from typing import Optional
+
 from . import structures
 from .enums import ChannelType
+from .guild import Guild
 from .invite import ChannelInviteState
 from .message import MessageState
 from .permissions import PermissionOverwriteState
@@ -14,7 +17,7 @@ class GuildChannel(structures.GuildChannel):
         'messages', 'permission_overwrites'
     )
 
-    def __init__(self, *, state, guild=None):
+    def __init__(self, *, state, guild: Optional[Guild] = None):
         self._state = state
         self._set_guild(guild)
         self.messages = MessageState(client=self._state.client, channel=self)
@@ -29,7 +32,7 @@ class GuildChannel(structures.GuildChannel):
         rest = self._state.client.rest
         await rest.delete_channel(self.id)
 
-    def _set_guild(self, guild=None):
+    def _set_guild(self, guild: Optional[Guild] = None):
         if guild is not None:
             self.guild = guild
 
@@ -75,7 +78,14 @@ class TextChannel(GuildChannel, structures.TextChannel):
         message = self._state.append(data)
         return message
 
-    async def send(self, content=None, *, nonce=None, tts=False, embed=None):
+    async def send(
+        self,
+        content: Optional[str] = None,
+        *,
+        nonce: Optional[int] = None,
+        tts: bool = False,
+        embed: structures.Embed = None
+    ):
         rest = self._state.client.rest
         if embed is not None:
             embed = embed.to_dict()

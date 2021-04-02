@@ -30,9 +30,9 @@ class WebsocketFrame(cstruct):
     sbyte: cstruct.UnsignedChar
 
     def __init__(
-        self, data, *, opcode=WebsocketOpcode.TEXT, fin=True,
-        rsv1=False, rsv2=False, rsv3=False, masked=True
-    ):
+        self, data: bytearray, *, opcode: int = WebsocketOpcode.TEXT, fin: bool =True,
+        rsv1: bool = False, rsv2: bool = False, rsv3: bool = False, masked: bool=True
+    ): # Pretty sure `data` is bytearray
         self.data = data
         self.opcode = opcode
         self.fin = fin
@@ -63,7 +63,7 @@ class WebsocketFrame(cstruct):
         return self.sbyte & 0b01111111
 
     @staticmethod
-    def apply_mask(mask, data):
+    def apply_mask(mask: bytearray, data: bytearray):
         for i in range(len(data)):
             data[i] ^= mask[i % 4]
         return data
@@ -144,11 +144,11 @@ class WebsocketProtocol(asyncio.Protocol):
         self.headers = b''
         self.have_headers = asyncio.Event()
 
-    def _check_position(self, position, data):
+    def _check_position(self, position: int, data: bytearray):
         if position >= len(data):
             raise EOFError
 
-    def _create_frames(self, data):
+    def _create_frames(self, data: bytearray):
         position = 0
         while True:
             self._check_position(position, data)
@@ -205,13 +205,13 @@ class WebsocketProtocol(asyncio.Protocol):
 
             self._check_position(position, data)
 
-    def create_frames(self, data):
+    def create_frames(self, data: bytearray):
         try:
             self._create_frames(data)
         except EOFError:
             pass
 
-    def data_received(self, data):
+    def data_received(self, data: bytearray):
         if not self.have_headers.is_set():
             try:
                 index = data.index(b'\r\n\r\n') + 4
@@ -234,7 +234,7 @@ class DiscordResponse(JsonStructure):
 
 
 class BaseConnection(EventPusher):
-    def __init__(self, endpoint, pusher, *, heartbeat_timeout=10):
+    def __init__(self, endpoint, pusher: EventPusher, *, heartbeat_timeout: int = 10):
         super().__init__(pusher.loop)
 
         self.endpoint = endpoint
