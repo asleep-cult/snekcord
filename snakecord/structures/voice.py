@@ -1,7 +1,7 @@
 from ..utils import JsonField, JsonStructure, Snowflake
 
 
-class VoiceState(JsonStructure):
+class VoiceState(JsonStructure, base=True):
     __json_fields__ = {
         'guild_id': JsonField('guild_id', Snowflake, str),
         'channel_id': JsonField('channel_id', Snowflake, str),
@@ -18,7 +18,7 @@ class VoiceState(JsonStructure):
     }
 
 
-class VoiceServerUpdate(JsonStructure):
+class VoiceServerUpdate(JsonStructure, base=True):
     __json_fields__ = {
         'token': JsonField('token'),
         'guild_id': JsonField('guild_id', Snowflake, str),

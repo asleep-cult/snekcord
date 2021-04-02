@@ -4,7 +4,7 @@ from .state import BaseState
 
 class GuildEmoji(structures.GuildEmoji):
     __slots__ = (
-        *structures.GuildEmoji.__json_fields__, '_state', 'guild', 'user'
+        '_state', 'guild', 'user'
     )
 
     def __init__(self, *, state, guild):

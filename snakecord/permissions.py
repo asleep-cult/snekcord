@@ -6,7 +6,9 @@ from .state import BaseState
 
 
 class PermissionOverwrite(structures.PermissionOverwrite):
-    __slots__ = ('id', 'type', 'deny', 'allow')
+    __slots__ = (
+        '_state', *(n.lower() for n in PermissionFlag._member_names_)
+    )
 
     create_instant_invite: Optional[bool]
     kick_members: Optional[bool]

@@ -1,7 +1,7 @@
 from ..utils import JsonArray, JsonField, JsonStructure
 
 
-class EmbedAttachment(JsonStructure):
+class EmbedAttachment(JsonStructure, base=True):
     __json_fields__ = {
         'url': JsonField('url'),
         'proxy_url': JsonField('proxy_url'),
@@ -10,7 +10,7 @@ class EmbedAttachment(JsonStructure):
     }
 
 
-class EmbedVideo(JsonStructure):
+class EmbedVideo(JsonStructure, base=True):
     __json_fields__ = {
         'url': JsonField('url'),
         'height': JsonField('height'),
@@ -18,14 +18,14 @@ class EmbedVideo(JsonStructure):
     }
 
 
-class EmbedProvider(JsonStructure):
+class EmbedProvider(JsonStructure, base=True):
     __json_fields__ = {
         'name': JsonField('name'),
         'url': JsonField('url'),
     }
 
 
-class EmbedAuthor(JsonStructure):
+class EmbedAuthor(JsonStructure, base=True):
     __json_fields__ = {
         'name': JsonField('name'),
         'url': JsonField('url'),
@@ -34,7 +34,7 @@ class EmbedAuthor(JsonStructure):
     }
 
 
-class EmbedFooter(JsonStructure):
+class EmbedFooter(JsonStructure, base=True):
     __json_fields__ = {
         'text': JsonField('text'),
         'icon_url': JsonField('icon_url'),
@@ -42,7 +42,7 @@ class EmbedFooter(JsonStructure):
     }
 
 
-class EmbedField(JsonStructure):
+class EmbedField(JsonStructure, base=True):
     __json_fields__ = {
         'name': JsonField('name'),
         'value': JsonField('value'),
@@ -50,7 +50,7 @@ class EmbedField(JsonStructure):
     }
 
 
-class Embed(JsonStructure):
+class Embed(JsonStructure, base=True):
     __json_fields__ = {
         'title': JsonField('title'),
         'type': JsonField('type'),

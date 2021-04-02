@@ -1,7 +1,7 @@
 from ..utils import JsonField, JsonStructure
 
 
-class Invite(JsonStructure):
+class Invite(JsonStructure, base=True):
     __json_fields__ = {
         'code': JsonField('code'),
         '_guild': JsonField('guild'),
@@ -22,7 +22,7 @@ class Invite(JsonStructure):
     }
 
 
-class PartialInvite(JsonStructure):
+class PartialInvite(JsonStructure, base=True):
     __json_fields__ = {
         'code': JsonField('code'),
         'uses': JsonField('uses'),

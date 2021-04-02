@@ -6,8 +6,7 @@ from .utils import _try_snowflake, undefined
 
 class GuildMember(structures.GuildMember):
     __slots__ = (
-        *structures.GuildMember.__json_fields__, '_state', 'guild',
-        'user', 'roles'
+        '_state', 'guild', 'user', 'roles'
     )
 
     def __init__(self, *, state, guild, user=None):

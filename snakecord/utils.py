@@ -20,16 +20,11 @@ class _Undefined:
 undefined = _Undefined()
 
 
-class JsonStructure:
-    # inspired by Go's encoding/json module
+class JsonStructureBase:
+    __slots__ = ()
 
-    __json_fields__: dict
-
-    def __init_subclass__(cls):
-        cls.__json_fields__ = cls.__json_fields__.copy()
-        for bcls in cls.__bases__:
-            if hasattr(bcls, '__json_fields__'):
-                cls.__json_fields__.update(bcls.__json_fields__)
+    def __new__(cls, *args, **kwargs):
+        raise TypeError('Cannot create instances of {!r}'.format(cls.__name__))
 
     @classmethod
     def unmarshal(cls, data, *args, init_class=True, **kwargs):
@@ -81,6 +76,43 @@ class JsonStructure:
 
     def marshal(self):
         return json.dumps(self.to_dict())
+
+
+class JsonStructureMeta(type):
+    def __new__(mcs, name, bases, attrs, base=False):
+        # This metaclass allows JsonStructures to be exempt from a subclasses
+        # bases to prevent lay-out errors when __slots__ is used.
+        # This allows for some odd structure chaining with working slots
+        # like seen in class TextChannel(GuildChannel, structures.TextChannel)
+        # and class Guild(PartialGuild, structures.Guild)
+
+        bases = list(bases)
+        json_fields = attrs.pop('__json_fields__', {})
+
+        for cls in bases:
+            try:
+                json_fields.update(cls.__json_fields__)
+                if cls.__json_base__:
+                    bases.remove(cls)
+            except AttributeError:
+                continue
+
+        slots = attrs.pop('__slots__', ())
+        slots += tuple(json_fields)
+
+        attrs['__json_fields__'] = json_fields
+        attrs['__json_base__'] = base
+        attrs['__slots__'] = slots
+
+        if not any(issubclass(b, JsonStructureBase) for b in bases):
+            bases.append(JsonStructureBase)
+
+        return super().__new__(mcs, name, tuple(bases), attrs)
+
+
+class JsonStructure(metaclass=JsonStructureMeta):
+    # inspired by Go's encoding/json module
+    pass
 
 
 class JsonField:

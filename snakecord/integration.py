@@ -4,8 +4,7 @@ from .state import BaseState
 
 class GuildIntegrationApplication(structures.GuildIntegrationApplication):
     __slots__ = (
-        *structures.GuildIntegrationApplication.__json_fields__, '_state',
-        'bot'
+        '_state', 'bot'
     )
 
     def __init__(self, *, state):
@@ -21,8 +20,7 @@ class GuildIntegrationApplication(structures.GuildIntegrationApplication):
 
 class GuildIntegration(structures.GuildIntegration):
     __slots__ = (
-        *structures.GuildIntegration.__json_fields__, '_state', 'guild',
-        'user', 'application'
+        '_state', 'guild', 'user', 'application'
     )
 
     def __init__(self, *, state, guild):

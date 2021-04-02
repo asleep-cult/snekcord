@@ -10,8 +10,7 @@ from .voice import VoiceConnection, VoiceState
 
 class GuildChannel(structures.GuildChannel):
     __slots__ = (
-        *structures.GuildChannel.__json_fields__, '_state', 'guild',
-        'messages', 'permission_overwrites'
+        '_state', 'guild', 'messages', 'permission_overwrites'
     )
 
     def __init__(self, *, state, guild=None):
@@ -59,8 +58,8 @@ class GuildChannel(structures.GuildChannel):
 
 class TextChannel(GuildChannel, structures.TextChannel):
     __slots__ = (
-        *structures.TextChannel.__json_fields__, *GuildChannel.__slots__,
-        'last_pin_timestamp', 'invites'
+        *structures.TextChannel.__json_fields__, 'last_pin_timestamp',
+        'invites'
     )
 
     def __init__(self, *args, **kwargs):
@@ -96,7 +95,7 @@ class TextChannel(GuildChannel, structures.TextChannel):
 
 class VoiceChannel(GuildChannel, structures.VoiceChannel):
     __slots__ = (
-        *structures.GuildChannel.__json_fields__, *GuildChannel.__slots__,
+        *structures.GuildChannel.__json_fields__,
     )
 
     async def connect(self):
@@ -130,7 +129,7 @@ class VoiceChannel(GuildChannel, structures.VoiceChannel):
 
 
 class CategoryChannel(GuildChannel):
-    __slots__ = GuildChannel.__slots__
+    pass
 
 
 class DMChannel(structures.DMChannel):

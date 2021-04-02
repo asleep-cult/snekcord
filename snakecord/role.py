@@ -4,8 +4,7 @@ from .state import BaseState
 
 class Role(structures.Role):
     __slots__ = (
-        'id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed',
-        'mentionable', 'tags'
+        '_state', 'guild'
     )
 
     def __init__(self, state, guild):

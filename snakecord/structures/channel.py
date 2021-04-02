@@ -2,7 +2,7 @@ from .base import BaseObject
 from ..utils import JsonArray, JsonField, JsonStructure, Snowflake
 
 
-class GuildChannel(BaseObject):
+class GuildChannel(BaseObject, base=True):
     __json_fields__ = {
         'name': JsonField('name'),
         'guild_id': JsonField('guild_id', Snowflake, str),
@@ -14,7 +14,7 @@ class GuildChannel(BaseObject):
     }
 
 
-class TextChannel(JsonStructure):
+class TextChannel(JsonStructure, base=True):
     __json_fields__ = {
         'topic': JsonField('topic'),
         'slowmode': JsonField('rate_limit_per_user'),
@@ -22,7 +22,7 @@ class TextChannel(JsonStructure):
     }
 
 
-class VoiceChannel(JsonStructure):
+class VoiceChannel(JsonStructure, base=True):
     __json_fields__ = {
         'bitrate': JsonField('bitrate'),
         'user_limit': JsonField('user_limit'),

@@ -4,6 +4,10 @@ from .utils import _try_snowflake
 
 
 class Reaction(structures.Reaction):
+    __slots__ = (
+        '_state', 'message'
+    )
+
     def __init__(self, state, message):
         self._state = state
         self.message = message
@@ -16,6 +20,10 @@ class Reaction(structures.Reaction):
 
 
 class Message(structures.Message):
+    __slots__ = (
+        '_state', 'channel', 'reactions', 'guild', 'author'
+    )
+
     def __init__(self, *, state, channel):
         self._state = state
         self.channel = channel

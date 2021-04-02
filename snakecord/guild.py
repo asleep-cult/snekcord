@@ -11,7 +11,7 @@ from .utils import _try_snowflake, undefined
 
 class GuildWidget(structures.GuildWidget):
     __slots__ = (
-        *structures.GuildWidget.__json_fields__, 'guild'
+        'guild',
     )
 
     def __init__(self, *, guild=None):
@@ -23,7 +23,7 @@ class GuildWidget(structures.GuildWidget):
 
 class GuildWidgetSettings(structures.GuildWidgetSettings):
     __slots__ = (
-        *structures.GuildWidgetSettings.__json_fields__, 'guild', 'channel'
+        'guild', 'channel'
     )
 
     def __init__(self, *, guild=None):
@@ -36,8 +36,8 @@ class GuildWidgetSettings(structures.GuildWidgetSettings):
 
 class GuildPreview(structures.GuildPreview):
     __slots__ = (
-        *structures.GuildPreview.__json_fields__, '_state', 'members',
-        'emojis', 'roles', 'bans', 'channels', 'integrations'
+        '_state', 'members', 'emojis', 'roles', 'invites',
+        'bans', 'channels', 'integrations'
     )
 
     def __init__(self, *, state):
@@ -176,7 +176,7 @@ class GuildPreview(structures.GuildPreview):
 
 
 class Guild(GuildPreview, structures.Guild):
-    __slots__ = GuildPreview.__slots__
+    __slots__ = ()
 
     @property
     def shard(self):
@@ -256,7 +256,7 @@ class Guild(GuildPreview, structures.Guild):
 
 class GuildBan(structures.GuildBan):
     __slots__ = (
-        *structures.GuildBan.__json_fields__, '_state', 'user'
+        '_state', 'user'
     )
 
     def __init__(self, *, state, user=None):
