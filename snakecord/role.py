@@ -4,8 +4,7 @@ from .state import BaseState
 
 class Role(structures.Role):
     __slots__ = (
-        'id', 'name', 'color', 'hoist', 'position', 'permissions', 'managed',
-        'mentionable', 'tags'
+        '_state', 'guild'
     )
 
     def __init__(self, state, guild):
@@ -24,8 +23,8 @@ class Role(structures.Role):
 
 
 class RoleState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def append(self, data):

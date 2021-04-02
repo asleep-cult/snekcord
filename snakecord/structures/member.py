@@ -1,7 +1,7 @@
 from ..utils import JsonField, JsonStructure
 
 
-class GuildMember(JsonStructure):
+class GuildMember(JsonStructure, base=False):
     __json_fields__ = {
         '_user': JsonField('user'),
         'nick': JsonField('nick'),

@@ -2,14 +2,14 @@ from .base import BaseObject
 from ..utils import JsonArray, JsonField, JsonStructure, Snowflake
 
 
-class GuildWidgetChannel(BaseObject):
+class GuildWidgetChannel(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         'poosition': JsonField('position'),
     }
 
 
-class GuildWidgetMember(BaseObject):
+class GuildWidgetMember(BaseObject, base=False):
     __json_fields__ = {
         'username': JsonField('username'),
         'discriminator': JsonField('discriminator'),
@@ -18,7 +18,7 @@ class GuildWidgetMember(BaseObject):
     }
 
 
-class GuildWidget(BaseObject):
+class GuildWidget(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         'instant_invite': JsonField('instant_invite'),
@@ -28,14 +28,14 @@ class GuildWidget(BaseObject):
     }
 
 
-class GuildWidgetSettings(JsonStructure):
+class GuildWidgetSettings(JsonStructure, base=False):
     __json_fields__ = {
         'enabled': JsonField('enabled'),
         'channel_id': JsonField('channel_id'),
     }
 
 
-class GuildPreview(BaseObject):
+class GuildPreview(BaseObject, base=False):
     # Basically a partial guild?
     __json_fields__ = {
         'name': JsonField('name'),
@@ -50,7 +50,7 @@ class GuildPreview(BaseObject):
     }
 
 
-class Guild(JsonStructure):
+class Guild(JsonStructure, base=False):
     __json_fields__ = {
         'icon_hash': JsonField('icon_hash'),
         '_owner': JsonField('owner'),
@@ -90,7 +90,7 @@ class Guild(JsonStructure):
     }
 
 
-class GuildBan(JsonStructure):
+class GuildBan(JsonStructure, base=False):
     __json_fields__ = {
         'reason': JsonField('reason'),
         '_user': JsonField('user'),

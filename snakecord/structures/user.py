@@ -2,7 +2,7 @@ from .base import BaseObject
 from ..utils import JsonField
 
 
-class User(BaseObject):
+class User(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('username'),
         'discriminator': JsonField('discriminator'),

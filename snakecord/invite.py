@@ -6,8 +6,17 @@ INVITE_BASE_URL = 'https://discord.com/invite/'
 
 
 class Invite(structures.Invite):
-    def __init__(self, state=None):
+    __slots__ = (
+        *structures.Invite.__json_fields__, '_state', 'guild',
+        'channel', 'inviter', 'target_user'
+    )
+
+    def __init__(self, *, state=None):
         self._state = state
+        self.guild = None
+        self.channel = None
+        self.inviter = None
+        self.target_user = None
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
@@ -32,7 +41,7 @@ class Invite(structures.Invite):
         return INVITE_BASE_URL + self.code
 
     async def delete(self):
-        await self._state.delet(self.code)
+        await self._state.delete(self.code)
 
 
 class InviteState(BaseState):
@@ -58,8 +67,8 @@ class InviteState(BaseState):
 
 
 class GuildInviteState(BaseSubState):
-    def __init__(self, superstate, guild):
-        super().__init__(superstate)
+    def __init__(self, *, superstate, guild):
+        super().__init__(superstate=superstate)
         self.guild = guild
 
     def _check_relation(self, item):
@@ -73,8 +82,8 @@ class GuildInviteState(BaseSubState):
 
 
 class ChannelInviteState(BaseSubState):
-    def __init__(self, superstate, channel):
-        super().__init__(superstate)
+    def __init__(self, *, superstate, channel):
+        super().__init__(superstate=superstate)
         self.channel = channel
 
     def _check_relation(self, item):

@@ -13,8 +13,7 @@ from .voice import VoiceConnection, VoiceState
 
 class GuildChannel(structures.GuildChannel):
     __slots__ = (
-        *structures.GuildChannel.__json_fields__, '_state', 'guild',
-        'messages', 'permission_overwrites'
+        '_state', 'guild', 'messages', 'permission_overwrites'
     )
 
     def __init__(self, *, state, guild: Optional[Guild] = None):
@@ -23,6 +22,10 @@ class GuildChannel(structures.GuildChannel):
         self.messages = MessageState(client=self._state.client, channel=self)
         self.permission_overwrites = PermissionOverwriteState(
             client=self._state.client, channel=self)
+
+    @property
+    def parent(self):
+        return self._state.client.channels.get(self.parent_id)
 
     @property
     def mention(self) -> str:
@@ -54,18 +57,18 @@ class GuildChannel(structures.GuildChannel):
                 self.permission_overwrites.pop(overwrite.id)
 
         self._set_guild()
-        self.parent = self._state.get(self.parent_id)
 
 
 class TextChannel(GuildChannel, structures.TextChannel):
     __slots__ = (
-        *GuildChannel.__slots__, 'last_message_id', 'last_pin_timestamp'
+        'last_pin_timestamp', 'invites'
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_pin_timestamp = None
-        self.invites = ChannelInviteState(self._state.client.invites, self)
+        self.invites = ChannelInviteState(
+            superstate=self._state.client.invites, channel=self)
 
     async def edit(self, **kwargs) -> None:
         rest = self._state.client.rest
@@ -100,11 +103,12 @@ class TextChannel(GuildChannel, structures.TextChannel):
 
 
 class VoiceChannel(GuildChannel, structures.VoiceChannel):
-    __slots__ = (*GuildChannel.__slots__, 'bitrate', 'user_limit')
+    __slots__ = ()
 
     async def connect(self):
         shard = self.guild.shard
-        voice_state_update, voice_server_update = shard.update_voice_state(self.guild.id, self.id)
+        voice_state_update, voice_server_update = shard.update_voice_state(
+            self.guild.id, self.id)
 
         state_data = await voice_state_update
         server_data = await voice_server_update
@@ -132,13 +136,11 @@ class VoiceChannel(GuildChannel, structures.VoiceChannel):
 
 
 class CategoryChannel(GuildChannel):
-    __slots__ = GuildChannel.__slots__
+    pass
 
 
 class DMChannel(structures.DMChannel):
-    __slots__ = (
-        'last_message_id', 'type', '_recipients', 'recipients'
-    )
+    __slots__ = ('_state', 'recipients')
 
     def __init__(self, *, state):
         self._state: ChannelState = state
@@ -153,8 +155,8 @@ class DMChannel(structures.DMChannel):
 
 
 class ChannelRecipientState(BaseState):
-    def __init__(self, client, *, channel: DMChannel):
-        super().__init__(client)
+    def __init__(self, *, client, channel):
+        super().__init__(client=client)
         self.channel = channel
 
     def append(self, data):
@@ -217,8 +219,8 @@ class ChannelState(BaseState):
 
 
 class GuildChannelState(BaseSubState):
-    def __init__(self, superstate, guild):
-        super().__init__(superstate)
+    def __init__(self, *, superstate, guild):
+        super().__init__(superstate=superstate)
         self.guild = guild
 
     def _check_relation(self, item):

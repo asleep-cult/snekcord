@@ -3,7 +3,11 @@ from .state import BaseState
 
 
 class GuildIntegrationApplication(structures.GuildIntegrationApplication):
-    def __init__(self, state):
+    __slots__ = (
+        '_state', 'bot'
+    )
+
+    def __init__(self, *, state):
         self._state = state
         self.bot = None
 
@@ -15,7 +19,11 @@ class GuildIntegrationApplication(structures.GuildIntegrationApplication):
 
 
 class GuildIntegration(structures.GuildIntegration):
-    def __init__(self, state, guild):
+    __slots__ = (
+        '_state', 'guild', 'user', 'application'
+    )
+
+    def __init__(self, *, state, guild):
         self._state = state
         self.guild = guild
 
@@ -38,12 +46,13 @@ class GuildIntegration(structures.GuildIntegration):
             self.user = self._state.client.users.append(self._user)
 
         if self._application is not None:
-            self.application = GuildIntegrationApplication.unmarshal(self._application, state=self._state)
+            self.application = GuildIntegrationApplication.unmarshal(
+                self._application, state=self._state)
 
 
 class GuildIntegrationState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def append(self, data):

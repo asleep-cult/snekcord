@@ -3,14 +3,14 @@ from .embed import Embed
 from ..utils import JsonArray, JsonField, JsonStructure, Snowflake
 
 
-class MessageActivity(JsonStructure):
+class MessageActivity(JsonStructure, base=False):
     __json_fields__ = {
         'type': JsonField('type'),
         'party_id': JsonField('party_id'),
     }
 
 
-class MessageApplication(BaseObject):
+class MessageApplication(BaseObject, base=False):
     __json_fields__ = {
         'cover_image': JsonField('cover_image'),
         'description': JsonField('description'),
@@ -19,7 +19,7 @@ class MessageApplication(BaseObject):
     }
 
 
-class MessageReference(JsonStructure):
+class MessageReference(JsonStructure, base=False):
     __json_fields__ = {
         'message_id': JsonField('message_id', Snowflake, str),
         'channel_id': JsonField('channel_id', Snowflake, str),
@@ -27,7 +27,7 @@ class MessageReference(JsonStructure):
     }
 
 
-class MessageSticker(BaseObject):
+class MessageSticker(BaseObject, base=False):
     __json_fields__ = {
         'pack_id': JsonField('pack_id', Snowflake, str),
         'name': JsonField('name'),
@@ -39,14 +39,14 @@ class MessageSticker(BaseObject):
     }
 
 
-class FollowedChannel(JsonStructure):
+class FollowedChannel(JsonStructure, base=False):
     __json_fields__ = {
         'channel_id': JsonField('channel_id', Snowflake, str),
         'webhook_id': JsonField('webhook_id', Snowflake, str),
     }
 
 
-class MessageAttachment(BaseObject):
+class MessageAttachment(BaseObject, base=False):
     __json_fields__ = {
         'filename': JsonField('filename'),
         'size': JsonField('size'),
@@ -57,7 +57,7 @@ class MessageAttachment(BaseObject):
     }
 
 
-class Message(BaseObject):
+class Message(BaseObject, base=False):
     __json_fields__ = {
         'channel_id': JsonField('channel_id', Snowflake, str),
         'guild_id': JsonField('guild_id', Snowflake, str),
