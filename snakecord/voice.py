@@ -1,14 +1,16 @@
+from asyncio import AbstractEventLoop
 import struct
 
 import nacl.secret
 
 from . import structures
 from .events import EventPusher
+from .channel import VoiceChannel
 from .connection import VoiceWebSocket, VoiceDatagramProtocol, VoiceConnectionOpcode
 
 
 class VoiceState(structures.VoiceState):
-    def __init__(self, voice_channel):
+    def __init__(self, voice_channel: VoiceChannel):
         self.voice_channel = voice_channel
         self.guild = voice_channel.guild
 
@@ -20,7 +22,7 @@ class VoiceState(structures.VoiceState):
 
 
 class VoiceConnection(EventPusher):
-    def __init__(self, loop, voice_state, voice_server_update):
+    def __init__(self, loop: AbstractEventLoop, voice_state: VoiceState, voice_server_update: structures.VoiceServerUpdate):
         super().__init__(loop)
 
         self.voice_state = voice_state

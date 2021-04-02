@@ -1,10 +1,10 @@
 from .utils import _try_snowflake, undefined
-
+from .client import Client
 
 class BaseState:
     _maxsize = None
 
-    def __init__(self, *, client):
+    def __init__(self, *, client: Client):
         self.client = client
         self._items = {}
 

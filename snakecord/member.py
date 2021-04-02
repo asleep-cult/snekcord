@@ -1,6 +1,12 @@
+from typing import Optional, Union
+from datetime import datetime
+
 from . import structures
+from .client import Client
+from .guild import Guild
 from .role import Role
 from .state import BaseState
+from .user import User
 from .utils import _try_snowflake, undefined
 
 
@@ -9,7 +15,7 @@ class GuildMember(structures.GuildMember):
         '_state', 'guild', 'user', 'roles'
     )
 
-    def __init__(self, *, state, guild, user=None):
+    def __init__(self, *, state: 'GuildMemberState', guild: Guild, user: Optional[User] = None):
         self._state = state
         self.guild = guild
         self.user = user
@@ -45,11 +51,11 @@ class GuildMember(structures.GuildMember):
 
 
 class GuildMemberState(BaseState):
-    def __init__(self, *, client, guild):
+    def __init__(self, *, client: Client, guild: Guild):
         super().__init__(client=client)
         self.guild = guild
 
-    def append(self, data, user=None):
+    def append(self, data: dict, user: Optional[User] = None):
         if user is None:
             user = self.client.users.append(data['user'])
 
@@ -62,19 +68,19 @@ class GuildMemberState(BaseState):
         self._items[member.user.id] = member
         return member
 
-    async def fetch(self, member_id):
+    async def fetch(self, member_id: int):
         rest = self.client.rest
         data = await rest.get_guild_member(self.guild.id, member_id)
         member = self.append(data)
         return member
 
-    async def fetch_many(self, limit=1000, before=None):
+    async def fetch_many(self, limit: int = 1000, before: Optional[Union[int, datetime]] = None):
         rest = self.client.rest
         data = await rest.get_guild_members(self.guild.id, limit, before)
         members = [self.append(member) for member in data]
         return members
 
-    async def add(self, user, access_token, **kwargs):
+    async def add(self, user: User, access_token: str, **kwargs):
         rest = self.client.rest
 
         user = _try_snowflake(user)
@@ -91,11 +97,11 @@ class GuildMemberState(BaseState):
 
 
 class GuildMemberRoleState(BaseState):
-    def __init__(self, *, client, member):
+    def __init__(self, *, client: Client, member: GuildMember):
         super().__init__(client=client)
         self.member = member
 
-    def append(self, role):
+    def append(self, role: Union[int, Role]):
         if isinstance(role, Role):
             self._items[role.id] = role
             return role
@@ -105,12 +111,12 @@ class GuildMemberRoleState(BaseState):
             self._items[role.id] = role
         return role
 
-    async def add(self, role):
+    async def add(self, role: Union[int, Role]):
         rest = self.client.rest
         role = _try_snowflake(role)
         await rest.add_guild_member_role(self.member.guild.id, self.member.id, role)
 
-    async def remove(self, role):
+    async def remove(self, role: Union[int, Role]):
         rest = self.client.rest
         role = _try_snowflake(role)
         await rest.remove_guild_member_role(self.member.guild.id, self.member.id, role)

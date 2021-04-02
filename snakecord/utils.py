@@ -2,7 +2,7 @@ import json
 import struct
 from collections import OrderedDict
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Union
 
 JSON = Dict[str, Any]
 
@@ -27,7 +27,7 @@ class JsonStructureBase:
         raise TypeError('Cannot create instances of {!r}'.format(cls.__name__))
 
     @classmethod
-    def unmarshal(cls, data, *args, init_class=True, **kwargs):
+    def unmarshal(cls, data: Union[dict, str, bytes, bytearray], *args, init_class: bool = True, **kwargs):
         if isinstance(data, (str, bytes, bytearray)):
             data = json.loads(data)
 
@@ -40,7 +40,7 @@ class JsonStructureBase:
 
         return self
 
-    def _update(self, data, set_default=False):
+    def _update(self, data: dict, set_default: bool = False):
         for name, field in self.__json_fields__.items():
             try:
                 value = field.unmarshal(data[field.name])
@@ -49,7 +49,7 @@ class JsonStructureBase:
                 if set_default:
                     setattr(self, name, field.default)
 
-    def to_dict(self, cls=None):
+    def to_dict(self, cls: Optional[type] = None):
         dct = {}
 
         if cls is not None:

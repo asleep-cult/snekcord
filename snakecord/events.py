@@ -1,9 +1,9 @@
 import asyncio
 import weakref
-
+from typing import Any, Awaitable, Callable, Optional
 
 class EventWaiter:
-    def __init__(self, pusher, name, timeout, filter):
+    def __init__(self, pusher: 'EventPusher', name: str, timeout: Optional[float], filter: Optional[Callable[..., bool]]):
         self.pusher = pusher
         self.name = name
         self.timeout = timeout
@@ -50,7 +50,7 @@ class EventWaiter:
     __del__ = _cleanup
 
 
-def run_coroutine(coro, loop):
+def run_coroutine(coro: Awaitable, loop: asyncio.AbstractEventLoop):
     if asyncio.iscoroutine(coro):
         loop.create_task(coro)
 
@@ -58,14 +58,14 @@ def run_coroutine(coro, loop):
 class EventPusher:
     handlers = ()
 
-    def __init__(self, loop):
+    def __init__(self, loop: asyncio.AbstractEventLoop):
         self.loop = loop
         self._handlers = {handler.name: handler for handler in self.handlers}
         self._listeners = {}
         self._waiters = {}
         self._subscribers = []
 
-    def register_listener(self, name, func):
+    def register_listener(self, name: str, func: Callable[..., Any]):
         name = name.lower()
         listeners = self._listeners.get(name)
 
@@ -75,7 +75,7 @@ class EventPusher:
 
         listeners.append(func)
 
-    def remove_listener(self, name, func):
+    def remove_listener(self, name: str, func: Callable[..., Any]):
         name = name.lower()
         listeners = self._listeners.get(name)
 
@@ -84,7 +84,7 @@ class EventPusher:
 
         listeners.remove(func)
 
-    def register_waiter(self, name, *, timeout=None, filter=None):
+    def register_waiter(self, name: str, *, timeout: Optional[float] = None, filter: Optional[Callable[..., Any]] = None):
         name = name.lower()
         waiters = self._waiters.get(name)
 
@@ -98,7 +98,7 @@ class EventPusher:
 
     wait = register_waiter
 
-    def remove_waiter(self, waiter):
+    def remove_waiter(self, waiter: EventWaiter):
         waiters = self._waiters.get(waiter.name)
 
         if waiters is None:
@@ -106,7 +106,7 @@ class EventPusher:
 
         waiters.remove(waiter)
 
-    def push_event(self, name, *args, **kwargs):
+    def push_event(self, name: str, *args, **kwargs):
         name = name.lower()
         handler = self._handlers.get(name)
 
@@ -122,7 +122,7 @@ class EventPusher:
             for subscriber in self._subscribers:
                 subscriber.call_listeners(name, *args, **kwargs)
 
-    def call_listeners(self, name, *args, **kwargs):
+    def call_listeners(self, name: str, *args, **kwargs):
         name = name.lower()
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
@@ -135,7 +135,7 @@ class EventPusher:
             for waiter in waiters:
                 waiter._queue.put_nowait(args)
 
-    def on(self, name=None):
+    def on(self, name: Optional[str] = None):
         def wrapped(func):
             nonlocal name
             name = name or func.__name__
@@ -143,7 +143,7 @@ class EventPusher:
 
         return wrapped
 
-    def once(self, name=None):
+    def once(self, name: Optional[str] = None):
         def wrapped(func):
             nonlocal name
             name = name or func.__name__
@@ -158,10 +158,10 @@ class EventPusher:
 
         return wrapped
 
-    def subscribe(self, pusher):
+    def subscribe(self, pusher: 'EventPusher'):
         pusher._subscribers.append(self)
 
-    def unsubscribe(self, pusher):
+    def unsubscribe(self, pusher: 'EventPusher'):
         pusher._subscribers.remove(self)
 
         for name in pusher._listeners:

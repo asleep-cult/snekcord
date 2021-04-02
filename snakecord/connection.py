@@ -13,7 +13,7 @@ from enum import IntEnum
 from .events import EventPusher
 from .utils import JsonStructure, JsonField, cstruct
 from .exceptions import BadWsHttpResponse
-
+from .gateway import GuildCreateEvent
 
 class WebsocketOpcode(IntEnum):
     CONT = 0x00
@@ -32,7 +32,7 @@ class WebsocketFrame(cstruct):
     def __init__(
         self, data: bytearray, *, opcode: int = WebsocketOpcode.TEXT, fin: bool =True,
         rsv1: bool = False, rsv2: bool = False, rsv3: bool = False, masked: bool=True
-    ): # Pretty sure `data` is bytearray
+    ):
         self.data = data
         self.opcode = opcode
         self.fin = fin
@@ -69,7 +69,7 @@ class WebsocketFrame(cstruct):
         return data
 
     @classmethod
-    def from_head(cls, head):
+    def from_head(cls, head: bytearray):
         self = cls.unpack(head)
         self.data = b''
         self.fin = self.get_fin()
@@ -134,7 +134,7 @@ class WebsocketProtocolState(IntEnum):
 
 
 class WebsocketProtocol(asyncio.Protocol):
-    def __init__(self, connection):
+    def __init__(self, connection: 'BaseConnection'):
         self.connection = connection
         self.state = WebsocketProtocolState.WAITING_FBYTE
         self.head_buffer = bytearray(2)
@@ -234,7 +234,7 @@ class DiscordResponse(JsonStructure):
 
 
 class BaseConnection(EventPusher):
-    def __init__(self, endpoint, pusher: EventPusher, *, heartbeat_timeout: int = 10):
+    def __init__(self, endpoint: str, pusher: EventPusher, *, heartbeat_timeout: int = 10):
         super().__init__(pusher.loop)
 
         self.endpoint = endpoint
@@ -259,7 +259,7 @@ class BaseConnection(EventPusher):
     async def connection_stale(self):
         raise NotImplementedError
 
-    async def ws_receive(self, response):
+    async def ws_receive(self, response: DiscordResponse):
         raise NotImplementedError
 
     def ws_frame_receive(self, frame):
@@ -267,7 +267,7 @@ class BaseConnection(EventPusher):
             response = DiscordResponse.unmarshal(frame.data)
             self.push_event('ws_receive', response)
 
-    def form_headers(self, meth, path, headers):
+    def form_headers(self, meth: str, path: str, headers: dict):
         parts = ['%s %s HTTP/1.1' % (meth, path)]
 
         for name, value in headers.items():
@@ -330,19 +330,19 @@ class BaseConnection(EventPusher):
         if upgrade != 'websocket':
             raise BadWsHttpResponse('upgrade', 'websocket', upgrade)
 
-    def send_frame(self, frame):
+    def send_frame(self, frame: WebsocketFrame):
         self.transport.write(frame.encode())
 
-    def send(self, data, *args, **kwargs):
+    def send(self, data: bytearray, *args, **kwargs):
         frame = WebsocketFrame(data, *args, **kwargs)
         self.send_frame(frame)
 
-    def send_json(self, data):
+    def send_json(self, data: dict):
         self.send(json.dumps(data).encode())
 
 
 class HeartbeatHandler:
-    def __init__(self, connection, *, timeout=10):
+    def __init__(self, connection: BaseConnection, *, timeout: int = 10):
         self.connection = connection
         self.loop = connection.loop
         self.timeout = timeout
@@ -415,7 +415,7 @@ class ShardOpcode(IntEnum):
 
 
 class Shard(BaseConnection):
-    def __init__(self, shard_id, *args, ready_timeout=10, guild_create_timeout=10, **kwargs):
+    def __init__(self, shard_id: int, *args, ready_timeout: int = 10, guild_create_timeout: int = 10, **kwargs):
         self.id = shard_id
         self.ready_timeout = ready_timeout
         self.guild_create_timeout = guild_create_timeout
@@ -448,7 +448,7 @@ class Shard(BaseConnection):
         }
         return payload
 
-    def _guilds_resolved(self, evnt):
+    def _guilds_resolved(self, evnt: GuildCreateEvent):
         try:
             self._guilds.remove(evnt.guild.id)
         except KeyError:
@@ -475,7 +475,7 @@ class Shard(BaseConnection):
 
         self.pusher.push_event('shard_ready', self)
 
-    async def ws_receive(self, response):
+    async def ws_receive(self, response: DiscordResponse):
         if response.opcode == ShardOpcode.HELLO:
             self.send_json(self.identify_payload)
             self.heartbeat_handler.heartbeat_interval = response.data['heartbeat_interval'] / 1000
@@ -486,7 +486,7 @@ class Shard(BaseConnection):
             pusher = self if response.event_name in ('READY', 'RESUME') else self.pusher
             pusher.push_event(response.event_name, response.data)
 
-    def update_voice_state(self, guild_id, channel_id, self_mute=False, self_deaf=False):
+    def update_voice_state(self, guild_id: int, channel_id: int, self_mute: bool = False, self_deaf: bool = False):
         payload = {
             'op': ShardOpcode.VOICE_STATE_UPDATE,
             'd': {
@@ -543,7 +543,7 @@ class VoiceWebSocket(BaseConnection):
         }
         return payload
 
-    def set_speaking_state(self, state=SpeakingState.VOICE, delay=0):
+    def set_speaking_state(self, state: int = SpeakingState.VOICE, delay: int = 0):
         payload = {
             'op': VoiceConnectionOpcode.SPEAKING,
             'd': {
@@ -553,7 +553,7 @@ class VoiceWebSocket(BaseConnection):
         }
         self.send_json(payload)
 
-    def select(self, address, port, mode):
+    def select(self, address: str, port: str, mode: str):
         payload = {
             'op': VoiceConnectionOpcode.SELECT,
             'd': {
@@ -567,7 +567,7 @@ class VoiceWebSocket(BaseConnection):
         }
         self.send_json(payload)
 
-    async def ws_receive(self, response):
+    async def ws_receive(self, response: DiscordResponse):
         if response.opcode == VoiceConnectionOpcode.HELLO:
             self.send_json(self.identify_payload)
             self.heartbeat_handler.heartbeat_interval = response.data['heartbeat_interval'] / 1000
@@ -580,8 +580,8 @@ class VoiceWebSocket(BaseConnection):
 
 
 class VoiceDatagramProtocol(asyncio.DatagramProtocol):
-    def __init__(self, connection):
+    def __init__(self, connection: BaseConnection):
         self.connection = connection
 
-    def datagram_received(self, data, endpoint):
+    def datagram_received(self, data: dict, endpoint: str):
         self.connection.push_event('datagram_received', data)

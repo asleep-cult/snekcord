@@ -1,13 +1,17 @@
+from typing import Iterable, Optional, Union
+
 from . import structures
 from .state import BaseState
-
+from .guild import Guild
+from .role import Role
+from .client import Client
 
 class GuildEmoji(structures.GuildEmoji):
     __slots__ = (
         '_state', 'guild', 'user'
     )
 
-    def __init__(self, *, state, guild):
+    def __init__(self, *, state: 'GuildEmojiState', guild: Guild):
         self._state = state
         self.guild = guild
         self.user = None
@@ -28,7 +32,7 @@ class GuildEmoji(structures.GuildEmoji):
         rest = self._state.client.rest
         await rest.delete_guild_emoji(self.guild.id, self.id)
 
-    async def edit(self, name=None, roles=None):
+    async def edit(self, name: str = None, roles: Optional[Iterable[Union[int, Role]]] = None):
         rest = self._state.client.rest
         await rest.modify_guild_emoji(self.guild.id, self.id, name, roles)
 
@@ -50,11 +54,11 @@ class GuildEmoji(structures.GuildEmoji):
 
 
 class GuildEmojiState(BaseState):
-    def __init__(self, *, client, guild):
+    def __init__(self, *, client: Client, guild: Guild):
         super().__init__(client=client)
         self.guild = guild
 
-    def append(self, data):
+    def append(self, data: dict):
         emoji = self.get(data['id'])
         if emoji is not None:
             emoji._update(data)
@@ -64,7 +68,7 @@ class GuildEmojiState(BaseState):
         self._items[emoji.id] = emoji
         return emoji
 
-    async def fetch(self, emoji_id):
+    async def fetch(self, emoji_id: int):
         rest = self.client.rest
         data = await rest.get_guild_emoji(self.guild.id, emoji_id)
         emoji = self.append(data)
@@ -76,7 +80,7 @@ class GuildEmojiState(BaseState):
         emojis = [self.append(emoji) for emoji in data]
         return emojis
 
-    async def create(self, name, image, roles=None):
+    async def create(self, name: str, image: bytes, roles: Optional[Iterable[Union[int, Role]]] = None):
         rest = self.client.rest
         data = await rest.create_guild_emoji(self.guild.id, name, image, roles)
         emoji = self.append(data)
