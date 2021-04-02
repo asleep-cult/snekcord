@@ -371,7 +371,7 @@ class HeartbeatHandler:
         self.last_sent = time.perf_counter()
         self.connection.send_json(paylod)
 
-        # await self.wait_ack()
+        await self.wait_ack()
 
         self.do_heartbeat()
 

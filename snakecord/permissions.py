@@ -40,10 +40,10 @@ class PermissionOverwrite(structures.PermissionOverwrite):
     manage_webhooks: Optional[bool]
     manage_emojis: Optional[bool]
 
-    def __init__(self, state: 'PermissionOverwriteState'):
+    def __init__(self, *, state):
         self._state = state
 
-    async def edit(self, overwrite: 'PermissionOverwrite'):
+    async def edit(self, overwrite):
         rest = self._state.client.rest
         await rest.edit_channel_permissions(
             self._state._channel.id,
@@ -74,8 +74,8 @@ class PermissionOverwrite(structures.PermissionOverwrite):
 
 
 class PermissionOverwriteState(BaseState):
-    def __init__(self, client, channel):
-        super().__init__(client)
+    def __init__(self, *, client, channel):
+        super().__init__(client=client)
         self.channel = channel
 
     def append(self, data):

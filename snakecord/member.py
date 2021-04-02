@@ -5,11 +5,17 @@ from .utils import _try_snowflake, undefined
 
 
 class GuildMember(structures.GuildMember):
+    __slots__ = (
+        *structures.GuildMember.__json_fields__, '_state', 'guild',
+        'user', 'roles'
+    )
+
     def __init__(self, *, state, guild, user=None):
         self._state = state
         self.guild = guild
         self.user = user
-        self.roles = GuildMemberRoleState(self._state.client, member=self)
+        self.roles = GuildMemberRoleState(
+            client=self._state.client, member=self)
 
     async def edit(self, **kwargs):
         rest = self._state.client.rest
@@ -40,8 +46,8 @@ class GuildMember(structures.GuildMember):
 
 
 class GuildMemberState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def append(self, data, user=None):
@@ -86,8 +92,8 @@ class GuildMemberState(BaseState):
 
 
 class GuildMemberRoleState(BaseState):
-    def __init__(self, client, member):
-        super().__init__(client)
+    def __init__(self, *, client, member):
+        super().__init__(client=client)
         self.member = member
 
     def append(self, role):

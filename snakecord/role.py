@@ -24,8 +24,8 @@ class Role(structures.Role):
 
 
 class RoleState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def append(self, data):

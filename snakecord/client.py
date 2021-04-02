@@ -22,12 +22,12 @@ class Client(EventPusher):
     ):
         super().__init__(loop or asyncio.get_event_loop())
 
-        self.rest = rest or RestSession(self)
-        self.channels = channel_state or ChannelState(self)
-        self.guilds = guild_state or GuildState(self)
-        self.users = user_state or UserState(self)
-        self.invites = invite_state or InviteState(self)
-        self.sharder = sharder or Sharder(self, max_shards=max_shards)
+        self.rest = rest or RestSession(client=self)
+        self.channels = channel_state or ChannelState(client=self)
+        self.guilds = guild_state or GuildState(client=self)
+        self.users = user_state or UserState(client=self)
+        self.invites = invite_state or InviteState(client=self)
+        self.sharder = sharder or Sharder(client=self, max_shards=max_shards)
         self.token = None
 
         self.subscribe(self.sharder)

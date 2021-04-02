@@ -4,9 +4,7 @@ from .state import BaseState
 
 class User(structures.User):
     __slots__ = (
-        '_state', 'name', 'discriminator', 'avatar', 'bot', 'system',
-        'mfa_enabled', 'locale', 'verified', 'email', 'flags',
-        'premium_type', 'public_flags'
+        *structures.User.__json_fields__, '_state'
     )
 
     def __init__(self, *, state):

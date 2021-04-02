@@ -3,10 +3,18 @@ from .state import BaseState
 
 
 class GuildEmoji(structures.GuildEmoji):
-    def __init__(self, state, guild):
+    __slots__ = (
+        *structures.GuildEmoji.__json_fields__, '_state', 'guild', 'user'
+    )
+
+    def __init__(self, *, state, guild):
         self._state = state
         self.guild = guild
-        self.roles = []
+        self.user = None
+
+    @property
+    def roles(self):
+        return [self.guild.roles.get(r) for r in self._roles]
 
     def __str__(self):
         if self.id is None:
@@ -36,21 +44,14 @@ class GuildEmoji(structures.GuildEmoji):
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
-        roles_seen = set()
 
-        for role in self._roles:
-            role = self.guild.roles.get(role)
-            if role is not None:
-                self.roles.append(role)
-
-        for role in self.roles:
-            if role.id not in roles_seen:
-                self.roles.pop(role.id)
+        if self._user is not None:
+            self.user = self._state.client.users.append(self._user)
 
 
 class GuildEmojiState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def append(self, data):

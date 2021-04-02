@@ -19,7 +19,7 @@ class Message(structures.Message):
     def __init__(self, *, state, channel):
         self._state = state
         self.channel = channel
-        self.reactions = ReactionState(self._state.client, self)
+        self.reactions = ReactionState(client=self._state.client, message=self)
 
     async def edit(self, content=None, *, embed=None, flags=None, allowed_mentions=None):
         rest = self._state.client.rest
@@ -72,8 +72,8 @@ class Message(structures.Message):
 
 
 class ReactionState(BaseState):
-    def __init__(self, client, message):
-        super().__init__(client)
+    def __init__(self, *, client, message):
+        super().__init__(client=client)
         self.message = message
 
     def append(self, data) -> Reaction:
@@ -112,8 +112,8 @@ class ReactionState(BaseState):
 
 
 class MessageState(BaseState):
-    def __init__(self, client, channel):
-        super().__init__(client)
+    def __init__(self, *, client, channel):
+        super().__init__(client=client)
         self.channel = channel
 
     def append(self, data) -> Message:
