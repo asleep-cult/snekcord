@@ -2,7 +2,7 @@ from .base import BaseObject
 from ..utils import JsonArray, JsonField
 
 
-class GuildEmoji(BaseObject, base=True):
+class GuildEmoji(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         '_roles': JsonArray('roles'),

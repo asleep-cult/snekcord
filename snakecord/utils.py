@@ -79,7 +79,7 @@ class JsonStructureBase:
 
 
 class JsonStructureMeta(type):
-    def __new__(mcs, name, bases, attrs, base=False):
+    def __new__(mcs, name, bases, attrs, base=True):
         # This metaclass allows JsonStructures to be exempt from a subclasses
         # bases to prevent lay-out errors when __slots__ is used.
         # This allows for some odd structure chaining with working slots
@@ -92,8 +92,11 @@ class JsonStructureMeta(type):
         for cls in bases:
             try:
                 json_fields.update(cls.__json_fields__)
-                if cls.__json_base__:
+                if not cls.__json_base__:
                     bases.remove(cls)
+                    for cls in cls.__bases__:
+                        if cls.__json_base__:
+                            bases.append(cls)
             except AttributeError:
                 continue
 
@@ -110,7 +113,7 @@ class JsonStructureMeta(type):
         return super().__new__(mcs, name, tuple(bases), attrs)
 
 
-class JsonStructure(metaclass=JsonStructureMeta):
+class JsonStructure(metaclass=JsonStructureMeta, base=False):
     # inspired by Go's encoding/json module
     pass
 

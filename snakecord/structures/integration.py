@@ -2,13 +2,13 @@ from .base import BaseObject
 from ..utils import JsonField, Snowflake
 
 
-class GuildIntegrationAccount(BaseObject, base=True):
+class GuildIntegrationAccount(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
     }
 
 
-class GuildIntegrationApplication(BaseObject, base=True):
+class GuildIntegrationApplication(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         'icon': JsonField('icon'),
@@ -18,7 +18,7 @@ class GuildIntegrationApplication(BaseObject, base=True):
     }
 
 
-class GuildIntegration(BaseObject, base=True):
+class GuildIntegration(BaseObject, base=False):
     __json_fields__ = {
         'name':  JsonField('name'),
         'type': JsonField('type'),

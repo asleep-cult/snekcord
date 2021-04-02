@@ -1,7 +1,7 @@
 from ..utils import JsonField, JsonStructure, Snowflake
 
 
-class BaseObject(JsonStructure, base=True):
+class BaseObject(JsonStructure):
     __json_fields__ = {
         'id': JsonField('id', Snowflake, str)
     }
