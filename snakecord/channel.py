@@ -58,8 +58,7 @@ class GuildChannel(structures.GuildChannel):
 
 class TextChannel(GuildChannel, structures.TextChannel):
     __slots__ = (
-        *structures.TextChannel.__json_fields__, 'last_pin_timestamp',
-        'invites'
+        'last_pin_timestamp', 'invites'
     )
 
     def __init__(self, *args, **kwargs):
@@ -94,9 +93,7 @@ class TextChannel(GuildChannel, structures.TextChannel):
 
 
 class VoiceChannel(GuildChannel, structures.VoiceChannel):
-    __slots__ = (
-        *structures.GuildChannel.__json_fields__,
-    )
+    __slots__ = ()
 
     async def connect(self):
         shard = self.guild.shard
@@ -133,9 +130,7 @@ class CategoryChannel(GuildChannel):
 
 
 class DMChannel(structures.DMChannel):
-    __slots__ = (
-        *structures.DMChannel.__json_fields__, '_state', 'recipients'
-    )
+    __slots__ = ('_state', 'recipients')
 
     def __init__(self, *, state):
         self._state: ChannelState = state
