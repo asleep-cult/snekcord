@@ -9,6 +9,9 @@ class MessageActivity(JsonStructure, base=False):
         'party_id': JsonField('party_id'),
     }
 
+    type: int
+    party_id: Snowflake
+
 
 class MessageApplication(BaseObject, base=False):
     __json_fields__ = {
@@ -18,13 +21,22 @@ class MessageApplication(BaseObject, base=False):
         'name': JsonField('name'),
     }
 
+    cover_image: str
+    description: str
+    icon: str
+    name: str
+
 
 class MessageReference(JsonStructure, base=False):
     __json_fields__ = {
         'message_id': JsonField('message_id', Snowflake, str),
         'channel_id': JsonField('channel_id', Snowflake, str),
-        'guild_id': JsonField('guild_id', int, str),
+        'guild_id': JsonField('guild_id', Snowflake, str),
     }
+
+    message_id: Snowflake
+    channel_id: Snowflake
+    guild_id: Snowflake
 
 
 class MessageSticker(BaseObject, base=False):
@@ -44,6 +56,9 @@ class FollowedChannel(JsonStructure, base=False):
         'channel_id': JsonField('channel_id', Snowflake, str),
         'webhook_id': JsonField('webhook_id', Snowflake, str),
     }
+
+    channel_id: Snowflake
+    webhook_id: Snowflake
 
 
 class MessageAttachment(BaseObject, base=False):

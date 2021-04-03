@@ -1,4 +1,4 @@
-from ..utils import JsonField, JsonStructure
+from ..utils import JsonField, JsonStructure, Json
 
 
 class Reaction(JsonStructure, base=False):
@@ -7,3 +7,7 @@ class Reaction(JsonStructure, base=False):
         'me': JsonField('me'),
         'emoji': JsonField('emoji'),
     }
+
+    count: int
+    me: bool
+    emoji: Json

@@ -1,8 +1,14 @@
-from typing import Optional
+import typing as t
+
+if t.TYPE_CHECKING:
+    from .guild import Guild
+    from .client import Client
+    from .message import Message
+    from .voice import VoiceConnection
 
 from . import structures
+from .user import User, UserState
 from .enums import ChannelType
-from .guild import Guild
 from .invite import ChannelInviteState
 from .message import MessageState
 from .permissions import PermissionOverwriteState
@@ -16,7 +22,7 @@ class GuildChannel(structures.GuildChannel):
         '_state', 'guild', 'messages', 'permission_overwrites'
     )
 
-    def __init__(self, *, state, guild: Optional[Guild] = None):
+    def __init__(self, *, state: 'ChannelState', guild: t.Optional['Guild'] = None):
         self._state = state
         self._set_guild(guild)
         self.messages = MessageState(client=self._state.client, channel=self)
@@ -24,7 +30,7 @@ class GuildChannel(structures.GuildChannel):
             client=self._state.client, channel=self)
 
     @property
-    def parent(self):
+    def parent(self) -> t.Optional['CategoryChannel']:
         return self._state.client.channels.get(self.parent_id)
 
     @property
@@ -35,7 +41,7 @@ class GuildChannel(structures.GuildChannel):
         rest = self._state.client.rest
         await rest.delete_channel(self.id)
 
-    def _set_guild(self, guild: Optional[Guild] = None):
+    def _set_guild(self, guild: t.Optional['Guild'] = None) -> None:
         if guild is not None:
             self.guild = guild
 
@@ -44,7 +50,7 @@ class GuildChannel(structures.GuildChannel):
         else:
             self.guild = self._state.client.guilds.get(self.guild_id)
 
-    def _update(self, *args, **kwargs):
+    def _update(self, *args, **kwargs) -> None:
         super()._update(*args, **kwargs)
         overwrites_seen = set()
 
@@ -66,7 +72,7 @@ class TextChannel(GuildChannel, structures.TextChannel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.last_pin_timestamp = None
+        self.last_pin_timestamp: t.Optional[str] = None
         self.invites = ChannelInviteState(
             superstate=self._state.client.invites, channel=self)
 
@@ -83,12 +89,12 @@ class TextChannel(GuildChannel, structures.TextChannel):
 
     async def send(
         self,
-        content: Optional[str] = None,
+        content: t.Optional[str] = None,
         *,
-        nonce: Optional[int] = None,
+        nonce: t.Optional[int] = None,
         tts: bool = False,
         embed: structures.Embed = None
-    ):
+    ) -> 'Message':
         rest = self._state.client.rest
         if embed is not None:
             embed = embed.to_dict()
@@ -97,15 +103,19 @@ class TextChannel(GuildChannel, structures.TextChannel):
         message = self.messages.append(data)
         return message
 
-    async def trigger_typing(self):
+    async def trigger_typing(self) -> None:
         rest = self._state.client.rest
         await rest.trigger_typing(self.id)
 
 
 class VoiceChannel(GuildChannel, structures.VoiceChannel):
-    __slots__ = ()
+    __slots__ = ('voice_connection',)
 
-    async def connect(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.voice_connection: t.Optional['VoiceConnection'] = None
+
+    async def connect(self) -> 'VoiceConnection':
         shard = self.guild.shard
         voice_state_update, voice_server_update = shard.update_voice_state(
             self.guild.id, self.id)
@@ -122,47 +132,48 @@ class VoiceChannel(GuildChannel, structures.VoiceChannel):
 
         return self.voice_connection
 
-    async def edit(self, **kwargs):
+    async def edit(self, **kwargs) -> 'VoiceChannel':
         rest = self._state.client.rest
 
         parent = kwargs.pop('parent', undefined)
         if parent is not undefined:
             parent = _try_snowflake(parent)
 
-        resp = await rest.modify_channel(**kwargs, parent_id=parent)
-        data = await resp.json()
+        data = await rest.modify_channel(**kwargs, parent_id=parent)
         channel = self._state.append(data, guild=self.guild)
+
         return channel
 
 
 class CategoryChannel(GuildChannel):
-    pass
+    __slots__ = ()
 
 
 class DMChannel(structures.DMChannel):
-    __slots__ = ('_state', 'recipients')
+    __slots__ = ('_state', 'recipients', 'messages')
 
-    def __init__(self, *, state):
-        self._state: ChannelState = state
+    def __init__(self, *, state: 'ChannelState'):
+        self._state = state
         self.recipients = ChannelRecipientState(
+            superstate=self._state.client.channels, channel=self)
+        self.messages = MessageState(
             client=self._state.client, channel=self)
 
-    def _update(self, *args, **kwargs):
+    def _update(self, *args, **kwargs) -> None:
         super()._update(*args, **kwargs)
 
         for recipient in self._recipients:
-            self.recipients.append(recipient)
+            user = self._state.client.users.append(recipient)
+            user.dm_channel = self
 
 
-class ChannelRecipientState(BaseState):
-    def __init__(self, *, client, channel):
-        super().__init__(client=client)
+class ChannelRecipientState(BaseSubState):
+    def __init__(self, *, superstate: UserState, channel: DMChannel):
+        super().__init__(superstate=superstate)
         self.channel = channel
 
-    def append(self, data):
-        user = self.client.users.append(data)
-        self._items[user.id] = user
-        return user
+    def _check_relation(self, item: User) -> bool:
+        return isinstance(item, User) and item.dm_channel == self.channel
 
     async def add(self, user, access_token, *, nick):
         user = _try_snowflake(user)
@@ -185,19 +196,19 @@ class ChannelState(BaseState):
     }
 
     @classmethod
-    def set_guildtext_class(cls, klass):
+    def set_guildtext_class(cls, klass: type) -> None:
         cls._channel_type_map[ChannelType.GUILD_TEXT] = klass
 
     @classmethod
-    def set_guildvoice_class(cls, klass):
+    def set_guildvoice_class(cls, klass: type) -> None:
         cls._channel_type_map[ChannelType.GUILD_VOICE] = klass
 
     @classmethod
-    def set_guildcategory_class(cls, klass):
+    def set_guildcategory_class(cls, klass: type) -> None:
         cls._channel_type_map[ChannelType.GUILD_CATEGORY] = klass
 
     @classmethod
-    def set_dm_class(cls, klass):
+    def set_dm_class(cls, klass: type) -> None:
         cls._channel_type_map[ChannelType.DM] = klass
 
     def append(self, data, *args, **kwargs):
@@ -219,28 +230,31 @@ class ChannelState(BaseState):
 
 
 class GuildChannelState(BaseSubState):
-    def __init__(self, *, superstate, guild):
+    def __init__(self, *, superstate: ChannelState, guild: 'Guild'):
         super().__init__(superstate=superstate)
         self.guild = guild
 
     def _check_relation(self, item):
         return isinstance(item, GuildChannel) and item.guild == self.guild
 
-    async def fetch_all(self):
+    async def fetch_all(self) -> t.List[t.Union[TextChannel, VoiceChannel, CategoryChannel]]:
         rest = self.superstate.client.rest
         data = await rest.get_guild_channels(self.guild.id)
         channels = [self.append(channel) for channel in data]
         return channels
 
-    async def create(self, **kwargs):
+    async def create(self, **kwargs) -> t.List[t.Union[TextChannel, VoiceChannel, CategoryChannel]]:
         rest = self.superstate.client.rest
         parent = kwargs.pop('parent', undefined)
         if parent is not undefined:
             parent = _try_snowflake(parent)
 
-        await rest.create_guild_channel(
+        data = await rest.create_guild_channel(
             self.guild.id, **kwargs, parent_id=parent)
+        channel = self.superstate.append(data)
 
-    async def modify_positions(self, positions):
+        return channel
+
+    async def modify_positions(self, positions) -> None:
         rest = self.superstate.client.rest
         await rest.modify_guild_channel_positions(self.guild.id, positions)

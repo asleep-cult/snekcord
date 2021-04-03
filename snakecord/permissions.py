@@ -1,8 +1,6 @@
 from typing import Optional, Union
 
 from . import structures
-from .channel import GuildChannel
-from .client import Client
 from .enums import PermissionFlag
 from .state import BaseState
 
@@ -78,7 +76,7 @@ class PermissionOverwrite(structures.PermissionOverwrite):
 
 
 class PermissionOverwriteState(BaseState):
-    def __init__(self, *, client: Client, channel: GuildChannel):
+    def __init__(self, *, client: 'Client', channel: 'GuildChannel'):
         super().__init__(client=client)
         self.channel = channel
 

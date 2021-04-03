@@ -1,11 +1,9 @@
 from typing import List, Optional, Union
 
-from . import structures
-from .channel import DMChannel, TextChannel
-from .client import Client
-from .emoji import GuildEmoji
-from .state import BaseState
 from .user import User
+from . import structures
+from .state import BaseState
+from .emoji import GuildEmoji
 from .utils import _try_snowflake
 
 
@@ -27,13 +25,18 @@ class Reaction(structures.Reaction):
 
 class Message(structures.Message):
     __slots__ = (
-        '_state', 'channel', 'reactions', 'guild', 'author'
+        '_state', 'channel', 'reactions', 'author'
     )
 
-    def __init__(self, *, state: 'MessageState', channel: Union[DMChannel, TextChannel]):
+    def __init__(self, *, state: 'MessageState', channel: Union['DMChannel', 'TextChannel']):
         self._state = state
         self.channel = channel
         self.reactions = ReactionState(client=self._state.client, message=self)
+        self.author = None
+
+    @property
+    def guild(self):
+        return getattr(self.channel, 'guild', None)
 
     async def edit(
         self,
@@ -81,9 +84,6 @@ class Message(structures.Message):
             for reaction in self._reactions:
                 self.reactions.append(reaction)
 
-        if self.channel is not None:
-            self.guild = self.channel.guild
-
         if self.guild is not None and self._member is not None:
             if self._member.get('user') is None:
                 self._member['user'] = self._author
@@ -93,7 +93,7 @@ class Message(structures.Message):
 
 
 class ReactionState(BaseState):
-    def __init__(self, *, client: Client, message: Message):
+    def __init__(self, *, client: 'Client', message: Message):
         super().__init__(client=client)
         self.message = message
 
@@ -133,7 +133,7 @@ class ReactionState(BaseState):
 
 
 class MessageState(BaseState):
-    def __init__(self, *, client: Client, channel: Union[DMChannel, TextChannel]):
+    def __init__(self, *, client: 'Client', channel: Union['DMChannel', 'TextChannel']):
         super().__init__(client=client)
         self.channel = channel
 

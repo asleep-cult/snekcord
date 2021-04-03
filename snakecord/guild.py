@@ -1,7 +1,6 @@
 from typing import Optional
 
 from . import structures
-from .client import Client
 from .channel import GuildChannel, GuildChannelState
 from .emoji import GuildEmojiState
 from .integration import GuildIntegrationState
@@ -243,7 +242,7 @@ class Guild(GuildPreview, structures.Guild):
 
         for channel in self.channels:
             if channel.id not in channels_seen:
-                self.channels.pop(channel.id)
+                self._state.client.channels.pop(channel.id)
 
         for member in self.members:
             if member.user.id not in members_seen:
@@ -297,7 +296,7 @@ class GuildState(BaseState):
 
 
 class GuildBanState(BaseState):
-    def __init__(self, *, client: Client, guild: Guild):
+    def __init__(self, *, client: 'Client', guild: Guild):
         super().__init__(client=client)
         self.guild = guild
 
@@ -308,7 +307,7 @@ class GuildBanState(BaseState):
             return ban
 
         ban = GuildBan.unmarshal(data, state=self)
-        self._items[ban.user.id] = ban  
+        self._items[ban.user.id] = ban
         return ban
 
     async def fetch(self, user: User):

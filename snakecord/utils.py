@@ -4,7 +4,7 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict, Optional, Union
 
-JSON = Dict[str, Any]
+Json = Dict[str, Any]
 
 DISCORD_EPOCH = 1420070400000
 

@@ -1,5 +1,8 @@
+from typing import List
+
 from .base import BaseObject
-from ..utils import JsonArray, JsonField, JsonStructure, Snowflake
+from ..enums import ChannelType
+from ..utils import JsonArray, JsonField, JsonStructure, Snowflake, Json
 
 
 class GuildChannel(BaseObject, base=False):
@@ -13,6 +16,14 @@ class GuildChannel(BaseObject, base=False):
         'type': JsonField('type'),
     }
 
+    name: str
+    guild_id: Snowflake
+    _permission_overwrites: List[Json]
+    position: int
+    nsfw: bool
+    parent_id: Snowflake
+    type: ChannelType
+
 
 class TextChannel(JsonStructure, base=False):
     __json_fields__ = {
@@ -21,6 +32,10 @@ class TextChannel(JsonStructure, base=False):
         'last_message_id': JsonField('last_message_id', Snowflake, str),
     }
 
+    topic: str
+    slowmode: int
+    last_message_id: Snowflake
+
 
 class VoiceChannel(JsonStructure, base=False):
     __json_fields__ = {
@@ -28,10 +43,17 @@ class VoiceChannel(JsonStructure, base=False):
         'user_limit': JsonField('user_limit'),
     }
 
+    bitrate: int
+    user_limit: int
 
-class DMChannel(JsonStructure, base=False):
+
+class DMChannel(BaseObject, base=False):
     __json_fields__ = {
         'last_message_id': JsonField('last_message_id', Snowflake, str),
         'type': JsonField('type'),
         '_recipients': JsonArray('recipients'),
     }
+
+    last_message_id: Snowflake
+    type: ChannelType
+    _recipients: List[Json]

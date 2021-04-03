@@ -1,3 +1,5 @@
+from typing import List
+
 from ..utils import JsonArray, JsonField, JsonStructure
 
 
@@ -9,6 +11,11 @@ class EmbedAttachment(JsonStructure, base=False):
         'width': JsonField('width'),
     }
 
+    url: str
+    proxy_url: str
+    height: int
+    width: int
+
 
 class EmbedVideo(JsonStructure, base=False):
     __json_fields__ = {
@@ -17,12 +24,19 @@ class EmbedVideo(JsonStructure, base=False):
         'width': JsonField('width'),
     }
 
+    url: str
+    height: int
+    width: int
+
 
 class EmbedProvider(JsonStructure, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         'url': JsonField('url'),
     }
+
+    name: str
+    url: str
 
 
 class EmbedAuthor(JsonStructure, base=False):
@@ -33,6 +47,11 @@ class EmbedAuthor(JsonStructure, base=False):
         'proxy_icon_url': JsonField('proxy_icon_url'),
     }
 
+    name: str
+    url: str
+    icon_url: str
+    proxy_icon_url: str
+
 
 class EmbedFooter(JsonStructure, base=False):
     __json_fields__ = {
@@ -41,6 +60,10 @@ class EmbedFooter(JsonStructure, base=False):
         'proxy_icon_url': JsonField('proxy_icon_url'),
     }
 
+    text: str
+    icon_url: str
+    proxy_icon_url: str
+
 
 class EmbedField(JsonStructure, base=False):
     __json_fields__ = {
@@ -48,6 +71,10 @@ class EmbedField(JsonStructure, base=False):
         'value': JsonField('value'),
         'inline': JsonField('inline'),
     }
+
+    name: str
+    value: str
+    inline: bool
 
 
 class Embed(JsonStructure, base=False):
@@ -65,3 +92,16 @@ class Embed(JsonStructure, base=False):
         'author': JsonField('author', struct=EmbedAuthor),
         'fields': JsonArray('fields', struct=EmbedField),
     }
+
+    title: str
+    type: str  # TODO: EmbedType
+    description: str
+    url: str
+    color: int
+    footer: EmbedFooter
+    image: EmbedAttachment
+    thumbnail: EmbedAttachment
+    video: EmbedVideo
+    provider: EmbedProvider
+    author: EmbedAuthor
+    fields: List[EmbedField]

@@ -13,7 +13,7 @@ from enum import IntEnum
 from .events import EventPusher
 from .utils import JsonStructure, JsonField, cstruct
 from .exceptions import BadWsHttpResponse
-from .gateway import GuildCreateEvent
+
 
 class WebsocketOpcode(IntEnum):
     CONT = 0x00
@@ -448,7 +448,7 @@ class Shard(BaseConnection):
         }
         return payload
 
-    def _guilds_resolved(self, evnt: GuildCreateEvent):
+    def _guilds_resolved(self, evnt: 'GuildCreateEvent'):
         try:
             self._guilds.remove(evnt.guild.id)
         except KeyError:

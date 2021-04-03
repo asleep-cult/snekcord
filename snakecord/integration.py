@@ -1,7 +1,6 @@
 from . import structures
-from .client import Client
 from .state import BaseState
-from .guild import Guild
+
 
 class GuildIntegrationApplication(structures.GuildIntegrationApplication):
     __slots__ = (
@@ -24,7 +23,7 @@ class GuildIntegration(structures.GuildIntegration):
         '_state', 'guild', 'user', 'application'
     )
 
-    def __init__(self, *, state: 'GuildIntegrationState', guild: Guild):
+    def __init__(self, *, state: 'GuildIntegrationState', guild: 'Guild'):
         self._state = state
         self.guild = guild
 
@@ -52,7 +51,7 @@ class GuildIntegration(structures.GuildIntegration):
 
 
 class GuildIntegrationState(BaseState):
-    def __init__(self, *, client: Client, guild: Guild):
+    def __init__(self, *, client: 'Client', guild: 'Guild'):
         super().__init__(client=client)
         self.guild = guild
 

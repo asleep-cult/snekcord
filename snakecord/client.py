@@ -30,7 +30,7 @@ class Client(EventPusher):
         self.users = user_state or UserState(client=self)
         self.invites = invite_state or InviteState(client=self)
         self.sharder = sharder or Sharder(client=self, max_shards=max_shards)
-        self.token = None
+        self.token: Optional[str] = None
 
         self.subscribe(self.sharder)
 
@@ -39,7 +39,6 @@ class Client(EventPusher):
         await self.sharder.connect()
 
     def start(self, token: str):
-        self.token = token
         self.loop.create_task(self.connect(token))
         try:
             self.loop.run_forever()

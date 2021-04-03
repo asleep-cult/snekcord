@@ -1,8 +1,6 @@
 from typing import Optional
 
 from . import structures
-from .channel import GuildChannel
-from .guild import Guild
 from .state import BaseState, BaseSubState
 from .utils import _try_snowflake, undefined
 
@@ -11,8 +9,7 @@ INVITE_BASE_URL = 'https://discord.com/invite/'
 
 class Invite(structures.Invite):
     __slots__ = (
-        *structures.Invite.__json_fields__, '_state', 'guild',
-        'channel', 'inviter', 'target_user'
+        '_state', 'guild', 'channel', 'inviter', 'target_user'
     )
 
     def __init__(self, *, state: Optional['InviteState'] = None):
@@ -71,7 +68,7 @@ class InviteState(BaseState):
 
 
 class GuildInviteState(BaseSubState):
-    def __init__(self, *, superstate: BaseState, guild: Guild):
+    def __init__(self, *, superstate: BaseState, guild: 'Guild'):
         super().__init__(superstate=superstate)
         self.guild = guild
 
@@ -86,7 +83,7 @@ class GuildInviteState(BaseSubState):
 
 
 class ChannelInviteState(BaseSubState):
-    def __init__(self, *, superstate: BaseState, channel: GuildChannel):
+    def __init__(self, *, superstate: BaseState, channel: 'GuildChannel'):
         super().__init__(superstate=superstate)
         self.channel = channel
 

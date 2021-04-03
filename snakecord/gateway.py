@@ -2,7 +2,7 @@ from typing import Optional
 
 from .connection import Shard
 from .events import EventPusher
-from .client import Client
+
 
 class BaseGatewayEvent:
     def __init__(self, sharder: 'Sharder', payload: Optional[dict] = None):
@@ -164,7 +164,7 @@ class Sharder(EventPusher):
         MessageCreateEvent
     )
 
-    def __init__(self, client: Client, *, max_shards: Optional[int] = None, intents: Optional[int] = None):
+    def __init__(self, client: 'Client', *, max_shards: Optional[int] = None, intents: Optional[int] = None):
         super().__init__(client.loop)
 
         self.client = client

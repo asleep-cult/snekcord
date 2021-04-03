@@ -17,3 +17,15 @@ class User(BaseObject, base=False):
         'premium_type': JsonField('premium_type'),
         'public_flags': JsonField('public_flags'),
     }
+
+    name: str
+    discriminator: str
+    avatar: str
+    bot: bool
+    system: bool
+    mfa_enabled: bool
+    locale: str
+    verified: bool
+    email: str
+    premium_type: int
+    public_flags: int

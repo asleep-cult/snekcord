@@ -9,6 +9,10 @@ class RoleTag(JsonStructure, base=False):
         'premium_subscriber': JsonField('premium_subscriber'),
     }
 
+    bot_id: Snowflake
+    integration_id: Snowflake
+    premium_subscriber: bool
+
 
 class Role(BaseObject, base=False):
     __json_fields__ = {
@@ -21,3 +25,8 @@ class Role(BaseObject, base=False):
         'mentionable': JsonField('mentionable'),
         'tags': JsonField('tags', struct=RoleTag),
     }
+
+    name: str
+    color: int
+    hoist: bool
+    position: int

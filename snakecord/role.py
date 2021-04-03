@@ -1,16 +1,15 @@
 from typing import Dict, Union
 
 from . import structures
-from .client import Client
-from .guild import Guild 
 from .state import BaseState
+
 
 class Role(structures.Role):
     __slots__ = (
         '_state', 'guild'
     )
 
-    def __init__(self, state: 'RoleState', guild: Guild):
+    def __init__(self, state: 'RoleState', guild: 'Guild'):
         self._state = state
         self.guild = guild
 
@@ -26,7 +25,7 @@ class Role(structures.Role):
 
 
 class RoleState(BaseState):
-    def __init__(self, *, client: Client, guild: Guild):
+    def __init__(self, *, client: 'Client', guild: 'Guild'):
         super().__init__(client=client)
         self.guild = guild
 

@@ -2,8 +2,6 @@ from typing import Optional, Union
 from datetime import datetime
 
 from . import structures
-from .client import Client
-from .guild import Guild
 from .role import Role
 from .state import BaseState
 from .user import User
@@ -15,7 +13,7 @@ class GuildMember(structures.GuildMember):
         '_state', 'guild', 'user', 'roles'
     )
 
-    def __init__(self, *, state: 'GuildMemberState', guild: Guild, user: Optional[User] = None):
+    def __init__(self, *, state: 'GuildMemberState', guild: 'Guild', user: Optional['User'] = None):
         self._state = state
         self.guild = guild
         self.user = user
@@ -51,7 +49,7 @@ class GuildMember(structures.GuildMember):
 
 
 class GuildMemberState(BaseState):
-    def __init__(self, *, client: Client, guild: Guild):
+    def __init__(self, *, client: 'Client', guild: 'Guild'):
         super().__init__(client=client)
         self.guild = guild
 
@@ -74,7 +72,7 @@ class GuildMemberState(BaseState):
         member = self.append(data)
         return member
 
-    async def fetch_many(self, limit: int = 1000, before: Optional[Union[int, datetime]] = None):
+    async def fetch_many(self, limit: int = 1000, before: Optional[int] = None):
         rest = self.client.rest
         data = await rest.get_guild_members(self.guild.id, limit, before)
         members = [self.append(member) for member in data]
@@ -97,7 +95,7 @@ class GuildMemberState(BaseState):
 
 
 class GuildMemberRoleState(BaseState):
-    def __init__(self, *, client: Client, member: GuildMember):
+    def __init__(self, *, client: 'Client', member: GuildMember):
         super().__init__(client=client)
         self.member = member
 

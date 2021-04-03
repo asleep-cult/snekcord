@@ -8,3 +8,7 @@ class PermissionOverwrite(BaseObject, base=False):
         'deny': JsonField('deny', int, str),
         'type': JsonField('type'),
     }
+
+    allow: int
+    deny: int
+    type: int

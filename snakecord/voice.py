@@ -5,12 +5,11 @@ import nacl.secret
 
 from . import structures
 from .events import EventPusher
-from .channel import VoiceChannel
 from .connection import VoiceWebSocket, VoiceDatagramProtocol, VoiceConnectionOpcode
 
 
 class VoiceState(structures.VoiceState):
-    def __init__(self, voice_channel: VoiceChannel):
+    def __init__(self, voice_channel: 'VoiceChannel'):
         self.voice_channel = voice_channel
         self.guild = voice_channel.guild
 

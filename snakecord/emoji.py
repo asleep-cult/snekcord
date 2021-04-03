@@ -2,16 +2,15 @@ from typing import Iterable, Optional, Union
 
 from . import structures
 from .state import BaseState
-from .guild import Guild
 from .role import Role
-from .client import Client
+
 
 class GuildEmoji(structures.GuildEmoji):
     __slots__ = (
         '_state', 'guild', 'user'
     )
 
-    def __init__(self, *, state: 'GuildEmojiState', guild: Guild):
+    def __init__(self, *, state: 'GuildEmojiState', guild: 'Guild'):
         self._state = state
         self.guild = guild
         self.user = None
@@ -54,7 +53,7 @@ class GuildEmoji(structures.GuildEmoji):
 
 
 class GuildEmojiState(BaseState):
-    def __init__(self, *, client: Client, guild: Guild):
+    def __init__(self, *, client: 'Client', guild: 'Guild'):
         super().__init__(client=client)
         self.guild = guild
 
