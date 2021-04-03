@@ -7,12 +7,12 @@ class User(structures.User):
         '_state',
     )
 
-    def __init__(self, *, state):
+    def __init__(self, *, state: 'UserState'):
         self._state = state
 
 
 class UserState(BaseState):
-    def append(self, data) -> User:
+    def append(self, data: dict) -> User:
         user = self.get(data['id'])
         if user is not None:
             user._update(data)
@@ -22,7 +22,7 @@ class UserState(BaseState):
         self._items[user.id] = user
         return user
 
-    async def fetch(self, user_id) -> User:
+    async def fetch(self, user_id: int) -> User:
         rest = self.client.rest
         data = await rest.get_user(user_id)
         return self.append(data)

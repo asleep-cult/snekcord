@@ -1,6 +1,8 @@
-from typing import Optional
+from typing import Optional, Union
 
 from . import structures
+from .channel import GuildChannel
+from .client import Client
 from .enums import PermissionFlag
 from .state import BaseState
 
@@ -42,10 +44,10 @@ class PermissionOverwrite(structures.PermissionOverwrite):
     manage_webhooks: Optional[bool]
     manage_emojis: Optional[bool]
 
-    def __init__(self, *, state):
+    def __init__(self, *, state: 'PermissionOverwriteState'):
         self._state = state
 
-    async def edit(self, overwrite):
+    async def edit(self, overwrite: 'PermissionOverwrite'):
         rest = self._state.client.rest
         await rest.edit_channel_permissions(
             self._state._channel.id,
@@ -76,11 +78,11 @@ class PermissionOverwrite(structures.PermissionOverwrite):
 
 
 class PermissionOverwriteState(BaseState):
-    def __init__(self, *, client, channel):
+    def __init__(self, *, client: Client, channel: GuildChannel):
         super().__init__(client=client)
         self.channel = channel
 
-    def append(self, data):
+    def append(self, data: dict):
         overwrite = self.get(data['id'])
         if overwrite is not None:
             overwrite._update(data)

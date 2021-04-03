@@ -1,11 +1,15 @@
+from typing import Optional
+
 from . import structures
-from .channel import GuildChannelState
+from .client import Client
+from .channel import GuildChannel, GuildChannelState
 from .emoji import GuildEmojiState
 from .integration import GuildIntegrationState
 from .invite import GuildInviteState
 from .member import GuildMemberState
 from .role import RoleState
 from .state import BaseState
+from .user import User
 from .utils import _try_snowflake, undefined
 
 
@@ -14,10 +18,10 @@ class GuildWidget(structures.GuildWidget):
         'guild',
     )
 
-    def __init__(self, *, guild=None):
+    def __init__(self, *, guild: Optional['Guild'] = None):
         self.guild = guild
 
-    def edit(self, *, enabled=None, channel=None):
+    def edit(self, *, enabled: Optional[bool] = None, channel: Optional[GuildChannel] = None):
         return self.guild.edit_widget(enabled=enabled, channel=channel)
 
 
@@ -26,7 +30,7 @@ class GuildWidgetSettings(structures.GuildWidgetSettings):
         'guild', 'channel'
     )
 
-    def __init__(self, *, guild=None):
+    def __init__(self, *, guild: Optional['Guild'] = None):
         self.guild = guild
 
     def _update(self, *args, **kwargs):
@@ -40,7 +44,7 @@ class GuildPreview(structures.GuildPreview):
         'bans', 'channels', 'integrations'
     )
 
-    def __init__(self, *, state):
+    def __init__(self, *, state: 'GuildState'):
         self._state = state
         self.members = GuildMemberState(
             client=self._state.client, guild=self)
@@ -210,7 +214,7 @@ class Guild(GuildPreview, structures.Guild):
     def to_preview_dict(self):
         return super().to_dict(cls=GuildPreview)
 
-    def to_dict(self, cls=None):
+    def to_dict(self, cls: Optional[type] = None):
         dct = super().to_dict(cls=cls)
 
         dct['roles'] = [role.to_dict() for role in self.roles]
@@ -259,7 +263,7 @@ class GuildBan(structures.GuildBan):
         '_state', 'user'
     )
 
-    def __init__(self, *, state, user=None):
+    def __init__(self, *, state: 'GuildState', user: Optional[User] = None):
         self._state = state
         self.user = user
 
@@ -269,7 +273,7 @@ class GuildBan(structures.GuildBan):
 
 
 class GuildState(BaseState):
-    def append(self, data) -> Guild:
+    def append(self, data: dict) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
             guild._update(data)
@@ -279,13 +283,13 @@ class GuildState(BaseState):
         self._items[guild.id] = guild
         return guild
 
-    async def fetch(self, guild_id) -> Guild:
+    async def fetch(self, guild_id: int) -> Guild:
         rest = self.client.rest
         data = await rest.get_guild(guild_id)
         guild = self.append(data)
         return guild
 
-    async def fetch_preview(self, guild_id):
+    async def fetch_preview(self, guild_id: int):
         rest = self.client.rest
         data = await rest.get_guild_preview(guild_id)
         guild = self.append(data)
@@ -293,21 +297,21 @@ class GuildState(BaseState):
 
 
 class GuildBanState(BaseState):
-    def __init__(self, *, client, guild):
+    def __init__(self, *, client: Client, guild: Guild):
         super().__init__(client=client)
         self.guild = guild
 
-    def append(self, data):
+    def append(self, data: dict):
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban._update(data)
             return ban
 
         ban = GuildBan.unmarshal(data, state=self)
-        self._items[ban.user.id] = ban
+        self._items[ban.user.id] = ban  
         return ban
 
-    async def fetch(self, user):
+    async def fetch(self, user: User):
         rest = self.client.rest
         data = await rest.get_guild_ban(self.guild.id, user.id)
         ban = self.append(data)
@@ -319,14 +323,14 @@ class GuildBanState(BaseState):
         bans = [self.append(ban) for ban in data]
         return bans
 
-    async def add(self, user, **kwargs):
+    async def add(self, user: User, **kwargs):
         rest = self.client.rest
         user = _try_snowflake(user)
         data = await rest.create_guild_ban(self.guild.id, user)
         ban = self.append(data)
         return ban
 
-    async def remove(self, user):
+    async def remove(self, user: User):
         rest = self.client.rest
         user = _try_snowflake(user)
         await rest.remove_guild_ban(self.guild.id, user)
