@@ -3,14 +3,7 @@ from __future__ import annotations
 import asyncio
 import functools
 from numbers import Number
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, Awaitable, Callable, Optional, Tuple, Union
 from weakref import WeakSet
 
 
@@ -71,14 +64,21 @@ def ensure_future(coro: Awaitable) -> Optional[asyncio.Future]:
 
 
 class EventPusher:
-    def __init__(self, loop: Optional[asyncio.AbstractEventLoop]) -> None:
+    def __init__(self, *,
+                 loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if loop is not None:
             self.loop = loop
         else:
             self.loop = asyncio.get_event_loop()
 
-        self._handlers = {handler.name: handler
-                          for handler in self.handlers.__members__}
+        if hasattr(self, 'handlers'):
+            self._handlers = {
+                handler.name: handler.value
+                for handler in self.handlers.__members__.values()
+            }
+        else:
+            self._handlers = {}
+
         self._listeners = {}
         self._waiters = {}
         self._subscribers = []

@@ -1,18 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import (
-    Any,
-    ByteString,
-    Callable,
-    Dict,
-    Generic,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import (Any, ByteString, Callable, Dict, Generic, Optional, Tuple,
+                    Type, TypeVar, Union)
 
 T = TypeVar('T')
 
@@ -49,7 +39,7 @@ class JsonTemplate(Generic[T]):
         data = {}
 
         for name, field in self.fields.items():
-            value = getattr(self, name, None)
+            value = getattr(o, name, None)
 
             if value is None and field.omitempty:
                 continue
@@ -112,17 +102,17 @@ class JsonArray(JsonField):
         default = kwargs.pop('default', [])
         super().__init__(*args, **kwargs, default=default)
 
-    def marshal(self, values: Any) -> Any:
-        marshalled = []
-        for value in values:
-            marshalled.append(super().marshal(value))
-        return marshalled
-
     def unmarshal(self, values: Any) -> Any:
         unmarshalled = []
         for value in values:
             unmarshalled.append(super().unmarshal(value))
         return unmarshalled
+
+    def marshal(self, values: Any) -> Any:
+        marshalled = []
+        for value in values:
+            marshalled.append(super().marshal(value))
+        return marshalled
 
 
 class JsonObjectMeta(type):

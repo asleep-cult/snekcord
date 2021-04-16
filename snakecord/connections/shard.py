@@ -1,4 +1,9 @@
 import enum
+import platform
+
+from wsaio import taskify
+
+from .connection import BaseConnection, Heartbeater, WebSocketResponse
 
 
 class ShardOpcode(enum.IntEnum):
@@ -14,3 +19,54 @@ class ShardOpcode(enum.IntEnum):
     INVALID_SESSION = 9  # Discord -> Shard
     HELLO = 10  # Discord -> Shard
     HEARTBEAT_ACK = 11  # Discord -> Shard
+
+
+class Shard(BaseConnection):
+    ENDPOINT = 'wss://gateway.discord.gg'
+
+    def __init__(self, manager, id: int):
+        super().__init__(manager)
+        self.id = id
+
+    @property
+    def heartbeat_payload(self):
+        payload = {
+            'op': ShardOpcode.HEARTBEAT,
+            'd': None
+        }
+        return payload
+
+    async def identify(self):
+        payload = {
+            'op': ShardOpcode.IDENTIFY,
+            'd': {
+                'token': self.manager.token,
+                # 'intents': self.manager.intents,
+                'properties': {
+                    '$os': platform.system(),
+                    '$browser': 'snakecord',
+                    '$device': 'snakecord'
+                }
+            }
+        }
+        await self.send_json(payload)
+
+    @taskify
+    async def ws_text_received(self, data: str) -> None:
+        response = WebSocketResponse.unmarshal(data)
+        response.opcode = ShardOpcode(response.opcode)
+
+        if response.opcode is ShardOpcode.DISPATCH:
+            print(response.data)
+            self.manager.push_event(response.name, response.data)
+        if response.opcode is ShardOpcode.HELLO:
+            self.heartbeater = Heartbeater(
+                self, loop=self.loop,
+                delay=response.data['heartbeat_interval'])
+            self.heartbeater.start()
+            await self.identify()
+        elif response.opcode is ShardOpcode.HEARTBEAT:
+            self.send_heartbeat()
+
+    async def connect(self, *args, **kwargs):
+        await super().connect(self.ENDPOINT, *args, **kwargs)
