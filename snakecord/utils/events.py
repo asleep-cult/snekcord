@@ -146,8 +146,7 @@ class EventPusher:
     def once(self, name: Optional[str] = None):
         def wrapped(func):
             nonlocal name
-            name = name or func.__name__
-            name = name.lower()
+            name = (name or func.__name__).lower()
 
             @functools.wraps(func)
             def callback(*args):
