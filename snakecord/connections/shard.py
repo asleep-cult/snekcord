@@ -58,7 +58,6 @@ class Shard(BaseConnection):
 
         if response.opcode is ShardOpcode.DISPATCH:
             self.manager.push_event(response.name, self, response.data)
-            print('RECEIVED EVENT', response.sequence, response.name)
         if response.opcode is ShardOpcode.HELLO:
             self.heartbeater = Heartbeater(
                 self, loop=self.loop,
