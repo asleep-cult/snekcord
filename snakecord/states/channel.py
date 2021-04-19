@@ -1,8 +1,8 @@
 import enum
 
-from .state import BaseState, BaseSubState, SnowflakeMapping
+from .base import BaseState, BaseSubState, SnowflakeMapping
 from ..objects import channel as channels
-from ..objects.obj import BaseObject
+from ..objects.base import BaseObject
 
 
 class ChannelType(enum.IntEnum):

@@ -39,7 +39,7 @@ class Snowflake(int):
 
     @classmethod
     def try_snowflake(cls, o: Any) -> Union[Snowflake, Any]:
-        from ..objects.obj import BaseObject
+        from ..objects.base import BaseObject
 
         if isinstance(o, BaseObject):
             return o.id

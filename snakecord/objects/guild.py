@@ -1,4 +1,4 @@
-from .obj import BaseObject
+from .base import BaseObject
 from ..states.channel import GuildChannelState
 from ..templates.guild import GuildTemplate
 

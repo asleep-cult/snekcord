@@ -1,4 +1,4 @@
-from .state import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping
 from ..objects.guild import Guild
 
 

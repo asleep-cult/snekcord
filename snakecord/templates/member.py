@@ -1,4 +1,4 @@
-from .template import BaseTemplate
+from .base import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 
 GuildMemberTemplate = JsonTemplate(

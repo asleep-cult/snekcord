@@ -1,4 +1,4 @@
-from .obj import BaseObject
+from .base import BaseObject
 from ..templates.channel import (
     DMChannelTemplate,
     GuildChannelTemplate,

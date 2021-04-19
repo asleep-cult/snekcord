@@ -3,7 +3,7 @@ import platform
 
 from wsaio import taskify
 
-from .connection import BaseConnection, Heartbeater, WebSocketResponse
+from .base import BaseConnection, Heartbeater, WebSocketResponse
 
 
 class ShardOpcode(enum.IntEnum):

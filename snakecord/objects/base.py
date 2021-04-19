@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from ..templates.template import BaseTemplate
+from ..templates.base import BaseTemplate
 from ..utils.json import JsonObject
 from ..utils.snowflake import Snowflake
 
