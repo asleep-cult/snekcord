@@ -1,4 +1,4 @@
-from .base import BaseTemplate
+from .template import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 from ..utils.snowflake import Snowflake
 
@@ -17,7 +17,7 @@ TextChannelTemplate = JsonTemplate(
     topic=JsonField('topic'),
     slowmode=JsonField('rate_limit_per_user'),
     last_message_id=JsonField('last_message_id'),
-    _extends__=(GuildChannelTemplate,)
+    __extends__=(GuildChannelTemplate,)
 )
 
 VoiceChannelTemplate = JsonTemplate(

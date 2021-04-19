@@ -50,6 +50,9 @@ class BaseState:
     def get_maxsize(cls) -> int:
         return cls.__maxsize__
 
+    def __len__(self):
+        return len(self._items)
+
     def __iter__(self):
         return self._items.__iter__()
 
@@ -127,7 +130,4 @@ class BaseSubState:
             return default
         return item
 
-    def find(self, func):
-        for item in self:
-            if func(item):
-                return item
+    find = BaseState.find

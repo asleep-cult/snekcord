@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass
+from typing import Union
 
 from ...connections.shard import Shard
+from ...objects.channel import DMChannel, GuildChannel
 from ...objects.guild import Guild
+from ...states.channel import ChannelState
 from ...states.guild import GuildState
 from ...utils.events import EventPusher
 
@@ -16,7 +19,7 @@ class _base_event:
     payload: dict
 
 
-class user_client_events(enum.Enum):
+class Events(enum.Enum):
     @dataclass
     class application_command_create(_base_event):
         pass
@@ -31,15 +34,25 @@ class user_client_events(enum.Enum):
 
     @dataclass
     class channel_create(_base_event):
-        pass
+        channel: Union[GuildChannel, DMChannel]
+
+        def __post_init__(self):
+            self.channel = self.manager.channels.append(self.payload)
 
     @dataclass
     class channel_update(_base_event):
-        pass
+        channel: Union[GuildChannel, DMChannel]
+
+        def __post_init__(self):
+            self.channel = self.manager.channels.append(self.payload)
 
     @dataclass
     class channel_delete(_base_event):
-        pass
+        channel: Union[GuildChannel, DMChannel]
+
+        def __post_init__(self):
+            channel_id = self.payload.get('channel_id')
+            self.channel = self.manager.channels.pop(channel_id)
 
     @dataclass
     class channel_pins_update(_base_event):
@@ -54,11 +67,18 @@ class user_client_events(enum.Enum):
 
     @dataclass
     class guild_update(_base_event):
-        pass
+        guild: Guild = None
+
+        def __post_init__(self):
+            self.guild = self.manager.guilds.append(self.payload)
 
     @dataclass
     class guild_delete(_base_event):
-        pass
+        guild: Guild = None
+
+        def __post_init__(self):
+            guild_id = self.payload.get('guild_id')
+            self.guild = self.manager.guilds.pop(guild_id)
 
     @dataclass
     class guild_ban_add(_base_event):
@@ -186,14 +206,15 @@ class user_client_events(enum.Enum):
 
 
 class UserClientManager(EventPusher):
-    handlers = user_client_events
+    handlers = Events
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, token, *args, **kwargs) -> None:
         self.shard_range = kwargs.pop('shard_range', range(1))
         super().__init__(*args, **kwargs)
         self.shards = {}
-        self.token = None
+        self.token = token
         self.guilds = GuildState(manager=self)
+        self.channels = ChannelState(manager=self)
 
     async def start(self, token: str, *args, **kwargs):
         self.token = token

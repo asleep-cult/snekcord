@@ -1,4 +1,4 @@
-from .base import BaseTemplate
+from .template import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 
 GuildEmojiTemplate = JsonTemplate(

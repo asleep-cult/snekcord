@@ -1,3 +1,4 @@
+from .template import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 
 GuildMemberTemplate = JsonTemplate(
@@ -8,5 +9,6 @@ GuildMemberTemplate = JsonTemplate(
     premium_since=JsonField('premium_since'),
     deaf=JsonField('deaf'),
     mute=JsonField('mute'),
-    pending=JsonField('pending')
+    pending=JsonField('pending'),
+    __extends__=(BaseTemplate,)
 )
