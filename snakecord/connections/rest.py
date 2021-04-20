@@ -450,7 +450,7 @@ sync_guild_template = HTTPEndpoint(
     BASE_API_URL + 'guilds/%(guild_id)s/templates/%(template_code)s',
 )
 
-sync_guild_template = HTTPEndpoint(
+modify_guild_template = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/templates/%(template_code)s',
     json=('name', 'description'),
@@ -592,3 +592,11 @@ delete_webhook_message = HTTPEndpoint(
     + 'webhooks/%(webhook_id)s/%(webhook_token)s'
     + '/messages/%(message_id)s',
 )
+
+
+class RestSession:
+    def __init__(self, manager) -> None:
+        self.manager = manager
+        self.loop = manager.loop
+
+        self._throttlers = {}
