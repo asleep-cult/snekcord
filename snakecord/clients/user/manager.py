@@ -4,6 +4,7 @@ import enum
 from dataclasses import dataclass
 from typing import Union
 
+from ...connections.rest import RestSession
 from ...connections.shard import Shard
 from ...objects.channel import DMChannel, GuildChannel
 from ...objects.guild import Guild
@@ -213,12 +214,11 @@ class UserClientManager(EventPusher):
         super().__init__(*args, **kwargs)
         self.shards = {}
         self.token = token
+        self.rest = RestSession(self)
         self.guilds = GuildState(manager=self)
         self.channels = ChannelState(manager=self)
 
-    async def start(self, token: str, *args, **kwargs):
-        self.token = token
-
+    async def start(self, *args, **kwargs):
         for i in self.shard_range:
             self.shards[i] = Shard(self, i)
 

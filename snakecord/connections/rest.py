@@ -1,3 +1,5 @@
+import aiohttp
+
 from ..utils.http import HTTPEndpoint
 
 # TODO: Form params, arrays of json objects
@@ -42,8 +44,8 @@ get_channel_message = HTTPEndpoint(
 create_channel_message = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'channels/%(channel_id)s/messages',
-    params=('content', 'nonce', 'tts', 'embed', 'allowed_mentions',
-            'message_reference'),
+    json=('content', 'nonce', 'tts', 'embed', 'allowed_mentions',
+          'message_reference'),
 )
 
 crosspost_message = HTTPEndpoint(
@@ -598,5 +600,13 @@ class RestSession:
     def __init__(self, manager) -> None:
         self.manager = manager
         self.loop = manager.loop
+        self.token = manager.token
+        self.session = aiohttp.ClientSession(loop=self.loop)
 
-        self._throttlers = {}
+    async def request(self, *args, **kwargs):
+        headers = kwargs.pop('headers', {})
+        headers.update({
+            'Authorization': f'Bot {self.token}'
+            # Ratelimit percision should be millisecond by default?
+        })
+        return await self.session.request(*args, **kwargs, headers=headers)
