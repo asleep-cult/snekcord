@@ -4,3 +4,6 @@ class _Undefined:
 
     def __bool__(self):
         return False
+
+
+undefined = _Undefined()

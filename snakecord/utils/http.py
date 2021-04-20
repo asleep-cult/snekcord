@@ -1,12 +1,12 @@
 from typing import Tuple
 
 
-class HttpEndpoint:
-    def __init__(self, method: str, path: str, *,
+class HTTPEndpoint:
+    def __init__(self, method: str, url: str, *,
                  params: Tuple[str] = (),
                  json: Tuple[str] = ()) -> None:
         self.method = method
-        self.path = path
+        self.url = url
         self.params = params
         self.json = json
 
@@ -17,5 +17,5 @@ class HttpEndpoint:
         if json is not None:
             json = {k: v for k, v in json.items() if k in self.json}
 
-        return session.request(self.method, self.path, params=params,
+        return session.request(self.method, self.url, params=params,
                                json=json)
