@@ -1,8 +1,39 @@
+import asyncio
+from datetime import datetime
+from typing import Tuple
+
 import aiohttp
 
-from ..utils.http import HTTPEndpoint
+
+class HTTPError(Exception):
+    def __init__(self, response, data) -> None:
+        super().__init__()
+        self.response = response
+        self.data = data
+
+
+class HTTPEndpoint:
+    def __init__(self, method: str, url: str, *,
+                 params: Tuple[str] = (),
+                 json: Tuple[str] = ()) -> None:
+        self.method = method
+        self.url = url
+        self.params = params
+        self.json = json
+
+    def request(self, *, session, fmt={}, params=None, json=None):
+        if params is not None:
+            params = {k: v for k, v in params.items() if k in self.params}
+
+        if json is not None:
+            json = {k: v for k, v in json.items() if k in self.json}
+
+        throttler = session.throttler_for(self, fmt)
+        return throttler.submit(self.method, self.url % fmt,
+                                params=params, json=json)
 
 # TODO: Form params, arrays of json objects
+
 
 BASE_API_URL = 'https://discord.com/api/v8/'
 
@@ -596,17 +627,130 @@ delete_webhook_message = HTTPEndpoint(
 )
 
 
+class RequestThrottler:
+    def __init__(self, session, endpoint):
+        self.session = session
+        self.endpoint = endpoint
+
+        self.limit = None
+        self.remaining = None
+        self.reset = None
+        self.reset_after = None
+        self.bucket = None
+
+        self._made_initial_request = False
+
+        self._queue = asyncio.Queue()
+        self._lock = asyncio.Lock()
+        self._running = False
+
+    def _recalculate(self) -> None:
+        if (
+            self.reset_after is not None
+            and datetime.now().timestamp() >= self.reset_after
+        ):
+            self.remaining = self.limit
+            self.reset = 0
+            self.reset_after = None
+
+    async def _request(self, future, *args, **kwargs) -> None:
+        response = await self.session.request(*args, **kwargs)
+
+        data = await response.read()
+
+        limit = response.headers.get('X-RateLimit-Limit')
+        if limit is not None:
+            self.limit = int(limit)
+
+        remaining = response.headers.get('X-RateLimit-Remaining')
+        if remaining is not None:
+            self.remaining = int(remaining)
+
+        reset = response.headers.get('X-RateLimit-Reset')
+        if reset is not None:
+            self.reset = float(reset) * 1000
+
+        reset_after = response.headers.get('X-RateLimit-Reset-After')
+        if reset_after is not None:
+            self.reset_after = float(reset_after)
+
+        bucket = response.headers.get('X-RateLimit-Bucket')
+        if bucket is not None:
+            self.bucket = bucket
+
+        if response.status >= 400:
+            print(response.status)
+            return future.set_exception(HTTPError(response, data))
+
+        future.set_result(data)
+
+    async def _run_requests(self):
+        await self._lock.acquire()
+        self._running = True
+
+        if not self._made_initial_request:
+            future, args, kwargs = self._queue.get_nowait()
+            await self._request(future, *args, **kwargs)
+            self._made_initial_request = True
+
+        while True:
+            await asyncio.sleep(0)
+
+            coros = []
+            for _ in range(self.remaining):
+                try:
+                    future, args, kwargs = self._queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    break
+
+                coros.append(self._request(future, *args, **kwargs))
+
+            await asyncio.gather(*coros)
+            await asyncio.sleep(self.reset_after)
+
+            self._recalculate()
+
+        self._running = False
+        self._lock.release()
+
+    def submit(self, *args, **kwargs):
+        future = self.session.loop.create_future()
+        self._queue.put_nowait((future, args, kwargs))
+
+        if not self._running:
+            self.session.loop.create_task(self._run_requests())
+
+        return future
+
+
 class RestSession:
     def __init__(self, manager) -> None:
         self.manager = manager
         self.loop = manager.loop
         self.token = manager.token
         self.session = aiohttp.ClientSession(loop=self.loop)
+        self._throttlers = {}  # key_for(): RequestThrottler
+
+    def key_for(self, method, fmt):
+        major_params = ('channel_id', 'guild_id', 'webhook_id',
+                        'webhook_token')
+
+        params = ':'.join(str(fmt.get(param)) for param in major_params)
+        return (f'{method}:{params}')
+
+    def throttler_for(self, endpoint, fmt):
+        key = self.key_for(endpoint.method, fmt)
+        throttler = self._throttlers.get(key)
+
+        if throttler is None:
+            throttler = RequestThrottler(self, endpoint)
+            self._throttlers[key] = throttler
+
+        return throttler
 
     async def request(self, *args, **kwargs):
         headers = kwargs.pop('headers', {})
         headers.update({
             'Authorization': f'Bot {self.token}'
-            # Ratelimit percision should be millisecond by default?
         })
         return await self.session.request(*args, **kwargs, headers=headers)
