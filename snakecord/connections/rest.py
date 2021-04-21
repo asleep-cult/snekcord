@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Tuple
 
 import aiohttp
@@ -663,19 +663,36 @@ class RequestThrottler:
 
         remaining = response.headers.get('X-RateLimit-Remaining')
         if remaining is not None:
-            self.remaining = int(remaining)
+            remaining = int(remaining)
+            if self.remaining is None or remaining < self.remaining:
+                # if remaining > self.remaining then we've already processed
+                # a newer response (or keys are conflicting,
+                # or a foriegn client is making requests). Overwriting the
+                # attributes with this data would make everything stail
+                # and unhelpful
+                self.remaining = remaining
 
-        reset = response.headers.get('X-RateLimit-Reset')
-        if reset is not None:
-            self.reset = datetime.utcfromtimestamp(float(reset))
+                if 'reactions' in self.endpoint.url:
+                    # the headers lie for reaction endpoints
+                    # https://github.com/discordapp/discord-api-docs/issues/182
+                    # thanks discord.js
+                    self.reset = (datetime.utcnow()
+                                  + timedelta(milliseconds=250))
+                    self.reset_after = 250 / 1000
+                else:
+                    reset = response.headers.get('X-RateLimit-Reset')
+                    if reset is not None:
+                        self.reset = datetime.utcfromtimestamp(float(reset))
 
-        reset_after = response.headers.get('X-RateLimit-Reset-After')
-        if reset_after is not None:
-            self.reset_after = float(reset_after)
+                    reset_after = response.headers.get(
+                        'X-RateLimit-Reset-After'
+                    )
+                    if reset_after is not None:
+                        self.reset_after = float(reset_after)
 
-        bucket = response.headers.get('X-RateLimit-Bucket')
-        if bucket is not None:
-            self.bucket = bucket
+                bucket = response.headers.get('X-RateLimit-Bucket')
+                if bucket is not None:
+                    self.bucket = bucket
 
         if response.status >= 400:
             print(response.status)
@@ -693,7 +710,6 @@ class RequestThrottler:
             self._made_initial_request = True
 
         while True:
-            self._recalculate()
             await asyncio.sleep(0)  # This is needed so that other Tasks get a
             # chance to queue up requests. Removivng this could lead to some
             # weird behaviour.
@@ -720,6 +736,8 @@ class RequestThrottler:
                 if reset_after > 0:
                     print('SLEPPING FOR', reset_after)
                     await asyncio.sleep(reset_after)
+
+            self._recalculate()
 
     def submit(self, *args, **kwargs):
         future = self.session.loop.create_future()
