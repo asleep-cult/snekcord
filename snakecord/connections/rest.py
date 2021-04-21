@@ -771,8 +771,9 @@ class RequestThrottler:
 
     def submit(self, *args, **kwargs):
         # Please don't use this in a while loop
-        # without waiting, you'll just run out of memory.
-        # (14 messages sent with 21,502 requests submitted)
+        # without waiting, you'll just run out of memory eventually.
+        # (14 messages sent with 21,502 requests submitted
+        # and it only gets worse)
         future = RestFuture(loop=self.session.loop)
         self._queue.put_nowait((future, args, kwargs))
 
