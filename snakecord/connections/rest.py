@@ -88,14 +88,14 @@ create_reaction = HTTPEndpoint(
     'PUT',
     BASE_API_URL
     + 'channels/%(channel_id)s/messages/'
-    + '%(message_id)s/reactions/%(emoji_id)s/@me',
+    + '%(message_id)s/reactions/%(emoji)s/@me',
 )
 
 delete_reaction = HTTPEndpoint(
     'DELETE',
     BASE_API_URL
     + 'channels/%(channel_id)s/messages/'
-    + '%(message_id)s/reactions/%(emoji_id)s/%(user_id)s'
+    + '%(message_id)s/reactions/%(emoji)s/%(user_id)s'
 )
 
 get_reactions = HTTPEndpoint(
@@ -106,7 +106,7 @@ get_reactions = HTTPEndpoint(
 delete_reactions = HTTPEndpoint(
     'DELETE',
     BASE_API_URL
-    + 'channels/%(channel_id)s/messages/%(message_id)s/reactions/%(emoji_id)s',
+    + 'channels/%(channel_id)s/messages/%(message_id)s/reactions/%(emoji)s',
     # emoji may be an empty string
 )
 
@@ -194,7 +194,7 @@ get_guild_emojis = HTTPEndpoint(
 
 get_guild_emoji = HTTPEndpoint(
     'GET',
-    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji_id)s',
+    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji)s',
 )
 
 create_guild_emoji = HTTPEndpoint(
@@ -205,7 +205,7 @@ create_guild_emoji = HTTPEndpoint(
 
 modify_guild_emoji = HTTPEndpoint(
     'PATCH',
-    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji_id)s',
+    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji)s',
     json=('name', 'roles'),
 )
 
@@ -646,12 +646,11 @@ class RequestThrottler:
 
     def _recalculate(self) -> None:
         if (
-            self.reset_after is not None
-            and datetime.now().timestamp() >= self.reset_after
+            self.reset is not None
+            and datetime.utcnow() > self.reset
         ):
+            print('RESETTING RATELIMIT')
             self.remaining = self.limit
-            self.reset = 0
-            self.reset_after = None
 
     async def _request(self, future, *args, **kwargs) -> None:
         response = await self.session.request(*args, **kwargs)
@@ -668,7 +667,7 @@ class RequestThrottler:
 
         reset = response.headers.get('X-RateLimit-Reset')
         if reset is not None:
-            self.reset = float(reset) * 1000
+            self.reset = datetime.utcfromtimestamp(float(reset))
 
         reset_after = response.headers.get('X-RateLimit-Reset-After')
         if reset_after is not None:
@@ -701,12 +700,16 @@ class RequestThrottler:
                 try:
                     future, args, kwargs = self._queue.get_nowait()
                 except asyncio.QueueEmpty:
-                    break
+                    return
 
                 coros.append(self._request(future, *args, **kwargs))
 
             await asyncio.gather(*coros)
-            await asyncio.sleep(self.reset_after)
+
+            reset_after = (self.reset - datetime.utcnow()).total_seconds()
+            if reset_after > 0:
+                print('SLEPPING FOR', reset_after)
+                await asyncio.sleep(reset_after)
 
             self._recalculate()
 
