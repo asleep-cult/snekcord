@@ -1,5 +1,5 @@
-import types
 import asyncio
+import types
 import contextlib
 from datetime import datetime, timedelta
 from typing import Tuple
@@ -630,6 +630,10 @@ delete_webhook_message = HTTPEndpoint(
 
 
 class RestFuture(asyncio.Future):
+    def __init__(self, *args, **kwargs):
+        self.process_response = kwargs.pop('process_response', None)
+        super().__init__(*args, **kwargs)
+
     def __await__(self):
         yield
         return self  # This is equivalent to asyncio.sleep(0), it gives
@@ -649,7 +653,7 @@ class RestFuture(asyncio.Future):
 
     @types.coroutine
     def wait(self):
-        yield from super().__await__()
+        return (yield from super().__await__())
 
 
 class RequestThrottler:
@@ -680,18 +684,12 @@ class RequestThrottler:
             self._running = False
             self._lock.release()
 
-    def _recalculate(self) -> None:
-        if (
-            self.reset is not None
-            and datetime.utcnow() > self.reset
-        ):
-            print('RESETTING RATELIMIT')
-            self.remaining = self.limit
-
     async def _request(self, future, *args, **kwargs) -> None:
         response = await self.session.request(*args, **kwargs)
 
         data = await response.read()
+        if future.process_response is not None:
+            data = future.process_response(data)
 
         limit = response.headers.get('X-RateLimit-Limit')
         if limit is not None:
@@ -731,6 +729,7 @@ class RequestThrottler:
                     self.bucket = bucket
 
         if response.status >= 400:
+            print(response.status)
             return future.set_exception(HTTPError(response, data))
 
         future.set_result(data)
@@ -761,20 +760,18 @@ class RequestThrottler:
                 await asyncio.gather(*coros)
 
                 if self.remaining == 0:
-                    reset_after = (
-                        self.reset - datetime.utcnow()
-                    ).total_seconds()
-                    if reset_after > 0:
-                        await asyncio.sleep(reset_after)
+                    await asyncio.sleep(self.reset_after)
 
-                self._recalculate()
+                self.remaining = self.limit
 
     def submit(self, *args, **kwargs):
         # Please don't use this in a while loop
         # without waiting, you'll just run out of memory eventually.
         # (14 messages sent with 21,502 requests submitted
         # and it only gets worse)
-        future = RestFuture(loop=self.session.loop)
+        process_response = kwargs.pop('process_response', None)
+        future = RestFuture(loop=self.session.loop,
+                            process_response=process_response)
         self._queue.put_nowait((future, args, kwargs))
 
         if not self._running:
