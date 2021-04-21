@@ -653,7 +653,7 @@ class RestFuture(asyncio.Future):
 
     @types.coroutine
     def wait(self):
-        return (yield from super().__await__())
+        yield from self
 
 
 class RequestThrottler:
