@@ -1,8 +1,18 @@
 from __future__ import annotations
 
 import json
-from typing import (Any, ByteString, Callable, Dict, Generic, Optional, Tuple,
-                    Type, TypeVar, Union)
+from typing import (
+    Any,
+    ByteString,
+    Callable,
+    Dict,
+    Generic,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union
+)
 
 T = TypeVar('T')
 
