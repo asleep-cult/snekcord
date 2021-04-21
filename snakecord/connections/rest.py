@@ -770,7 +770,7 @@ class RequestThrottler:
                 self._recalculate()
 
     def submit(self, *args, **kwargs):
-        # Pleasse don't use this in a while loop,
+        # Please don't use this in a while loop
         # without waiting, you'll just run out of memory.
         # (14 messages sent with 21,502 requests submitted)
         future = RestFuture(loop=self.session.loop)
