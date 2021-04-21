@@ -693,28 +693,32 @@ class RequestThrottler:
             self._made_initial_request = True
 
         while True:
-            await asyncio.sleep(0)
+            self._recalculate()
+            await asyncio.sleep(0)  # This is needed so that other Tasks get a
+            # chance to queue up requests. Removivng this could lead to some
+            # weird behaviour.
 
             coros = []
             for _ in range(self.remaining):
                 try:
                     future, args, kwargs = self._queue.get_nowait()
                 except asyncio.QueueEmpty:
-                    return
+                    if not coros:
+                        self._running = False
+                        self._lock.release()
+                        return
+                    break
 
                 coros.append(self._request(future, *args, **kwargs))
 
+            print('RUNNING', len(coros), 'COROUTINES')
             await asyncio.gather(*coros)
+            print('COMPLETED WITH', self.remaining, 'REMAINING')
 
             reset_after = (self.reset - datetime.utcnow()).total_seconds()
             if reset_after > 0:
                 print('SLEPPING FOR', reset_after)
                 await asyncio.sleep(reset_after)
-
-            self._recalculate()
-
-        self._running = False
-        self._lock.release()
 
     def submit(self, *args, **kwargs):
         future = self.session.loop.create_future()
