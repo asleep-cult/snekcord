@@ -715,10 +715,11 @@ class RequestThrottler:
             await asyncio.gather(*coros)
             print('COMPLETED WITH', self.remaining, 'REMAINING')
 
-            reset_after = (self.reset - datetime.utcnow()).total_seconds()
-            if reset_after > 0:
-                print('SLEPPING FOR', reset_after)
-                await asyncio.sleep(reset_after)
+            if self.remaining == 0:
+                reset_after = (self.reset - datetime.utcnow()).total_seconds()
+                if reset_after > 0:
+                    print('SLEPPING FOR', reset_after)
+                    await asyncio.sleep(reset_after)
 
     def submit(self, *args, **kwargs):
         future = self.session.loop.create_future()
