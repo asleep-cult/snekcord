@@ -1,6 +1,9 @@
 # snakecord
-A WIP Discord API wrapper that aims to cover the full API. 
+A work-in-progress Discord API wrapper written in Python.
 
+![Python: >= 3.7](https://img.shields.io/static/v1?label=Python&message=%3E=%203.7&color=yellow)
+
+## Examples
 ```python
 import snakecord
 
@@ -18,3 +21,7 @@ async def message_create(evnt):
 
 client.start(TOKEN)
 ```
+
+## Discord Server
+[![](https://discordapp.com/api/v8/guilds/834890063581020210/widget.png?style=banner1)](https://discord.gg/kAe2m4hdZ7)
+
