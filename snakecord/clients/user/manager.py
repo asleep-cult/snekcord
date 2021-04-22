@@ -35,21 +35,21 @@ class Events(enum.Enum):
 
     @dataclass
     class channel_create(_base_event):
-        channel: Union[GuildChannel, DMChannel]
+        channel: Union[GuildChannel, DMChannel] = None
 
         def __post_init__(self):
             self.channel = self.manager.channels.append(self.payload)
 
     @dataclass
     class channel_update(_base_event):
-        channel: Union[GuildChannel, DMChannel]
+        channel: Union[GuildChannel, DMChannel] = None
 
         def __post_init__(self):
             self.channel = self.manager.channels.append(self.payload)
 
     @dataclass
     class channel_delete(_base_event):
-        channel: Union[GuildChannel, DMChannel]
+        channel: Union[GuildChannel, DMChannel] = None
 
         def __post_init__(self):
             channel_id = self.payload.get('channel_id')

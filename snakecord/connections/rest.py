@@ -23,7 +23,7 @@ class HTTPEndpoint:
         self.params = params
         self.json = json
 
-    def request(self, *, session, fmt={}, params=None, json=None):
+    def request(self, *, session, fmt={}, params=None, json=None, **kwargs):
         if params is not None:
             params = {k: v for k, v in params.items() if k in self.params}
 
@@ -32,7 +32,7 @@ class HTTPEndpoint:
 
         throttler = session.throttler_for(self, fmt)
         return throttler.submit(self.method, self.url % fmt,
-                                params=params, json=json)
+                                params=params, json=json, **kwargs)
 
 # TODO: Form params, arrays of json objects
 
@@ -759,8 +759,7 @@ class RequestThrottler:
 
                 if self.remaining == 0:
                     await asyncio.sleep(self.reset_after)
-
-                self.remaining = self.limit
+                    self.remaining = self.limit
 
     def submit(self, *args, **kwargs):
         # Please don't use this in a while loop
@@ -786,15 +785,15 @@ class RestSession:
         self.session = aiohttp.ClientSession(loop=self.loop)
         self._throttlers = {}  # key_for(): RequestThrottler
 
-    def key_for(self, method, fmt):
+    def key_for(self, method, url, fmt):
         major_params = ('channel_id', 'guild_id', 'webhook_id',
                         'webhook_token')
 
         params = ':'.join(str(fmt.get(param)) for param in major_params)
-        return (f'{method}:{params}')
+        return f'{method}:{url}:{params}'
 
     def throttler_for(self, endpoint, fmt):
-        key = self.key_for(endpoint.method, fmt)
+        key = self.key_for(endpoint.method, endpoint.url, fmt)
         throttler = self._throttlers.get(key)
 
         if throttler is None:
