@@ -1,6 +1,6 @@
 import asyncio
-import types
 import contextlib
+import types
 from datetime import datetime, timedelta
 from typing import Tuple
 
@@ -651,9 +651,7 @@ class RestFuture(asyncio.Future):
         # You'd expect it to send Hello forever but of course the script
         # will hang because we never yield in the while loop.
 
-    @types.coroutine
-    def wait(self):
-        yield from self
+    wait = types.coroutine(asyncio.Future.__await__)
 
 
 class RequestThrottler:
