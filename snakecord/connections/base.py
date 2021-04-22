@@ -6,7 +6,7 @@ import json
 from wsaio import WebSocketClient
 
 from ..utils.cycler import Cycler
-from ..utils.events import EventPusher
+from ..utils.events import EventDispatcher
 from ..utils.json import JsonField, JsonTemplate
 
 
@@ -33,7 +33,7 @@ WebSocketResponse = JsonTemplate(
 
 
 class BaseConnection(WebSocketClient):
-    def __init__(self, manager: EventPusher) -> None:
+    def __init__(self, manager: EventDispatcher) -> None:
         super().__init__(loop=manager.loop)
         self.manager = manager
         self.heartbeater = None

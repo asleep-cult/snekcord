@@ -8,7 +8,7 @@ from weakref import WeakSet
 
 
 class EventWaiter:
-    def __init__(self, name: str, pusher: EventPusher,
+    def __init__(self, name: str, pusher: EventDispatcher,
                  timeout: Optional[Number],
                  filterer: Optional[Callable[..., bool]]) -> None:
         self.name = name
@@ -63,7 +63,7 @@ def ensure_future(coro: Awaitable) -> Optional[asyncio.Future]:
         return asyncio.ensure_future(coro)
 
 
-class EventPusher:
+class EventDispatcher:
     def __init__(self, *,
                  loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if loop is not None:
@@ -123,7 +123,7 @@ class EventPusher:
         for subscriber in self._subscribers:
             subscriber.run_callbacks(name, *args)
 
-    def push_event(self, name: str, *args) -> None:
+    def dispatch(self, name: str, *args) -> None:
         handler = self._handlers.get(name.lower())
 
         if handler is not None:
@@ -131,10 +131,10 @@ class EventPusher:
 
         self.run_callbacks(name, *args)
 
-    def subscribe(self, pusher: EventPusher):
+    def subscribe(self, pusher: EventDispatcher):
         pusher._subscribers.append(self)
 
-    def unsubscribe(self, pusher: EventPusher):
+    def unsubscribe(self, pusher: EventDispatcher):
         pusher._subscribers.remove(self)
 
     def on(self, name: Optional[str] = None):

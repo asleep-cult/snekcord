@@ -10,7 +10,7 @@ from ...objects.channel import DMChannel, GuildChannel
 from ...objects.guild import Guild
 from ...states.channel import ChannelState
 from ...states.guild import GuildState
-from ...utils.events import EventPusher
+from ...utils.events import EventDispatcher
 
 
 @dataclass
@@ -206,7 +206,7 @@ class Events(enum.Enum):
         pass
 
 
-class UserClientManager(EventPusher):
+class UserClientManager(EventDispatcher):
     handlers = Events
 
     def __init__(self, token, *args, **kwargs) -> None:

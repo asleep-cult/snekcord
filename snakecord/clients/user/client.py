@@ -1,8 +1,8 @@
 from .manager import UserClientManager
-from ...utils.events import EventPusher
+from ...utils.events import EventDispatcher
 
 
-class UserClient(EventPusher):
+class UserClient(EventDispatcher):
     def __init__(self, token, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.manager = UserClientManager(token, loop=self.loop)
