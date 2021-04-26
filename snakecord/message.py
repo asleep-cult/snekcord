@@ -1,14 +1,22 @@
+from typing import List, Optional, Union
+
+from .user import User
 from . import structures
 from .state import BaseState
+from .emoji import GuildEmoji
 from .utils import _try_snowflake
 
 
 class Reaction(structures.Reaction):
-    def __init__(self, state, message):
+    __slots__ = (
+        '_state', 'message'
+    )
+
+    def __init__(self, state: 'ReactionState', message: 'Message'):
         self._state = state
         self.message = message
 
-    async def remove(self, user=None):
+    async def remove(self, user: Optional[User] = None):
         await self._state.remove(self.emoji, user)
 
     async def remove_all(self):
@@ -16,12 +24,28 @@ class Reaction(structures.Reaction):
 
 
 class Message(structures.Message):
-    def __init__(self, *, state, channel):
+    __slots__ = (
+        '_state', 'channel', 'reactions', 'author'
+    )
+
+    def __init__(self, *, state: 'MessageState', channel: Union['DMChannel', 'TextChannel']):
         self._state = state
         self.channel = channel
-        self.reactions = ReactionState(self._state.client, self)
+        self.reactions = ReactionState(client=self._state.client, message=self)
+        self.author = None
 
-    async def edit(self, content=None, *, embed=None, flags=None, allowed_mentions=None):
+    @property
+    def guild(self):
+        return getattr(self.channel, 'guild', None)
+
+    async def edit(
+        self,
+        content: Optional[str] = None,
+        *,
+        embed: Optional[structures.Embed] = None,
+        flags: Optional[int] = None,
+        allowed_mentions=None
+    ):
         rest = self._state.client.rest
 
         if embed is not None:
@@ -60,9 +84,6 @@ class Message(structures.Message):
             for reaction in self._reactions:
                 self.reactions.append(reaction)
 
-        if self.channel is not None:
-            self.guild = self.channel.guild
-
         if self.guild is not None and self._member is not None:
             if self._member.get('user') is None:
                 self._member['user'] = self._author
@@ -72,11 +93,11 @@ class Message(structures.Message):
 
 
 class ReactionState(BaseState):
-    def __init__(self, client, message):
-        super().__init__(client)
+    def __init__(self, *, client: 'Client', message: Message):
+        super().__init__(client=client)
         self.message = message
 
-    def append(self, data) -> Reaction:
+    def append(self, data: dict) -> Reaction:
         reaction = self.get(data['emoji'])
         if reaction is not None:
             reaction._update(data)
@@ -86,7 +107,7 @@ class ReactionState(BaseState):
         self._items[reaction.emoji] = reaction
         return reaction
 
-    async def add(self, emoji):
+    async def add(self, emoji: Union[GuildEmoji, str]):
         rest = self.client.rest
         await rest.create_reaction(self.message.channel.id, self.message.id, emoji)
 
@@ -96,27 +117,27 @@ class ReactionState(BaseState):
         reactions = [self.append(reaction) for reaction in data]
         return reactions
 
-    async def remove(self, emoji, user=None):
+    async def remove(self, emoji: Union[GuildEmoji, str], user: Optional[User] = None):
         user = _try_snowflake(user)
 
         rest = self.client.rest
         await rest.delete_reaction(self.message.channel.id, self.message.id, emoji, user)
 
-    async def remove_emoji(self, emoji):
+    async def remove_emoji(self, emoji: Union[GuildEmoji, str]):
         rest = self.client.rest
         await rest.delete_reactions(self.message.channel.id, self.message.id, emoji)
 
-    async def remove_all(self, emoji):
+    async def remove_all(self, emoji: Union[GuildEmoji, str]):
         rest = self.client.rest
         await rest.delete_reactions(self._message.channel.id, self._message.id)
 
 
 class MessageState(BaseState):
-    def __init__(self, client, channel):
-        super().__init__(client)
+    def __init__(self, *, client: 'Client', channel: Union['DMChannel', 'TextChannel']):
+        super().__init__(client=client)
         self.channel = channel
 
-    def append(self, data) -> Message:
+    def append(self, data: dict) -> Message:
         message = self.get(data['id'])
         if message is not None:
             message._update(data)
@@ -126,7 +147,7 @@ class MessageState(BaseState):
         self._items[message.id] = message
         return message
 
-    async def fetch(self, message_id) -> Message:
+    async def fetch(self, message_id: int) -> Message:
         rest = self.client.rest
         data = await rest.get_channel_message(self.channel.id, message_id)
         message = self.append(data)
@@ -138,7 +159,7 @@ class MessageState(BaseState):
         messages = [self.append(message) for message in data]
         return messages
 
-    async def bulk_delete(self, messages):
+    async def bulk_delete(self, messages: List[Union[int, Message]]):
         messages = [_try_snowflake(message) for message in messages]
         rest = self.client.rest
         await rest.bulk_delete_messages(self.channel.id, messages)

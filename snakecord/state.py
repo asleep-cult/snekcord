@@ -4,7 +4,7 @@ from .utils import _try_snowflake, undefined
 class BaseState:
     _maxsize = None
 
-    def __init__(self, client):
+    def __init__(self, *, client: 'Client'):
         self.client = client
         self._items = {}
 
@@ -68,10 +68,10 @@ class BaseState:
 
 
 class BaseSubState:
-    def __init__(self, superstate):
+    def __init__(self, *, superstate):
         self.superstate = superstate
 
-    def _check_relation(self, obj):
+    def _check_relation(self, item):
         raise NotImplementedError
 
     def __iter__(self):

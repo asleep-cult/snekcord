@@ -1,8 +1,10 @@
+from typing import List
+
 from .base import BaseObject
-from ..utils import JsonArray, JsonField
+from ..utils import JsonArray, JsonField, Json
 
 
-class GuildEmoji(BaseObject):
+class GuildEmoji(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         '_roles': JsonArray('roles'),
@@ -12,3 +14,11 @@ class GuildEmoji(BaseObject):
         'animated': JsonField('animated'),
         'available': JsonField('available'),
     }
+
+    name: str
+    _roles: List[Json]
+    _user: Json
+    required_colons: bool
+    managed: bool
+    animated: bool
+    available: bool

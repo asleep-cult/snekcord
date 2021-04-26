@@ -1,9 +1,11 @@
+from typing import Optional
+
 from .connection import Shard
 from .events import EventPusher
 
 
 class BaseGatewayEvent:
-    def __init__(self, sharder, payload=None):
+    def __init__(self, sharder: 'Sharder', payload: Optional[dict] = None):
         self.sharder = sharder
         self.client = sharder.client
         self.payload = payload
@@ -12,7 +14,7 @@ class BaseGatewayEvent:
 class ShardReadyReceiveEvent(BaseGatewayEvent):
     name = 'shard_ready_receive'
 
-    def __init__(self, sharder, shard, payload):
+    def __init__(self, sharder: 'Sharder', shard: Shard, payload: dict):
         super().__init__(sharder, payload)
         self.shard = shard
         self.client.user = self.client.users.append(payload['user'])
@@ -21,15 +23,15 @@ class ShardReadyReceiveEvent(BaseGatewayEvent):
 class ShardReadyEvent(BaseGatewayEvent):
     name = 'shard_ready'
 
-    def __init__(self, sharder, shard):
+    def __init__(self, sharder: 'Sharder', shard: Shard):
         super().__init__(sharder)
-        self.shard = sharder
+        self.shard = shard
 
 
 class ChannelCreateEvent(BaseGatewayEvent):
     name = 'channel_create'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.channel = self.client.channels.append(payload)
 
@@ -37,7 +39,7 @@ class ChannelCreateEvent(BaseGatewayEvent):
 class ChannelUpdateEvent(BaseGatewayEvent):
     name = 'channel_update'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.channel = self.client.channels.append(payload)
 
@@ -45,7 +47,7 @@ class ChannelUpdateEvent(BaseGatewayEvent):
 class ChannelDeleteEvent(BaseGatewayEvent):
     name = 'channel_delete'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.channel = self.client.channels.pop(payload['id'])
 
@@ -53,7 +55,7 @@ class ChannelDeleteEvent(BaseGatewayEvent):
 class ChannelPinsUpdateEvent(BaseGatewayEvent):
     name = 'channel_pins_update'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.channel = self.client.channels.get(payload['channel_id'])
         self.channel.last_pin_timestamp = payload['last_pin_timestamp']
@@ -62,7 +64,7 @@ class ChannelPinsUpdateEvent(BaseGatewayEvent):
 class GuildCreateEvent(BaseGatewayEvent):
     name = 'guild_create'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.append(payload)
 
@@ -70,7 +72,7 @@ class GuildCreateEvent(BaseGatewayEvent):
 class GuildUpdateEvent(BaseGatewayEvent):
     name = 'guild_update'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.append(payload)
 
@@ -78,7 +80,7 @@ class GuildUpdateEvent(BaseGatewayEvent):
 class GuildDeleteEvent(BaseGatewayEvent):
     name = 'guild_delete'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.pop(payload['id'])
 
@@ -86,7 +88,7 @@ class GuildDeleteEvent(BaseGatewayEvent):
 class GuildBanAddEvent(BaseGatewayEvent):
     name = 'guild_ban_add'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.get(payload['guild_id'])
         self.ban = self.guild.bans.append(payload)
@@ -95,7 +97,7 @@ class GuildBanAddEvent(BaseGatewayEvent):
 class GuildBanRemoveEvent(BaseGatewayEvent):
     name = 'guild_ban_remove'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.get(payload['guild_id'])
         self.client.users.append(payload['user'])  # maybe the user was updated?
@@ -105,7 +107,7 @@ class GuildBanRemoveEvent(BaseGatewayEvent):
 class GuildEmojisUpdateEvent(BaseGatewayEvent):
     name = 'guild_emojis_update'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.get(payload['guild_id'])
         self.guild.emojis.clear()
@@ -118,7 +120,7 @@ class GuildEmojisUpdateEvent(BaseGatewayEvent):
 class GuildMemberAddEvent(BaseGatewayEvent):
     name = 'guild_member_add'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.get(payload['guild_id'])
         self.member = self.guild.members.append(payload)
@@ -127,7 +129,7 @@ class GuildMemberAddEvent(BaseGatewayEvent):
 class GuildMemberUpdateEvent(BaseGatewayEvent):
     name = 'guild_member_update'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.get(payload['guild_id'])
         self.member = self.guild.members.append(payload)
@@ -136,7 +138,7 @@ class GuildMemberUpdateEvent(BaseGatewayEvent):
 class GuildMemberRemoveEvent(BaseGatewayEvent):
     name = 'guild_member_remove'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.guild = self.client.guilds.get(payload['guild_id'])
         user = self.client.users.append(payload['user'])  # maybe the user was updated?
@@ -146,7 +148,7 @@ class GuildMemberRemoveEvent(BaseGatewayEvent):
 class MessageCreateEvent(BaseGatewayEvent):
     name = 'message_create'
 
-    def __init__(self, sharder, payload):
+    def __init__(self, sharder: 'Sharder', payload: dict):
         super().__init__(sharder, payload)
         self.channel = sharder.client.channels.get(payload['channel_id'])
         self.message = self.channel.messages.append(payload)
@@ -162,7 +164,7 @@ class Sharder(EventPusher):
         MessageCreateEvent
     )
 
-    def __init__(self, client, *, max_shards=None, intents=None):
+    def __init__(self, client: 'Client', *, max_shards: Optional[int] = None, intents: Optional[int] = None):
         super().__init__(client.loop)
 
         self.client = client

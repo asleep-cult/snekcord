@@ -3,7 +3,11 @@ from .state import BaseState
 
 
 class GuildIntegrationApplication(structures.GuildIntegrationApplication):
-    def __init__(self, state):
+    __slots__ = (
+        '_state', 'bot'
+    )
+
+    def __init__(self, *, state: 'GuildIntegrationState'):
         self._state = state
         self.bot = None
 
@@ -15,7 +19,11 @@ class GuildIntegrationApplication(structures.GuildIntegrationApplication):
 
 
 class GuildIntegration(structures.GuildIntegration):
-    def __init__(self, state, guild):
+    __slots__ = (
+        '_state', 'guild', 'user', 'application'
+    )
+
+    def __init__(self, *, state: 'GuildIntegrationState', guild: 'Guild'):
         self._state = state
         self.guild = guild
 
@@ -38,15 +46,16 @@ class GuildIntegration(structures.GuildIntegration):
             self.user = self._state.client.users.append(self._user)
 
         if self._application is not None:
-            self.application = GuildIntegrationApplication.unmarshal(self._application, state=self._state)
+            self.application = GuildIntegrationApplication.unmarshal(
+                self._application, state=self._state)
 
 
 class GuildIntegrationState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client: 'Client', guild: 'Guild'):
+        super().__init__(client=client)
         self.guild = guild
 
-    def append(self, data):
+    def append(self, data: dict):
         integration = self.get(data['id'])
         if integration is not None:
             integration._update(data)
@@ -62,6 +71,6 @@ class GuildIntegrationState(BaseState):
         integrations = [self.append(integration) for integration in data]
         return integrations
 
-    async def create(self, integration_id, integration_type):
+    async def create(self, integration_id: int, integration_type: str):
         rest = self.client.rest
         await rest.create_guild_integration(integration_type, integration_id)

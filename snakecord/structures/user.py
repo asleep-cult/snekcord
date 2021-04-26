@@ -2,7 +2,7 @@ from .base import BaseObject
 from ..utils import JsonField
 
 
-class User(BaseObject):
+class User(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('username'),
         'discriminator': JsonField('discriminator'),
@@ -17,3 +17,15 @@ class User(BaseObject):
         'premium_type': JsonField('premium_type'),
         'public_flags': JsonField('public_flags'),
     }
+
+    name: str
+    discriminator: str
+    avatar: str
+    bot: bool
+    system: bool
+    mfa_enabled: bool
+    locale: str
+    verified: bool
+    email: str
+    premium_type: int
+    public_flags: int

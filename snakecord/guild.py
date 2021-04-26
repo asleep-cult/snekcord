@@ -1,42 +1,64 @@
+from typing import Optional
+
 from . import structures
-from .channel import GuildChannelState
+from .channel import GuildChannel, GuildChannelState
 from .emoji import GuildEmojiState
 from .integration import GuildIntegrationState
 from .invite import GuildInviteState
 from .member import GuildMemberState
 from .role import RoleState
 from .state import BaseState
+from .user import User
 from .utils import _try_snowflake, undefined
 
 
 class GuildWidget(structures.GuildWidget):
-    def __init__(self, guild=None):
+    __slots__ = (
+        'guild',
+    )
+
+    def __init__(self, *, guild: Optional['Guild'] = None):
         self.guild = guild
 
-    def edit(self, *, enabled=None, channel=None):
+    def edit(self, *, enabled: Optional[bool] = None, channel: Optional[GuildChannel] = None):
         return self.guild.edit_widget(enabled=enabled, channel=channel)
 
 
 class GuildWidgetSettings(structures.GuildWidgetSettings):
-    def __init__(self, guild=None):
+    __slots__ = (
+        'guild', 'channel'
+    )
+
+    def __init__(self, *, guild: Optional['Guild'] = None):
         self.guild = guild
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
-        channels = self.guild._state.client.channels
-        self.channel = channels.get(self.channel_id)
+        self.channel = self._state.client.channels.get(self.channel_id)
 
 
 class GuildPreview(structures.GuildPreview):
-    def __init__(self, state):
+    __slots__ = (
+        '_state', 'members', 'emojis', 'roles', 'invites',
+        'bans', 'channels', 'integrations'
+    )
+
+    def __init__(self, *, state: 'GuildState'):
         self._state = state
-        self.members = GuildMemberState(self._state.client, guild=self)
-        self.emojis = GuildEmojiState(self._state.client, guild=self)
-        self.roles = RoleState(self._state.client, guild=self)
-        self.invites = GuildInviteState(self._state.client.invites, guild=self)
-        self.bans = GuildBanState(self._state.client, guild=self)
-        self.channels = GuildChannelState(self._state.client.channels, guild=self)
-        self.integrations = GuildIntegrationState(self._state.client, guild=self)
+        self.members = GuildMemberState(
+            client=self._state.client, guild=self)
+        self.emojis = GuildEmojiState(
+            client=self._state.client, guild=self)
+        self.roles = RoleState(
+            client=self._state.client, guild=self)
+        self.invites = GuildInviteState(
+            superstate=self._state.client.invites, guild=self)
+        self.bans = GuildBanState(
+            client=self._state.client, guild=self)
+        self.channels = GuildChannelState(
+            superstate=self._state.client.channels, guild=self)
+        self.integrations = GuildIntegrationState(
+            client=self._state.client, guild=self)
 
     async def edit(self, **kwargs):
         rest = self._state.client.rest
@@ -144,7 +166,7 @@ class GuildPreview(structures.GuildPreview):
         return dct
 
     def _update(self, *args, **kwargs):
-        structures.GuildPreview._update(self, *args, **kwargs)
+        super()._update(*args, **kwargs)
         emojis_seen = set()
 
         for emoji in self._emojis:
@@ -157,8 +179,7 @@ class GuildPreview(structures.GuildPreview):
 
 
 class Guild(GuildPreview, structures.Guild):
-    def __init__(self, *, state: 'GuildState'):
-        super().__init__(state)
+    __slots__ = ()
 
     @property
     def shard(self):
@@ -192,7 +213,7 @@ class Guild(GuildPreview, structures.Guild):
     def to_preview_dict(self):
         return super().to_dict(cls=GuildPreview)
 
-    def to_dict(self, cls=None):
+    def to_dict(self, cls: Optional[type] = None):
         dct = super().to_dict(cls=cls)
 
         dct['roles'] = [role.to_dict() for role in self.roles]
@@ -202,7 +223,7 @@ class Guild(GuildPreview, structures.Guild):
         return dct
 
     def _update(self, *args, **kwargs):
-        GuildPreview._update(self, *args, **kwargs)
+        super()._update(*args, **kwargs)
         channels_seen = set()
         members_seen = set()
         roles_seen = set()
@@ -221,7 +242,7 @@ class Guild(GuildPreview, structures.Guild):
 
         for channel in self.channels:
             if channel.id not in channels_seen:
-                self.channels.pop(channel.id)
+                self._state.client.channels.pop(channel.id)
 
         for member in self.members:
             if member.user.id not in members_seen:
@@ -232,13 +253,16 @@ class Guild(GuildPreview, structures.Guild):
                 self.roles.pop(role.id)
 
         if self._owner is not None:
-            owner = self._state.client.guilds.append(self._owner)
-            if owner is not None:
-                self.owner_id = owner.id
+            if self.owner is not None:
+                self.owner_id = self.owner.id
 
 
 class GuildBan(structures.GuildBan):
-    def __init__(self, state, user=None):
+    __slots__ = (
+        '_state', 'user'
+    )
+
+    def __init__(self, *, state: 'GuildState', user: Optional[User] = None):
         self._state = state
         self.user = user
 
@@ -248,7 +272,7 @@ class GuildBan(structures.GuildBan):
 
 
 class GuildState(BaseState):
-    def append(self, data) -> Guild:
+    def append(self, data: dict) -> Guild:
         guild = self.get(data['id'])
         if guild is not None:
             guild._update(data)
@@ -258,13 +282,13 @@ class GuildState(BaseState):
         self._items[guild.id] = guild
         return guild
 
-    async def fetch(self, guild_id) -> Guild:
+    async def fetch(self, guild_id: int) -> Guild:
         rest = self.client.rest
         data = await rest.get_guild(guild_id)
         guild = self.append(data)
         return guild
 
-    async def fetch_preview(self, guild_id):
+    async def fetch_preview(self, guild_id: int):
         rest = self.client.rest
         data = await rest.get_guild_preview(guild_id)
         guild = self.append(data)
@@ -272,11 +296,11 @@ class GuildState(BaseState):
 
 
 class GuildBanState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client: 'Client', guild: Guild):
+        super().__init__(client=client)
         self.guild = guild
 
-    def append(self, data):
+    def append(self, data: dict):
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban._update(data)
@@ -286,7 +310,7 @@ class GuildBanState(BaseState):
         self._items[ban.user.id] = ban
         return ban
 
-    async def fetch(self, user):
+    async def fetch(self, user: User):
         rest = self.client.rest
         data = await rest.get_guild_ban(self.guild.id, user.id)
         ban = self.append(data)
@@ -298,14 +322,14 @@ class GuildBanState(BaseState):
         bans = [self.append(ban) for ban in data]
         return bans
 
-    async def add(self, user, **kwargs):
+    async def add(self, user: User, **kwargs):
         rest = self.client.rest
         user = _try_snowflake(user)
         data = await rest.create_guild_ban(self.guild.id, user)
         ban = self.append(data)
         return ban
 
-    async def remove(self, user):
+    async def remove(self, user: User):
         rest = self.client.rest
         user = _try_snowflake(user)
         await rest.remove_guild_ban(self.guild.id, user)

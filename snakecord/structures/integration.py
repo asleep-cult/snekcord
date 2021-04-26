@@ -1,14 +1,16 @@
 from .base import BaseObject
-from ..utils import JsonField, Snowflake
+from ..utils import JsonField, Snowflake, Json
 
 
-class GuildIntegrationAccount(BaseObject):
+class GuildIntegrationAccount(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
     }
 
+    name: str
 
-class GuildIntegrationApplication(BaseObject):
+
+class GuildIntegrationApplication(BaseObject, base=False):
     __json_fields__ = {
         'name': JsonField('name'),
         'icon': JsonField('icon'),
@@ -17,8 +19,14 @@ class GuildIntegrationApplication(BaseObject):
         '_bot': JsonField('bot'),
     }
 
+    name: str
+    icon: str
+    description: str
+    summary: str
+    _bot: Json
 
-class GuildIntegration(BaseObject):
+
+class GuildIntegration(BaseObject, base=False):
     __json_fields__ = {
         'name':  JsonField('name'),
         'type': JsonField('type'),
@@ -35,3 +43,18 @@ class GuildIntegration(BaseObject):
         'revoked': JsonField('revoked'),
         '_application': JsonField('application'),
     }
+
+    name: str
+    type: int
+    enabled: bool
+    syncing: bool
+    role_id: Snowflake
+    enable_emoticons: bool
+    expire_behavior: int
+    expire_grace_period: int  # ?
+    _user: Json
+    account: GuildIntegrationAccount
+    synced_at: str
+    subscriber_count: int
+    revoked: bool
+    _application: Json

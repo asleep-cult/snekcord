@@ -2,9 +2,9 @@ import json
 import struct
 from collections import OrderedDict
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Union
 
-JSON = Dict[str, Any]
+Json = Dict[str, Any]
 
 DISCORD_EPOCH = 1420070400000
 
@@ -20,19 +20,14 @@ class _Undefined:
 undefined = _Undefined()
 
 
-class JsonStructure:
-    # inspired by Go's encoding/json module
+class JsonStructureBase:
+    __slots__ = ()
 
-    __json_fields__: dict
-
-    def __init_subclass__(cls):
-        cls.__json_fields__ = cls.__json_fields__.copy()
-        for bcls in cls.__bases__:
-            if hasattr(bcls, '__json_fields__'):
-                cls.__json_fields__.update(bcls.__json_fields__)
+    def __new__(cls, *args, **kwargs):
+        raise TypeError('Cannot create instances of {!r}'.format(cls.__name__))
 
     @classmethod
-    def unmarshal(cls, data, *args, init_class=True, **kwargs):
+    def unmarshal(cls, data: Union[dict, str, bytes, bytearray], *args, init_class: bool = True, **kwargs):
         if isinstance(data, (str, bytes, bytearray)):
             data = json.loads(data)
 
@@ -45,7 +40,7 @@ class JsonStructure:
 
         return self
 
-    def _update(self, data, set_default=False):
+    def _update(self, data: dict, set_default: bool = False):
         for name, field in self.__json_fields__.items():
             try:
                 value = field.unmarshal(data[field.name])
@@ -54,7 +49,7 @@ class JsonStructure:
                 if set_default:
                     setattr(self, name, field.default)
 
-    def to_dict(self, cls=None):
+    def to_dict(self, cls: Optional[type] = None):
         dct = {}
 
         if cls is not None:
@@ -81,6 +76,56 @@ class JsonStructure:
 
     def marshal(self):
         return json.dumps(self.to_dict())
+
+
+class JsonStructureMeta(type):
+    def __new__(mcs, name, bases, attrs, base=True):
+        # This metaclass allows JsonStructures to be exempt from a subclasses
+        # bases to prevent lay-out errors when __slots__ is used.
+        # This allows for some odd structure chaining with working slots
+        # like seen in class TextChannel(GuildChannel, structures.TextChannel)
+        # and class Guild(PartialGuild, structures.Guild)
+
+        bases = list(bases)
+        json_fields = attrs.pop('__json_fields__', {})
+
+        for cls in bases:
+            try:
+                json_fields.update(cls.__json_fields__)
+                if not cls.__json_base__:
+                    bases.remove(cls)
+                    for cls in cls.__bases__:
+                        if cls.__json_base__:
+                            bases.append(cls)
+            except AttributeError:
+                continue
+
+        slots = list(attrs.pop('__slots__', []))
+        slots.extend(json_fields)
+
+        for base in bases:
+            slots = mcs.fix_slots(base, slots)
+
+        attrs['__json_fields__'] = json_fields
+        attrs['__json_base__'] = base
+        attrs['__slots__'] = slots
+
+        if not any(issubclass(b, JsonStructureBase) for b in bases):
+            bases.append(JsonStructureBase)
+
+        return super().__new__(mcs, name, tuple(bases), attrs)
+
+    @classmethod
+    def fix_slots(cls, klass, slots):
+        slots = [slot for slot in slots if slot not in getattr(klass, '__slots__', ())]
+        for base in klass.__bases__:
+            slots = cls.fix_slots(base, slots)
+        return slots
+
+
+class JsonStructure(metaclass=JsonStructureMeta, base=False):
+    # inspired by Go's encoding/json module
+    pass
 
 
 class JsonField:

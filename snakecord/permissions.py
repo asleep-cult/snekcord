@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from . import structures
 from .enums import PermissionFlag
@@ -6,7 +6,9 @@ from .state import BaseState
 
 
 class PermissionOverwrite(structures.PermissionOverwrite):
-    __slots__ = ('id', 'type', 'deny', 'allow')
+    __slots__ = (
+        '_state', *(n.lower() for n in PermissionFlag._member_names_)
+    )
 
     create_instant_invite: Optional[bool]
     kick_members: Optional[bool]
@@ -40,7 +42,7 @@ class PermissionOverwrite(structures.PermissionOverwrite):
     manage_webhooks: Optional[bool]
     manage_emojis: Optional[bool]
 
-    def __init__(self, state: 'PermissionOverwriteState'):
+    def __init__(self, *, state: 'PermissionOverwriteState'):
         self._state = state
 
     async def edit(self, overwrite: 'PermissionOverwrite'):
@@ -74,11 +76,11 @@ class PermissionOverwrite(structures.PermissionOverwrite):
 
 
 class PermissionOverwriteState(BaseState):
-    def __init__(self, client, channel):
-        super().__init__(client)
+    def __init__(self, *, client: 'Client', channel: 'GuildChannel'):
+        super().__init__(client=client)
         self.channel = channel
 
-    def append(self, data):
+    def append(self, data: dict):
         overwrite = self.get(data['id'])
         if overwrite is not None:
             overwrite._update(data)

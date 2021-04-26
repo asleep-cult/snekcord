@@ -1,12 +1,23 @@
+from typing import Iterable, Optional, Union
+
 from . import structures
 from .state import BaseState
+from .role import Role
 
 
 class GuildEmoji(structures.GuildEmoji):
-    def __init__(self, state, guild):
+    __slots__ = (
+        '_state', 'guild', 'user'
+    )
+
+    def __init__(self, *, state: 'GuildEmojiState', guild: 'Guild'):
         self._state = state
         self.guild = guild
-        self.roles = []
+        self.user = None
+
+    @property
+    def roles(self):
+        return [self.guild.roles.get(r) for r in self._roles]
 
     def __str__(self):
         if self.id is None:
@@ -20,7 +31,7 @@ class GuildEmoji(structures.GuildEmoji):
         rest = self._state.client.rest
         await rest.delete_guild_emoji(self.guild.id, self.id)
 
-    async def edit(self, name=None, roles=None):
+    async def edit(self, name: str = None, roles: Optional[Iterable[Union[int, Role]]] = None):
         rest = self._state.client.rest
         await rest.modify_guild_emoji(self.guild.id, self.id, name, roles)
 
@@ -36,24 +47,17 @@ class GuildEmoji(structures.GuildEmoji):
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
-        roles_seen = set()
 
-        for role in self._roles:
-            role = self.guild.roles.get(role)
-            if role is not None:
-                self.roles.append(role)
-
-        for role in self.roles:
-            if role.id not in roles_seen:
-                self.roles.pop(role.id)
+        if self._user is not None:
+            self.user = self._state.client.users.append(self._user)
 
 
 class GuildEmojiState(BaseState):
-    def __init__(self, client, guild):
-        super().__init__(client)
+    def __init__(self, *, client: 'Client', guild: 'Guild'):
+        super().__init__(client=client)
         self.guild = guild
 
-    def append(self, data):
+    def append(self, data: dict):
         emoji = self.get(data['id'])
         if emoji is not None:
             emoji._update(data)
@@ -63,7 +67,7 @@ class GuildEmojiState(BaseState):
         self._items[emoji.id] = emoji
         return emoji
 
-    async def fetch(self, emoji_id):
+    async def fetch(self, emoji_id: int):
         rest = self.client.rest
         data = await rest.get_guild_emoji(self.guild.id, emoji_id)
         emoji = self.append(data)
@@ -75,7 +79,7 @@ class GuildEmojiState(BaseState):
         emojis = [self.append(emoji) for emoji in data]
         return emojis
 
-    async def create(self, name, image, roles=None):
+    async def create(self, name: str, image: bytes, roles: Optional[Iterable[Union[int, Role]]] = None):
         rest = self.client.rest
         data = await rest.create_guild_emoji(self.guild.id, name, image, roles)
         emoji = self.append(data)

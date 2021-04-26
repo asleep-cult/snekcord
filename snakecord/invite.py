@@ -1,3 +1,5 @@
+from typing import Optional
+
 from . import structures
 from .state import BaseState, BaseSubState
 from .utils import _try_snowflake, undefined
@@ -6,8 +8,16 @@ INVITE_BASE_URL = 'https://discord.com/invite/'
 
 
 class Invite(structures.Invite):
-    def __init__(self, state=None):
+    __slots__ = (
+        '_state', 'guild', 'channel', 'inviter', 'target_user'
+    )
+
+    def __init__(self, *, state: Optional['InviteState'] = None):
         self._state = state
+        self.guild = None
+        self.channel = None
+        self.inviter = None
+        self.target_user = None
 
     def _update(self, *args, **kwargs):
         super()._update(*args, **kwargs)
@@ -32,11 +42,11 @@ class Invite(structures.Invite):
         return INVITE_BASE_URL + self.code
 
     async def delete(self):
-        await self._state.delet(self.code)
+        await self._state.delete(self.code)
 
 
 class InviteState(BaseState):
-    def append(self, data):
+    def append(self, data: dict):
         invite = self.get(data['code'])
         if invite is not None:
             invite._update(data)
@@ -46,23 +56,23 @@ class InviteState(BaseState):
         self._items[invite.code] = invite
         return invite
 
-    async def fetch(self, code, with_counts=False):
+    async def fetch(self, code: str, with_counts: bool = False):
         rest = self.client.rest
         data = await rest.get_invite(code, with_counts)
         invite = self.append(data)
         return invite
 
-    async def delete(self, code):
+    async def delete(self, code: str):
         rest = self.client.rest
         await rest.delete_invite(code)
 
 
 class GuildInviteState(BaseSubState):
-    def __init__(self, superstate, guild):
-        super().__init__(superstate)
+    def __init__(self, *, superstate: BaseState, guild: 'Guild'):
+        super().__init__(superstate=superstate)
         self.guild = guild
 
-    def _check_relation(self, item):
+    def _check_relation(self, item: Invite):
         return isinstance(item, Invite) and item.guild == self.guild
 
     async def fetch_all(self):
@@ -73,11 +83,11 @@ class GuildInviteState(BaseSubState):
 
 
 class ChannelInviteState(BaseSubState):
-    def __init__(self, superstate, channel):
-        super().__init__(superstate)
+    def __init__(self, *, superstate: BaseState, channel: 'GuildChannel'):
+        super().__init__(superstate=superstate)
         self.channel = channel
 
-    def _check_relation(self, item):
+    def _check_relation(self, item: Invite):
         return isinstance(item, Invite) and item.channel == self.channel
 
     async def fetch_all(self):
