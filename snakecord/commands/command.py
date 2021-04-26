@@ -1,58 +1,70 @@
-from .exceptions import InvokeGuardFailure
+from __future__ import annotations
+
+from string import whitespace
+from typing import Iterable, NoReturn, Optional, TYPE_CHECKING, Tuple, Type, Union
+
+from .parsers import FunctionArgParser
 from ..utils import undefined
-from asyncio import iscoroutine
+
+if TYPE_CHECKING:
+    from .commander import Commander
+    from .events import CommandInvokeEvent
 
 
-WHITESPACE = (' ', '\t', '\r', '\n')
+class CommandMeta(type):
 
-class InvokeGuard:
-    def __init__(self, func):
-        self.func = func
-    
-    async def _can_run(self, evnt):
-        try:
-            ret = await self._run_func(evnt)
-            evnt.exception = None
-            return ret
-        except Exception as e:
-            evnt.exception = e
-            return False
-    
-    async def _run_func(self, *args, **kwargs):
-        ret = self.func(*args, **kwargs)
-        if iscoroutine(ret):
-            ret = await ret
-        return ret
-    
-    async def check(self, evnt):
-        can_run = await self._can_run(evnt)
-        if not can_run:
-            raise InvokeGuardFailure("Check {.__name__} failed.".format(self.func)) from evnt.exception
+    def __new__(
+        cls,
+        cls_name: str,
+        bases: Tuple[type],
+        attrs: dict,
+        *,
+        name: Optional[str] = None,
+        auto_register: bool = False,
+        overflow: bool = False,
+        aliases: Iterable[str] = (),
+        slash: bool = False
+    ) -> CommandMeta:
+        self = type.__new__(cls, cls_name, bases, attrs)
 
-invoke_guard = InvokeGuard # Actually looks like a decorator
+        args = FunctionArgParser(self.execute)
 
-class Command:
-    def __init__(self, commander, name, args, *, description=None, overflow=False, aliases=None, guards=None):
-        self.commander = commander
-        self.name = name
-        self.description = description
-        self.aliases = [] if aliases is None else list(aliases)
-        self.guards = [] if guards is None else list(guards)
+        self.__command_vararg__ = vararg = args.vararg
+        self.__command_varkwarg__ = args.varkwarg
 
-        self.vararg = args.vararg
-        self.varkwargs = args.varkwarg
-
-        assert not (self.vararg and overflow), "can't have variadic positional argument with overflow"
+        assert not (vararg and overflow), "can't have variadic positional argument with overflow"
 
         if overflow:
-            self.overflow = args.kw_only.pop()
+            overflow = args.kw_only.pop()
         else:
-            self.overflow = None
+            overflow = None
 
-        self.flags = {arg.name: arg for arg in args.kw_only}
-        self.args = {arg.name: arg for arg in (args.pos_only + args.pos_or_kw)[1:]}
+        flags = {arg.name: arg for arg in args.kw_only}
+        args = {arg.name: arg for arg in (args.pos_only + args.pos_or_kw)[1:]}
 
-    def _parse_args(self, evnt):
+        self.name = name
+        self.description = self.__doc__
+        self.aliases = [] if aliases is None else list(aliases)
+        self.subcommands = []
+
+        self.__command_overflow__ = overflow
+        self.__command_auto_register__ = auto_register
+        self.__command_args__ = args
+        self.__command_flags__ = flags
+        self.__command_slash__ = slash
+        return self
+
+class Command(metaclass=CommandMeta):
+    def __init__(self, commander: Commander):
+        self.commander = commander
+
+    def execute(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError
+
+    def can_execute(self, evnt: CommandInvokeEvent) -> bool:
+        return True
+
+    def _parse_args(self, evnt: CommandInvokeEvent) -> None:
         parser = evnt.parser
 
         args = []
@@ -64,25 +76,25 @@ class Command:
             except EOFError:
                 break
             if char == '-':
-                name = parser.read_until(('=', *WHITESPACE), '').strip()
-                if not self.varkwargs and name not in self.flags:
+                name = parser.read_until(('=', *whitespace), '').strip()
+                if not self.__command_varkwargs__ and name not in self.__command_flags__:
                     parser.buffer.seek(position)
                 else:
                     value = parser.get_argument()
                     evnt.kwargs[name] = value
                     continue
-            elif char in WHITESPACE:
+            elif char in whitespace:
                 continue
             else:
                 parser.buffer.seek(position)
 
-            if not self.vararg and len(args) == len(self.args):
+            if not self.__command_vararg__ and len(args) == len(self.__command_args__):
                 break
 
             args.append(parser.get_argument())
 
-        if not self.vararg:
-            for arg in self.args.values():
+        if not self.__command_vararg__:
+            for arg in self.__command_args__.values():
                 try:
                     evnt.args.append(args.pop(0))
                 except IndexError:
@@ -94,22 +106,42 @@ class Command:
         else:
             evnt.args.extend(args)
 
-        if self.overflow is not None:
-            evnt.kwargs[self.overflow.name] = parser.buffer.read()
+        overflow = self.__command_overflow__
+
+        if overflow is not None:
+            evnt.kwargs[overflow.name] = parser.buffer.read()
 
     def invoke(self, evnt):
         self._parse_args(evnt)
         self.commander.push_event('invoke_{}'.format(self.name), evnt, *evnt.args, **evnt.kwargs)
 
-    def add_alias(self, alias):
+    @classmethod
+    def register(cls, commander: Commander) -> Command:
+        cmd = cls(commander)
+        if cls.__command_slash__:
+            raise NotImplementedError
+
+        commander.register_command(cmd)
+        return cmd
+
+    @classmethod
+    def subcommand(cls, other_cls: Union[Command, Type[Command]]):
+        cls.add_subcommand(other_cls)
+        return other_cls
+
+    @classmethod
+    def add_alias(cls, alias):
         if not isinstance(alias, str):
-            raise ValueError("Alias must be a str.")
-        elif alias in self.aliases:
-            raise ValueError("This is already an existing alias.")
-        try:
-            self.aliases.append(alias)
-        except AttributeError:
-            if hasattr(self, 'aliases'):
-                raise ValueError("Aliases is not a list.") from None
-            raise
-        
+            raise ValueError('Alias must be a str.')
+
+        elif alias in cls.aliases:
+            raise ValueError('This is already an existing alias.')
+
+        cls.aliases.append(alias)
+
+    @classmethod
+    def add_subcommand(cls, command: Union[Type[Command], Command]):
+        if command.parent is not None:
+            raise ValueError('This command is already a subcommand.')
+        command.parent = cls
+        command.subcommands.append(command)

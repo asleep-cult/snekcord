@@ -192,7 +192,8 @@ class ChannelState(BaseState):
         ChannelType.DM: DMChannel,
         ChannelType.GUILD_VOICE: VoiceChannel,
         ChannelType.GUILD_CATEGORY: CategoryChannel,
-        13: GuildChannel  # Just to make it shut up
+        13: GuildChannel,  # Just to make it shut up
+        5: TextChannel # Make this one shut up too
     }
 
     @classmethod

@@ -1,36 +1,65 @@
-class CommandInvokeEvent:
-    def __init__(self, commander, message, parser, prefix):
-        self.commander = commander
-        self.message = message
-        self.parser = parser
+from asyncio import AbstractEventLoop, get_event_loop
+from importlib import util
+from typing import Dict, Optional
+from types import ModuleType
+
+from ..gateway import MessageCreateEvent
+
+from .parsers import StringParser
+from ..client import Client
+from ..events import EventPusher
+from .events import CommandInvokeHandler, CommandInvokeEvent
+from .command import Command
+
+
+class Commander(EventPusher):
+    def __init__(self, client: Client, prefix: str, *, loop: Optional[AbstractEventLoop] = None):
+        super().__init__(loop or get_event_loop())
+
         self.prefix = prefix
-        self.args = []
-        self.kwargs = {}
-        self.command = None
-        self.invoker = self.message.author
-        self.channel = self.message.channel
-        self.guild = self.message.guild
-        self.send = self.channel.send
+        self.commands: Dict[str, Command] = {}
+        self.loaded_files: Dict[str, ModuleType] = {}
+        self.client = client
+        self.register_listener('message_create', self._handle_message_create)
+        self.subscribe(client)
 
-        try:
-            cmd = parser.get_argument()
-        except EOFError:
+    def register_command(self, cmd: Command):
+        if cmd.name in self.commands:
+            raise ValueError("This command is already registered.")
+
+        name = f'invoke_{cmd.name}'
+        self.commands[cmd.name] = cmd
+        self.register_listener(name, cmd.execute)
+        self.client._handlers[name] = CommandInvokeHandler(name)
+
+    async def _handle_message_create(self, evnt: MessageCreateEvent):
+        message = evnt.message
+
+        parser = StringParser(message.content)
+        prefix = parser.buffer.read(len(self.prefix))
+        event = CommandInvokeEvent(self, message, parser, prefix)
+
+        if prefix != self.prefix:
             return
-        for name, command in commander.commands.items():
-            if cmd == name or cmd in command.aliases:
-                self.command = command
-    
-    def invoke(self):
-        if self.command is not None:
-            self.command.invoke(self)
 
-class CommandInvokeHandler:
-    def __init__(self, name):
-        self.name = name
-    
-    def __call__(self, commander, evnt, *args, **kwargs):
-        self.commander = commander
-        self.evnt = evnt
-        self.args = args
-        self.kwargs = kwargs
-        return self
+        event.invoke()
+
+    def load_file(self, name: str, package: Optional[str] = None, call_file_load: bool = True):
+        name = util.resolve_name(name, package)
+
+        assert name not in self.loaded_files, "File {!r} is already loaded".format(name)
+
+        spec = util.find_spec(name, package)
+
+        module = util.module_from_spec(spec)
+
+        for value in module.__dict__.values():
+            if issubclass(value, Command) and value.__command_auto_register__:
+                value.register()
+                
+
+        file_load = getattr(module, 'file_load', None)
+
+        if call_file_load and file_load is not None:
+            file_load(self)
+

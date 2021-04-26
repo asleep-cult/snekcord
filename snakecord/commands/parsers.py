@@ -1,5 +1,6 @@
 import inspect
 import typing
+from types import FunctionType
 from io import StringIO
 
 from ..utils import undefined
@@ -62,11 +63,11 @@ class Argument:
     @property
     def optional(self):
         origin = getattr(self.annotation, '__origin__', self.annotation)
-        return self.default is not undefined or origin is typing.Optional
+        return self.default is not undefined or type(None) in origin.__args__
 
 
 class FunctionArgParser:
-    def __init__(self, func):
+    def __init__(self, func: FunctionType):
         self.func = func
         self.signiature = inspect.signature(func)
         self.pos_only = []
