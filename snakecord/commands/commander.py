@@ -1,7 +1,9 @@
 from asyncio import AbstractEventLoop, get_event_loop
+from functools import wraps
 from importlib import util
+import sys
 from typing import Dict, Optional
-from types import ModuleType
+from types import MethodType, ModuleType
 
 from ..gateway import MessageCreateEvent
 
@@ -29,8 +31,22 @@ class Commander(EventPusher):
 
         name = f'invoke_{cmd.name}'
         self.commands[cmd.name] = cmd
-        self.register_listener(name, cmd.execute)
-        self.client._handlers[name] = CommandInvokeHandler(name)
+        self._handlers[name] = CommandInvokeHandler(name)
+
+        self.register_listener(name, self._wrap_callback(cmd.execute))
+    
+    @staticmethod
+    def _wrap_callback(method: MethodType):
+        @wraps(method)
+        def inner(evnt: CommandInvokeEvent):
+            args = list(evnt.args)
+
+            if evnt.command.__command_pass_event__:
+                args.insert(0, evnt)
+
+            return method(*args, **evnt.kwargs)
+
+        return inner
 
     async def _handle_message_create(self, evnt: MessageCreateEvent):
         message = evnt.message
@@ -53,13 +69,22 @@ class Commander(EventPusher):
 
         module = util.module_from_spec(spec)
 
+        spec.loader.exec_module(module)
+
+        sys.modules[name] = module
+
         for value in module.__dict__.values():
-            if issubclass(value, Command) and value.__command_auto_register__:
-                value.register()
-                
+            if isinstance(value, type) and issubclass(value, Command) and value.__command_auto_register__:
+                value.register(self)
 
         file_load = getattr(module, 'file_load', None)
 
         if call_file_load and file_load is not None:
-            file_load(self)
+            try:
+                file_load(self)
+            except Exception:
+                del sys.modules[name]
+                raise
+        
+        self.loaded_files[name] = module
 

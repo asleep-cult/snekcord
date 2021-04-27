@@ -23,7 +23,8 @@ class CommandMeta(type):
         auto_register: bool = False,
         overflow: bool = False,
         aliases: Iterable[str] = (),
-        slash: bool = False
+        slash: bool = False,
+        pass_event: bool = True
     ) -> CommandMeta:
         self = type.__new__(cls, cls_name, bases, attrs)
 
@@ -52,6 +53,8 @@ class CommandMeta(type):
         self.__command_args__ = args
         self.__command_flags__ = flags
         self.__command_slash__ = slash
+        self.__command_pass_event__ = pass_event
+        self.parent = None
         return self
 
 class Command(metaclass=CommandMeta):
@@ -94,14 +97,14 @@ class Command(metaclass=CommandMeta):
             args.append(parser.get_argument())
 
         if not self.__command_vararg__:
-            for arg in self.__command_args__.values():
+            for index, arg in enumerate(self.__command_args__.values()):
                 try:
                     evnt.args.append(args.pop(0))
                 except IndexError:
                     if arg.optional:
                         default = None if arg.default is not undefined else arg.default
                         args.append(default)
-                    else:
+                    elif not (index == 0 and self.__command_pass_event__):
                         raise
         else:
             evnt.args.extend(args)
@@ -143,5 +146,6 @@ class Command(metaclass=CommandMeta):
     def add_subcommand(cls, command: Union[Type[Command], Command]):
         if command.parent is not None:
             raise ValueError('This command is already a subcommand.')
+
         command.parent = cls
         command.subcommands.append(command)

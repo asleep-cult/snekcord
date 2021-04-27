@@ -1,6 +1,6 @@
 import asyncio
 import weakref
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Callable, Optional
 
 class EventWaiter:
     def __init__(self, pusher: 'EventPusher', name: str, timeout: Optional[float], filter: Optional[Callable[..., bool]]):
@@ -50,7 +50,7 @@ class EventWaiter:
     __del__ = _cleanup
 
 
-def run_coroutine(coro: Awaitable, loop: asyncio.AbstractEventLoop):
+def run_coroutine(coro: Any, loop: asyncio.AbstractEventLoop) -> None:
     if asyncio.iscoroutine(coro):
         loop.create_task(coro)
 
@@ -114,13 +114,9 @@ class EventPusher:
             evnt = handler(self, *args, **kwargs)
             self.call_listeners(name, evnt)
 
-            for subscriber in self._subscribers:
-                subscriber.call_listeners(name, evnt)
         else:
             self.call_listeners(name, *args, **kwargs)
 
-            for subscriber in self._subscribers:
-                subscriber.call_listeners(name, *args, **kwargs)
 
     def call_listeners(self, name: str, *args, **kwargs):
         name = name.lower()
@@ -134,6 +130,9 @@ class EventPusher:
         if waiters is not None:
             for waiter in waiters:
                 waiter._queue.put_nowait(args)
+        
+        for subscriber in self._subscribers:
+            subscriber.call_listeners(name, *args, **kwargs)
 
     def on(self, name: Optional[str] = None):
         def wrapped(func):

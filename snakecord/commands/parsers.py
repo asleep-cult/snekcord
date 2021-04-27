@@ -1,6 +1,6 @@
 import inspect
 import typing
-from types import FunctionType
+from types import FunctionType, MethodType
 from io import StringIO
 
 from ..utils import undefined
@@ -63,13 +63,14 @@ class Argument:
     @property
     def optional(self):
         origin = getattr(self.annotation, '__origin__', self.annotation)
-        return self.default is not undefined or type(None) in origin.__args__
+        args = getattr(origin, '__args__', ())
+        return self.default is not undefined and type(None) in args
 
 
 class FunctionArgParser:
-    def __init__(self, func: FunctionType):
+    def __init__(self, func: typing.Union[FunctionType, MethodType]):
         self.func = func
-        self.signiature = inspect.signature(func)
+        self.signature = inspect.signature(func)
         self.pos_only = []
         self.pos_or_kw = []
         self.kw_only = []
@@ -78,7 +79,7 @@ class FunctionArgParser:
         self.parse()
 
     def parse(self):
-        for name, param in self.signiature.parameters.items():
+        for name, param in self.signature.parameters.items():
             name = param.name
 
             annotation = param.annotation
