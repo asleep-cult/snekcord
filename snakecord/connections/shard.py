@@ -22,7 +22,7 @@ class ShardOpcode(enum.IntEnum):
 
 
 class Shard(BaseConnection):
-    ENDPOINT = 'wss://gateway.discord.gg'
+    ENDPOINT = 'wss://gateway.discord.gg?v=9'
 
     def __init__(self, manager, id: int):
         super().__init__(manager)
@@ -54,17 +54,17 @@ class Shard(BaseConnection):
     @taskify
     async def ws_text_received(self, data: str) -> None:
         response = WebSocketResponse.unmarshal(data)
-        response.opcode = ShardOpcode(response.opcode)
+        # response.opcode = ShardOpcode(response.opcode)
 
-        if response.opcode is ShardOpcode.DISPATCH:
+        if response.opcode == ShardOpcode.DISPATCH:
             self.manager.dispatch(response.name, self, response.data)
-        if response.opcode is ShardOpcode.HELLO:
+        if response.opcode == ShardOpcode.HELLO:
             self.heartbeater = Heartbeater(
                 self, loop=self.loop,
                 delay=response.data['heartbeat_interval'])
             self.heartbeater.start()
             await self.identify()
-        elif response.opcode is ShardOpcode.HEARTBEAT:
+        elif response.opcode == ShardOpcode.HEARTBEAT:
             self.send_heartbeat()
 
     async def connect(self, *args, **kwargs):

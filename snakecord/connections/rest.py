@@ -37,7 +37,7 @@ class HTTPEndpoint:
 # TODO: Form params, arrays of json objects
 
 
-BASE_API_URL = 'https://discord.com/api/v8/'
+BASE_API_URL = 'https://discord.com/api/v9/'
 
 get_guild_audit_log = HTTPEndpoint(
     'GET',
@@ -628,6 +628,16 @@ delete_webhook_message = HTTPEndpoint(
     + '/messages/%(message_id)s',
 )
 
+get_gateway = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + 'gateway'
+)
+
+get_gateway_bot = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + 'gateway/bot'
+)
+
 
 class RestFuture(asyncio.Future):
     def __init__(self, *args, **kwargs):
@@ -702,6 +712,7 @@ class RequestThrottler:
                 # or a foriegn client is making requests). Overwriting the
                 # attributes with this data would make everything stail
                 # and unhelpful
+                print(f'SETTING REMAINING TO {self.remaining}')
                 self.remaining = remaining
 
                 if 'reactions' in self.endpoint.url:
@@ -725,6 +736,7 @@ class RequestThrottler:
                 bucket = response.headers.get('X-RateLimit-Bucket')
                 if bucket is not None:
                     self.bucket = bucket
+                    print(f'BUCKET {self.bucket}')
 
         if response.status >= 400:
             print(response.status)
@@ -755,9 +767,11 @@ class RequestThrottler:
 
                     coros.append(self._request(future, *args, **kwargs))
 
+                print(f'RUNNING {len(coros)} COROUTINES')
                 await asyncio.gather(*coros)
 
                 if self.remaining == 0:
+                    print(f'SLEEPING FOR {self.reset_after}')
                     await asyncio.sleep(self.reset_after)
                     self.remaining = self.limit
 
@@ -805,6 +819,6 @@ class RestSession:
     async def request(self, *args, **kwargs):
         headers = kwargs.pop('headers', {})
         headers.update({
-            'Authorization': f'Bot {self.token}'
+            'Authorization': self.token
         })
         return await self.session.request(*args, **kwargs, headers=headers)

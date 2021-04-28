@@ -10,3 +10,10 @@ class UserClient(EventDispatcher):
 
     async def start(self, *args, **kwargs) -> None:
         await self.manager.start(*args, **kwargs)
+
+    def run_forever(self, *args, **kwargs):
+        self.loop.create_task(self.start(*args, **kwargs))
+        try:
+            self.loop.run_forever()
+        except KeyboardInterrupt:
+            return

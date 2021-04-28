@@ -7,7 +7,33 @@ from typing import Any, Awaitable, Callable, Optional, Tuple, Union
 from weakref import WeakSet
 
 
+class EventNamespaceMeta(type):
+    def __new__(cls, name, bases, attrs):
+        events = attrs.setdefault('__events__', {})
+        for base in bases:
+            if isinstance(base, EventNamespaceMeta):
+                events.update(base.__events__)
+
+        return super().__new__(cls, name, bases, attrs)
+
+
+class EventNamespace(metaclass=EventNamespaceMeta):
+    pass
+
+
+class eventdef:
+    def __init__(self, cls):
+        self.cls = cls
+
+    def __set_name__(self, owner, name):
+        assert isinstance(owner, EventNamespaceMeta)
+        owner.__events__[name] = self.cls
+        setattr(owner, name, self.cls)
+
+
 class EventWaiter:
+    events: EventNamespace
+
     def __init__(self, name: str, pusher: EventDispatcher,
                  timeout: Optional[Number],
                  filterer: Optional[Callable[..., bool]]) -> None:
@@ -16,7 +42,7 @@ class EventWaiter:
         self.timeout = timeout
         self.filterer = filterer
         self._future = None
-        self._queue = asyncio.Queue[Tuple[Any]]()
+        self._queue: asyncio.Queue[Tuple[Any]] = asyncio.Queue()
 
     def _put(self, value: Tuple[Any]) -> None:
         if self.filterer(*value):
@@ -44,6 +70,9 @@ class EventWaiter:
         finally:
             self.close()
 
+    def __await__(self):
+        return self.__await__impl().__await__()
+
     def close(self) -> None:
         if self._future is not None:
             try:
@@ -70,14 +99,6 @@ class EventDispatcher:
             self.loop = loop
         else:
             self.loop = asyncio.get_event_loop()
-
-        if hasattr(self, 'handlers'):
-            self._handlers = {
-                handler.name: handler.value
-                for handler in self.handlers.__members__.values()
-            }
-        else:
-            self._handlers = {}
 
         self._listeners = {}
         self._waiters = {}
@@ -124,10 +145,10 @@ class EventDispatcher:
             subscriber.run_callbacks(name, *args)
 
     def dispatch(self, name: str, *args) -> None:
-        handler = self._handlers.get(name.lower())
+        event = self.events.__events__.get(name.lower())
 
-        if handler is not None:
-            args = (handler(self, *args),)
+        if event is not None:
+            args = (event(self, *args),)
 
         self.run_callbacks(name, *args)
 
