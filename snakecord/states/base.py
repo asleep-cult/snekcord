@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from typing import List, TYPE_CHECKING
+
 from ..utils.snowflake import Snowflake
 
+if TYPE_CHECKING:
+    from ..clients.user import UserClientManager
 
 class Mapping(dict):
     def __iter__(self):
@@ -35,7 +39,7 @@ class BaseState:
     __container__ = Mapping
     __maxsize__ = 0
 
-    def __init__(self, *, manager) -> None:
+    def __init__(self, *, manager: UserClientManager) -> None:
         self._items = self.__container__()
         self.manager = manager
 
@@ -87,6 +91,12 @@ class BaseState:
 
     def append(self, data: dict):
         raise NotImplementedError
+    
+    def extend(self, data: List[dict]) -> list:
+        lst = []
+        for dict_ in data:
+            lst.append(self.append(dict_))
+        return lst
 
 
 class BaseSubState:

@@ -6,6 +6,8 @@ from ..templates.channel import (
     VoiceChannelTemplate
 )
 
+__all__ = ('GuildChannel', 'TextChannel', 'VoiceChannel', 'CategoryChannel')
+
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
     __slots__ = ('_state', 'guild')

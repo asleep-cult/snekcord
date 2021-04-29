@@ -41,7 +41,7 @@ class Shard(BaseConnection):
             'op': ShardOpcode.IDENTIFY,
             'd': {
                 'token': self.manager.token,
-                # 'intents': self.manager.intents,
+                'intents': self.manager.intents,
                 'properties': {
                     '$os': platform.system(),
                     '$browser': 'snakecord',
