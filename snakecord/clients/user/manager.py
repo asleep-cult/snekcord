@@ -171,7 +171,7 @@ class UserClientEvents(EventNamespace):
             guild_id = self.payload.get('guild_id')
             user = self.payload.get('user')
             self.user = self.manager.users.append(user)
-            self.guild = self.guilds.get(guild_id)
+            self.guild = self.manager.guilds.get(guild_id)
             
             if self.guild is not None:
                 self.member = self.guild.members.pop(self.user.id, None)
