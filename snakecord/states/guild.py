@@ -15,7 +15,9 @@ class GuildState(BaseState):
         if guild is not None:
             guild._update(data)
         else:
-            guild = self.__guild_class__.unmarshal(data, state=self, *args, **kwargs)
+            guild = self.__guild_class__.unmarshal(
+                data, state=self, *args, **kwargs
+            )
             self[guild.id] = guild
 
         return guild

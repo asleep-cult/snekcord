@@ -153,7 +153,7 @@ class UserClientEvents(EventNamespace):
         member: Optional[GuildMember] = None
         
         def __post_init__(self):
-            guild_id = self.payload.pop('guild_id')
+            guild_id = self.payload.get('guild_id')
             self.guild = self.manager.guilds.get(guild_id)
 
             if self.guild is not None:
@@ -183,16 +183,11 @@ class UserClientEvents(EventNamespace):
         member: Optional[GuildMember] = None
 
         def __post_init__(self):
-            guild_id = self.payload.pop('guild_id')
+            guild_id = self.payload.get('guild_id')
             self.guild = self.manager.guilds.get(guild_id)
-            user = self.manager.users.append(self.payload['user'])
 
             if self.guild is not None:
-    
-                self.member = self.guild.members.get(user.id)
-                
-                if self.member is not None:
-                    self.member._update(self.payload)
+                self.member = self.guild.members.append(self.payload['user']['id'])
 
     @eventdef
     @dataclass

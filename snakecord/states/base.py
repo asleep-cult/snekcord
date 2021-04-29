@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import Iterable, TYPE_CHECKING
 
 from ..utils.snowflake import Snowflake
 
@@ -92,12 +92,8 @@ class BaseState:
     def append(self, data: dict):
         raise NotImplementedError
     
-    def extend(self, data: List[dict]) -> list:
-        lst = []
-        for dict_ in data:
-            lst.append(self.append(dict_))
-        return lst
-
+    def extend(self, data: Iterable[dict]) -> list:
+        return [self.append(d) for d in data]
 
 class BaseSubState:
     def __init__(self, *, superstate: BaseState) -> None:

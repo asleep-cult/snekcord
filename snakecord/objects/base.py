@@ -8,8 +8,6 @@ from ..utils.snowflake import Snowflake
 __all__ = ('BaseObject',)
 
 class BaseObject(JsonObject, template=BaseTemplate):
-    __slots__ = ('id',)
-
     id: Snowflake
 
     @property

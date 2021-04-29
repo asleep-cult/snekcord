@@ -16,4 +16,4 @@ class User(BaseObject, template=UserTemplate):
     
     @property
     def mention(self):
-        return f'<@!{self.id}>'
+        return f'<@{self.id}>'

@@ -18,8 +18,8 @@ class GuildMemberState(BaseState):
         self.guild = guild
 
     @classmethod
-    def set_guild_member_class(cls, class_: type) -> None:
-        cls.__guild_class__ = class_
+    def set_guild_member_class(cls, klass: type) -> None:
+        cls.__guild_class__ = klass
 
     def append(self, data: dict, *args, **kwargs) -> GuildMember:
         member = self.get(data['user']['id'])

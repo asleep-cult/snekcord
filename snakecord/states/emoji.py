@@ -18,8 +18,8 @@ class GuildEmojiState(BaseState):
         self.guild = guild
     
     @classmethod
-    def set_guild_emoji_class(cls, class_: type):
-        cls.__guild_emoji_class__ = class_
+    def set_guild_emoji_class(cls, klass: type):
+        cls.__guild_emoji_class__ = klass
     
     def append(self, data: dict, *args, **kwargs):
         emoji = self.get(data['id'])

@@ -14,8 +14,8 @@ class RoleState(BaseState):
     __role_class__ = Role
 
     @classmethod
-    def set_role_class(cls, class_: type):
-        cls.__role_class__ = class_
+    def set_role_class(cls, klass: type):
+        cls.__role_class__ = klass
     
     def __init__(self, *, manager: UserClientManager, guild: Guild):
         super().__init__(manager=manager)

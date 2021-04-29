@@ -29,5 +29,4 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
     @property
     def mention(self):
-        if self.user is not None:
-            return self.user.mention
+        return f'<@!{self.id}>'

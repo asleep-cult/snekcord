@@ -6,8 +6,8 @@ class UserState(BaseState):
     __user_class__ = User
 
     @classmethod
-    def set_user_class(cls, class_: type) -> None:
-        cls.__user_class__ = class_
+    def set_user_class(cls, klass: type) -> None:
+        cls.__user_class__ = klass
 
     def append(self, data: dict, *args, **kwargs) -> User:
         user = self.get(data['id'])
