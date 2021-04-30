@@ -8,7 +8,7 @@ GuildChannelTemplate = JsonTemplate(
     _permission_overwrites=JsonArray('permission_overwrites'),
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
-    parent_id=JsonField('parent_id'),
+    category_id=JsonField('parent_id'),
     type=JsonField('type'),
     __extends__=(BaseTemplate,)
 )

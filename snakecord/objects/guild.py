@@ -3,10 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .base import BaseObject
-from ..states.channel import GuildChannelState
-from ..states.emoji import GuildEmojiState
-from ..states.member import GuildMemberState
-from ..states.role import RoleState
 from ..templates.guild import GuildTemplate
 
 if TYPE_CHECKING:
@@ -16,15 +12,18 @@ __all__ = ('Guild',)
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('_state', 'channels', 'members', 'emojis', 'roles')
+    __slots__ = ('channels', 'members', 'emojis', 'roles')
 
     def __init__(self, *, state: GuildState) -> None:
         self._state = state
-        self.channels = GuildChannelState(superstate=state.manager.channels,
-                                          guild=self)
-        self.emojis = GuildEmojiState(manager=state.manager, guild=self)
-        self.members = GuildMemberState(manager=state.manager, guild=self)
-        self.roles = RoleState(manager=state.manager, guild=self)
+        self.channels = self._state.manager.__guild_channel_state_class__(
+            superstate=state.manager.channels, guild=self)
+        self.emojis = self._state.manager.__guild_emoji_state_class__(
+            manager=state.manager, guild=self)
+        self.members = self._state.manager.__guild_member_state_class__(
+            manager=state.manager, guild=self)
+        self.roles = self._state.manager.__guild_role_state_class__(
+            manager=state.manager, guild=self)
 
     def _update(self, *args, **kwargs) -> None:
         super()._update(*args, **kwargs)

@@ -6,7 +6,7 @@ from .base import BaseState, SnowflakeMapping
 from ..objects.emoji import GuildEmoji
 
 if TYPE_CHECKING:
-    from ..clients.user.manager import UserClientManager
+    from ..manager import BaseManager
     from ..objects.guild import Guild
 
 
@@ -14,7 +14,7 @@ class GuildEmojiState(BaseState):
     __container__ = SnowflakeMapping
     __guild_emoji_class__ = GuildEmoji
 
-    def __init__(self, *, manager: UserClientManager, guild: Guild):
+    def __init__(self, *, manager: BaseManager, guild: Guild):
         super().__init__(manager=manager)
         self.guild = guild
 

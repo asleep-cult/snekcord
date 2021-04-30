@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Message(BaseObject, template=MessageTemplate):
-    __slots__ = ('_state', 'channel', 'author', 'member',
+    __slots__ = ('channel', 'author', 'member',
                  'mentions', 'role_mentions', 'channel_mentions')
 
     def __init__(self, *, state: MessageState):

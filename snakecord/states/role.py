@@ -7,10 +7,10 @@ from ..objects.role import Role
 
 if TYPE_CHECKING:
     from ..objects.guild import Guild
-    from ..clients.user.manager import UserClientManager
+    from ..manager import BaseManager
 
 
-class RoleState(BaseState):
+class GuildRoleState(BaseState):
     __container__ = SnowflakeMapping
     __role_class__ = Role
 
@@ -18,7 +18,7 @@ class RoleState(BaseState):
     def set_role_class(cls, klass: type):
         cls.__role_class__ = klass
 
-    def __init__(self, *, manager: UserClientManager, guild: Guild):
+    def __init__(self, *, manager: BaseManager, guild: Guild):
         super().__init__(manager=manager)
         self.guild = guild
 

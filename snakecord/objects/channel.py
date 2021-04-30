@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from ..states.channel import ChannelState
 
 from .base import BaseObject
-from ..states.message import MessageState
 from ..templates.channel import (
     DMChannelTemplate,
     GuildChannelTemplate,
@@ -21,17 +20,14 @@ __all__ = ('GuildChannel', 'TextChannel', 'VoiceChannel', 'CategoryChannel')
 
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
-    __slots__ = ('_state', 'guild', 'messages')
+    __slots__ = ('guild', 'messages')
 
     def __init__(self, *, state: ChannelState,
                  guild: Optional[Guild] = None) -> None:
         self._state = state
         self.guild = guild
-        self.messages = MessageState(manager=state.manager, channel=self)
-
-    @property
-    def category_id(self):
-        return self.parent_id
+        self.messages = self._state.manager.__channel_message_state_class__(
+            manager=self._state.manager, channel=self)
 
     @property
     def category(self):
@@ -55,11 +51,12 @@ class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
 
 
 class DMChannel(BaseObject, template=DMChannelTemplate):
-    __slots__ = ('_state', 'messages')
+    __slots__ = ('messages',)
 
     def __init__(self, *, state: ChannelState):
         self._state = state
-        self.messages = MessageState(manager=state.manager, channel=self)
+        self.messages = self._state.manager.__channel_message_state_class__(
+            manager=self.manager, channel=self)
 
 
 Channel = Union[GuildChannel, DMChannel]

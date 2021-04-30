@@ -6,15 +6,15 @@ from .base import BaseState, SnowflakeMapping
 from ..objects.message import Message
 
 if TYPE_CHECKING:
-    from ..clients.user.manager import UserClientManager
+    from ..manager import BaseManager
     from ..objects.channel import Channel
 
 
-class MessageState(BaseState):
+class ChannelMessageState(BaseState):
     __container__ = SnowflakeMapping
     __message_class__ = Message
 
-    def __init__(self, *, manager: UserClientManager,
+    def __init__(self, *, manager: BaseManager,
                  channel: Channel) -> None:
         super().__init__(manager=manager)
         self.channel = channel

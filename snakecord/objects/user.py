@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class User(BaseObject, template=UserTemplate):
-    __slots__ = ('_state',)
+    __slots__ = ()
 
     def __init__(self, *, state: UserState):
         self._state = state

@@ -7,14 +7,14 @@ from ..objects.member import GuildMember
 
 if TYPE_CHECKING:
     from ..objects.guild import Guild
-    from ..clients.user.manager import UserClientManager
+    from ..manager import BaseManager
 
 
 class GuildMemberState(BaseState):
     __container__ = SnowflakeMapping
     __guild_member_class__ = GuildMember
 
-    def __init__(self, *, manager: UserClientManager, guild: Guild):
+    def __init__(self, *, manager: BaseManager, guild: Guild):
         super().__init__(manager=manager)
         self.guild = guild
 

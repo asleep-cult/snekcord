@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class Reaction(BaseObject, template=ReactionTemplate):
-    __slots__ = ('message', '_state')
+    __slots__ = ('message',)
 
     def __init__(self, *, state, message: Message):
         self._state = state

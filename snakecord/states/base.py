@@ -5,7 +5,7 @@ from typing import Iterable, TYPE_CHECKING
 from ..utils.snowflake import Snowflake
 
 if TYPE_CHECKING:
-    from ..clients.user import UserClientManager
+    from ..manager import BaseManager
 
 
 class Mapping(dict):
@@ -40,7 +40,7 @@ class BaseState:
     __container__ = Mapping
     __maxsize__ = 0
 
-    def __init__(self, *, manager: UserClientManager) -> None:
+    def __init__(self, *, manager: BaseManager) -> None:
         self._items = self.__container__()
         self.manager = manager
 

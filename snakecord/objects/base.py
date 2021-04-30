@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
+from ..states.base import BaseState, BaseSubState
 from ..templates.base import BaseTemplate
 from ..utils.json import JsonObject
 from ..utils.snowflake import Snowflake
@@ -9,7 +10,12 @@ __all__ = ('BaseObject',)
 
 
 class BaseObject(JsonObject, template=BaseTemplate):
+    __slots__ = ('_state', 'cached', 'deleted')
+
+    _state: Union[BaseState, BaseSubState]
     id: Snowflake
+    cached: bool
+    deleted: bool
 
     @property
     def datetime(self) -> datetime:

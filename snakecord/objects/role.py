@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Role(BaseObject, template=RoleTemplate):
-    __slots__ = ('guild', '_state')
+    __slots__ = ('guild',)
 
     def __init__(self, *, state: RoleState, guild: Guild):
         self.guild = guild

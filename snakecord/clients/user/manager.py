@@ -5,9 +5,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from ...connections.rest import RestSession
 from ...connections.shard import Shard
-from ...states.channel import ChannelState
-from ...states.guild import GuildState
-from ...states.user import UserState
+from ...manager import BaseManager
 from ...utils.events import EventDispatcher, EventNamespace, eventdef
 
 if TYPE_CHECKING:
@@ -51,8 +49,8 @@ class UserClientEvents(EventNamespace):
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
             if guild is not None:
-                self.channel = self.manager.channels.append(self.payload,
-                                                            guild=guild)
+                self.channel = self.manager.channels.append(
+                    self.payload, guild=guild)
 
     @eventdef
     @dataclass
@@ -66,8 +64,8 @@ class UserClientEvents(EventNamespace):
                 self.channel = self.manager.channels.append(
                     self.payload)
             else:
-                self.channel = self.manager.channels.append(self.payload,
-                                                            guild=guild)
+                self.channel = self.manager.channels.append(
+                    self.payload, guild=guild)
 
     @eventdef
     @dataclass
@@ -392,19 +390,15 @@ class UserClientEvents(EventNamespace):
         pass
 
 
-class UserClientManager(EventDispatcher):
+class UserClientManager(BaseManager):
     events = UserClientEvents
 
     def __init__(self, token, *args, intents: int, **kwargs) -> None:
         self.shard_range = kwargs.pop('shard_range', range(1))
-        super().__init__(*args, **kwargs)
         self.intents = intents
         self.shards = {}
         self.token = token
-        self.rest = RestSession(self)
-        self.guilds = GuildState(manager=self)
-        self.channels = ChannelState(manager=self)
-        self.users = UserState(manager=self)
+        super().__init__(*args, **kwargs)
 
     async def start(self, *args, **kwargs):
         for i in self.shard_range:

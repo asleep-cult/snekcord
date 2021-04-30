@@ -14,7 +14,7 @@ __all__ = ('GuildMember',)
 
 
 class GuildMember(BaseObject, template=GuildMemberTemplate):
-    __slots__ = ('_state', 'guild', 'user')
+    __slots__ = ('guild', 'user')
 
     def __init__(self, *, state: GuildMemberState, guild: Guild):
         self._state = state
