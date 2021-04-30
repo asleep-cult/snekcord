@@ -27,9 +27,8 @@ class RoleState(BaseState):
         if role is not None:
             role._update(data)
         else:
-            role = self.__role_class__.unmarshal(data, state=self,
-                                                 guild=self.guild,
-                                                 *args, **kwargs)
+            role = self.__role_class__.unmarshal(
+                data, state=self, guild=self.guild, *args, **kwargs)
             self[role.id] = role
 
         return role

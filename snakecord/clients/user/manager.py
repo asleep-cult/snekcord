@@ -11,7 +11,7 @@ from ...states.user import UserState
 from ...utils.events import EventDispatcher, EventNamespace, eventdef
 
 if TYPE_CHECKING:
-    from ...objects.channel import Sendable
+    from ...objects.channel import Channel
     from ...objects.emoji import GuildEmoji
     from ...objects.guild import Guild
     from ...objects.member import GuildMember
@@ -46,7 +46,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class channel_create(_base_event):
-        channel: Sendable = None
+        channel: Channel = None
 
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
@@ -57,7 +57,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class channel_update(_base_event):
-        channel: Sendable = None
+        channel: Channel = None
 
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
@@ -72,7 +72,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class channel_delete(_base_event):
-        channel: Sendable = None
+        channel: Channel = None
 
         def __post_init__(self):
             channel_id = self.payload.get('channel_id')
@@ -286,7 +286,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class message_create(_base_event):
-        channel: Optional[Sendable] = None
+        channel: Optional[Channel] = None
         message: Optional[Message] = None
 
         def __post_init__(self):
@@ -299,7 +299,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class message_update(_base_event):
-        channel: Optional[Sendable] = None
+        channel: Optional[Channel] = None
         message: Optional[Message] = None
 
         def __post_init__(self):
@@ -307,14 +307,12 @@ class UserClientEvents(EventNamespace):
             self.channel = self.manager.channels.get(channel_id)
 
             if self.channel is not None:
-                self.message = self.channel.messages.append(
-                    self.payload
-                )
+                self.message = self.channel.messages.append(self.payload)
 
     @eventdef
     @dataclass
     class message_delete(_base_event):
-        channel: Optional[Sendable] = None
+        channel: Optional[Channel] = None
         message: Optional[Message] = None
 
         def __post_init__(self):
@@ -328,7 +326,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class message_delete_bulk(_base_event):
-        channel: Optional[Sendable] = None
+        channel: Optional[Channel] = None
         messages: Optional[List[Union[Message, int]]] = None
 
         def __post_init__(self):
@@ -341,8 +339,7 @@ class UserClientEvents(EventNamespace):
             if self.channel is not None:
                 for message_id in message_ids:
                     self.messages.append(
-                        self.channel.messages.pop(message_id, message_id)
-                    )
+                        self.channel.messages.pop(message_id, message_id))
 
     @eventdef
     @dataclass

@@ -15,8 +15,8 @@ class UserState(BaseState):
         if user is not None:
             user._update(data)
         else:
-            user = self.__user_class__.unmarshal(data, state=self,
-                                                 *args, **kwargs)
+            user = self.__user_class__.unmarshal(
+                data, state=self, *args, **kwargs)
             self[user.id] = user
 
         return user

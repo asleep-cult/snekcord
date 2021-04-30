@@ -24,13 +24,11 @@ class GuildMemberState(BaseState):
 
     def append(self, data: dict, *args, **kwargs) -> GuildMember:
         member = self.get(data['user']['id'])
-
         if member is not None:
             member._update(data)
         else:
-            member = self.__guild_member_class__.unmarshal(data, state=self,
-                                                           guild=self.guild,
-                                                           *args, **kwargs)
-            self[member.id] = member
+            member = self.__guild_member_class__.unmarshal(
+                data, state=self, guild=self.guild, *args, **kwargs)
+            self[member.user.id] = member
 
         return member

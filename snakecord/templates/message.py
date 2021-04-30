@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from .base import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 from ..utils.snowflake import Snowflake
@@ -6,9 +8,10 @@ MessageTemplate = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),
     guild_id=JsonField('guild_id', Snowflake, str),
     _author=JsonField('author'),
-    _member=JsonField('member'),
+    _member=JsonField('member', default=dict),
     content=JsonField('content'),
-    _edited_timestamp=JsonField('edited_timestamp'),
+    edited_timestamp=JsonField(
+        'edited_timestamp', datetime.fromisoformat, datetime.isoformat),
     tts=JsonField('tts'),
     mention_everyone=JsonField('mention_everyone'),
     _mentions=JsonArray('mentions'),

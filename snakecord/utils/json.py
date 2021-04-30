@@ -43,7 +43,10 @@ class JsonTemplate(Generic[T]):
                 setattr(o, name, field.unmarshal(data[field.key]))
             except Exception:
                 if set_default:
-                    setattr(o, name, field.default)
+                    default = None
+                    if field.default is not None:
+                        default = field.default()
+                    setattr(o, name, default)
 
     def to_dict(self, o: T) -> Dict[str, Any]:
         data = {}
@@ -109,7 +112,7 @@ class JsonField:
 
 class JsonArray(JsonField):
     def __init__(self, *args, **kwargs) -> None:
-        default = kwargs.pop('default', [])
+        default = kwargs.pop('default', list)
         super().__init__(*args, **kwargs, default=default)
 
     def unmarshal(self, values: Any) -> Any:

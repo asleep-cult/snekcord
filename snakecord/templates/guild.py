@@ -50,8 +50,7 @@ GuildTemplate = JsonTemplate(
     premium_subscription_count=JsonField('premium_subscription_count'),
     preferred_locale=JsonField('preferred_locale'),
     public_updates_channel_id=JsonField(
-        'public_updates_channel_id', Snowflake, str
-    ),
+        'public_updates_channel_id', Snowflake, str),
     max_video_channel_users=JsonField('max_video_channel_users'),
     __extends__=(GuildPreviewTemplate,)
 )

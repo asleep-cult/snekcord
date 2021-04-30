@@ -27,9 +27,8 @@ class GuildEmojiState(BaseState):
         if emoji is not None:
             emoji._update(data)
         else:
-            emoji = self.__guild_emoji_class__.unmarshal(data, state=self,
-                                                         guild=self.guild,
-                                                         *args, **kwargs)
+            emoji = self.__guild_emoji_class__.unmarshal(
+                data, state=self, guild=self.guild, *args, **kwargs)
             self[emoji.id] = emoji
 
         return emoji
