@@ -21,11 +21,11 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         self.guild = guild
         self.user: Optional[User] = None
 
-    def _update(self, data: dict, *args, **kwargs):
-        super()._update(data, *args, **kwargs)
-        user = data.get('user')
-        if user is not None:
-            self.user = self._state.manager.users.append(user)
+    def _update(self, *args, **kwargs):
+        super()._update(*args, **kwargs)
+
+        if self._user is not None:
+            self.user = self._state.manager.users.append(self._user)
 
     @property
     def mention(self):
