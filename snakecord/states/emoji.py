@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .base import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.emoji import GuildEmoji
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 class GuildEmojiState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __guild_emoji_class__ = GuildEmoji
 
     def __init__(self, *, manager: BaseManager, guild: Guild):
@@ -29,6 +30,6 @@ class GuildEmojiState(BaseState):
         else:
             emoji = self.__guild_emoji_class__.unmarshal(
                 data, state=self, guild=self.guild, *args, **kwargs)
-            self[emoji.id] = emoji
+            emoji.cache()
 
         return emoji

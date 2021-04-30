@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import weakref
 from typing import Iterable, TYPE_CHECKING
 
 from ..utils.snowflake import Snowflake
@@ -8,15 +9,19 @@ if TYPE_CHECKING:
     from ..manager import BaseManager
 
 
-class Mapping(dict):
+class BaseMapping:
     def __iter__(self):
         return iter(list(self.values()))
 
     def __reversed__(self):
         return reversed(list(self.items()))
 
+    @classmethod
+    def for_type(cls, klass):
+        return type('Mapping', (cls, klass), {})
 
-class SnowflakeMapping(Mapping):
+
+class BaseSnowflakeMapping(BaseMapping):
     def __setitem__(self, key, value):
         return super().__setitem__(Snowflake.try_snowflake(key), value)
 
@@ -24,7 +29,7 @@ class SnowflakeMapping(Mapping):
         return super().__getitem__(Snowflake.try_snowflake(key))
 
     def __delitem__(self, key):
-        return super().__delattr__(Snowflake.try_snowflake(key))
+        return super().__delitem__(Snowflake.try_snowflake(key))
 
     def __contains__(self, key) -> bool:
         return super().__contains__(Snowflake.try_snowflake(key))
@@ -36,24 +41,35 @@ class SnowflakeMapping(Mapping):
         return super().pop(Snowflake.try_snowflake(key), *args, **kwargs)
 
 
+Mapping = BaseMapping.for_type(dict)
+SnowflakeMapping = BaseSnowflakeMapping.for_type(dict)
+WeakValueMapping = BaseMapping.for_type(weakref.WeakValueDictionary)
+WeakValueSnowflakeMapping = SnowflakeMapping.for_type(
+    weakref.WeakValueDictionary)
+
+
 class BaseState:
     __container__ = Mapping
+    __recycled_container__ = WeakValueMapping
     __maxsize__ = 0
+    __replace__ = True
 
     def __init__(self, *, manager: BaseManager) -> None:
         self._items = self.__container__()
+        self._recycle_bin = self.__recycled_container__()
         self.manager = manager
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}, length={len(self)}>'
+        return (f'<{self.__class__.__name__}, length={len(self)},'
+                f' recycled={len(self._recycle_bin)}>')
 
     @classmethod
     def set_maxsize(cls, maxsize: int) -> None:
         cls.__maxsize__ = maxsize
 
     @classmethod
-    def get_maxsize(cls) -> int:
-        return cls.__maxsize__
+    def set_replace(cls, replace: bool) -> None:
+        cls.__replace__ = replace
 
     def __len__(self):
         return len(self._items)
@@ -64,11 +80,22 @@ class BaseState:
     def __reversed__(self):
         return self._items.__reversed__()
 
-    def __setitem__(self, key, value):
-        if self.__maxsize__ != 0 and len(self) >= self.__maxsize__:
-            key = next(iter(reversed(self._items.keys())))
-            del self._items[key]
+    def set(self, key, value):
+        if self.__maxsize__ < 0:
+            return False
+
+        if (
+            self.__maxsize__ != 0
+            and len(self) >= self.__maxsize__
+            and self.__replace__
+        ):
+            val = next(iter(reversed(self.values())))
+            val.uncache()
+
         self._items.__setitem__(key, value)
+        return True
+
+    __setitem__ = set
 
     def __getitem__(self, key):
         return self._items.__getitem__(key)
@@ -79,8 +106,24 @@ class BaseState:
     def __contains__(self, key):
         return self._items.__contains__(key)
 
+    def keys(self):
+        return self._items.keys()
+
+    def items(self):
+        return self._items.items()
+
+    def values(self):
+        return self._items.values()
+
+    def recycle(self, key, value):
+        self._recycle_bin[key] = value
+
+    def unrecycle(self, *args, **kwargs):
+        return self._recycle_bin.pop(*args, **kwargs)
+
     def get(self, *args, **kwargs):
-        return self._items.get(*args, **kwargs)
+        return (self._recycle_bin.get(*args, **kwargs)
+                or self._items.get(*args, **kwargs))
 
     def pop(self, *args, **kwargs):
         return self._items.pop(*args, **kwargs)
@@ -101,7 +144,8 @@ class BaseSubState:
     def __init__(self, *, superstate: BaseState) -> None:
         self.superstate = superstate
 
-    __repr__ = BaseState.__repr__
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__}, length={len(self)}>'
 
     def __related__(self, item) -> bool:
         raise NotImplementedError

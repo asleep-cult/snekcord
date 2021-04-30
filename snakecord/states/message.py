@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .base import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.message import Message
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 class ChannelMessageState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __message_class__ = Message
 
     def __init__(self, *, manager: BaseManager,
@@ -30,6 +31,6 @@ class ChannelMessageState(BaseState):
         else:
             message = self.__message_class__.unmarshal(
                 data, state=self, *args, **kwargs)
-            self[message.id] = message
+            message.cache()
 
         return message

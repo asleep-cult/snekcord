@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .base import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.member import GuildMember
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 class GuildMemberState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __guild_member_class__ = GuildMember
 
     def __init__(self, *, manager: BaseManager, guild: Guild):
@@ -29,6 +30,6 @@ class GuildMemberState(BaseState):
         else:
             member = self.__guild_member_class__.unmarshal(
                 data, state=self, guild=self.guild, *args, **kwargs)
-            self[member.user.id] = member
+            member.cache()
 
         return member

@@ -1,9 +1,10 @@
-from .base import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.guild import Guild
 
 
 class GuildState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __guild_class__ = Guild
 
     @classmethod
@@ -17,6 +18,6 @@ class GuildState(BaseState):
         else:
             guild = self.__guild_class__.unmarshal(
                 data, state=self, *args, **kwargs)
-            self[guild.id] = guild
+            guild.cache()
 
         return guild

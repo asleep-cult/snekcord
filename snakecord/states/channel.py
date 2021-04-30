@@ -1,6 +1,11 @@
 import enum
 
-from .base import BaseState, BaseSubState, SnowflakeMapping
+from .base import (
+    BaseState,
+    BaseSubState,
+    SnowflakeMapping,
+    WeakValueSnowflakeMapping,
+)
 from ..objects import channel as channels
 from ..objects.base import BaseObject
 
@@ -17,6 +22,7 @@ class ChannelType(enum.IntEnum):
 
 class ChannelState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __default_class__ = BaseObject
     __class_map__ = {
         ChannelType.GUILD_TEXT: channels.TextChannel,
@@ -53,7 +59,7 @@ class ChannelState(BaseState):
             Class = self.__class_map__.get(data['type'],
                                            self.__default_class__)
             channel = Class.unmarshal(data, state=self, *args, **kwargs)
-            self[channel.id] = channel
+            channel.cache()
 
         return channel
 

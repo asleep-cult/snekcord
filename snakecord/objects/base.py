@@ -10,12 +10,39 @@ __all__ = ('BaseObject',)
 
 
 class BaseObject(JsonObject, template=BaseTemplate):
-    __slots__ = ('_state', 'cached', 'deleted')
+    __slots__ = ('_state', 'cached', 'deleted', '__weakref__')
 
     _state: Union[BaseState, BaseSubState]
     id: Snowflake
     cached: bool
     deleted: bool
+
+    def cache(self):
+        state = self._state
+        if isinstance(state, BaseSubState):
+            state = state.superstate
+
+        self.cached = state.set(self.id, self)
+        if self.cached:
+            try:
+                state.unrecycle(self.id)
+            except KeyError:
+                pass
+        else:
+            state.recycle(self.id, self)
+
+    def uncache(self):
+        state = self._state
+        if isinstance(state, BaseSubState):
+            state = state.superstate
+
+        self.cached = False
+        del state[self.id]
+        state.recycle(self.id, self)
+
+    def _delete(self):
+        self.uncache()
+        self.deleted = True
 
     @property
     def datetime(self) -> datetime:

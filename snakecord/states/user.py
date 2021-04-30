@@ -1,9 +1,10 @@
-from .base import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.user import User
 
 
 class UserState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __user_class__ = User
 
     @classmethod
@@ -17,6 +18,6 @@ class UserState(BaseState):
         else:
             user = self.__user_class__.unmarshal(
                 data, state=self, *args, **kwargs)
-            self[user.id] = user
+            user.cache()
 
         return user

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .base import BaseState, SnowflakeMapping
+from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.role import Role
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 class GuildRoleState(BaseState):
     __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __role_class__ = Role
 
     @classmethod
@@ -29,6 +30,6 @@ class GuildRoleState(BaseState):
         else:
             role = self.__role_class__.unmarshal(
                 data, state=self, guild=self.guild, *args, **kwargs)
-            self[role.id] = role
+            role.cache()
 
         return role
