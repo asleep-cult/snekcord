@@ -59,7 +59,7 @@ class ChannelState(BaseState):
 
 
 class GuildChannelState(BaseSubState):
-    def __init__(self, *, superstate, guild):
+    def __init__(self, *, superstate: ChannelState, guild):
         super().__init__(superstate=superstate)
         self.guild = guild
 

@@ -11,10 +11,11 @@ from ...states.user import UserState
 from ...utils.events import EventDispatcher, EventNamespace, eventdef
 
 if TYPE_CHECKING:
-    from ...objects.channel import DMChannel, GuildChannel
+    from ...objects.channel import Sendable
     from ...objects.emoji import GuildEmoji
     from ...objects.guild import Guild
     from ...objects.member import GuildMember
+    from ...objects.message import Message
     from ...objects.role import Role
     from ...objects.user import User
 
@@ -45,7 +46,7 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class channel_create(_base_event):
-        channel: Union[GuildChannel, DMChannel] = None
+        channel: Sendable = None
 
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
@@ -56,18 +57,24 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class channel_update(_base_event):
-        channel: Union[GuildChannel, DMChannel] = None
+        channel: Sendable = None
 
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
-            if guild is not None:
+
+            if guild is None:
+                self.channel = self.manager.channels.append(
+                    self.payload
+                )
+            else:
                 self.channel = self.manager.channels.append(
                     self.payload, guild=guild)
+
 
     @eventdef
     @dataclass
     class channel_delete(_base_event):
-        channel: Union[GuildChannel, DMChannel] = None
+        channel: Sendable = None
 
         def __post_init__(self):
             channel_id = self.payload.get('channel_id')
@@ -282,22 +289,63 @@ class UserClientEvents(EventNamespace):
     @eventdef
     @dataclass
     class message_create(_base_event):
-        pass
+        channel: Optional[Sendable] = None
+        message: Optional[Message] = None
+
+        def __post_init__(self):
+            channel_id = self.payload.get('channel_id')
+            self.channel = self.manager.channels.get(channel_id)
+
+            if self.channel is not None:
+                self.message = self.channel.messages.append(self.payload)
 
     @eventdef
     @dataclass
     class message_update(_base_event):
-        pass
+        channel: Optional[Sendable] = None
+        message: Optional[Message] = None
+
+        def __post_init__(self):
+            channel_id = self.payload.get('channel_id')
+            self.channel = self.manager.channels.get(channel_id)
+
+            if self.channel is not None:
+                self.message = self.channel.messages.append(
+                    self.payload
+                )
 
     @eventdef
     @dataclass
     class message_delete(_base_event):
-        pass
+        channel: Optional[Sendable] = None
+        message: Optional[Message] = None
+
+        def __post_init__(self):
+            channel_id = self.payload.get('channel_id')
+            message_id = self.payload.get('message_id')
+            self.channel = self.manager.channels.get(channel_id)
+
+            if self.channel is not None:
+                self.message = self.channel.messages.pop(message_id, None)
 
     @eventdef
     @dataclass
     class message_delete_bulk(_base_event):
-        pass
+        channel: Optional[Sendable] = None
+        messages: Optional[List[Union[Message, int]]] = None
+
+        def __post_init__(self):
+            channel_id = self.payload.get('channel_id')
+            message_ids = self.payload.get('message_id')
+            self.channel = self.manager.channels.get(channel_id)
+
+            self.messages = []
+
+            if self.channel is not None:
+                for message_id in message_ids:
+                    self.messages.append(
+                        self.channel.messages.pop(message_id, message_id)
+                    )
 
     @eventdef
     @dataclass
