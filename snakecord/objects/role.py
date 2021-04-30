@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from ..objects.guild import Guild
     from ..states.role import RoleState
 
+
 class Role(BaseObject, template=RoleTemplate):
     __slots__ = ('guild', '_state')
 

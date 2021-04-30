@@ -7,6 +7,7 @@ from ..utils.snowflake import Snowflake
 
 __all__ = ('BaseObject',)
 
+
 class BaseObject(JsonObject, template=BaseTemplate):
     id: Snowflake
 

@@ -1,6 +1,7 @@
 from .base import BaseState, SnowflakeMapping
 from ..objects.user import User
 
+
 class UserState(BaseState):
     __container__ = SnowflakeMapping
     __user_class__ = User
@@ -14,7 +15,8 @@ class UserState(BaseState):
         if user is not None:
             user._update(data)
         else:
-            user = self.__user_class__.unmarshal(data, state=self, *args, **kwargs)
+            user = self.__user_class__.unmarshal(data, state=self,
+                                                 *args, **kwargs)
             self[user.id] = user
 
         return user

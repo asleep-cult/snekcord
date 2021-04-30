@@ -7,6 +7,7 @@ from ..utils.snowflake import Snowflake
 if TYPE_CHECKING:
     from ..clients.user import UserClientManager
 
+
 class Mapping(dict):
     def __iter__(self):
         return iter(list(self.values()))
@@ -91,9 +92,10 @@ class BaseState:
 
     def append(self, data: dict):
         raise NotImplementedError
-    
+
     def extend(self, data: Iterable[dict]) -> list:
         return [self.append(d) for d in data]
+
 
 class BaseSubState:
     def __init__(self, *, superstate: BaseState) -> None:

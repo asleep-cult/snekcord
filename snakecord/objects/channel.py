@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from ..objects.guild import Guild
-    from ..states.channel import ChannelState, GuildChannelState
+    from ..states.channel import ChannelState
 
 from .base import BaseObject
 from ..states.message import MessageState
@@ -18,6 +18,7 @@ from ..templates.channel import (
 __all__ = ('GuildChannel', 'TextChannel', 'VoiceChannel', 'CategoryChannel')
 
 # TODO: Have a channel base class for all channels
+
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
     __slots__ = ('_state', 'guild', 'messages')
@@ -60,4 +61,5 @@ class DMChannel(BaseObject, template=DMChannelTemplate):
         self._state = state
         self.messages = MessageState(manager=state.manager, channel=self)
 
-Sendable = Union[DMChannel, TextChannel]
+
+Channel = Union[GuildChannel, DMChannel]

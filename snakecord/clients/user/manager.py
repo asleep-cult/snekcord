@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 from ...connections.rest import RestSession
 from ...connections.shard import Shard
@@ -51,8 +51,8 @@ class UserClientEvents(EventNamespace):
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
             if guild is not None:
-                self.channel = self.manager.channels.append(
-                    self.payload, guild=guild)
+                self.channel = self.manager.channels.append(self.payload,
+                                                            guild=guild)
 
     @eventdef
     @dataclass
@@ -64,12 +64,10 @@ class UserClientEvents(EventNamespace):
 
             if guild is None:
                 self.channel = self.manager.channels.append(
-                    self.payload
-                )
+                    self.payload)
             else:
-                self.channel = self.manager.channels.append(
-                    self.payload, guild=guild)
-
+                self.channel = self.manager.channels.append(self.payload,
+                                                            guild=guild)
 
     @eventdef
     @dataclass
@@ -141,7 +139,7 @@ class UserClientEvents(EventNamespace):
     class guild_emojis_update(_base_event):
         guild: Optional[Guild] = None
         emojis: Optional[List[GuildEmoji]] = None
-        
+
         def __post_init__(self):
             guild_id = self.payload.get('guild_id')
             emojis = self.payload.get('emojis')
@@ -158,14 +156,13 @@ class UserClientEvents(EventNamespace):
     class guild_member_add(_base_event):
         guild: Optional[Guild] = None
         member: Optional[GuildMember] = None
-        
+
         def __post_init__(self):
             guild_id = self.payload.get('guild_id')
             self.guild = self.manager.guilds.get(guild_id)
 
             if self.guild is not None:
                 self.member = self.guild.members.append(self.payload)
-
 
     @eventdef
     @dataclass
@@ -179,7 +176,7 @@ class UserClientEvents(EventNamespace):
             user = self.payload.get('user')
             self.user = self.manager.users.append(user)
             self.guild = self.manager.guilds.get(guild_id)
-            
+
             if self.guild is not None:
                 self.member = self.guild.members.pop(self.user.id, None)
 
@@ -194,7 +191,7 @@ class UserClientEvents(EventNamespace):
             self.guild = self.manager.guilds.get(guild_id)
 
             if self.guild is not None:
-                self.member = self.guild.members.append(self.payload['user']['id'])
+                self.member = self.guild.members.append(self.payload)
 
     @eventdef
     @dataclass

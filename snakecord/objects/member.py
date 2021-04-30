@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional, TYPE_CHECKING
 
-from .base import BaseObject 
+from .base import BaseObject
 from ..templates.member import GuildMemberTemplate
 
 if TYPE_CHECKING:
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 __all__ = ('GuildMember',)
 
+
 class GuildMember(BaseObject, template=GuildMemberTemplate):
     __slots__ = ('_state', 'guild', 'user')
 
@@ -19,14 +20,15 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         self._state = state
         self.guild = guild
         self.user: Optional[User] = None
-    
+
     def _update(self, data: dict, *args, **kwargs):
         super()._update(data, *args, **kwargs)
         user = data.get('user')
         if user is not None:
             self.user = self._state.manager.users.append(user)
-            self.id = self.user.id
 
     @property
     def mention(self):
+        if self.nick is None:
+            return self.user.mention
         return f'<@!{self.id}>'

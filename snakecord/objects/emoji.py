@@ -9,9 +9,10 @@ if TYPE_CHECKING:
     from .guild import Guild
     from ..states.emoji import GuildEmojiState
 
+
 class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
     __slots__ = ('_state', 'guild')
-    
+
     def __init__(self, *, state: GuildEmojiState, guild: Guild):
         self._state = state
         self.guild = guild

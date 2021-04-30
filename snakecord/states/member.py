@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from ..objects.guild import Guild
     from ..clients.user.manager import UserClientManager
 
+
 class GuildMemberState(BaseState):
     __container__ = SnowflakeMapping
     __guild_member_class__ = GuildMember
@@ -27,7 +28,9 @@ class GuildMemberState(BaseState):
         if member is not None:
             member._update(data)
         else:
-            member = self.__guild_member_class__.unmarshal(data, state=self, guild=self.guild, *args, **kwargs)
-        
+            member = self.__guild_member_class__.unmarshal(data, state=self,
+                                                           guild=self.guild,
+                                                           *args, **kwargs)
             self[member.id] = member
+
         return member
