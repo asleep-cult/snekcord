@@ -6,6 +6,8 @@ from .base import (
     SnowflakeMapping,
     WeakValueSnowflakeMapping,
 )
+from ..connections import rest
+from ..utils.snowflake import Snowflake
 from ..objects import channel as channels
 from ..objects.base import BaseObject
 
@@ -62,6 +64,12 @@ class ChannelState(BaseState):
             channel.cache()
 
         return channel
+
+    async def fetch(self, channel_id):
+        channel_id = Snowflake.try_snowflake(channel_id)
+        data = await rest.get_channel.request(
+            session=self.manager.rest, fmt={'channel_id': channel_id}).wait()
+        return self.append(data)
 
 
 class GuildChannelState(BaseSubState):

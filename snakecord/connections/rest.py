@@ -695,7 +695,7 @@ class RequestThrottler:
     async def _request(self, future, *args, **kwargs) -> None:
         response = await self.session.request(*args, **kwargs)
 
-        data = await response.read()
+        data = await response.json()
         if future.process_response is not None:
             data = future.process_response(data)
 
