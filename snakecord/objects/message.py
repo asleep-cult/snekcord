@@ -15,7 +15,7 @@ class Message(BaseObject, template=MessageTemplate):
                  'mentions', 'role_mentions', 'channel_mentions')
 
     def __init__(self, *, state: MessageState):
-        self._state = state
+        super().__init__(state=state)
         self.channel = state.channel
         self.author = None
         self.member = None

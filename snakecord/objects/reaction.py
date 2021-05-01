@@ -13,5 +13,5 @@ class Reaction(BaseObject, template=ReactionTemplate):
     __slots__ = ('message',)
 
     def __init__(self, *, state, message: Message):
-        self._state = state
+        super().__init__(state=state)
         self.message = message

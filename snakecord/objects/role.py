@@ -14,5 +14,5 @@ class Role(BaseObject, template=RoleTemplate):
     __slots__ = ('guild',)
 
     def __init__(self, *, state: RoleState, guild: Guild):
+        super().__init__(state=state)
         self.guild = guild
-        self._state = state

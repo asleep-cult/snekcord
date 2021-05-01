@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 from ..states.base import BaseState, BaseSubState
 from ..templates.base import BaseTemplate
@@ -13,9 +13,15 @@ class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('_state', 'cached', 'deleted', '__weakref__')
 
     _state: Union[BaseState, BaseSubState]
-    id: Snowflake
+    id: Optional[Union[Snowflake, str]]
     cached: bool
     deleted: bool
+
+    def __init__(self, *, state: Union[BaseState, BaseSubState]) -> None:
+        self._state = state
+        self.id = None
+        self.cached = False
+        self.deleted = False
 
     def cache(self):
         state = self._state
@@ -53,5 +59,5 @@ class BaseObject(JsonObject, template=BaseTemplate):
             return NotImplemented
         return self.id == other.id
 
-    def __hash__(self) -> Snowflake:
-        return self.id
+    def __hash__(self) -> int:
+        return hash(self.id)
