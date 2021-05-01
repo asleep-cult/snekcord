@@ -17,7 +17,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
     __slots__ = ('guild', 'user')
 
     def __init__(self, *, state: GuildMemberState, guild: Guild):
-        self._state = state
+        super().__init__(state=state)
         self.guild = guild
         self.user: Optional[User] = None
 

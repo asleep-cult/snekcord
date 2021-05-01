@@ -24,7 +24,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
     def __init__(self, *, state: ChannelState,
                  guild: Optional[Guild] = None) -> None:
-        self._state = state
+        super().__init__(state=state)
         self.guild = guild
         self.messages = self._state.manager.__channel_message_state_class__(
             manager=self._state.manager, channel=self)
