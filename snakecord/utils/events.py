@@ -55,10 +55,9 @@ class EventWaiter:
             when this timeout is exceeded.
 
         filterer: Optional[Callable[..., bool]]
-            A callable that determines if the event is wanted,
-            e.g.
+            A callable that determines if the event is wanted.
 
-            .. code-block:: python
+            Example::
 
                 if filterer(event):
                     return event
@@ -135,9 +134,37 @@ class EventDispatcher:
     Node.js's `EventEmitter`.
 
     Attributes
+        events: EventNamespace
+            The events to use.
+
         loop: Optional[asyncio.AbstractEventLoop]
             The event loop that is... not used,
             but is useful for subclasses.
+
+    Example::
+
+        class Events(EventNamespace):
+
+            class some_event(EventDefinition):
+                def __init__(self, dispatcher, abc):
+                    self.dispatcher = dispatcher
+                    self.abc = abc
+
+
+        class Dispatcher(EventDispatcher):
+            events = Events
+
+            ...
+
+        dispatcher = Dispatcher()
+
+
+        @dispatcher.on()
+        def some_event(evnt: Events.some_event) -> None:
+            print(f'Received some_event {evnt.abc=}')
+
+
+        dispatcher.dispatch('some_event', 10)
 
     .. note::
         Event names are case insensitive
@@ -196,13 +223,12 @@ class EventDispatcher:
                 The waiter.
 
         Examples
-
-            .. code-block python::
+            Using in an `async-for` loop::
 
                 async for evnt in dispatcher.wait('hello_world'):
                     print(evnt)
 
-            .. code-block python::
+            Using in an `await` statement::
 
                 evnt = await dispatcher.wait('hello_world',
                                              filterer=lambda evnt: 2 + 2 == 4)
@@ -215,7 +241,7 @@ class EventDispatcher:
     wait = register_waiter
 
     def remove_waiter(self, waiter: EventWaiter) -> None:
-        """Unregisters a waiter, the waiter will stop receiving
+        """Unregisters `waiter`, the waiter will stop receiving
         events after this method is called. Consider using
         :meth:`EventWaiter.close` if you'd like to notify
         awaiting coroutines.
@@ -225,6 +251,17 @@ class EventDispatcher:
             waiters.remove(waiter)
 
     def run_callbacks(self, name: str, *args: Any) -> None:
+        r"""Runs listeners and waiters that are listening for `name`
+        and recursively calls the same method for all subscribed
+        dispatchers.
+
+        Arguments
+            name: str
+                The name of the event.
+
+            \*args: Any
+                The arguments to pass to callbacks.
+        """
         name = name.lower()
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
@@ -241,6 +278,11 @@ class EventDispatcher:
             subscriber.run_callbacks(name, *args)
 
     def dispatch(self, name: str, *args) -> None:
+        """Same as :meth:`EventDispatcher.dispatch` but looks
+        through :attr:`EventDispatcher.events` for the event
+        class and replaces the args with an instance of it
+        created with the original args.
+        """
         event = self.events.__events__.get(name.lower())
 
         if event is not None:
@@ -248,19 +290,44 @@ class EventDispatcher:
 
         self.run_callbacks(name, *args)
 
-    def subscribe(self, pusher: EventDispatcher):
-        pusher._subscribers.append(self)
+    def subscribe(self, dispatcher: EventDispatcher):
+        """Subscribes to another dispatcher causing it to
+        receive all events dispatched to the other dispatcher.
 
-    def unsubscribe(self, pusher: EventDispatcher):
-        pusher._subscribers.remove(self)
+        Arguments
+            dispatcher: EventDispatcher
+                The dispatcher to subscribe to.
+        """
+        dispatcher._subscribers.append(self)
+
+    def unsubscribe(self, dispatcher: EventDispatcher):
+        """Unsubscribes from another dispatcher causing it to
+        stop receiving events dispatched to the other dispatcher.
+
+        Arguments
+            dispatcher: EventDispatcher
+                The dispatcher to unsubscribe from.
+        """
+        dispatcher._subscribers.remove(self)
 
     def on(self, name: Optional[str] = None):
+        """This is :meth:`EventDispatcher.register_listener` but in
+        decorator form.
+
+        Arguments
+            name: Optional[str]
+                The name of the event to listen for, if None is provided
+                then the name of the function is used.
+        """
         def wrapped(func: Callable[..., Any]):
             self.register_listener(name or func.__name__, func)
             return func
         return wrapped
 
     def once(self, name: Optional[str] = None):
+        """This is similar to :meth:`EventDispatcher.on` but removes
+        the listener the first time the event is dispatched.
+        """
         def wrapped(func):
             nonlocal name
             name = (name or func.__name__).lower()
