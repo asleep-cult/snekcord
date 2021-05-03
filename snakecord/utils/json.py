@@ -182,10 +182,8 @@ class JsonObject(metaclass=JsonObjectMeta, template=JsonTemplate()):
         return object.__new__(cls)
 
     @classmethod
-    def unmarshal(self, cls: type, data: Union[ByteString, str, dict],
+    def unmarshal(cls, data: Union[ByteString, str, dict],
                   *args, **kwargs) -> T:
-        """
-        """
         if isinstance(data, (bytes, bytearray, memoryview, str)):
             data = json.loads(data)
 
