@@ -15,7 +15,7 @@ class Guild(BaseObject, template=GuildTemplate):
     __slots__ = ('channels', 'members', 'emojis', 'roles', '_state')
 
     def __init__(self, *, state: GuildState) -> None:
-        self._state = state
+        super().__init__(state=state)
         self.channels = self._state.manager.__guild_channel_state_class__(
             superstate=state.manager.channels, guild=self)
         self.emojis = self._state.manager.__guild_emoji_state_class__(

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Type, Union
 
-from ...connections.rest import RestSession
 from ...connections.shard import Shard
 from ...manager import BaseManager
-from ...utils.events import EventNamespace, eventdef
+from ...utils.events import EventNamespace, EventDefinition
 
 if TYPE_CHECKING:
     from ...objects.channel import Channel, TextChannel
@@ -18,10 +17,7 @@ if TYPE_CHECKING:
     from ...objects.user import User
 
 @dataclass
-class _base_event(metaclass=eventdef):
-    def __init__(self):
-        super().__init__(type(self))
-
+class _base_event(EventDefinition):
     manager: UserClientManager
     shard: Shard
     payload: Dict[str, Any]
@@ -352,7 +348,7 @@ class UserClientEvents(EventNamespace):
 
 
 class UserClientManager(BaseManager):
-    events = UserClientEvents
+    events: Type[UserClientEvents] = UserClientEvents
 
     def __init__(self, token, *args, intents: int, **kwargs) -> None:
         self.shard_range = kwargs.pop('shard_range', range(1))

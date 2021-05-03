@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..manager import BaseManager
 
 
-class GuildRoleState(BaseState):
+class RoleState(BaseState):
     __container__ = SnowflakeMapping
     __recycled_container__ = WeakValueSnowflakeMapping
     __role_class__ = Role

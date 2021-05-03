@@ -14,5 +14,5 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
     __slots__ = ('guild',)
 
     def __init__(self, *, state: GuildEmojiState, guild: Guild):
-        self._state = state
+        super().__init__(state=state)
         self.guild = guild

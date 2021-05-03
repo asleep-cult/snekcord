@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional, Union
 
+__all__ = ('Snowflake',)
+
 
 class Snowflake(int):
     __slots__ = ()

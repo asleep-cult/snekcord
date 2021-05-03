@@ -1,12 +1,27 @@
 import asyncio
+from numbers import Number
 from typing import Any, Callable, Optional
+
+__all__ = ('Cycler',)
 
 
 class Cycler:
-    def __init__(self, *,
-                 loop: Optional[asyncio.AbstractEventLoop] = None,
-                 delay: float,
-                 callback: Optional[Callable[..., Any]] = None) -> None:
+    """A class that runs a coroutine every `delay` seconds.
+
+    Attributes
+        loop: Optional[asyncio.AbstractEventLoop]
+            The event loop to use when creating the task,
+            if None is provided :func:`asyncio.get_event_loop` is used.
+
+        delay: Number
+            The amount of time to wait between cycles (in seconds).
+
+        callback: Optional[Callable[..., Any]]
+            The coroutine to run, if None is provided
+            then :meth:`Cycler.run` must be overridden.
+    """
+    def __init__(self, *, loop: Optional[asyncio.AbstractEventLoop] = None,
+                 delay: Number, callback: Optional[Callable[..., Any]] = None):
         if loop is not None:
             self.loop = loop
         else:
@@ -21,20 +36,37 @@ class Cycler:
     def _schedule_callback(self, delay: bool = True) -> None:
         if not self.cancelled:
             if delay:
-                self._handle = self.loop.call_later(self.delay,
-                                                    self._actual_callback)
+                self._handle = self.loop.call_later(
+                    self.delay, self._actual_callback)
             else:
                 self.loop.call_soon(self._actual_callback)
 
-    def _actual_callback(self):
+    def _actual_callback(self) -> None:
         self._future = self.loop.create_task(self.run())
         self._future.add_done_callback(
-            lambda future: self._schedule_callback)
+            lambda future: self._schedule_callback())
 
-    async def run(self):
+    async def run(self) -> None:
+        """Called every cycle, can be overridden in a subclass."""
         await self.callback(*self.args, **self.kwargs)
 
-    def start(self, *args, **kwargs):
+    def start(self, *args, **kwargs) -> None:
+        r"""Starts the cycler, the first cycle will happen
+        immediately.
+
+        Arguments
+            \*args: Any
+                The arguments to use when calling the callback.
+
+            \*\*kwargs: Any
+                The keyword arguments to use when calling the
+                callback.
+
+        Raises
+            :exc:`AssertionError`
+                Raised when :attr:`Cycler.callback` is None
+                and :meth:`Cycler.run` is not overridden.
+        """
         assert (
             self.callback is not None
             or self.run is not Cycler.run
@@ -44,7 +76,8 @@ class Cycler:
         self.kwargs = kwargs
         self._schedule_callback(False)
 
-    def stop(self):
+    def stop(self) -> None:
+        """Stops the cycler, cancelling the on-going task if any."""
         self.cancelled = True
         if self._handle is not None:
             self._handle.cancel()

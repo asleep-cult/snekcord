@@ -7,12 +7,12 @@ from ..templates.role import RoleTemplate
 
 if TYPE_CHECKING:
     from ..objects.guild import Guild
-    from ..states.role import GuildRoleState
+    from ..states.role import RoleState
 
 
 class Role(BaseObject, template=RoleTemplate):
     __slots__ = ('guild',)
 
-    def __init__(self, *, state: GuildRoleState, guild: Guild):
+    def __init__(self, *, state: RoleState, guild: Guild):
+        super().__init__(state=state)
         self.guild = guild
-        self._state = state

@@ -13,7 +13,7 @@ class User(BaseObject, template=UserTemplate):
     __slots__ = ()
 
     def __init__(self, *, state: UserState):
-        self._state = state
+        super().__init__(state=state)
 
     @property
     def mention(self):
