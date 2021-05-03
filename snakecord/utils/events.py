@@ -28,9 +28,8 @@ class EventNamespace:
         cls.__events__ = {}
 
         for base in cls.__bases__:
-            if isinstance(cls, type) and not issubclass(base, EventNamespace):
-                continue
-            cls.__events__.update(base.__events__)
+            if issubclass(base, EventNamespace):
+                cls.__events__.update(base.__events__)
 
         for name, attr in cls.__dict__.items():
             if isinstance(attr, type) and issubclass(attr, EventDefinition):
