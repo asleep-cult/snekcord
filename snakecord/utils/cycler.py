@@ -20,10 +20,8 @@ class Cycler:
             The coroutine to run, if None is provided
             :meth:`Cycler.run` must be overridden.
     """
-    def __init__(self, *,
-                 loop: Optional[asyncio.AbstractEventLoop] = None,
-                 delay: Number,
-                 callback: Optional[Callable[..., Any]] = None) -> None:
+    def __init__(self, *, loop: Optional[asyncio.AbstractEventLoop] = None,
+                 delay: Number, callback: Optional[Callable[..., Any]] = None):
         if loop is not None:
             self.loop = loop
         else:
@@ -38,22 +36,21 @@ class Cycler:
     def _schedule_callback(self, delay: bool = True) -> None:
         if not self.cancelled:
             if delay:
-                self._handle = self.loop.call_later(self.delay,
-                                                    self._actual_callback)
+                self._handle = self.loop.call_later(
+                    self.delay, self._actual_callback)
             else:
                 self.loop.call_soon(self._actual_callback)
 
-    def _actual_callback(self):
+    def _actual_callback(self) -> None:
         self._future = self.loop.create_task(self.run())
         self._future.add_done_callback(
             lambda future: self._schedule_callback)
 
-    async def run(self):
-        """Called every cycle, can be overridden in a subclass.
-        """
+    async def run(self) -> None:
+        """Called every cycle, can be overridden in a subclass."""
         await self.callback(*self.args, **self.kwargs)
 
-    def start(self, *args, **kwargs):
+    def start(self, *args, **kwargs) -> None:
         r"""Starts the :class:`Cycler`, the first cycle will happen
         immediately.
 
@@ -79,9 +76,8 @@ class Cycler:
         self.kwargs = kwargs
         self._schedule_callback(False)
 
-    def stop(self):
-        """Stops the :class:`Cycler`, cancelling the on-going task if any.
-        """
+    def stop(self) -> None:
+        """Stops the :class:`Cycler`, cancelling the on-going task if any."""
         self.cancelled = True
         if self._handle is not None:
             self._handle.cancel()
