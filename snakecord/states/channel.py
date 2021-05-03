@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import enum
+from typing import Dict, TYPE_CHECKING, Type
 
 from .base import (
     BaseState,
@@ -9,7 +12,9 @@ from .base import (
 from ..connections import rest
 from ..utils.snowflake import Snowflake
 from ..objects import channel as channels
-from ..objects.base import BaseObject
+
+if TYPE_CHECKING:
+    from ..objects.guild import Guild
 
 
 class ChannelType(enum.IntEnum):
@@ -25,8 +30,8 @@ class ChannelType(enum.IntEnum):
 class ChannelState(BaseState):
     __container__ = SnowflakeMapping
     __recycled_container__ = WeakValueSnowflakeMapping
-    __default_class__ = BaseObject
-    __class_map__ = {
+    __default_class__ = channels.GuildChannel
+    __class_map__: Dict[ChannelType, Type[channels.Channel]] = {
         ChannelType.GUILD_TEXT: channels.TextChannel,
         ChannelType.GUILD_VOICE: channels.VoiceChannel,
         ChannelType.DM: channels.DMChannel,
@@ -73,7 +78,8 @@ class ChannelState(BaseState):
 
 
 class GuildChannelState(BaseSubState):
-    def __init__(self, *, superstate: ChannelState, guild):
+    superstate: ChannelState
+    def __init__(self, *, superstate: ChannelState, guild: Guild):
         super().__init__(superstate=superstate)
         self.guild = guild
 

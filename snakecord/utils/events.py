@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from numbers import Number
-from typing import Any, Awaitable, Callable, Optional, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Type
 from weakref import WeakSet
 
 
@@ -18,34 +17,28 @@ class EventNamespaceMeta(type):
 
 
 class EventNamespace(metaclass=EventNamespaceMeta):
-    pass
+    __events__: Dict[str, type]
 
-
-class eventdef:
-    def __init__(self, cls):
-        self.cls = cls
-
-    def __set_name__(self, owner, name):
+class eventdef(type):
+    def __set_name__(cls, owner, name):
         assert isinstance(owner, EventNamespaceMeta)
-        owner.__events__[name] = self.cls
-        setattr(owner, name, self.cls)
+        owner.__events__[name] = cls
+        setattr(owner, name, cls)
 
 
 class EventWaiter:
-    events: EventNamespace
-
     def __init__(self, name: str, pusher: EventDispatcher,
-                 timeout: Optional[Number],
+                 timeout: Optional[float],
                  filterer: Optional[Callable[..., bool]]) -> None:
         self.name = name
         self.pusher = pusher
         self.timeout = timeout
         self.filterer = filterer
-        self._future = None
+        self._future: Optional[asyncio.Future] = None
         self._queue: asyncio.Queue[Tuple[Any]] = asyncio.Queue()
 
     def _put(self, value: Tuple[Any]) -> None:
-        if self.filterer(*value):
+        if self.filterer is None or self.filterer(*value):
             self._queue.put_nowait(value)
 
     async def _get(self) -> Any:
@@ -90,6 +83,7 @@ class EventWaiter:
 def ensure_future(coro: Awaitable) -> Optional[asyncio.Future]:
     if hasattr(coro.__class__, '__await__'):
         return asyncio.ensure_future(coro)
+    return None
 
 
 class EventDispatcher:
@@ -100,9 +94,9 @@ class EventDispatcher:
         else:
             self.loop = asyncio.get_event_loop()
 
-        self._listeners = {}
-        self._waiters = {}
-        self._subscribers = []
+        self._listeners: Dict[str, List[Callable]] = {}
+        self._waiters: Dict[str, WeakSet] = {}
+        self._subscribers: List[EventDispatcher] = []
 
     def register_listener(self, name: str, func: Callable[..., Any]) -> None:
         listeners = self._listeners.setdefault(name.lower(), [])
@@ -114,8 +108,8 @@ class EventDispatcher:
             listeners.remove(func)
 
     def register_waiter(self, name: str, *,
-                        timeout: Optional[Union[int, float]] = None,
-                        filterer: Optional[Number] = None) -> EventWaiter:
+                        timeout: Optional[float] = None,
+                        filterer: Optional[Callable[..., bool]] = None) -> EventWaiter:
         waiters = self._waiters.setdefault(name.lower(), WeakSet())
         waiter = EventWaiter(name, self, timeout, filterer)
         waiters.add(waiter)

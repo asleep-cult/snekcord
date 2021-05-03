@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.member import GuildMember
@@ -20,8 +20,8 @@ class GuildMemberState(BaseState):
         self.guild = guild
 
     @classmethod
-    def set_guild_member_class(cls, klass: type) -> None:
-        cls.__guild_class__ = klass
+    def set_guild_member_class(cls, klass: Type[GuildMember]) -> None:
+        cls.__guild_member_class__ = klass
 
     def append(self, data: dict, *args, **kwargs) -> GuildMember:
         member = self.get(data['user']['id'])

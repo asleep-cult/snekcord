@@ -1,12 +1,11 @@
 import asyncio
-from numbers import Number
 from typing import Any, Callable, Optional
 
 
 class Cycler:
     def __init__(self, *,
                  loop: Optional[asyncio.AbstractEventLoop] = None,
-                 delay: Number,
+                 delay: float,
                  callback: Optional[Callable[..., Any]] = None) -> None:
         if loop is not None:
             self.loop = loop
@@ -17,7 +16,7 @@ class Cycler:
         self.callback = callback
         self.cancelled = False
         self._task = None
-        self._handle = None
+        self._handle: Optional[asyncio.TimerHandle] = None
 
     def _schedule_callback(self, delay: bool = True) -> None:
         if not self.cancelled:

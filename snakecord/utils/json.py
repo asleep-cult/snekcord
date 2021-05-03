@@ -112,8 +112,8 @@ class JsonField:
 
 class JsonArray(JsonField):
     def __init__(self, *args, **kwargs) -> None:
-        default = kwargs.pop('default', list)
-        super().__init__(*args, **kwargs, default=default)
+        kwargs.setdefault('default', list)
+        super().__init__(*args, **kwargs)
 
     def unmarshal(self, values: Any) -> Any:
         unmarshalled = []
@@ -130,7 +130,7 @@ class JsonArray(JsonField):
 
 class JsonObjectMeta(type):
     def __new__(mcs: Type[type], name: str,
-                bases: tuple[type], attrs: Dict[str, Any],
+                bases: Tuple[type], attrs: Dict[str, Any],
                 template: JsonTemplate) -> JsonObjectMeta:
         slots = set(attrs.pop('__slots__', ()))
         if template is not None:
@@ -139,7 +139,7 @@ class JsonObjectMeta(type):
         attrs['__slots__'] = slots
         attrs['__template__'] = template
 
-        return super().__new__(mcs, name, bases, attrs)
+        return super().__new__(mcs, name, bases, attrs) # type: ignore
 
 
 class JsonObject(metaclass=JsonObjectMeta, template=JsonTemplate()):

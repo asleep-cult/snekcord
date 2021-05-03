@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.role import Role
@@ -16,7 +16,7 @@ class GuildRoleState(BaseState):
     __role_class__ = Role
 
     @classmethod
-    def set_role_class(cls, klass: type):
+    def set_role_class(cls, klass: Type[Role]):
         cls.__role_class__ = klass
 
     def __init__(self, *, manager: BaseManager, guild: Guild):
