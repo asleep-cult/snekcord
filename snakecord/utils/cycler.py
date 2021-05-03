@@ -44,7 +44,7 @@ class Cycler:
     def _actual_callback(self) -> None:
         self._future = self.loop.create_task(self.run())
         self._future.add_done_callback(
-            lambda future: self._schedule_callback)
+            lambda future: self._schedule_callback())
 
     async def run(self) -> None:
         """Called every cycle, can be overridden in a subclass."""
