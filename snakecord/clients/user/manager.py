@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 from ...connections.rest import RestSession
 from ...connections.shard import Shard
 from ...manager import BaseManager
-from ...utils.events import EventDispatcher, EventNamespace, eventdef
+from ...utils.events import EventDispatcher, EventNamespace, EventDefinition
 
 if TYPE_CHECKING:
     from ...objects.channel import Channel
@@ -19,29 +19,25 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class _base_event:
+class _base_event(EventDefinition):
     manager: UserClientManager
     shard: Shard
     payload: Dict[str, Any]
 
 
 class UserClientEvents(EventNamespace):
-    @eventdef
     @dataclass
     class application_command_create(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class application_command_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class application_command_delete(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class channel_create(_base_event):
         channel: Channel = None
@@ -52,7 +48,6 @@ class UserClientEvents(EventNamespace):
                 self.channel = self.manager.channels.append(
                     self.payload, guild=guild)
 
-    @eventdef
     @dataclass
     class channel_update(_base_event):
         channel: Channel = None
@@ -67,7 +62,6 @@ class UserClientEvents(EventNamespace):
                 self.channel = self.manager.channels.append(
                     self.payload, guild=guild)
 
-    @eventdef
     @dataclass
     class channel_delete(_base_event):
         channel: Channel = None
@@ -76,12 +70,10 @@ class UserClientEvents(EventNamespace):
             channel_id = self.payload.get('channel_id')
             self.channel = self.manager.channels.pop(channel_id)
 
-    @eventdef
     @dataclass
     class channel_pins_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class guild_create(_base_event):
         guild: Guild = None
@@ -89,7 +81,6 @@ class UserClientEvents(EventNamespace):
         def __post_init__(self):
             self.guild = self.manager.guilds.append(self.payload)
 
-    @eventdef
     @dataclass
     class guild_update(_base_event):
         guild: Guild = None
@@ -97,7 +88,6 @@ class UserClientEvents(EventNamespace):
         def __post_init__(self):
             self.guild = self.manager.guilds.append(self.payload)
 
-    @eventdef
     @dataclass
     class guild_delete(_base_event):
         guild: Guild = None
@@ -106,7 +96,6 @@ class UserClientEvents(EventNamespace):
             guild_id = self.payload.get('guild_id')
             self.guild = self.manager.guilds.pop(guild_id)
 
-    @eventdef
     @dataclass
     class guild_ban_add(_base_event):
         guild: Optional[Guild] = None
@@ -120,7 +109,6 @@ class UserClientEvents(EventNamespace):
             self.user = self.manager.users.append(user)
             self.member = self.guild.members.pop(self.user.id, None)
 
-    @eventdef
     @dataclass
     class guild_ban_remove(_base_event):
         guild: Optional[Guild] = None
@@ -132,7 +120,6 @@ class UserClientEvents(EventNamespace):
             self.guild = self.manager.guilds.get(guild_id)
             self.user = self.manager.users.append(user)
 
-    @eventdef
     @dataclass
     class guild_emojis_update(_base_event):
         guild: Optional[Guild] = None
@@ -144,12 +131,10 @@ class UserClientEvents(EventNamespace):
             self.guild = self.manager.guilds.get(guild_id)
             self.emojis = self.guild.emojis.extend(emojis)
 
-    @eventdef
     @dataclass
     class guild_integrations_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class guild_member_add(_base_event):
         guild: Optional[Guild] = None
@@ -162,7 +147,6 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.member = self.guild.members.append(self.payload)
 
-    @eventdef
     @dataclass
     class guild_member_remove(_base_event):
         guild: Optional[Guild] = None
@@ -178,7 +162,6 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.member = self.guild.members.pop(self.user.id, None)
 
-    @eventdef
     @dataclass
     class guild_member_update(_base_event):
         guild: Optional[Guild] = None
@@ -191,7 +174,6 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.member = self.guild.members.append(self.payload)
 
-    @eventdef
     @dataclass
     class guild_members_chunk(_base_event):
         guild: Optional[Guild] = None
@@ -206,7 +188,6 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.members = self.guild.members.extend(members)
 
-    @eventdef
     @dataclass
     class guild_role_create(_base_event):
         guild: Optional[Guild] = None
@@ -221,7 +202,6 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.role = self.guild.roles.append(role)
 
-    @eventdef
     @dataclass
     class guild_role_update(_base_event):
         guild: Optional[Guild] = None
@@ -236,7 +216,6 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.role = self.guild.roles.append(role)
 
-    @eventdef
     @dataclass
     class guild_role_delete(_base_event):
         guild: Optional[Guild] = None
@@ -251,37 +230,30 @@ class UserClientEvents(EventNamespace):
             if self.guild is not None:
                 self.role = self.guild.roles.pop(role_id, None)
 
-    @eventdef
     @dataclass
     class integration_create(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class integration_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class integration_delete(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class interaction_create(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class invite_create(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class invite_delete(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class message_create(_base_event):
         channel: Optional[Channel] = None
@@ -294,7 +266,6 @@ class UserClientEvents(EventNamespace):
             if self.channel is not None:
                 self.message = self.channel.messages.append(self.payload)
 
-    @eventdef
     @dataclass
     class message_update(_base_event):
         channel: Optional[Channel] = None
@@ -307,7 +278,6 @@ class UserClientEvents(EventNamespace):
             if self.channel is not None:
                 self.message = self.channel.messages.append(self.payload)
 
-    @eventdef
     @dataclass
     class message_delete(_base_event):
         channel: Optional[Channel] = None
@@ -321,7 +291,6 @@ class UserClientEvents(EventNamespace):
             if self.channel is not None:
                 self.message = self.channel.messages.pop(message_id, None)
 
-    @eventdef
     @dataclass
     class message_delete_bulk(_base_event):
         channel: Optional[Channel] = None
@@ -339,52 +308,42 @@ class UserClientEvents(EventNamespace):
                     self.messages.append(
                         self.channel.messages.pop(message_id, message_id))
 
-    @eventdef
     @dataclass
     class message_reaction_add(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class message_reaction_remove(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class message_reaction_remove_all(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class message_reaction_remove_emoji(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class presence_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class typing_state(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class user_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class voice_state_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class voice_server_update(_base_event):
         pass
 
-    @eventdef
     @dataclass
     class webhooks_update(_base_event):
         pass

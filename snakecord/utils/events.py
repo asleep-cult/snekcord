@@ -3,44 +3,75 @@ from __future__ import annotations
 import asyncio
 import functools
 from numbers import Number
-from typing import Any, Awaitable, Callable, Optional, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, Optional, Tuple
 from weakref import WeakSet
 
-__all__ = ('EventNamespace', 'EventWaiter', 'EventDispatcher', 'eventdef')
+__all__ = ('EventNamespace', 'EventWaiter', 'EventDispatcher',
+           'EventDefinition')
 
 
-class EventNamespaceMeta(type):
-    def __new__(cls, name, bases, attrs):
-        events = attrs.setdefault('__events__', {})
-        for base in bases:
-            if isinstance(base, EventNamespaceMeta):
-                events.update(base.__events__)
-
-        return super().__new__(cls, name, bases, attrs)
+class EventDefinition:
+    """An empty class that merely marks subclasses as being an event"""
 
 
-class EventNamespace(metaclass=EventNamespaceMeta):
-    pass
+class EventNamespace:
+    """A class that gathers :class:`EventDefinition` s and stores
+    them in :attr:`EventNamespace.__events__` when subclassed.
 
+    Attributes
+        __events__: dict[str, EventDefinition]
+            The :class:`EventDefinition` s defined in the class.
+    """
+    __events__: Dict[str, EventDefinition]
 
-class eventdef:
-    def __init__(self, cls):
-        self.cls = cls
+    def __init_subclass__(cls):
+        cls.__events__ = {}
 
-    def __set_name__(self, owner, name):
-        assert isinstance(owner, EventNamespaceMeta)
-        owner.__events__[name] = self.cls
-        setattr(owner, name, self.cls)
+        for base in cls.__bases__:
+            if not isinstance(base, EventNamespace):
+                continue
+            cls.__events__.update(base.__events__)
+
+        for name, attr in cls.__dict__.items():
+            if isinstance(attr, EventDispatcher):
+                cls.__events__[name] = attr
 
 
 class EventWaiter:
-    events: EventNamespace
+    """A class that receives events from an :class:`EventDispatcher`
+    if the event passes the filter
 
-    def __init__(self, name: str, pusher: EventDispatcher,
+    Attributes
+        name: str
+            The name of the event that the filterer will receive
+
+        dispatcher: EventDispatcher
+            The :class:`EventDispatcher` that the waiter is
+            receiving events from.
+
+        timeout: Optional[Number]
+            The maximum amount of time to wait for an event to
+            be received, :exc:`asyncio.TimeoutError` is raised
+            when this timeout is exceeded.
+
+        filterer: Optional[Callable[..., bool]]
+            A callable the determines if the event is wanted,
+            e.g.
+
+            .. code-block:: python
+
+                if filterer(event):
+                    return event
+
+    .. note::
+        This class shouldn't be created directly,
+        use :meth:`EventDispatcher.wait` instead
+    """
+    def __init__(self, name: str, dispatcher: EventDispatcher,
                  timeout: Optional[Number],
                  filterer: Optional[Callable[..., bool]]) -> None:
         self.name = name
-        self.pusher = pusher
+        self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
         self._future = None
@@ -76,13 +107,17 @@ class EventWaiter:
         return self.__await__impl().__await__()
 
     def close(self) -> None:
+        """Closes the waiter and removes itself from the
+        corresponding :class:`EventDispatcher`, any coroutines
+        waiting on it will receive an :exc:`asyncio.CancelledError`
+        """
         if self._future is not None:
             try:
                 self._future.cancel()
             except asyncio.InvalidStateError:
                 pass
         try:
-            self.pusher.remove_waiter(self)
+            self.dispatcher.remove_waiter(self)
         except KeyError:
             pass
 
@@ -95,6 +130,8 @@ def ensure_future(coro: Awaitable) -> Optional[asyncio.Future]:
 
 
 class EventDispatcher:
+    events: EventNamespace
+
     def __init__(self, *,
                  loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if loop is not None:
@@ -116,8 +153,8 @@ class EventDispatcher:
             listeners.remove(func)
 
     def register_waiter(self, name: str, *,
-                        timeout: Optional[Union[int, float]] = None,
-                        filterer: Optional[Number] = None) -> EventWaiter:
+                        timeout: Optional[Number] = None,
+                        filterer: Callable[..., Any] = None) -> EventWaiter:
         waiters = self._waiters.setdefault(name.lower(), WeakSet())
         waiter = EventWaiter(name, self, timeout, filterer)
         waiters.add(waiter)

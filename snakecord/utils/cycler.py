@@ -51,10 +51,10 @@ class Cycler:
         await self.callback(*self.args, **self.kwargs)
 
     def start(self, *args, **kwargs) -> None:
-        r"""Starts the :class:`Cycler`, the first cycle will happen
+        r"""Starts the cycler, the first cycle will happen
         immediately.
 
-        Args:
+        Arguments
             \*args: Any
                 The arguments to use when calling the callback.
 
@@ -63,7 +63,7 @@ class Cycler:
                 callback.
 
         Raises:
-            :exc:`AssertionError`:
+            :exc:`AssertionError`
                 Raised when :attr:`Cycler.callback` is None
                 and :meth:`Cycler.run` is not overridden.
         """
@@ -77,7 +77,7 @@ class Cycler:
         self._schedule_callback(False)
 
     def stop(self) -> None:
-        """Stops the :class:`Cycler`, cancelling the on-going task if any."""
+        """Stops the cycler, cancelling the on-going task if any."""
         self.cancelled = True
         if self._handle is not None:
             self._handle.cancel()
