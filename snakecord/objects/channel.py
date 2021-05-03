@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 from .base import BaseObject
 from ..connections.rest import (
     RestFuture,
-    create_channel_message,
     delete_channel
 )
 from ..templates.channel import (
@@ -42,14 +41,12 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     @property
     def mention(self) -> str:
         return f'<#{self.id}>'
-    
+
     def delete(self) -> RestFuture:
         return delete_channel.request(
-            session=self._state.manager.rest, 
-            fmt={'channel_id': self.id} 
+            session=self._state.manager.rest,
+            fmt={'channel_id': self.id}
         )
-
-
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):

@@ -13,7 +13,7 @@ RoleTagTemplate = JsonTemplate(
     bot_id=JsonField('bot_id', Snowflake, str),
     integration_id=JsonField('integration_id', Snowflake, str),
     premium_subscriber=JsonField('premium_subscriber')
-) # type: ignore
+)  # type: ignore
 
 RoleTemplate: JsonTemplate[Role] = JsonTemplate(
     name=JsonField('name'),

@@ -38,8 +38,9 @@ class Message(BaseObject, template=MessageTemplate):
         if self._member is not None:
             self._member['user'] = self._author
             self.member = self.guild.members.append(self._member)
-    
+
     def publish(self) -> rest.RestFuture:
         return rest.crosspost_message.request(
-            session=self._state.manager.rest, fmt={'channel_id': self.channel.id, 'message_id': self.id}
+            session=self._state.manager.rest,
+            fmt={'channel_id': self.channel.id, 'message_id': self.id}
         )

@@ -28,19 +28,19 @@ class Guild(BaseObject, template=GuildTemplate):
     def _update(self, *args, **kwargs) -> None:
         super()._update(*args, **kwargs)
 
-        for channel in self._channels: # type: ignore
+        for channel in self._channels:  # type: ignore
             self.channels.superstate.append(channel, guild=self)
 
-        for member in self._members: # type: ignore
+        for member in self._members:  # type: ignore
             self.members.append(member)
 
-        for emoji in self._emojis: # type: ignore
+        for emoji in self._emojis:  # type: ignore
             self.emojis.append(emoji)
 
-        for role in self._roles: # type: ignore
+        for role in self._roles:  # type: ignore
             self.roles.append(role)
 
-        self._channels.clear() # type: ignore
-        self._members.clear() # type: ignore
-        self._emojis.clear() # type: ignore
-        self._roles.clear() # type: ignore
+        self._channels.clear()  # type: ignore
+        self._members.clear()  # type: ignore
+        self._emojis.clear()  # type: ignore
+        self._roles.clear()  # type: ignore

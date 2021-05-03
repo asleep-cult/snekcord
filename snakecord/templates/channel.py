@@ -7,7 +7,9 @@ from ..utils.json import JsonArray, JsonField, JsonTemplate
 from ..utils.snowflake import Snowflake
 
 if TYPE_CHECKING:
-    from ..objects.channel import GuildChannel, TextChannel, VoiceChannel, DMChannel
+    from ..objects.channel import (
+        GuildChannel, TextChannel, VoiceChannel, DMChannel
+    )
 
 GuildChannelTemplate: JsonTemplate[GuildChannel] = JsonTemplate(
     name=JsonField('name'),

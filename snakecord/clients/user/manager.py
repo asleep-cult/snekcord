@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from ...objects.role import Role
     from ...objects.user import User
 
+
 @dataclass
 class _base_event(EventDefinition):
     manager: UserClientManager
@@ -62,11 +63,11 @@ class UserClientEvents(EventNamespace):
 
     @dataclass
     class channel_delete(_base_event):
-        channel: Optional[Channel] = None
+        channel: Optional[Union[Channel, int]] = None
 
         def __post_init__(self):
-            channel_id = self.payload.get('channel_id')
-            self.channel = self.manager.channels.pop(channel_id)
+            channel_id = self.payload.get('id')
+            self.channel = self.manager.channels.pop(channel_id, channel_id)
 
     @dataclass
     class channel_pins_update(_base_event):

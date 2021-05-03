@@ -4,12 +4,13 @@ import asyncio
 import contextlib
 from datetime import datetime, timedelta
 import types
-from typing import Any, Dict, Generator, Optional, TYPE_CHECKING, Tuple, TypeVar
+from typing import (Any, Dict, Generator, Optional,
+                    TYPE_CHECKING, Tuple, TypeVar)
+
+import aiohttp
 
 T = TypeVar('T')
 R = TypeVar('R', bound='RestFuture')
-
-import aiohttp
 
 if TYPE_CHECKING:
     from ..clients.user.manager import UserClientManager
@@ -31,7 +32,15 @@ class HTTPEndpoint:
         self.params = params
         self.json = json
 
-    def request(self, *, session: RestSession, fmt: Dict[str, Any] = {}, params=None, json=None, **kwargs):
+    def request(
+        self,
+        *,
+        session: RestSession,
+        fmt: Dict[str, Any] = {},
+        params=None,
+        json=None,
+        **kwargs
+    ):
         if params is not None:
             params = {k: v for k, v in params.items() if k in self.params}
 
@@ -652,7 +661,7 @@ class RestFuture(asyncio.Future[T]):
         self.process_response = kwargs.pop('process_response', None)
         super().__init__(*args, **kwargs)
 
-    def __await__(self: R) -> Generator[None, None, R]: # type: ignore
+    def __await__(self: R) -> Generator[None, None, R]:  # type: ignore
         yield
         return self  # This is equivalent to asyncio.sleep(0), it gives
         # the RequestThrottler a chance to run the request without
@@ -670,7 +679,9 @@ class RestFuture(asyncio.Future[T]):
         # will hang because we never yield in the while loop.
 
     async def wait(self) -> T:
-        return await types.coroutine(super().__await__)() # type: ignore
+        return await types.coroutine(
+            super().__await__)()  # type: ignore
+
 
 class RequestThrottler:
     def __init__(self, session: RestSession, endpoint):
@@ -685,7 +696,10 @@ class RequestThrottler:
 
         self._made_initial_request = False
 
-        self._queue: asyncio.Queue[Tuple[asyncio.Future, Tuple[Any, ...], Dict[str, Any]]] = asyncio.Queue()
+        self._queue: asyncio.Queue[
+            Tuple[asyncio.Future, Tuple[Any, ...], Dict[str, Any]]
+        ] = asyncio.Queue()
+
         self._lock = asyncio.Lock()
         self._running = False
 
@@ -794,7 +808,8 @@ class RequestThrottler:
         self._queue.put_nowait((future, args, kwargs))
 
         if not self._running:
-            self.session.loop.create_task(self._run_requests())
+            self.session.loop.create_task(
+                self._run_requests())
 
         return future
 
@@ -805,7 +820,7 @@ class RestSession:
         self.loop = manager.loop
         self.token = manager.token
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self._throttlers: Dict[str, RequestThrottler] = {}  # key_for(): RequestThrottler
+        self._throttlers: Dict[str, RequestThrottler] = {}
 
     def key_for(self, method, url, fmt):
         major_params = ('channel_id', 'guild_id', 'webhook_id',

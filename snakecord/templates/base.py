@@ -8,4 +8,6 @@ from ..utils.snowflake import Snowflake
 if TYPE_CHECKING:
     from ..objects.base import BaseObject
 
-BaseTemplate: JsonTemplate[BaseObject] = JsonTemplate(id=JsonField('id', Snowflake, str))
+BaseTemplate: JsonTemplate[BaseObject] = JsonTemplate(
+    id=JsonField('id', Snowflake, str)
+)

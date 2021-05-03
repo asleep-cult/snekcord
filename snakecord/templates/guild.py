@@ -20,7 +20,7 @@ GuildPreviewTemplate = JsonTemplate(
     presence_count=JsonField('approximate_presence_count'),
     description=JsonField('description'),
     __extends__=(BaseTemplate,)
-) # type: ignore
+)  # type: ignore
 
 GuildTemplate: JsonTemplate[Guild] = JsonTemplate(
     icon_hash=JsonField('icon_hash'),
@@ -65,4 +65,4 @@ GuildTemplate: JsonTemplate[Guild] = JsonTemplate(
 GuildBanTemplate = JsonTemplate(
     reason=JsonField('reason'),
     _user=JsonField('user')
-) # type: ignore
+)  # type: ignore

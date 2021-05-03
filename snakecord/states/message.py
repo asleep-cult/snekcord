@@ -45,7 +45,7 @@ class ChannelMessageState(BaseState):
         embed: Optional[dict] = None,
         allowed_mentions: Optional[dict] = None,
         message_reference: Optional[dict] = None
-    ) -> rest.RestFuture[Message]:
+    ) -> rest.RestFuture[dict]:
         payload: Dict[str, Any] = {'tts': tts}
 
         if content is not None:
@@ -53,13 +53,13 @@ class ChannelMessageState(BaseState):
 
         if nonce is not None:
             payload['nonce'] = nonce
-        
+
         if embed is not None:
             payload['embed'] = embed
-        
+
         if allowed_mentions is not None:
             payload['allowed_mentions'] = allowed_mentions
-        
+
         if message_reference is not None:
             payload['message_reference'] = message_reference
 

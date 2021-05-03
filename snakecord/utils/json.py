@@ -141,7 +141,7 @@ class JsonObjectMeta(type):
         attrs['__slots__'] = slots
         attrs['__template__'] = template
 
-        return super().__new__(mcs, name, bases, attrs) # type: ignore
+        return super().__new__(mcs, name, bases, attrs)  # type: ignore
 
 
 class JsonObject(metaclass=JsonObjectMeta, template=JsonTemplate()):
