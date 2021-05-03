@@ -62,7 +62,7 @@ class Cycler:
                 The keyword arguments to use when calling the
                 callback.
 
-        Raises:
+        Raises
             :exc:`AssertionError`
                 Raised when :attr:`Cycler.callback` is None
                 and :meth:`Cycler.run` is not overridden.

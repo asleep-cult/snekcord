@@ -55,7 +55,7 @@ class EventWaiter:
             when this timeout is exceeded.
 
         filterer: Optional[Callable[..., bool]]
-            A callable the determines if the event is wanted,
+            A callable that determines if the event is wanted,
             e.g.
 
             .. code-block:: python
@@ -107,7 +107,7 @@ class EventWaiter:
         return self.__await__impl().__await__()
 
     def close(self) -> None:
-        """Closes the waiter and removes itself from the
+        """Closes the waiter and removes it from the
         corresponding :class:`EventDispatcher`, any coroutines
         waiting on it will receive an :exc:`asyncio.CancelledError`
         """
