@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from datetime import datetime
 
 from .base import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 from ..utils.snowflake import Snowflake
 
-MessageTemplate = JsonTemplate(
+if TYPE_CHECKING:
+    from ..objects.message import Message
+
+MessageTemplate: JsonTemplate[Message] = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),
     guild_id=JsonField('guild_id', Snowflake, str),
     _author=JsonField('author'),

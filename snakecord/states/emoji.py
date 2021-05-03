@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.emoji import GuildEmoji
@@ -20,7 +20,7 @@ class GuildEmojiState(BaseState):
         self.guild = guild
 
     @classmethod
-    def set_guild_emoji_class(cls, klass: type):
+    def set_guild_emoji_class(cls, klass: Type[GuildEmoji]):
         cls.__guild_emoji_class__ = klass
 
     def append(self, data: dict, *args, **kwargs):

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import enum
+from typing import Dict, TYPE_CHECKING, Type, Union
 
 from .base import (
     BaseState,
@@ -9,7 +12,9 @@ from .base import (
 from ..connections import rest
 from ..utils.snowflake import Snowflake
 from ..objects import channel as channels
-from ..objects.base import BaseObject
+
+if TYPE_CHECKING:
+    from ..objects.guild import Guild
 
 
 class ChannelType(enum.IntEnum):
@@ -25,9 +30,10 @@ class ChannelType(enum.IntEnum):
 class ChannelState(BaseState):
     __container__ = SnowflakeMapping
     __recycled_container__ = WeakValueSnowflakeMapping
-    __default_class__ = BaseObject
-    __class_map__ = {
+    __default_class__ = channels.GuildChannel
+    __class_map__: Dict[ChannelType, Type[channels.Channel]] = {
         ChannelType.GUILD_TEXT: channels.TextChannel,
+        ChannelType.GUILD_NEWS: channels.TextChannel,
         ChannelType.GUILD_VOICE: channels.VoiceChannel,
         ChannelType.DM: channels.DMChannel,
         ChannelType.GUILD_CATEGORY: channels.CategoryChannel
@@ -73,10 +79,38 @@ class ChannelState(BaseState):
 
 
 class GuildChannelState(BaseSubState):
-    def __init__(self, *, superstate: ChannelState, guild):
+    superstate: ChannelState
+
+    def __init__(self, *, superstate: ChannelState, guild: Guild):
         super().__init__(superstate=superstate)
         self.guild = guild
 
     def __related__(self, item):
         return (isinstance(item, channels.GuildChannel)
                 and item.guild == self.guild)
+
+    def create(
+        self,
+        *,
+        name: str,
+        type: Union[int, ChannelType],
+        **fields
+    ) -> rest.RestFuture[dict]:
+        return rest.create_guild_channel.request(
+            session=self.superstate.manager.rest,
+            fmt={'guild_id': self.guild.id},
+            json={'name': name, 'type': type, **fields}
+        )
+
+    def create_text(self, *, name: str, **fields) -> rest.RestFuture[dict]:
+        return self.create(name=name, type=ChannelType.GUILD_TEXT, **fields)
+
+    def create_news(self, *, name: str, **fields) -> rest.RestFuture[dict]:
+        return self.create(name=name, type=ChannelType.GUILD_NEWS, **fields)
+
+    def create_category(self, *, name: str, **fields) -> rest.RestFuture[dict]:
+        return self.create(
+            name=name, type=ChannelType.GUILD_CATEGORY, **fields)
+
+    def create_voice(self, *, name: str, **fields) -> rest.RestFuture[dict]:
+        return self.create(name=name, type=ChannelType.GUILD_VOICE, **fields)

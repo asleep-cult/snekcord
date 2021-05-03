@@ -1,6 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .base import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 from ..utils.snowflake import Snowflake
+
+if TYPE_CHECKING:
+    from ..objects.guild import Guild
 
 GuildPreviewTemplate = JsonTemplate(
     name=JsonField('name'),
@@ -13,9 +20,9 @@ GuildPreviewTemplate = JsonTemplate(
     presence_count=JsonField('approximate_presence_count'),
     description=JsonField('description'),
     __extends__=(BaseTemplate,)
-)
+)  # type: ignore
 
-GuildTemplate = JsonTemplate(
+GuildTemplate: JsonTemplate[Guild] = JsonTemplate(
     icon_hash=JsonField('icon_hash'),
     _owner=JsonField('owner'),
     owner_id=JsonField('owner_id', Snowflake, str),
@@ -58,4 +65,4 @@ GuildTemplate = JsonTemplate(
 GuildBanTemplate = JsonTemplate(
     reason=JsonField('reason'),
     _user=JsonField('user')
-)
+)  # type: ignore

@@ -1,3 +1,4 @@
+from typing import Type
 from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.guild import Guild
 
@@ -8,7 +9,7 @@ class GuildState(BaseState):
     __guild_class__ = Guild
 
     @classmethod
-    def set_guild_class(cls, klass: type):
+    def set_guild_class(cls, klass: Type[Guild]):
         cls.__guild_class__ = klass
 
     def append(self, data: dict, *args, **kwargs) -> Guild:

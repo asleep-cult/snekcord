@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .base import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 
-GuildEmojiTemplate = JsonTemplate(
+if TYPE_CHECKING:
+    from ..objects.emoji import GuildEmoji
+
+GuildEmojiTemplate: JsonTemplate[GuildEmoji] = JsonTemplate(
     name=JsonField('name'),
     _roles=JsonArray('roles'),
     _user=JsonField('user'),

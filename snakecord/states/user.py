@@ -1,3 +1,4 @@
+from typing import Type
 from .base import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from ..objects.user import User
 
@@ -8,7 +9,7 @@ class UserState(BaseState):
     __user_class__ = User
 
     @classmethod
-    def set_user_class(cls, klass: type) -> None:
+    def set_user_class(cls, klass: Type[User]) -> None:
         cls.__user_class__ = klass
 
     def append(self, data: dict, *args, **kwargs) -> User:

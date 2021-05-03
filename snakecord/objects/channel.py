@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING, Union
 
-if TYPE_CHECKING:
-    from ..objects.guild import Guild
-    from ..states.channel import ChannelState
-
 from .base import BaseObject
+from ..connections.rest import (
+    RestFuture,
+    delete_channel
+)
 from ..templates.channel import (
     DMChannelTemplate,
     GuildChannelTemplate,
@@ -14,13 +14,18 @@ from ..templates.channel import (
     VoiceChannelTemplate
 )
 
+if TYPE_CHECKING:
+    from .guild import Guild
+    from ..states.channel import ChannelState
+
 __all__ = ('GuildChannel', 'TextChannel', 'VoiceChannel', 'CategoryChannel')
 
 # TODO: Have a channel base class for all channels
 
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
-    __slots__ = ('guild', 'messages')
+    _state: ChannelState
+    __slots__ = ('guild', 'messages', '_state')
 
     def __init__(self, *, state: ChannelState,
                  guild: Optional[Guild] = None) -> None:
@@ -34,8 +39,14 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         return self._state.get(self.category_id)
 
     @property
-    def mention(self) -> None:
+    def mention(self) -> str:
         return f'<#{self.id}>'
+
+    def delete(self) -> RestFuture:
+        return delete_channel.request(
+            session=self._state.manager.rest,
+            fmt={'channel_id': self.id}
+        )
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):
@@ -51,12 +62,13 @@ class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
 
 
 class DMChannel(BaseObject, template=DMChannelTemplate):
+    _state: ChannelState
     __slots__ = ('messages',)
 
     def __init__(self, *, state: ChannelState):
         self._state = state
         self.messages = self._state.manager.__channel_message_state_class__(
-            manager=self.manager, channel=self)
+            manager=state.manager, channel=self)
 
 
 Channel = Union[GuildChannel, DMChannel]

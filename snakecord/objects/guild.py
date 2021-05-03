@@ -12,7 +12,7 @@ __all__ = ('Guild',)
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('channels', 'members', 'emojis', 'roles')
+    __slots__ = ('channels', 'members', 'emojis', 'roles', '_state')
 
     def __init__(self, *, state: GuildState) -> None:
         super().__init__(state=state)
@@ -28,19 +28,19 @@ class Guild(BaseObject, template=GuildTemplate):
     def _update(self, *args, **kwargs) -> None:
         super()._update(*args, **kwargs)
 
-        for channel in self._channels:
+        for channel in self._channels:  # type: ignore
             self.channels.superstate.append(channel, guild=self)
 
-        for member in self._members:
+        for member in self._members:  # type: ignore
             self.members.append(member)
 
-        for emoji in self._emojis:
+        for emoji in self._emojis:  # type: ignore
             self.emojis.append(emoji)
 
-        for role in self._roles:
+        for role in self._roles:  # type: ignore
             self.roles.append(role)
 
-        self._channels.clear()
-        self._members.clear()
-        self._emojis.clear()
-        self._roles.clear()
+        self._channels.clear()  # type: ignore
+        self._members.clear()  # type: ignore
+        self._emojis.clear()  # type: ignore
+        self._roles.clear()  # type: ignore

@@ -1,10 +1,19 @@
+from __future__ import annotations
+
 import asyncio
 import contextlib
-import types
 from datetime import datetime, timedelta
-from typing import Tuple
+import types
+from typing import (Any, Dict, Generator, Optional,
+                    TYPE_CHECKING, Tuple, TypeVar)
 
 import aiohttp
+
+T = TypeVar('T')
+R = TypeVar('R', bound='RestFuture')
+
+if TYPE_CHECKING:
+    from ..clients.user.manager import UserClientManager
 
 
 class HTTPError(Exception):
@@ -16,14 +25,22 @@ class HTTPError(Exception):
 
 class HTTPEndpoint:
     def __init__(self, method: str, url: str, *,
-                 params: Tuple[str] = (),
-                 json: Tuple[str] = ()) -> None:
+                 params: Tuple[str, ...] = (),
+                 json: Tuple[str, ...] = ()) -> None:
         self.method = method
         self.url = url
         self.params = params
         self.json = json
 
-    def request(self, *, session, fmt={}, params=None, json=None, **kwargs):
+    def request(
+        self,
+        *,
+        session: RestSession,
+        fmt: Dict[str, Any] = {},
+        params=None,
+        json=None,
+        **kwargs
+    ):
         if params is not None:
             params = {k: v for k, v in params.items() if k in self.params}
 
@@ -526,7 +543,7 @@ leave_guild = HTTPEndpoint(
 create_dm = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'users/@me/channels',
-    json=('recipient_id'),
+    json=('recipient_id',),
 )
 
 create_group_dm = HTTPEndpoint(
@@ -639,12 +656,12 @@ get_gateway_bot = HTTPEndpoint(
 )
 
 
-class RestFuture(asyncio.Future):
+class RestFuture(asyncio.Future[T]):
     def __init__(self, *args, **kwargs):
         self.process_response = kwargs.pop('process_response', None)
         super().__init__(*args, **kwargs)
 
-    def __await__(self):
+    def __await__(self: R) -> Generator[None, None, R]:  # type: ignore
         yield
         return self  # This is equivalent to asyncio.sleep(0), it gives
         # the RequestThrottler a chance to run the request without
@@ -661,23 +678,28 @@ class RestFuture(asyncio.Future):
         # You'd expect it to send Hello forever but of course the script
         # will hang because we never yield in the while loop.
 
-    wait = types.coroutine(asyncio.Future.__await__)
+    async def wait(self) -> T:
+        return await types.coroutine(
+            super().__await__)()  # type: ignore
 
 
 class RequestThrottler:
-    def __init__(self, session, endpoint):
+    def __init__(self, session: RestSession, endpoint):
         self.session = session
         self.endpoint = endpoint
 
-        self.limit = None
-        self.remaining = None
-        self.reset = None
-        self.reset_after = None
+        self.limit: Optional[int] = None
+        self.remaining: Optional[datetime] = None
+        self.reset: Optional[datetime] = None
+        self.reset_after: Optional[float] = None
         self.bucket = None
 
         self._made_initial_request = False
 
-        self._queue = asyncio.Queue()
+        self._queue: asyncio.Queue[
+            Tuple[asyncio.Future, Tuple[Any, ...], Dict[str, Any]]
+        ] = asyncio.Queue()
+
         self._lock = asyncio.Lock()
         self._running = False
 
@@ -712,7 +734,7 @@ class RequestThrottler:
                 # or a foriegn client is making requests). Overwriting the
                 # attributes with this data would make everything stail
                 # and unhelpful
-                print(f'SETTING REMAINING TO {self.remaining}')
+                print(f'SETTING REMAINING TO {remaining}')
                 self.remaining = remaining
 
                 if 'reactions' in self.endpoint.url:
@@ -751,9 +773,9 @@ class RequestThrottler:
                 await self._request(future, *args, **kwargs)
                 self._made_initial_request = True
 
-            while True:
+            while self.remaining:
                 await asyncio.sleep(0)  # This is needed so that other Tasks
-                # get a chance to queue up requests. Removivng this could lead
+                # get a chance to queue up requests. Removing this could lead
                 # to some weird behaviour.
 
                 coros = []
@@ -786,18 +808,19 @@ class RequestThrottler:
         self._queue.put_nowait((future, args, kwargs))
 
         if not self._running:
-            self.session.loop.create_task(self._run_requests())
+            self.session.loop.create_task(
+                self._run_requests())
 
         return future
 
 
 class RestSession:
-    def __init__(self, manager) -> None:
+    def __init__(self, manager: UserClientManager) -> None:
         self.manager = manager
         self.loop = manager.loop
         self.token = manager.token
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self._throttlers = {}  # key_for(): RequestThrottler
+        self._throttlers: Dict[str, RequestThrottler] = {}
 
     def key_for(self, method, url, fmt):
         major_params = ('channel_id', 'guild_id', 'webhook_id',
@@ -806,7 +829,7 @@ class RestSession:
         params = ':'.join(str(fmt.get(param)) for param in major_params)
         return f'{method}:{url}:{params}'
 
-    def throttler_for(self, endpoint, fmt):
+    def throttler_for(self, endpoint: HTTPEndpoint, fmt: Dict[str, Any]):
         key = self.key_for(endpoint.method, endpoint.url, fmt)
         throttler = self._throttlers.get(key)
 
@@ -819,6 +842,6 @@ class RestSession:
     async def request(self, *args, **kwargs):
         headers = kwargs.pop('headers', {})
         headers.update({
-            'Authorization': self.token
+            'Authorization': f'Bot {self.token}'
         })
         return await self.session.request(*args, **kwargs, headers=headers)

@@ -6,11 +6,12 @@ import shutil
 import platform
 import tarfile
 import urllib.request
+from typing import Any, List, Optional
 
 from setuptools import setup, find_packages, Extension
 
 
-ARCHITECTURE = 8 * ctypes.sizeof(ctypes.c_voidp)
+ARCHITECTURE = 8 * ctypes.sizeof(ctypes.c_void_p)
 
 if platform.system() == 'Windows':
     WINDOWS = True
@@ -21,7 +22,7 @@ OPUS_RELEASE = 'https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz'
 OPUS_HEADERS = ('opus.h', 'opus_custom.h', 'opus_defines.h', 'opus_multistream.h',
                 'opus_projection.h', 'opus_types.h')
 
-opus_include_dir = None
+opus_include_dir: Optional[str] = None
 
 if WINDOWS:
     if ARCHITECTURE == 64:
@@ -72,8 +73,9 @@ try:
 except Exception:
     CAN_COMPILE = False
 
+ext_modules: Optional[List[Any]]
 
-if CAN_COMPILE:
+if CAN_COMPILE and opus_include_dir is not None:
     ext_modules = [
         Extension(
             name='opus',

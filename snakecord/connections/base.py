@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from typing import Optional
 
 from wsaio import WebSocketClient
 
@@ -36,7 +37,7 @@ class BaseConnection(WebSocketClient):
     def __init__(self, manager: EventDispatcher) -> None:
         super().__init__(loop=manager.loop)
         self.manager = manager
-        self.heartbeater = None
+        self.heartbeater: Optional[Heartbeater] = None
 
     @property
     def heartbeat_payload(self) -> dict:

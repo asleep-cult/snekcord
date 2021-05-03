@@ -31,7 +31,7 @@ class Cycler:
         self.callback = callback
         self.cancelled = False
         self._task = None
-        self._handle = None
+        self._handle: Optional[asyncio.TimerHandle] = None
 
     def _schedule_callback(self, delay: bool = True) -> None:
         if not self.cancelled:

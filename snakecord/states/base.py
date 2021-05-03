@@ -32,7 +32,7 @@ class BaseSnowflakeMapping(BaseMapping):
         return super().__delitem__(Snowflake.try_snowflake(key))
 
     def __contains__(self, key) -> bool:
-        return super().__contains__(Snowflake.try_snowflake(key))
+        return Snowflake.try_snowflake(key) in self
 
     def get(self, key, default=None):
         return super().get(Snowflake.try_snowflake(key), default)

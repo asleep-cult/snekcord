@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Type, Union
 
-from ...connections.rest import RestSession
 from ...connections.shard import Shard
 from ...manager import BaseManager
-from ...utils.events import EventDispatcher, EventNamespace, EventDefinition
+from ...utils.events import EventNamespace, EventDefinition
 
 if TYPE_CHECKING:
-    from ...objects.channel import Channel
+    from ...objects.channel import Channel, TextChannel
     from ...objects.emoji import GuildEmoji
     from ...objects.guild import Guild
     from ...objects.member import GuildMember
@@ -40,7 +39,7 @@ class UserClientEvents(EventNamespace):
 
     @dataclass
     class channel_create(_base_event):
-        channel: Channel = None
+        channel: Optional[Channel] = None
 
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
@@ -50,7 +49,7 @@ class UserClientEvents(EventNamespace):
 
     @dataclass
     class channel_update(_base_event):
-        channel: Channel = None
+        channel: Optional[Channel] = None
 
         def __post_init__(self):
             guild = self.manager.guilds.get(self.payload.get('guild_id'))
@@ -64,11 +63,11 @@ class UserClientEvents(EventNamespace):
 
     @dataclass
     class channel_delete(_base_event):
-        channel: Channel = None
+        channel: Optional[Union[Channel, int]] = None
 
         def __post_init__(self):
-            channel_id = self.payload.get('channel_id')
-            self.channel = self.manager.channels.pop(channel_id)
+            channel_id = self.payload.get('id')
+            self.channel = self.manager.channels.pop(channel_id, channel_id)
 
     @dataclass
     class channel_pins_update(_base_event):
@@ -76,21 +75,21 @@ class UserClientEvents(EventNamespace):
 
     @dataclass
     class guild_create(_base_event):
-        guild: Guild = None
+        guild: Optional[Guild] = None
 
         def __post_init__(self):
             self.guild = self.manager.guilds.append(self.payload)
 
     @dataclass
     class guild_update(_base_event):
-        guild: Guild = None
+        guild: Optional[Guild] = None
 
         def __post_init__(self):
             self.guild = self.manager.guilds.append(self.payload)
 
     @dataclass
     class guild_delete(_base_event):
-        guild: Guild = None
+        guild: Optional[Guild] = None
 
         def __post_init__(self):
             guild_id = self.payload.get('guild_id')
@@ -256,7 +255,7 @@ class UserClientEvents(EventNamespace):
 
     @dataclass
     class message_create(_base_event):
-        channel: Optional[Channel] = None
+        channel: Optional[TextChannel] = None
         message: Optional[Message] = None
 
         def __post_init__(self):
@@ -350,12 +349,12 @@ class UserClientEvents(EventNamespace):
 
 
 class UserClientManager(BaseManager):
-    events = UserClientEvents
+    events: Type[UserClientEvents] = UserClientEvents
 
     def __init__(self, token, *args, intents: int, **kwargs) -> None:
         self.shard_range = kwargs.pop('shard_range', range(1))
         self.intents = intents
-        self.shards = {}
+        self.shards: Dict[int, Shard] = {}
         self.token = token
         super().__init__(*args, **kwargs)
 

@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .base import BaseTemplate
 from ..utils.json import JsonArray, JsonField, JsonTemplate
 
-GuildMemberTemplate = JsonTemplate(
+if TYPE_CHECKING:
+    from ..objects.member import GuildMember
+
+GuildMemberTemplate: JsonTemplate[GuildMember] = JsonTemplate(
     _user=JsonField('user'),
     nick=JsonField('nick'),
     _roles=JsonArray('roles'),

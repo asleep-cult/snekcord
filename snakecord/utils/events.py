@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import functools
 from numbers import Number
-from typing import Any, Awaitable, Callable, Dict, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 from weakref import WeakSet
 
 __all__ = ('EventNamespace', 'EventWaiter', 'EventDispatcher',
@@ -22,18 +22,18 @@ class EventNamespace:
         __events__: dict[str, EventDefinition]
             The :class:`EventDefinition` s defined in the class.
     """
-    __events__: Dict[str, EventDefinition]
+    __events__: Dict[str, EventDefinition] = {}
 
     def __init_subclass__(cls):
         cls.__events__ = {}
 
         for base in cls.__bases__:
-            if not isinstance(base, EventNamespace):
+            if isinstance(cls, type) and not issubclass(base, EventNamespace):
                 continue
             cls.__events__.update(base.__events__)
 
         for name, attr in cls.__dict__.items():
-            if isinstance(attr, EventDispatcher):
+            if isinstance(attr, type) and issubclass(attr, EventDefinition):
                 cls.__events__[name] = attr
 
 
@@ -74,11 +74,11 @@ class EventWaiter:
         self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
-        self._future = None
+        self._future: Optional[asyncio.Future] = None
         self._queue: asyncio.Queue[Tuple[Any]] = asyncio.Queue()
 
     def _put(self, value: Tuple[Any]) -> None:
-        if self.filterer(*value):
+        if self.filterer is None or self.filterer(*value):
             self._queue.put_nowait(value)
 
     async def _get(self) -> Any:
@@ -127,6 +127,7 @@ class EventWaiter:
 def ensure_future(coro: Awaitable) -> Optional[asyncio.Future]:
     if hasattr(coro.__class__, '__await__'):
         return asyncio.ensure_future(coro)
+    return None
 
 
 class EventDispatcher:
@@ -150,9 +151,9 @@ class EventDispatcher:
         else:
             self.loop = asyncio.get_event_loop()
 
-        self._listeners = {}
-        self._waiters = {}
-        self._subscribers = []
+        self._listeners: Dict[str, List[Callable]] = {}
+        self._waiters: Dict[str, WeakSet] = {}
+        self._subscribers: List[EventDispatcher] = []
 
     def register_listener(self, name: str,
                           callback: Callable[..., Any]) -> None:

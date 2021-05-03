@@ -5,8 +5,7 @@ from .states.guild import GuildState
 from .states.member import GuildMemberState
 from .states.message import ChannelMessageState
 from .states.reaction import MessageReactionState
-from .states.reaction import MessageReactionState
-from .states.role import GuildRoleState
+from .states.role import RoleState
 from .states.user import UserState
 from .utils.events import EventDispatcher
 
@@ -20,7 +19,7 @@ class BaseManager(EventDispatcher):
     __guild_member_state_class__ = GuildMemberState
     __channel_message_state_class__ = ChannelMessageState
     __message_reaction_state_class__ = MessageReactionState
-    __guild_role_state_class__ = GuildRoleState
+    __guild_role_state_class__ = RoleState
     __user_state_clsas__ = UserState
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +71,7 @@ class BaseManager(EventDispatcher):
 
     @classmethod
     def set_guild_role_state_class(cls, klass) -> None:
-        assert issubclass(klass, GuildRoleState)
+        assert issubclass(klass, RoleState)
         cls.__guild_role_state_class__ = klass
 
     @classmethod

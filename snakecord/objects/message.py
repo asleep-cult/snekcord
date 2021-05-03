@@ -1,27 +1,29 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Any, List, Optional, TYPE_CHECKING
 
 from .base import BaseObject
+from ..connections import rest
 from ..templates.message import MessageTemplate
 
 if TYPE_CHECKING:
     from .guild import Guild
-    from ..states.message import MessageState
+    from ..states.message import ChannelMessageState
 
 
 class Message(BaseObject, template=MessageTemplate):
+    content: str
     __slots__ = ('channel', 'author', 'member',
                  'mentions', 'role_mentions', 'channel_mentions')
 
-    def __init__(self, *, state: MessageState):
+    def __init__(self, *, state: ChannelMessageState):
         super().__init__(state=state)
         self.channel = state.channel
         self.author = None
         self.member = None
-        self.mentions = []
-        self.role_mentions = []
-        self.channel_mentions = []
+        self.mentions: List[Any] = []
+        self.role_mentions: List[Any] = []
+        self.channel_mentions: List[Any] = []
 
     @property
     def guild(self) -> Optional[Guild]:
@@ -36,3 +38,9 @@ class Message(BaseObject, template=MessageTemplate):
         if self._member is not None:
             self._member['user'] = self._author
             self.member = self.guild.members.append(self._member)
+
+    def publish(self) -> rest.RestFuture:
+        return rest.crosspost_message.request(
+            session=self._state.manager.rest,
+            fmt={'channel_id': self.channel.id, 'message_id': self.id}
+        )
