@@ -20,3 +20,6 @@ Documentation
 
 .. autoclass:: snakecord.utils.EventWaiter
     :members:
+
+.. autoclass:: snakecord.utils.EventDispatcher
+    :members:
