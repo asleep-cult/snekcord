@@ -12,7 +12,7 @@ __all__ = ('Guild',)
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('channels', 'members', 'emojis', 'roles', '_state')
+    __slots__ = ('channels', 'members', 'emojis', 'roles')
 
     def __init__(self, *, state: GuildState) -> None:
         super().__init__(state=state)

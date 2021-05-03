@@ -23,3 +23,6 @@ Documentation
 
 .. autoclass:: snakecord.utils.EventDispatcher
     :members:
+
+.. autoclass:: snakecord.utils.JsonTemplate
+    :members:
