@@ -1,3 +1,6 @@
+__all__ = ('undefined',)
+
+
 class _Undefined:
     def __repr__(self):
         return '<undefined>'

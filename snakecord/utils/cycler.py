@@ -2,8 +2,24 @@ import asyncio
 from numbers import Number
 from typing import Any, Callable, Optional
 
+__all__ = ('Cycler',)
+
 
 class Cycler:
+    """A class that runs a coroutine every `delay` seconds.
+
+    Attributes
+        loop: Optional[asyncio.AbstractEventLoop]
+            The event loop to use when creating the task,
+            if None is provided :func:`asyncio.get_event_loop` is used.
+
+        delay: Number
+            The amount of time to wait between cycles (in seconds).
+
+        callback: Optional[Callable[..., Any]]
+            The coroutine to run, if None is provided
+            :meth:`Cycler.run` must be overridden.
+    """
     def __init__(self, *,
                  loop: Optional[asyncio.AbstractEventLoop] = None,
                  delay: Number,
@@ -33,9 +49,27 @@ class Cycler:
             lambda future: self._schedule_callback)
 
     async def run(self):
+        """Called every cycle, can be overridden in a subclass.
+        """
         await self.callback(*self.args, **self.kwargs)
 
     def start(self, *args, **kwargs):
+        r"""Starts the :class:`Cycler`, the first cycle will happen
+        immediately.
+
+        Args:
+            \*args: Any
+                The arguments to use when calling the callback.
+
+            \*\*kwargs: Any
+                The keyword arguments to use when calling the
+                callback.
+
+        Raises:
+            :exc:`AssertionError`:
+                Raised when :attr:`Cycler.callback` is None
+                and :meth:`Cycler.run` is not overridden.
+        """
         assert (
             self.callback is not None
             or self.run is not Cycler.run
@@ -46,6 +80,8 @@ class Cycler:
         self._schedule_callback(False)
 
     def stop(self):
+        """Stops the :class:`Cycler`, cancelling the on-going task if any.
+        """
         self.cancelled = True
         if self._handle is not None:
             self._handle.cancel()

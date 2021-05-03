@@ -6,6 +6,8 @@ from numbers import Number
 from typing import Any, Awaitable, Callable, Optional, Tuple, Union
 from weakref import WeakSet
 
+__all__ = ('EventNamespace', 'EventWaiter', 'EventDispatcher', 'eventdef')
+
 
 class EventNamespaceMeta(type):
     def __new__(cls, name, bases, attrs):
