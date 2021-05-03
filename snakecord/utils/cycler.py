@@ -18,7 +18,7 @@ class Cycler:
 
         callback: Optional[Callable[..., Any]]
             The coroutine to run, if None is provided
-            :meth:`Cycler.run` must be overridden.
+            then :meth:`Cycler.run` must be overridden.
     """
     def __init__(self, *, loop: Optional[asyncio.AbstractEventLoop] = None,
                  delay: Number, callback: Optional[Callable[..., Any]] = None):
