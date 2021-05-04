@@ -60,7 +60,7 @@ class BaseState:
         self.manager = manager
 
     def __repr__(self) -> str:
-        return (f'<{self.__class__.__name__}, length={len(self)},'
+        return (f'<{self.__class__.__name__} length={len(self)},'
                 f' recycled={len(self._recycle_bin)}>')
 
     @classmethod
@@ -145,7 +145,7 @@ class BaseSubState:
         self.superstate = superstate
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__}, length={len(self)}>'
+        return f'<{self.__class__.__name__} length={len(self)}>'
 
     def __related__(self, item) -> bool:
         raise NotImplementedError

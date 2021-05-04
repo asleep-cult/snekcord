@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 from typing import Optional
 
@@ -18,11 +17,7 @@ class Heartbeater(Cycler):
         self.connection = connection
 
     async def run(self) -> None:
-        try:
-            await asyncio.wait_for(self.connection.send_heartbeat(),
-                                   timeout=self.timeout)
-        except asyncio.TimeoutError:
-            pass
+        await self.connection.send_heartbeat()
 
 
 WebSocketResponse = JsonTemplate(
