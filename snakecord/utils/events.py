@@ -72,20 +72,27 @@ class EventWaiter:
         self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
-        self._future: Optional[asyncio.Future] = None
-        self._queue: asyncio.Queue[Tuple[Any]] = asyncio.Queue()
+        self.waiting = False
+        self._queue: asyncio.Queue[Tuple[Any, ...]] = asyncio.Queue()
 
-    def _put(self, value: Tuple[Any]) -> None:
-        if self.filterer is None or self.filterer(*value):
-            self._queue.put_nowait(value)
+    def _put(self, value: Tuple[Any, ...]) -> None:
+        if self.filterer is not None:
+            if not self.filterer(*value):
+                return
+
+        self._queue.put_nowait(value)
 
     async def _get(self) -> Any:
-        self._future = asyncio.ensure_future(
-            asyncio.wait_for(self._queue.get(), timeout=self.timeout))
-        # XXX: this is probably creates like 4 wrapped futures...
-        value = await self._future
+        if self.waiting:
+            raise RuntimeError('Can\'t concurrently wait on waiter')
+
+        self.waiting = True
+
+        value = await asyncio.wait_for(self._queue.get(), timeout=self.timeout)
         if len(value) == 1:
             value, = value
+
+        self.waiting = False
 
         return value
 
@@ -109,11 +116,11 @@ class EventWaiter:
         corresponding :class:`EventDispatcher`, any coroutines
         waiting on it will receive an :exc:`asyncio.CancelledError`.
         """
-        if self._future is not None:
-            try:
-                self._future.cancel()
-            except asyncio.InvalidStateError:
-                pass
+        # if self._future is not None:
+        #     try:
+        #         self._future.cancel()
+        #     except asyncio.InvalidStateError:
+        #         pass
         try:
             self.dispatcher.remove_waiter(self)
         except KeyError:
@@ -271,7 +278,7 @@ class EventDispatcher:
 
         if waiters is not None:
             for waiter in waiters:
-                waiter._put(*args)
+                waiter._put(args)
 
         for subscriber in self._subscribers:
             subscriber.run_callbacks(name, *args)

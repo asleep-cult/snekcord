@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from datetime import datetime, timedelta
 import types
+from datetime import datetime, timedelta
 from typing import (Any, Dict, Generator, Optional,
                     TYPE_CHECKING, Tuple, TypeVar)
 
@@ -32,15 +32,9 @@ class HTTPEndpoint:
         self.params = params
         self.json = json
 
-    def request(
-        self,
-        *,
-        session: RestSession,
-        fmt: Dict[str, Any] = {},
-        params=None,
-        json=None,
-        **kwargs
-    ):
+    def request(self, *, session: RestSession,
+                fmt: Dict[str, Any] = {}, params=None,
+                json=None, **kwargs):
         if params is not None:
             params = {k: v for k, v in params.items() if k in self.params}
 
@@ -54,7 +48,7 @@ class HTTPEndpoint:
 # TODO: Form params, arrays of json objects
 
 
-BASE_API_URL = 'https://discord.com/api/v9/'
+BASE_API_URL = 'https://discord.com/api/v8/'
 
 get_guild_audit_log = HTTPEndpoint(
     'GET',
