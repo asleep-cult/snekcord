@@ -6,6 +6,7 @@ import shutil
 import platform
 import tarfile
 import urllib.request
+from pathlib import Path
 from typing import Any, List, Optional
 
 from setuptools import setup, find_packages, Extension
@@ -18,6 +19,7 @@ if platform.system() == 'Windows':
 else:
     WINDOWS = False
 
+OPUS_PATH = Path('./snakecord/audio/_opusmodule.c')
 OPUS_RELEASE = 'https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz'
 OPUS_HEADERS = ('opus.h', 'opus_custom.h', 'opus_defines.h', 'opus_multistream.h',
                 'opus_projection.h', 'opus_types.h')
@@ -75,11 +77,11 @@ except Exception:
 
 ext_modules: Optional[List[Any]]
 
-if CAN_COMPILE and opus_include_dir is not None:
+if CAN_COMPILE and OPUS_PATH.exists() and opus_include_dir is not None:
     ext_modules = [
         Extension(
             name='opus',
-            sources=['./snakecord/audio/_opusmodule.c'],
+            sources=[OPUS_PATH.as_posix()],
             include_dirs=['./' + opus_include_dir],
             library_dirs=['./snakecord/.libs'],
             libraries=LIBRARIES
