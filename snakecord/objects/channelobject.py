@@ -4,7 +4,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..templates import (DMChannelTemplate, GuildChannelTemplate,
                          TextChannelTemplate, VoiceChannelTemplate)
-from ..utils import Snowflake
+from ..utils import Snowflake, _validate_keys
 
 
 class ChannelType(enum.IntEnum):
@@ -80,10 +80,8 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             except KeyError:
                 pass
 
-        for key, value in kwargs.items():
-            if key not in keys:
-                raise TypeError(f'{self.__class__.__name__}.modify got an '
-                                f'unexpected keyword argument {key!r}')
+        _validate_keys(f'{self.__class__.__name__}.modify',
+                       kwargs, (), keys)
 
         data = await rest.modify_channel.request(
             session=self._state.manager.rest,
