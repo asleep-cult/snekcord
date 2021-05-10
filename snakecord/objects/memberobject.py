@@ -38,14 +38,16 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
             fmt=dict(guild_id=self.guild.id,
                      user_id=self.member.id))
 
-        return self.append(data)
+        return self._state.append(data)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        if self._user:
+        if hasattr(self, '_user'):
             self.user = self._state.manager.users.append(self._user)
-            self._user.clear()
+            self.id = self.user.id
+            del self.user
 
-        self.roles.set_keys(self._roles)
-        self._roles.clear()
+        if hasattr(self, '_roles'):
+            self.roles.set_keys(self._roles)
+            del self._roles

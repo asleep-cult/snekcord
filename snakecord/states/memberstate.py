@@ -82,5 +82,9 @@ class GuildMemberState(BaseState):
 
         return self.append(data)
 
-    async def remove(self, member):
-        pass
+    async def remove(self, user):
+        user_id = Snowflake.try_snowflake(user)
+
+        await rest.remove_guild_member.request(
+            session=self.manager.rest,
+            fmt=dict(guild_id=self.guild.id, user_id=user_id))

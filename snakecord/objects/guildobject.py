@@ -1,7 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..state.channelstate import GuildChannelState
-from ..templates import GuildPreviewTemplate, GuildTemplate
+from ..templates import GuildBanTemplate, GuildPreviewTemplate, GuildTemplate
 from ..utils import _validate_keys
 
 
@@ -33,11 +33,26 @@ class Guild(BaseObject, template=GuildTemplate):
     def to_preview_dict(self):
         return GuildPreviewTemplate.to_dict(self)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
 
-        for channel in self._channels:
-            channel = self._state.manager.channels.append(channel)
-            self.channels.add_key(channel.id)
+        if hasattr(self, '_channels'):
+            for channel in self._channels:
+                channel = self._state.manager.channels.append(channel)
+                self.channels.add_key(channel.id)
 
-        self._channels.clear()
+            del self._channels
+
+
+class GuildBan(BaseObject, template=GuildBanTemplate):
+    def __init__(self, *, state, guild):
+        super().__init__(state)
+        self.guild = guild
+
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+
+        if hasattr(self, '_user'):
+            self.user = self._state.manager.users.append(self._user)
+            self.id = self.user.id
+            del self._user

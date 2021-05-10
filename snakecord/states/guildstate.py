@@ -1,6 +1,6 @@
 from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from .. import rest
-from ..objects.guildobject import Guild
+from ..objects.guildobject import Guild, GuildBan
 from ..utils import Snowflake, _validate_keys
 
 
@@ -65,3 +65,32 @@ class GuildState(BaseState):
             fmt=dict(guild_id=guild_id))
 
         return self.append(data)
+
+
+class GuildBansState(BaseState):
+    __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
+    __maxsize__ = -1
+    __ban_class__ = GuildBan
+
+    async def add(self, user, **kwargs):
+        user_id = Snowflake.try_snowflake(user)
+
+        keys = rest.create_guild_ban.json
+
+        _validate_keys(f'{self.__class__.__name__}.create',
+                       kwargs, (), keys)
+
+        data = await rest.create_guild_ban.request(
+            session=self._state.manager.rest,
+            fmt=dict(guild_id=self.guild.id, user_id=user_id),
+            json=kwargs)
+
+        return self.append(data)
+
+    async def remove(self, user):
+        user_id = Snowflake.try_snowflake(user)
+
+        await rest.remove_guild_ban.request(
+            session=self.manager.rest,
+            fmt=dict(guild_id=self.guild.id, user_id=user_id))
