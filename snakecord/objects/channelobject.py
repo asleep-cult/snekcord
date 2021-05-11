@@ -30,7 +30,7 @@ def _guild_channel_creation_keys(channel_type):
     elif channel_type is ChannelType.GUILD_VOICE:
         keys += ('bitrate', 'userlimit')
     elif channel_type is channel_type.GUILD_STORE:
-        keys += ('nwfw',)
+        keys += ('nsfw',)
 
     return keys
 
