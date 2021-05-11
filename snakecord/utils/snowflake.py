@@ -32,7 +32,7 @@ class Snowflake(int):
 
     @classmethod
     def try_snowflake(cls, obj):
-        from ..objects.base import BaseObject
+        from ..objects.baseobject import BaseObject
 
         if isinstance(obj, BaseObject):
             return obj.id
@@ -47,17 +47,17 @@ class Snowflake(int):
         return ((self >> self.TIMESTAMP_SHIFT) + self.DISCORD_EPOCH) / 1000
 
     @property
-    def time(self) -> datetime:
+    def time(self):
         return datetime.fromtimestamp(self.timestamp)
 
     @property
-    def worker_id(self) -> int:
+    def worker_id(self):
         return (self & self.WORKER_ID_MASK) >> self.WORKER_ID_SHIFT
 
     @property
-    def process_id(self) -> int:
+    def process_id(self):
         return (self & self.PROCESS_ID_MASK) >> self.PROCESS_ID_SHIFT
 
     @property
-    def increment(self) -> int:
+    def increment(self):
         return self & self.INCREMENT_MASK
