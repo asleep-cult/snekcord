@@ -36,7 +36,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         data = await rest.modify_guild_member.request(
             session=self._state.manager.rest,
             fmt=dict(guild_id=self.guild.id,
-                     user_id=self.member.id))
+                     user_id=self.id))
 
         return self._state.append(data)
 

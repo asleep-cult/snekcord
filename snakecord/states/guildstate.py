@@ -67,7 +67,7 @@ class GuildState(BaseState):
         return self.append(data)
 
 
-class GuildBansState(BaseState):
+class GuildBanState(BaseState):
     __container__ = SnowflakeMapping
     __recycled_container__ = WeakValueSnowflakeMapping
     __maxsize__ = -1

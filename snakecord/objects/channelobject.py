@@ -37,7 +37,7 @@ def _guild_channel_creation_keys(channel_type):
 
 def _guild_channel_modification_keys(channel_type):
     channel_type = ChannelType(channel_type)
-    keys = GuildChannel._creation_keys(channel_type)
+    keys = _guild_channel_creation_keys(channel_type)
 
     if channel_type is ChannelType.GUILD_VOICE:
         keys += ('rtc_region', 'video_quality_mode')
