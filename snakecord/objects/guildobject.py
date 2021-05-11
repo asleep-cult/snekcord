@@ -6,6 +6,8 @@ from ..utils import _validate_keys
 
 
 class Guild(BaseObject, template=GuildTemplate):
+    __slots__ = ('channels',)
+
     def __init__(self, *, state):
         super().__init__(state=state)
         self.channels = GuildChannelState(
@@ -36,8 +38,9 @@ class Guild(BaseObject, template=GuildTemplate):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
 
-        if hasattr(self, '_channels'):
-            for channel in self._channels:
+        channels = getattr(self, '_channels', None)
+        if channels is not None:
+            for channel in channels:
                 channel = self._state.manager.channels.append(channel)
                 self.channels.add_key(channel.id)
 
@@ -45,6 +48,8 @@ class Guild(BaseObject, template=GuildTemplate):
 
 
 class GuildBan(BaseObject, template=GuildBanTemplate):
+    __slots__ = ('guild', 'user')
+
     def __init__(self, *, state, guild):
         super().__init__(state)
         self.guild = guild
@@ -52,7 +57,8 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
 
-        if hasattr(self, '_user'):
-            self.user = self._state.manager.users.append(self._user)
+        user = getattr(self, '_user', None)
+        if user is not None:
+            self.user = self._state.manager.users.append(user)
             self.id = self.user.id
             del self._user

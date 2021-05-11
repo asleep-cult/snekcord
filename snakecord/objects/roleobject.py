@@ -5,6 +5,8 @@ from ..utils import _validate_keys
 
 
 class Role(BaseObject, template=RoleTemplate):
+    __slots__ = ('guild',)
+
     def __init__(self, *, state, guild):
         super().__init__(state)
         self.guild = guild

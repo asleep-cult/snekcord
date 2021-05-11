@@ -72,7 +72,7 @@ class GuildChannelState(BaseSubState):
         if isinstance(item, GuildChannel):
             return item.id
 
-    async def fetch(self):
+    async def fetch_all(self):
         data = await rest.get_guild_channels.request(
             session=self.superstate.manager.rest,
             fmt=dict(guild_id=self.guild.id))
@@ -110,7 +110,7 @@ class GuildChannelState(BaseSubState):
 
         return self.superstate.append(data)
 
-    async def modify_positions(self, positions):
+    async def modify(self, positions):
         required_keys = ('id',)
 
         keys = rest.modify_guild_channel_positions.json

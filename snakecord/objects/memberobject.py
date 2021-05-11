@@ -6,6 +6,8 @@ from ..utils import Snowflake, _validate_keys
 
 
 class GuildMember(BaseObject, template=GuildMemberTemplate):
+    __slots__ = ('guild', 'roles')
+
     def __init__(self, *, state, guild):
         super().__init__(state=state)
         self.guild = guild
@@ -43,11 +45,13 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        if hasattr(self, '_user'):
-            self.user = self._state.manager.users.append(self._user)
+        user = getattr(self, '_user', None)
+        if user is not None:
+            self.user = self._state.manager.users.append(user)
             self.id = self.user.id
-            del self.user
+            del self._user
 
-        if hasattr(self, '_roles'):
-            self.roles.set_keys(self._roles)
+        roles = getattr(self, '_roles', None)
+        if roles is not None:
+            self.roles.set_keys(roles)
             del self._roles

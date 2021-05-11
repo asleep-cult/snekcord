@@ -46,6 +46,8 @@ def _guild_channel_modification_keys(channel_type):
 
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
+    __slots__ = ('guild',)
+
     def __init__(self, *, state, guild):
         super().__init__(state=state)
         self.guild = guild
@@ -53,9 +55,6 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     @property
     def mention(self):
         return f'<#{self.id}>'
-
-    async def fetch(self):
-        return await self._state.fetch(self.id)
 
     async def delete(self):
         await rest.delete_channel.request(

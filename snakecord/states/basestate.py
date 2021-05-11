@@ -44,6 +44,13 @@ WeakValueSnowflakeMapping = (
 
 
 class _StateCommon:
+    def __contains__(self, key):
+        try:
+            self[key]
+        except KeyError:
+            return False
+        return True
+
     def find(self, func):
         for item in self:
             if func(item):
@@ -61,7 +68,7 @@ class BaseState(_StateCommon):
         self._recycle_bin = self.__recycled_container__()
         self.manager = manager
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return (f'<{self.__class__.__name__} length={len(self)},'
                 f' recycled={len(self._recycle_bin)}>')
 
@@ -181,13 +188,6 @@ class BaseSubState(_StateCommon):
         if self.__key_for__(item) not in self._keys:
             raise KeyError(key)
         return item
-
-    def __contains__(self, key):
-        try:
-            self[key]
-        except KeyError:
-            return False
-        return True
 
     def get(self, key, default=None):
         item = self.superstate.get(key, default)
