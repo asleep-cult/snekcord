@@ -13,7 +13,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
                                           member=self)
 
     async def modify(self, **kwargs):
-        keys = rest.modify_guild_member
+        keys = rest.modify_guild_member.json
 
         try:
             kwargs['channel_id'] = (
