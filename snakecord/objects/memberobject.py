@@ -1,6 +1,6 @@
 from .baseobject import BaseObject
 from .. import rest
-from ..state.rolestate import GuildMemberRoleState
+from ..states.rolestate import GuildMemberRoleState
 from ..templates import GuildMemberTemplate
 from ..utils import Snowflake, _validate_keys
 

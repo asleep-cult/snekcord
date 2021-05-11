@@ -340,10 +340,11 @@ create_guild_role = HTTPEndpoint(
     json=('name', 'permissions', 'color', 'hoist', 'mentionable'),
 )
 
-modify_guild_role_permissions = HTTPEndpoint(
+modify_guild_role_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/roles',
     json=('id', 'position',),
+    array=True,
 )
 
 modify_guild_role = HTTPEndpoint(

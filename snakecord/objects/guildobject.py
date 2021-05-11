@@ -1,6 +1,6 @@
 from .baseobject import BaseObject
 from .. import rest
-from ..state.channelstate import GuildChannelState
+from ..states.channelstate import GuildChannelState
 from ..templates import GuildBanTemplate, GuildPreviewTemplate, GuildTemplate
 from ..utils import _validate_keys
 

@@ -110,16 +110,28 @@ class GuildChannelState(BaseSubState):
 
         return self.superstate.append(data)
 
-    async def modify_positions(self, *args):
+    async def modify_positions(self, positions):
         required_keys = ('id',)
 
         keys = rest.modify_guild_channel_positions.json
 
-        for i, position in enumerate(args):
-            _validate_keys(f'positions[{i}]', position, required_keys, keys)
-            position['id'] = Snowflake.try_snowflake(position['id'])
+        json = []
+
+        for key, value in positions.items():
+            value['id'] = Snowflake.try_snowflake(key)
+
+            try:
+                value['parent_id'] = (
+                    Snowflake.try_snowflake(value.pop('parent'))
+                )
+            except KeyError:
+                pass
+
+            _validate_keys(f'positions[{key}]', value, required_keys, keys)
+
+            json.append(value)
 
         await rest.modify_guild_channel_positions.request(
             session=self.superstate.manager.rest,
             fmt=dict(guild_id=self.guild.id),
-            json=args)
+            json=json)

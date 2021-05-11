@@ -73,6 +73,26 @@ class GuildBansState(BaseState):
     __maxsize__ = -1
     __ban_class__ = GuildBan
 
+    def __init__(self, *, manager, guild):
+        super().__init__(manager=manager)
+        self.guild = guild
+
+    async def fetch_all(self):
+        data = await rest.get_guild_bans.request(
+            session=self.manager.rest,
+            fmt=dict(guild_id=self.guild.id))
+
+        return self.extend(data)
+
+    async def fetch(self, user):
+        user_id = Snowflake.try_snowflake(user)
+
+        data = await rest.get_guild_ban.request(
+            session=self.manager.rest,
+            fmt=dict(guild_id=self.guild.id, user_id=user_id))
+
+        return self.append(data)
+
     async def add(self, user, **kwargs):
         user_id = Snowflake.try_snowflake(user)
 
