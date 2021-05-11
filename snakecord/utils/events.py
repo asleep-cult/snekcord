@@ -284,7 +284,7 @@ class EventDispatcher:
             subscriber.run_callbacks(name, *args)
 
     def dispatch(self, name: str, *args) -> None:
-        """Same as :meth:`EventDispatcher.dispatch` but looks
+        """Same as :meth:`EventDispatcher.run_callbacks` but looks
         through :attr:`EventDispatcher.events` for the event
         class and replaces the args with an instance of it
         created with the original args.
