@@ -21,8 +21,8 @@ class EventWaiter:
     _queue: asyncio.Queue[tuple[Any, ...]]
 
     def __init__(self, name: str, dispatcher: EventDispatcher,
-                 timeout: Optional[Number],
-                 filterer: Optional[Callable[..., bool]]) -> None: ...
+                 timeout: Optional[Number] = ...,
+                 filterer: Optional[Callable[..., bool]] = ...) -> None: ...
 
     def close(self) -> None: ...
 
@@ -37,7 +37,7 @@ class EventDispatcher:
     _subscribers: list[EventDispatcher]
     events: ClassVar[EventNamespace]
 
-    def __init__(self, loop: asyncio.AbstractEventLoop) -> None: ...
+    def __init__(self, loop: asyncio.AbstractEventLoop = ...) -> None: ...
 
     def register_listener(self, name: str,
                           callback: Callable[..., Any]) -> None: ...

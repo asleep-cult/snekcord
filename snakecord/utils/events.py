@@ -24,7 +24,8 @@ class EventNamespace:
 
 
 class EventWaiter:
-    def __init__(self, name, *, dispatcher, timeout, filterer) -> None:
+    def __init__(self, name, *, dispatcher, timeout=None,
+                 filterer=None) -> None:
         self.name = name.lower()
         self.dispatcher = dispatcher
         self.timeout = timeout
