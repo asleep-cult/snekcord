@@ -41,11 +41,11 @@ class Guild(BaseObject, template=GuildTemplate):
         if days is not None:
             params['days'] = int(days)
 
-        if days is not None:
-            days = {
+        if include_roles is not None:
+            include_roles = {
                 str(Snowflake.try_snowflake(r)) for r in include_roles
             }
-            params['days'] = ','.join(days)
+            params['include_roles'] = ','.join(include_roles)
 
         data = await rest.get_guild_prune_count.request(
             session=self._state.manager.rest,
