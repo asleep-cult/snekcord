@@ -51,6 +51,7 @@ class JsonTemplate:
 class JsonField:
     def __init__(self, key, unmarshal=None, marshal=None, object=None,
                  default=None, omitempty=False):
+        self.key = key
         self.object = object
         self.omitempty = omitempty
         self._default = default

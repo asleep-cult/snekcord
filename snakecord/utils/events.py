@@ -103,7 +103,7 @@ class EventDispatcher:
 
     wait = register_waiter
 
-    def remove_waiter(self, waiter: EventWaiter):
+    def remove_waiter(self, waiter):
         waiters = self._waiters.get(waiter.name.lower())
         if waiters is not None:
             waiters.remove(waiter)
