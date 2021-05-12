@@ -32,8 +32,9 @@ class GuildState(BaseState):
 
         return self.append(data)
 
-    async def fetch(self, guild_id):
-        guild_id = Snowflake.try_snowflake(guild_id)
+    async def fetch(self, guild):
+        guild_id = Snowflake.try_snowflake(guild)
+
         data = await rest.get_guild.request(
             session=self.manager.rest,
             fmt=dict(guild_id=guild_id))
@@ -58,8 +59,9 @@ class GuildState(BaseState):
 
         return self.extend(data)
 
-    async def fetch_preview(self, guild_id):
-        guild_id = Snowflake.try_snowflake(guild_id)
+    async def fetch_preview(self, guild):
+        guild_id = Snowflake.try_snowflake(guild)
+
         data = await rest.get_guild_preview.request(
             state=self.manager.state,
             fmt=dict(guild_id=guild_id))

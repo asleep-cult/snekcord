@@ -14,6 +14,14 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         self.roles = GuildMemberRoleState(superstate=self.guild.roles,
                                           member=self)
 
+    @property
+    def removed(self):
+        return self.deleted
+
+    @property
+    def removed_at(self):
+        return self.deleted_at
+
     async def modify(self, **kwargs):
         keys = rest.modify_guild_member.json
 
@@ -26,7 +34,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
         try:
             roles = {
-                Snowflake.try_snowflake(r) for r in kwargs.pop('roles')
+                Snowflake.try_snowflake(r) for r in kwargs['roles']
             }
             kwargs['roles'] = list(roles)
         except KeyError:

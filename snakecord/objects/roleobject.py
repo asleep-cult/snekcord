@@ -14,7 +14,7 @@ class Role(BaseObject, template=RoleTemplate):
     async def modify(self, **kwargs):
         keys = rest.modify_guild_role_positions.json
 
-        _validate_keys(f'{self.__class__.__name__}',
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), keys)
 
         data = await rest.modify_guild_role_positions.request(

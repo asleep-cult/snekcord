@@ -24,8 +24,9 @@ class GuildMemberState(BaseState):
 
         return member
 
-    async def fetch(self, user_id):
-        user_id = Snowflake.try_snowflake(user_id)
+    async def fetch(self, user):
+        user_id = Snowflake.try_snowflake(user)
+
         data = await rest.get_guild_member.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id,

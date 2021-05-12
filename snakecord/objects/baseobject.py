@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ..exceptions import PartialObjectError
 from ..templates import BaseTemplate
 from ..utils import JsonObject
@@ -11,19 +13,22 @@ class BaseObject(JsonObject, template=BaseTemplate):
         self.id = None
         self.cached = False
         self.deleted = False
+        self.deleted_at = None
 
     def __hash__(self):
         if self.id is None:
-            raise PartialObjectError(f'{self.__class__.__name__} is missing a '
-                                     'proper id and is therefore unhashable')
+            raise PartialObjectError(f'{self.__class__.__name__} object is '
+                                     'missing a proper id and therefore is '
+                                     'unhashable')
         return hash(self.id)
 
     def __repr__(self):
-        return (f'<{self.__class__.__name__} id={self.id},'
-                f' cached={self.cached}, deleted={self.deleted}>')
+        return (f'{self.__class__.__name__}(id={self.id}, '
+                f'cached={self.cached}, deleted={self.deleted})')
 
     def _delete(self):
         self.deleted = True
+        self.deleted_at = datetime.now()
         self.uncache()
 
     def cache(self):
