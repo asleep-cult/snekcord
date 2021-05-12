@@ -28,6 +28,13 @@ class JsonField:
     _unmarshal: Optional[Callable[[Any], Any]]
     _marshal: Optional[Callable[[Any], Any]]
 
+    def __init__(self, key: str,
+                 unmarshal: Optional[Callable[[Any], Any]] = ...,
+                 marshal: Optional[Callable[[Any], Any]] = ...,
+                 object: Optional[JsonObjectMeta] = ...,
+                 default: Optional[Callable[[Any], Any]] = ...,
+                 omitempty: bool = ...) -> None: ...
+
     def unmarshal(self, value: Any) -> Any: ...
 
     def marshal(self, value: Any) -> Any: ...

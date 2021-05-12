@@ -25,7 +25,7 @@ class EventNamespace:
 
 class EventWaiter:
     def __init__(self, name, *, dispatcher, timeout, filterer) -> None:
-        self.name = name
+        self.name = name.lower()
         self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
@@ -95,9 +95,9 @@ class EventDispatcher:
         if listeners is not None:
             listeners.remove(callback)
 
-    def register_waiter(self, name, **kwargs):
-        waiters = self._waiters.setdefault(name.lower(), WeakSet())
-        waiter = EventWaiter(name, dispatcher=self, **kwargs)
+    def register_waiter(self, *args, **kwargs):
+        waiter = EventWaiter(*args, dispatcher=self, **kwargs)
+        waiters = self._waiters.setdefault(waiter.name, WeakSet())
         waiters.add(waiter)
         return waiter
 
@@ -124,7 +124,7 @@ class EventDispatcher:
         for subscriber in self._subscribers:
             subscriber.run_callbacks(name, *args)
 
-    def dispatch(self, name, *args) -> None:
+    def dispatch(self, name, *args):
         event = self.events.__events__.get(name.lower())
 
         if event is not None:
