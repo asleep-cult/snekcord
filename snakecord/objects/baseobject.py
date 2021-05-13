@@ -6,7 +6,7 @@ from ..utils import JsonObject
 
 
 class BaseObject(JsonObject, template=BaseTemplate):
-    __slots__ = ('_state', 'id', 'cached', 'deleted')
+    __slots__ = ('_state', 'id', 'cached', 'deleted', 'deleted_at')
 
     def __init__(self, *, state):
         self._state = state
