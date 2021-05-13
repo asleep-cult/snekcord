@@ -179,6 +179,25 @@ RoleTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
+InviteTemplate = JsonTemplate(
+    code=JsonField('code'),
+    _guild=JsonField('guild'),
+    _channel=JsonField('channel'),
+    _inviter=JsonField('inviter'),
+    terget_type=JsonField('target_type'),
+    _target_user=JsonField('target_user'),
+    _target_application=JsonField('target_application'),
+    presence_count=JsonField('approximate_presence_count'),
+    member_count=JsonField('approximate_member_count'),
+    expires_at=JsonField('expires_at'),
+
+    uses=JsonField('uses'),
+    max_uses=JsonField('max_uses'),
+    max_age=JsonField('max_age'),
+    temporary=JsonField('temporary'),
+    created_at=JsonField('temporary'),
+)
+
 UserTemplate = JsonTemplate(
     name=JsonField('username'),
     discriminator=JsonField('discriminator'),

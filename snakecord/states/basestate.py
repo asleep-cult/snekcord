@@ -173,15 +173,21 @@ class BaseSubState(_StateCommon):
         return f'<{self.__class__.__name__} length={len(self)}>'
 
     def __len__(self):
-        return sum(1 for _ in self)
+        return len(self._keys)
 
     def __iter__(self):
-        for key in self._keys:
-            yield self.superstate[key]
+        for key in self._keys.copy():
+            try:
+                yield self.superstate[key]
+            except KeyError:
+                self.remove_key(key)
 
     def __reversed__(self):
-        for key in reversed(self._keys):
-            yield self.superstate[key]
+        for key in reversed(self._keys.copy()):
+            try:
+                yield self.superstate[key]
+            except KeyError:
+                self.remove_key(key)
 
     def __getitem__(self, key):
         item = self.superstate.__getitem__(key)
