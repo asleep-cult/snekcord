@@ -42,5 +42,5 @@ class Invite(BaseObject, template=InviteTemplate):
 
         target_user = getattr(self, '_target_user', None)
         if target_user is not None:
-            self.target_user = self._state.managet.users.append(target_user)
+            self.target_user = self._state.manager.users.append(target_user)
             del self._target_user
