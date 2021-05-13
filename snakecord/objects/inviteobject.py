@@ -4,6 +4,9 @@ from ..templates import InviteTemplate
 
 
 class Invite(BaseObject, template=InviteTemplate):
+    __slots__ = ('guild', 'channel', 'inviter', 'target_user',
+                 'target_application')
+
     def __init__(self, *, state):
         super().__init__(state=state)
         self.guild = None
