@@ -5,7 +5,8 @@ __all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
 class JsonTemplate:
     def __init__(self, *, __extends__=(), **fields):
-        self.fields = fields
+        self.local_fields = fields
+        self.fields = self.local_fields.copy()
 
         for template in __extends__:
             self.fields.update(template.fields)
@@ -95,7 +96,7 @@ class JsonObjectMeta(type):
     def __new__(mcs, name, bases, attrs, template=None):
         slots = set(attrs.get('__slots__', ()))
         if template is not None:
-            slots.update(template.fields)
+            slots.update(template.local_fields)
 
         attrs['__slots__'] = slots
         attrs['__template__'] = template
