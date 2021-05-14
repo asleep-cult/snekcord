@@ -1,71 +1,30 @@
-from __future__ import annotations
-
 import json
-from typing import (
-    Any,
-    ByteString,
-    Callable,
-    Dict,
-    Generic,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union
-)
 
 __all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
-T = TypeVar('T')
 
+class JsonTemplate:
+    def __init__(self, *, __extends__=(), **fields):
+        self.local_fields = fields
+        self.fields = self.local_fields.copy()
 
-class JsonTemplate(Generic[T]):
-    r"""A template for a :class:`JsonObject`.
+        for template in __extends__:
+            self.fields.update(template.fields)
 
-    Arguments
-        __extends__: Optional[Tuple[JsonTemplate]]
-            The :class:`JsonTemplate` s that this template extends,
-            this template will receive all fields of the extended templates.
-
-        \*\*fields: JsonFields
-            The fields of this template, the argument name
-            will be the name of the attribute when unmarshalled.
-    """
-    def __init__(self, *,
-                 __extends__: Optional[Tuple[JsonTemplate]] = None,
-                 **fields: JsonField) -> None:
-        self.fields = fields
-        if __extends__ is not None:
-            for template in __extends__:
-                self.fields.update(template.fields)
-
-    def _update(self, o: T, data: dict, *, set_default: bool = False) -> None:
+    def update(self, obj, data, *, set_defaults=False):
         for name, field in self.fields.items():
             try:
-                setattr(o, name, field.unmarshal(data[field.key]))
+                value = field.unmarshal(data[field.key])
+                setattr(obj, name, value)
             except Exception:
-                if set_default:
-                    default = None
-                    if field.default is not None:
-                        default = field.default()
-                    setattr(o, name, default)
+                if set_defaults:
+                    setattr(obj, name, field.default())
 
-    def to_dict(self, o: Any) -> Dict[str, Any]:
-        """Converts `o` to a dict based on the fields
-        of the tamplate.
-
-        Arguments
-            o: Any
-                The object to convert to a dict.
-
-        Returns
-            dict[str, Any]
-                The dict.
-        """
+    def to_dict(self, obj):
         data = {}
 
         for name, field in self.fields.items():
-            value = getattr(o, name, None)
+            value = getattr(obj, name, field.default())
 
             if value is None and field.omitempty:
                 continue
@@ -82,118 +41,82 @@ class JsonTemplate(Generic[T]):
 
         return data
 
-    def marshal(self, o: Any) -> str:
-        """Converts `o` to a json serialized object.
+    def marshal(self, obj, *args, **kwargs):
+        return json.dumps(self.to_dict(obj), *args, **kwargs)
 
-        Arguments
-            o: Any
-                The object to convert to a dict.
-
-        Returns
-            str
-                The json data.
-
-        Equivalent to::
-
-            json.dumps(self.to_dict(o))
-        """
-        return json.dumps(self.to_dict(o))
-
-    def default_object(self) -> Type[JsonObject]:
-        """The default object for the template.
-
-        Returns
-            Type[JsonObject]
-        """
-        return JsonObjectMeta('DefaultObject', (JsonObject,), {},
+    def default_object(self):
+        return JsonObjectMeta('GenericObject', (JsonObject,), {},
                               template=self)
 
 
 class JsonField:
-    _unmarshal: Optional[Callable[..., Any]]
-    _marshal: Optional[Callable[[Any], Any]]
-
-    def __init__(self, key: str,
-                 unmarshal: Optional[Callable[..., Any]] = None,
-                 marshal: Optional[Callable[[Any], Any]] = None,
-                 object: Optional[Type[JsonObject]] = None,
-                 default: Any = None, omitempty: bool = False) -> None:
+    def __init__(self, key, unmarshal=None, marshal=None, object=None,
+                 default=None, omitempty=False):
         self.key = key
         self.object = object
-        self.default = default
         self.omitempty = omitempty
+        self._default = default
 
-        if object is not None:
-            self._unmarshal = object.unmarshal
-            self._marshal = object.__template__.to_dict
+        if self.object is not None:
+            self._unmarshal = self.object.unmarshal
+            self._marshal = self.object.__template__.to_dict
         else:
             self._unmarshal = unmarshal
             self._marshal = marshal
 
-    def unmarshal(self, value: Any) -> Any:
-        if self._unmarshal is None:
-            return value
-        return self._unmarshal(value)
+    def unmarshal(self, value):
+        if self._unmarshal is not None:
+            value = self._unmarshal(value)
+        return value
 
-    def marshal(self, value: Any) -> Any:
-        if self._marshal is None:
-            return value
-        return self._marshal(value)
+    def marshal(self, value):
+        if self._marshal is not None:
+            value = self._marshal(value)
+        return value
+
+    def default(self):
+        if self._default is not None:
+            return self._default()
+        return None
 
 
 class JsonArray(JsonField):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs):
         kwargs.setdefault('default', list)
         super().__init__(*args, **kwargs)
 
-    def unmarshal(self, values: Any) -> Any:
-        unmarshalled = []
-        for value in values:
-            unmarshalled.append(super().unmarshal(value))
-        return unmarshalled
+    def unmarshal(self, values):
+        return [super().unmarshal(value) for value in values]
 
-    def marshal(self, values: Any) -> Any:
-        marshalled = []
-        for value in values:
-            marshalled.append(super().marshal(value))
-        return marshalled
+    def marshal(self, values):
+        return [super().marshal(value) for value in values]
 
 
 class JsonObjectMeta(type):
-    def __new__(mcs: Type[type], name: str,
-                bases: Tuple[type], attrs: Dict[str, Any],
-                template: JsonTemplate) -> JsonObjectMeta:
-        slots = set(attrs.pop('__slots__', ()))
+    def __new__(mcs, name, bases, attrs, template=None):
+        slots = set(attrs.get('__slots__', ()))
         if template is not None:
-            slots.update(template.fields)
+            slots.update(template.local_fields)
 
         attrs['__slots__'] = slots
         attrs['__template__'] = template
 
-        return super().__new__(mcs, name, bases, attrs)  # type: ignore
+        return type.__new__(mcs, name, bases, attrs)
 
 
-class JsonObject(metaclass=JsonObjectMeta, template=JsonTemplate()):
-    __template__: JsonTemplate
-
-    def __new__(cls, *args, **kwargs) -> JsonObject:
-        if cls is JsonObject:
-            raise TypeError(f'Cannot create instances of {cls.__name__!r}')
-        return object.__new__(cls)
-
+class JsonObject(metaclass=JsonObjectMeta):
     @classmethod
-    def unmarshal(cls, data: Union[ByteString, str, dict],
-                  *args, **kwargs) -> T:
+    def unmarshal(cls, data, *args, **kwargs):
         if isinstance(data, (bytes, bytearray, memoryview, str)):
             data = json.loads(data)
 
-        o = cls(*args, **kwargs)
-        o._update(data, set_default=True)
+        self = cls(*args, **kwargs)
+        self.update(set_defaults=True)
 
-        return o
+        return self
 
-    def _update(self, *args, **kwargs):
-        return self.__template__._update(self, *args, **kwargs)
+    def update(self, *args, **kwargs):
+        return self.__template__.update(self, *args, **kwargs)
 
     def to_dict(self, *args, **kwargs):
         return self.__template__.to_dict(self, *args, **kwargs)
