@@ -58,7 +58,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
     async def delete(self):
         await rest.delete_channel.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(channel_id=self.id))
 
     async def modify(self, **kwargs):
@@ -83,11 +83,11 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
                        kwargs, (), keys)
 
         data = await rest.modify_channel.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(channel_id=self.id),
             json=kwargs)
 
-        return self._state.append(data)
+        return self.state.append(data)
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):
@@ -101,5 +101,5 @@ class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
 class DMChannel(BaseObject, template=DMChannelTemplate):
     async def close(self):
         await rest.delete_channel.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(channel_id=self.id))

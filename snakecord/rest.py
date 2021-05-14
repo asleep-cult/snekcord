@@ -450,6 +450,7 @@ update_user_voice_state = HTTPEndpoint(
 get_invite = HTTPEndpoint(
     'GET',
     BASE_API_URL + 'invites/%(invite_code)s',
+    params=('with_counts', 'with_expiration'),
 )
 
 delete_invite = HTTPEndpoint(

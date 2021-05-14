@@ -1,5 +1,4 @@
 from .baseobject import BaseObject
-from .. import rest
 from ..templates import InviteTemplate
 
 
@@ -16,9 +15,7 @@ class Invite(BaseObject, template=InviteTemplate):
         self.target_application = None
 
     async def delete(self):
-        await rest.delete_invite.request(
-            session=self._state.manager.rest,
-            fmt=dict(invite_code=self.code))
+        await self.state.delete(self.code)
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
@@ -27,20 +24,20 @@ class Invite(BaseObject, template=InviteTemplate):
 
         guild = getattr(self, '_guild', None)
         if guild is not None:
-            self.guild = self._state.manager.guilds.append(guild)
+            self.guild = self.state.manager.guilds.append(guild)
             del self._guild
 
         channel = getattr(self, '_channel', None)
         if channel is not None:
-            self.channel = self._state.manager.channels.append(channel)
+            self.channel = self.state.manager.channels.append(channel)
             del self._channel
 
         inviter = getattr(self, '_inviter', None)
         if inviter is not None:
-            self.inviter = self._state.manager.users.append(inviter)
+            self.inviter = self.state.manager.users.append(inviter)
             del self._inviter
 
         target_user = getattr(self, '_target_user', None)
         if target_user is not None:
-            self.target_user = self._state.manager.users.append(target_user)
+            self.target_user = self.state.manager.users.append(target_user)
             del self._target_user

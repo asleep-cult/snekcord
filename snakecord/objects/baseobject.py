@@ -6,10 +6,10 @@ from ..utils import JsonObject
 
 
 class BaseObject(JsonObject, template=BaseTemplate):
-    __slots__ = ('_state', 'id', 'cached', 'deleted', 'deleted_at')
+    __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at')
 
     def __init__(self, *, state):
-        self._state = state
+        self.state = state
         self.id = None
         self.cached = False
         self.deleted = False
@@ -32,14 +32,14 @@ class BaseObject(JsonObject, template=BaseTemplate):
         self.uncache()
 
     def cache(self):
-        self.cached = self._state.set(self.id, self)
+        self.cached = self.state.set(self.id, self)
         if self.cached:
-            self._state.unrecycle(self.id, None)
+            self.state.unrecycle(self.id, None)
 
     def uncache(self):
         self.cached = False
-        self._state.pop(self.id, None)
-        self._state.recycle(self.id, self)
+        self.state.pop(self.id, None)
+        self.state.recycle(self.id, self)
 
     async def fetch(self):
-        return await self._state.fetch(self.id)
+        return await self.state.fetch(self.id)

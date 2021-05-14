@@ -11,18 +11,8 @@ class Guild(BaseObject, template=GuildTemplate):
     def __init__(self, *, state):
         super().__init__(state=state)
         self.channels = GuildChannelState(
-            superstate=self._state.manager.channels,
+            superstate=self.state.manager.channels,
             guild=self)
-
-    async def fetch_preview(self):
-        return await self._state.fetch_preview(self.id)
-
-    async def fetch_voice_regions(self):
-        data = await rest.get_guild_voice_regions.request(
-            session=self._state.manager.rest,
-            fmt=dict(guild_id=self.id))
-
-        return data
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild.keys
@@ -31,7 +21,7 @@ class Guild(BaseObject, template=GuildTemplate):
                        kwargs, (), keys)
 
         data = await rest.modify_guild.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(guild_id=self.id),
             json=kwargs)
 
@@ -39,7 +29,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
     async def delete(self):
         await rest.delete_guild.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))
 
     async def prune(self, **kwargs):
@@ -65,16 +55,26 @@ class Guild(BaseObject, template=GuildTemplate):
 
         if remove:
             data = await rest.begin_guild_prune.request(
-                session=self._state.manager.rest,
+                session=self.state.manager.rest,
                 fmt=dict(guild_id=self.id),
                 json=kwargs)
         else:
             data = await rest.get_guild_prune_count.request(
-                session=self._state.manager.rest,
+                session=self.state.manager.rest,
                 fmt=dict(guild_id=self.id),
                 params=kwargs)
 
         return data['pruned']
+
+    async def fetch_preview(self):
+        return await self.state.fetch_preview(self.id)
+
+    async def fetch_voice_regions(self):
+        data = await rest.get_guild_voice_regions.request(
+            session=self.state.manager.rest,
+            fmt=dict(guild_id=self.id))
+
+        return data
 
     async def fetch_vanity_url(self):
         # XXX: self.vanity_url = GuildVanityUrl(...);
@@ -90,7 +90,7 @@ class Guild(BaseObject, template=GuildTemplate):
         channels = getattr(self, '_channels', None)
         if channels is not None:
             for channel in channels:
-                channel = self._state.manager.channels.append(channel)
+                channel = self.state.manager.channels.append(channel)
                 self.channels.add_key(channel.id)
 
             del self._channels
@@ -108,6 +108,6 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
 
         user = getattr(self, '_user', None)
         if user is not None:
-            self.user = self._state.manager.users.append(user)
+            self.user = self.state.manager.users.append(user)
             self.id = self.user.id
             del self._user

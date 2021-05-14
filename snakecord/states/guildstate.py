@@ -104,7 +104,7 @@ class GuildBanState(BaseState):
                        kwargs, (), keys)
 
         data = await rest.create_guild_ban.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 

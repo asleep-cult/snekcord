@@ -42,18 +42,18 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
                        kwargs, (), keys)
 
         data = await rest.modify_guild_member.request(
-            session=self._state.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(guild_id=self.guild.id,
                      user_id=self.id))
 
-        return self._state.append(data)
+        return self.state.append(data)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         user = getattr(self, '_user', None)
         if user is not None:
-            self.user = self._state.manager.users.append(user)
+            self.user = self.state.manager.users.append(user)
             self.id = self.user.id
             del self._user
 
