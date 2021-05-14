@@ -96,6 +96,6 @@ class Shard(WebSocketClient):
             # nonce counts up to a 32 bit integer
             self._chunk_nonce = 0
 
-        payload['nonce'] = self._chunk_nonce
+        payload['nonce'] = str(self._chunk_nonce)
 
         await self.send_str(json.dumps(payload))

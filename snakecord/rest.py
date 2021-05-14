@@ -1,3 +1,8 @@
+import json
+
+from httpx import AsyncClient
+
+
 class HTTPError(Exception):
     def __init__(self, response, data) -> None:
         super().__init__()
@@ -11,20 +16,22 @@ class HTTPEndpoint:
         self.url = url
         self.params = params
         self.json = json
-        self.array = False
+        self.array = array
 
-    def request(self, *, session, fmt={}, params=None, json=None, **kwargs):
-        if params is not None:
-            params = {k: v for k, v in params.items() if k in self.params}
+    def request(self, *, session, params=None, json=None, fast=False,
+                **kwargs):
+        if not fast:
+            if params is not None:
+                params = {k: v for k, v in params.items() if k in self.params}
 
-        if json is not None:
-            if self.array:
-                json = [{k: v for k, v in i.items() if k in self.json}
-                        for i in json]
-            else:
-                json = {k: v for k, v in json.items() if k in self.json}
+            if json is not None:
+                if self.array:
+                    json = [{k: v for k, v in i.items() if k in self.json}
+                            for i in json]
+                else:
+                    json = {k: v for k, v in json.items() if k in self.json}
 
-# TODO: Form params, arrays of json objects
+        return session.request(params=params, json=json, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -629,3 +636,37 @@ get_gateway_bot = HTTPEndpoint(
     'GET',
     BASE_API_URL + 'gateway/bot'
 )
+
+
+class RestSession(AsyncClient):
+    def __init__(self, manager, *args, **kwargs):
+        self.global_headers = kwargs.pop('golbal_headers', {})
+        self.global_headers.update({
+            'Authorization': self.authorization,
+        })
+
+        self.global_fmt = kwargs.pop('global_fmt', {})
+        self.global_fmt.update({
+            'version': self.version
+        })
+
+        super().__init__(*args, **kwargs)
+
+        self.loop = manager.loop
+        self.manager = manager
+
+        self.authorization = self.manager.token
+        self.api_version = self.manager.api_version
+
+    async def request(self, *args, **kwargs):
+        headers = kwargs.setdefault('headers', {})
+        headers.update(self.global_headers)
+
+        fmt = kwargs.setdefault('fmt', {})
+        fmt.update(self.global_fmt)
+
+        response = await super().request(*args, **kwargs)
+
+        data = json.loads(await response.aread())
+
+        return data
