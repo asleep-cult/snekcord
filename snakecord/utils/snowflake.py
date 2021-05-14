@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 from datetime import datetime
-from typing import Any, Optional, Union
 
 __all__ = ('Snowflake',)
 
@@ -20,17 +17,11 @@ class Snowflake(int):
     INCREMENT_MASK = 0xFFF
 
     @classmethod
-    def build(cls, timestamp: Optional[Union[datetime, float]] = None,
-              worker_id: int = 0, process_id: int = 0,
-              increment: int = 0) -> Snowflake:
+    def build(cls, timestamp=None, worker_id=0, process_id=0, increment=0):
         if timestamp is None:
             timestamp = datetime.now().timestamp()
         elif isinstance(timestamp, datetime):
             timestamp = timestamp.timestamp()
-        elif not isinstance(timestamp, float):
-            raise TypeError(
-                'Expected datetime, float or None for timestamp, '
-                f'got {timestamp.__class__.__name__!r}')
 
         timestamp = int((timestamp * 1000) - cls.DISCORD_EPOCH)
 
@@ -40,30 +31,42 @@ class Snowflake(int):
                    | increment)
 
     @classmethod
-    def try_snowflake(cls, o: Any) -> Union[Snowflake, Any]:
-        from ..objects.base import BaseObject
+    def try_snowflake(cls, obj):
+        from ..objects.baseobject import BaseObject
 
-        if isinstance(o, BaseObject):
-            return o.id
+        if isinstance(obj, BaseObject):
+            return obj.id
 
         try:
-            return cls(o)
+            return cls(obj)
         except Exception:
-            return o
+            return obj
+
+    @classmethod
+    def try_snowflake_set(cls, objs):
+        snowflakes = {}
+
+        for obj in objs:
+            snowflakes.add(cls.try_snowflake(obj))
+
+        return snowflakes
 
     @property
-    def datetime(self) -> datetime:
-        return datetime.fromtimestamp(((self >> self.TIMESTAMP_SHIFT)
-                                      + self.DISCORD_EPOCH) / 1000)
+    def timestamp(self):
+        return ((self >> self.TIMESTAMP_SHIFT) + self.DISCORD_EPOCH) / 1000
 
     @property
-    def worker_id(self) -> int:
+    def time(self):
+        return datetime.fromtimestamp(self.timestamp)
+
+    @property
+    def worker_id(self):
         return (self & self.WORKER_ID_MASK) >> self.WORKER_ID_SHIFT
 
     @property
-    def process_id(self) -> int:
+    def process_id(self):
         return (self & self.PROCESS_ID_MASK) >> self.PROCESS_ID_SHIFT
 
     @property
-    def increment(self) -> int:
+    def increment(self):
         return self & self.INCREMENT_MASK
