@@ -2,7 +2,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..states.channelstate import GuildChannelState
 from ..templates import GuildBanTemplate, GuildPreviewTemplate, GuildTemplate
-from ..utils import _validate_keys
+from ..utils import Snowflake, _validate_keys
 
 
 class Guild(BaseObject, template=GuildTemplate):
@@ -41,6 +41,40 @@ class Guild(BaseObject, template=GuildTemplate):
         await rest.delete_guild.request(
             session=self._state.manager.rest,
             fmt=dict(guild_id=self.id))
+
+    async def prune(self, **kwargs):
+        remove = kwargs.pop('remove', True)
+
+        if remove:
+            keys = rest.begin_guild_prune.json
+        else:
+            keys = rest.get_guild_prune_count.params
+
+        try:
+            roles = Snowflake.try_snowflake_set(kwargs['roles'])
+
+            if remove:
+                kwargs['include_roles'] = tuple(roles)
+            else:
+                kwargs['include_roles'] = ','.join(map(str, roles))
+        except KeyError:
+            pass
+
+        _validate_keys(f'{self.__class__.__name__}.prune',
+                       kwargs, (), keys)
+
+        if remove:
+            data = await rest.begin_guild_prune.request(
+                session=self._state.manager.rest,
+                fmt=dict(guild_id=self.id),
+                json=kwargs)
+        else:
+            data = await rest.get_guild_prune_count.request(
+                session=self._state.manager.rest,
+                fmt=dict(guild_id=self.id),
+                params=kwargs)
+
+        return data['pruned']
 
     async def fetch_vanity_url(self):
         # XXX: self.vanity_url = GuildVanityUrl(...);
