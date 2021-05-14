@@ -213,3 +213,10 @@ UserTemplate = JsonTemplate(
     public_flags=JsonField('public_flags'),
     __extends__=(BaseTemplate,)
 )
+
+WebSocketResponse = JsonTemplate(
+    opcode=JsonField('op'),
+    sequence=JsonField('s'),
+    name=JsonField('t'),
+    data=JsonField('d'),
+).default_object()

@@ -33,10 +33,8 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
             pass
 
         try:
-            roles = {
-                Snowflake.try_snowflake(r) for r in kwargs['roles']
-            }
-            kwargs['roles'] = list(roles)
+            roles = Snowflake.try_snowflake_set(kwargs['roles'])
+            kwargs['roles'] = tuple(roles)
         except KeyError:
             pass
 

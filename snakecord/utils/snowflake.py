@@ -42,6 +42,15 @@ class Snowflake(int):
         except Exception:
             return obj
 
+    @classmethod
+    def try_snowflake_set(cls, objs):
+        snowflakes = {}
+
+        for obj in objs:
+            snowflakes.add(cls.try_snowflake(obj))
+
+        return snowflakes
+
     @property
     def timestamp(self):
         return ((self >> self.TIMESTAMP_SHIFT) + self.DISCORD_EPOCH) / 1000
