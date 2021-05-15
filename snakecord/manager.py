@@ -9,12 +9,7 @@ from .states.memberstate import GuildMemberState
 from .states.rolestate import GuildMemberRoleState, RoleState
 from .states.userstate import UserState
 
-HANDLED_SIGNALS = []
-
-for signo in ('SIGINT', 'SIGTERM'):
-    signo = getattr(signal, signo, None)
-    if signo is not None:
-        HANDLED_SIGNALS.append(signo)
+HANDLED_SIGNALS = (signal.SIGINT, signal.SIGTERM)
 
 DEFAULT_CLASSES = {
     klass.__name__: klass
