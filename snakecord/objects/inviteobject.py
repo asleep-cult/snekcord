@@ -1,4 +1,5 @@
-from .baseobject import BaseObject
+from .baseobject import BaseObject, BaseStatelessObject
+from .. import rest
 from ..templates import InviteTemplate
 
 
@@ -41,3 +42,26 @@ class Invite(BaseObject, template=InviteTemplate):
         if target_user is not None:
             self.target_user = self.state.manager.users.append(target_user)
             del self._target_user
+
+
+class GuildVanityUrl(BaseStatelessObject):
+    def __init__(self, *, owner):
+        super().__init__(owner=owner)
+        self.code = None
+
+    @property
+    def invite(self):
+        return self.owner.state.manager.invites.get(self.code)
+
+    async def fetch(self):
+        data = await rest.get_guild_vanity_url.request(
+            session=self.owner.state.manager.rest,
+            fmt=dict(guild_id=self.owner.id))
+
+        self._update_invite(data)
+
+        return self
+
+    def _update_invite(self, data):
+        self.code = data['code']
+        self.owner.state.manager.invites.append(data)

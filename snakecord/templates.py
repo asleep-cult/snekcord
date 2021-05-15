@@ -101,7 +101,7 @@ GuildTemplate = JsonTemplate(
     _presences=JsonArray('presences'),
     max_presences=JsonField('max_presences'),
     max_members=JsonField('max_members'),
-    vanity_url_code=JsonField('vanity_url_code'),
+    _vanity_url_code=JsonField('vanity_url_code'),
     banner=JsonField('banner'),
     premium_tier=JsonField('permium_tier'),
     premium_subscription_count=JsonField('premium_subscription_count'),
@@ -151,7 +151,7 @@ GuildWidgetTemplate = JsonTemplate(
     ),
     members=JsonArray(
         'members',
-        objeect=GuildWidgetMemberTemplate.default_object(
+        object=GuildWidgetMemberTemplate.default_object(
             'GuildWidgetMember'
         )
     ),

@@ -1,6 +1,7 @@
 from .baseobject import BaseObject
+from .inviteobject import GuildVanityUrl
+from .widgetobject import GuildWidget
 from .. import rest
-from ..objects.widgetobject import GuildWidget
 from ..states.channelstate import GuildChannelState
 from ..templates import GuildBanTemplate, GuildPreviewTemplate, GuildTemplate
 from ..utils import Snowflake, _validate_keys
@@ -12,6 +13,7 @@ class Guild(BaseObject, template=GuildTemplate):
     def __init__(self, *, state):
         super().__init__(state=state)
         self.widget = GuildWidget(owner=self)
+        self.vanity_url = GuildVanityUrl(owner=self)
         self.channels = GuildChannelState(
             superstate=self.state.manager.channels,
             guild=self)
@@ -78,11 +80,6 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return data
 
-    async def fetch_vanity_url(self):
-        # XXX: self.vanity_url = GuildVanityUrl(...);
-        # await self.vanity_url.fetch()?
-        pass
-
     def to_preview_dict(self):
         return GuildPreviewTemplate.to_dict(self)
 
@@ -98,6 +95,11 @@ class Guild(BaseObject, template=GuildTemplate):
         if widget_enabled is not None:
             self.widget.enabled = widget_enabled
             del self._widget_enabled
+
+        vanity_url_code = getattr(self, '_vanity_url_code', None)
+        if vanity_url_code is None:
+            self.vanity_url.code = vanity_url_code
+            del self._vanity_url_code
 
         channels = getattr(self, '_channels', None)
         if channels is not None:

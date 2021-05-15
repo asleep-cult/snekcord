@@ -107,6 +107,9 @@ class JsonObjectMeta(type):
 class JsonObject(metaclass=JsonObjectMeta):
     @classmethod
     def unmarshal(cls, data, *args, **kwargs):
+        if cls.__template__ is None:
+            raise NotImplementedError
+
         if isinstance(data, (bytes, bytearray, memoryview, str)):
             data = json.loads(data)
 
@@ -116,10 +119,16 @@ class JsonObject(metaclass=JsonObjectMeta):
         return self
 
     def update(self, *args, **kwargs):
+        if self.__template__ is None:
+            raise NotImplementedError
         return self.__template__.update(self, *args, **kwargs)
 
     def to_dict(self, *args, **kwargs):
+        if self.__template__ is None:
+            raise NotImplementedError
         return self.__template__.to_dict(self, *args, **kwargs)
 
     def marshal(self, *args, **kwargs):
+        if self.__template__ is None:
+            raise NotImplementedError
         return self.__template__.marshal(self, *args, **kwargs)

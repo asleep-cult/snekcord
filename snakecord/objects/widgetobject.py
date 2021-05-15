@@ -4,7 +4,12 @@ from ..templates import GuildWidgetTemplate
 from ..utils import Snowflake
 
 
-class GuildWidget(BaseStatelessObject, template=GuildWidgetTemplate):
+GuildWidgetJson = GuildWidgetTemplate.default_object('GuildWidgetJson')
+
+
+class GuildWidget(BaseStatelessObject):
+    __slots__ = ('enabled', 'channel_id')
+
     def __init__(self, *, owner):
         super().__init__(owner=owner)
         self.enabled = None
@@ -15,15 +20,6 @@ class GuildWidget(BaseStatelessObject, template=GuildWidgetTemplate):
         return self.owner.channels.get(self.channel_id)
 
     async def fetch(self):
-        data = await rest.get_guild_widget.request(
-            session=self.owner.state.manager.rest,
-            fmt=dict(guild_id=self.owner.id))
-
-        self.update(data)
-
-        return self
-
-    async def fetch_settings(self):
         data = await rest.get_guild_widget_settings.request(
             session=self.owner.state.manager.rest,
             fmt=dict(guild_id=self.owner.id))
@@ -32,7 +28,7 @@ class GuildWidget(BaseStatelessObject, template=GuildWidgetTemplate):
 
         return self
 
-    async def modify_settings(self, enabled=None, channel=None):
+    async def modify(self, enabled=None, channel=None):
         json = {}
 
         if enabled is not None:
@@ -49,6 +45,13 @@ class GuildWidget(BaseStatelessObject, template=GuildWidgetTemplate):
         self._update_settings(data)
 
         return self
+
+    async def fetch_json(self):
+        data = await rest.get_guild_widget.request(
+            session=self.owner.state.manager.rest,
+            fmt=dict(guild_id=self.owner.id))
+
+        return GuildWidgetJson.unmarshal(data)
 
     async def fetch_shield(self):
         data = await rest.get_guild_widget_image.request(

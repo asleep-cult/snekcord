@@ -29,17 +29,18 @@ class BaseObject(JsonObject, template=BaseTemplate):
     def _delete(self):
         self.deleted = True
         self.deleted_at = datetime.now()
-        self.uncache()
+        self.uncache(recycle=False)
 
     def cache(self):
         self.cached = self.state.set(self.id, self)
         if self.cached:
             self.state.unrecycle(self.id, None)
 
-    def uncache(self):
+    def uncache(self, recycle=True):
         self.cached = False
         self.state.pop(self.id, None)
-        self.state.recycle(self.id, self)
+        if recycle:
+            self.state.recycle(self.id, self)
 
     async def fetch(self):
         return await self.state.fetch(self.id)
