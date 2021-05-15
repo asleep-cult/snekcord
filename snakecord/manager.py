@@ -67,11 +67,6 @@ class BaseManager:
 
         self.closing = True
 
-        try:
-            signal.signal(signo, lambda *args: None)
-        except BaseException:
-            pass
-
         task = self.loop.create_task(self.rest.aclose())
         task.add_done_callback(
             lambda future: self._repropagate(signo, frame))
