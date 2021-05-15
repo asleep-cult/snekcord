@@ -16,7 +16,7 @@ for signo in ('SIGINT', 'SIGTERM'):
     if signo is not None:
         HANDLED_SIGNALS.append(signo)
 
-default_states = {
+DEFAULT_CLASSES = {
     klass.__name__: klass
     for klass in (ChannelState, GuildChannelState, GuildState,
                   GuildBanState, InviteState, RoleState, GuildMemberState,
@@ -25,7 +25,7 @@ default_states = {
 
 
 class BaseManager:
-    __classes__ = default_states
+    __classes__ = DEFAULT_CLASSES
 
     def __init__(self, token, *, loop=None, api_version='9'):
         if loop is not None:
@@ -47,7 +47,7 @@ class BaseManager:
 
     @classmethod
     def set_class(cls, name, klass):
-        default = default_states[name]
+        default = DEFAULT_CLASSES[name]
         assert issubclass(klass, default)
         cls.__classes__[name] = klass
 
