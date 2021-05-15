@@ -1,5 +1,6 @@
 from .baseobject import BaseObject
 from .. import rest
+from ..objects.widgetobject import GuildWidget
 from ..states.channelstate import GuildChannelState
 from ..templates import GuildBanTemplate, GuildPreviewTemplate, GuildTemplate
 from ..utils import Snowflake, _validate_keys
@@ -10,6 +11,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
     def __init__(self, *, state):
         super().__init__(state=state)
+        self.widget = GuildWidget(owner=self)
         self.channels = GuildChannelState(
             superstate=self.state.manager.channels,
             guild=self)
@@ -86,6 +88,16 @@ class Guild(BaseObject, template=GuildTemplate):
 
     def update(self, *args, **kwargs):
         super().update(*args, **kwargs)
+
+        widget_channel_id = getattr(self, '_widget_channel_id', None)
+        if widget_channel_id is not None:
+            self.widget.channel_id = widget_channel_id
+            del self._widget_channel_id
+
+        widget_enabled = getattr(self, '_widget_enabled', None)
+        if widget_enabled is not None:
+            self.widget.enabled = widget_enabled
+            del self._widget_enabled
 
         channels = getattr(self, '_channels', None)
         if channels is not None:

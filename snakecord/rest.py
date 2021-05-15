@@ -402,7 +402,7 @@ get_guild_widget_settings = HTTPEndpoint(
     BASE_API_URL + 'guilds/%(guild_id)s/widget',
 )
 
-modify_guild_widget = HTTPEndpoint(
+modify_guild_widget_settings = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/widget',
     json=('enabled', 'channel_id')

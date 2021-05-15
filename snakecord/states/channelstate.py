@@ -50,7 +50,7 @@ class GuildChannelState(BaseSubState):
 
     @property
     def widget(self):
-        return self.get(self.guild.widget_channel_id)
+        return self.get(self.guild.widget.channel_id)
 
     @property
     def application(self):

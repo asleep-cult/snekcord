@@ -79,8 +79,8 @@ GuildTemplate = JsonTemplate(
     region=JsonField('region'),
     afk_channel_id=JsonField('afk_channel_id', Snowflake, str),
     afk_timeout=JsonField('afk_timeout'),
-    widget_enabled=JsonField('widget_enabled'),
-    widget_channel_id=JsonField('widget_channel_id', Snowflake, str),
+    _widget_enabled=JsonField('widget_enabled'),
+    _widget_channel_id=JsonField('widget_channel_id', Snowflake, str),
     verification_level=JsonField('verification_level'),
     default_message_notifications=JsonField('default_message_notifications'),
     explicit_content_filter=JsonField('explicit_content_filter'),
@@ -143,8 +143,18 @@ GuildWidgetMemberTemplate = JsonTemplate(
 GuildWidgetTemplate = JsonTemplate(
     name=JsonField('name'),
     instant_invite=JsonField('instant_invite'),
-    _channels=JsonArray('channels'),
-    _members=JsonArray('members'),
+    channels=JsonArray(
+        'channels',
+        object=GuildWidgetChannelTemplate.default_object(
+            'GuildWidgetChannel'
+        )
+    ),
+    members=JsonArray(
+        'members',
+        objeect=GuildWidgetMemberTemplate.default_object(
+            'GuildWidgetMember'
+        )
+    ),
     presence_count=JsonField('presence_count'),
     __extends__=(BaseTemplate,)
 )
