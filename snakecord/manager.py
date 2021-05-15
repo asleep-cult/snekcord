@@ -56,13 +56,10 @@ class BaseManager:
         return cls.__classes__[name]
 
     def _repropagate(self, signo, frame):
-        old_handler = self._old_handlers[signo]
-        old_handler(signo, frame)
+        self._old_handlers[signo](signo, frame)
 
-        try:
-            signal.signal(signo, old_handler)
-        except BaseException:
-            pass
+        for signo in HANDLED_SIGNALS:
+            signal.signal(signo, self._old_handlers[signo])
 
     def _sighandle(self, signo, frame):
         if self.closing:
