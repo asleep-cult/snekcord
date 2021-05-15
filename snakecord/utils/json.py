@@ -44,8 +44,8 @@ class JsonTemplate:
     def marshal(self, obj, *args, **kwargs):
         return json.dumps(self.to_dict(obj), *args, **kwargs)
 
-    def default_object(self):
-        return JsonObjectMeta('GenericObject', (JsonObject,), {},
+    def default_object(self, name='GenericObject'):
+        return JsonObjectMeta(name, (JsonObject,), {},
                               template=self)
 
 

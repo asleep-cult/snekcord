@@ -23,7 +23,7 @@ class BaseObject(JsonObject, template=BaseTemplate):
         return hash(self.id)
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(id={self.id}, '
+        return (f'{self.__class__.__name__}(id={self.id!r}, '
                 f'cached={self.cached}, deleted={self.deleted})')
 
     def _delete(self):
@@ -43,3 +43,10 @@ class BaseObject(JsonObject, template=BaseTemplate):
 
     async def fetch(self):
         return await self.state.fetch(self.id)
+
+
+class BaseStatelessObject(JsonObject):
+    __slots__ = ('owner',)
+
+    def __init__(self, *, owner):
+        self.owner = owner

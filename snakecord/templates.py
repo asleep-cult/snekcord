@@ -3,8 +3,13 @@ from .utils import JsonArray, JsonField, JsonTemplate, Snowflake
 __all__ = ('BaseTemplate', 'GuildChannelTemplate', 'TextChannelTemplate',
            'VoiceChannelTemplate', 'DMChannelTemplate', 'GuildEmojiTemplate',
            'GuildPreviewTemplate', 'GuildTemplate', 'GuildBanTemplate',
-           'GuildMemberTemplate', 'MessageTemplate', 'ReactionTemplate',
-           'RoleTagTemplate', 'RoleTemplate', 'UserTemplate')
+           'GuildWidgetSettingsTemplate', 'GuildWidgetChannelTemplate',
+           'GuildWidgetMemberTemplate', 'GuildWidgetTemplate',
+           'GuildMemberTemplate', 'IntegrationAccountTemplate',
+           'IntegrationApplicationTemplate', 'IntegrationTemplate',
+           'WelcomeScreenChannelTemplate', 'WelcomeScreenTemplate',
+           'MessageTemplate', 'ReactionTemplate', 'RoleTagsTemplate',
+           'RoleTemplate', 'UserTemplate')
 
 
 BaseTemplate = JsonTemplate(
@@ -115,6 +120,35 @@ GuildBanTemplate = JsonTemplate(
     _user=JsonField('user')
 )
 
+GuildWidgetSettingsTemplate = JsonTemplate(
+    enabled=JsonField('enabled'),
+    channel_id=JsonField('channel_id'),
+)
+
+GuildWidgetChannelTemplate = JsonTemplate(
+    name=JsonField('name'),
+    position=JsonField('position'),
+    __extends__=(BaseTemplate,)
+)
+
+GuildWidgetMemberTemplate = JsonTemplate(
+    username=JsonField('username'),
+    discriminator=JsonField('discriminator'),
+    avatar=JsonField('avatar'),
+    status=JsonField('status'),
+    avatar_url=JsonField('avatar_url'),
+    __extends__=(BaseTemplate,)
+)
+
+GuildWidgetTemplate = JsonTemplate(
+    name=JsonField('name'),
+    instant_invite=JsonField('instant_invite'),
+    _channels=JsonArray('channels'),
+    _members=JsonArray('members'),
+    presence_count=JsonField('presence_count'),
+    __extends__=(BaseTemplate,)
+)
+
 GuildMemberTemplate = JsonTemplate(
     _user=JsonField('user'),
     nick=JsonField('nick'),
@@ -124,6 +158,56 @@ GuildMemberTemplate = JsonTemplate(
     deaf=JsonField('deaf'),
     mute=JsonField('mute'),
     pending=JsonField('pending'),
+    _permissions=JsonField('permissions'),
+)
+
+IntegrationAccountTemplate = JsonTemplate(
+    name=JsonField('name'),
+    __extends__=(BaseTemplate,)
+)
+
+IntegrationApplicationTemplate = JsonTemplate(
+    name=JsonField('name'),
+    icon=JsonField('icon'),
+    description=JsonField('description'),
+    summary=JsonField('summary'),
+    _bot=JsonField('bot'),
+    __extends__=(BaseTemplate,)
+)
+
+IntegrationTemplate = JsonTemplate(
+    name=JsonField('name'),
+    type=JsonField('type'),
+    enabled=JsonField('enabled'),
+    syncing=JsonField('syncing'),
+    role_id=JsonField('role_id', Snowflake, str),
+    enable_emoticons=JsonField('emoticons'),
+    expire_behavior=JsonField('expire_behavior'),
+    expire_grace_period=JsonField('expire_grace_period'),
+    _user=JsonField('user'),
+    account=JsonField(
+        'account',
+        object=IntegrationAccountTemplate.default_object(
+            'IntegrationAccount'
+        )
+    ),
+    synced_at=JsonField('synced_at'),
+    subscriber_count=JsonField('subscriber_count'),
+    revoked=JsonField('revoked'),
+    _application=JsonField('application'),
+    __extends__=(BaseTemplate,)
+)
+
+WelcomeScreenChannelTemplate = JsonTemplate(
+    channel_id=JsonField('channel_id', Snowflake, str),
+    description=JsonField('description'),
+    enoji_id=JsonField('emoji', Snowflake, str),
+    emoji_name=JsonField('emoji_name'),
+)
+
+WelcomeScreenTemplate = JsonField(
+    description=JsonField('description'),
+    _welcome_channels=JsonField('welcome_channels'),
 )
 
 MessageTemplate = JsonTemplate(
@@ -161,7 +245,7 @@ ReactionTemplate = JsonTemplate(
     emoji=JsonField('emoji')
 )
 
-RoleTagTemplate = JsonTemplate(
+RoleTagsTemplate = JsonTemplate(
     bot_id=JsonField('bot_id', Snowflake, str),
     integration_id=JsonField('integration_id', Snowflake, str),
     premium_subscriber=JsonField('premium_subscriber')
@@ -175,7 +259,10 @@ RoleTemplate = JsonTemplate(
     permissions=JsonField('permissions'),
     managed=JsonField('managed'),
     mentionable=JsonField('mentionable'),
-    tags=JsonField('tags', object=RoleTagTemplate.default_object()),
+    tags=JsonField(
+        'tags',
+        object=RoleTagsTemplate.default_object('RoleTags')
+    ),
     __extends__=(BaseTemplate,)
 )
 
