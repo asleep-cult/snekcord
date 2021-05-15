@@ -61,7 +61,7 @@ class GuildWidget(BaseStatelessObject):
         return data
 
     async def fetch_banner(self, style='1'):
-        style = 'banner' + str(style)
+        style = f'banner{style}'
 
         data = await rest.get_guild_widget_image.request(
             session=self.owner.state.manager.rest,

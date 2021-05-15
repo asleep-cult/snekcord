@@ -114,7 +114,7 @@ class JsonObject(metaclass=JsonObjectMeta):
             data = json.loads(data)
 
         self = cls(*args, **kwargs)
-        self.update(set_defaults=True)
+        self.update(data, set_defaults=True)
 
         return self
 

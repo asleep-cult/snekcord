@@ -3,13 +3,6 @@ import json
 from httpx import AsyncClient
 
 
-class HTTPError(Exception):
-    def __init__(self, response, data) -> None:
-        super().__init__()
-        self.response = response
-        self.data = data
-
-
 class HTTPEndpoint:
     def __init__(self, method, url, *, params=(), json=(), array=False):
         self.method = method
@@ -31,7 +24,15 @@ class HTTPEndpoint:
                 else:
                     json = {k: v for k, v in json.items() if k in self.json}
 
-        return session.request(params=params, json=json, **kwargs)
+        headers = kwargs.setdefault('headers', {})
+        headers.update(session.global_headers)
+
+        fmt = kwargs.pop('fmt', {})
+        fmt.update(session.global_fmt)
+
+        url = self.url % fmt
+        return session.request(self.method, url, params=params, json=json,
+                               **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -641,33 +642,33 @@ get_gateway_bot = HTTPEndpoint(
 
 class RestSession(AsyncClient):
     def __init__(self, manager, *args, **kwargs):
-        self.global_headers = kwargs.pop('golbal_headers', {})
-        self.global_headers.update({
-            'Authorization': self.authorization,
-        })
-
-        self.global_fmt = kwargs.pop('global_fmt', {})
-        self.global_fmt.update({
-            'version': self.version
-        })
-
-        super().__init__(*args, **kwargs)
-
         self.loop = manager.loop
         self.manager = manager
 
         self.authorization = self.manager.token
         self.api_version = self.manager.api_version
 
+        self.global_headers = kwargs.pop('global_headers', {})
+        self.global_headers.update({
+            'Authorization': self.authorization,
+        })
+
+        self.global_fmt = kwargs.pop('global_fmt', {})
+        self.global_fmt.update({
+            'version': self.api_version
+        })
+
+        super().__init__(*args, **kwargs)
+
     async def request(self, *args, **kwargs):
-        headers = kwargs.setdefault('headers', {})
-        headers.update(self.global_headers)
-
-        fmt = kwargs.setdefault('fmt', {})
-        fmt.update(self.global_fmt)
-
         response = await super().request(*args, **kwargs)
+        response.raise_for_status()
+        await response.aclose()
 
-        data = json.loads(await response.aread())
+        data = await response.aread()
+
+        content_type = response.headers.get('content-type')
+        if 'application/json' in content_type.lower():
+            data = json.loads(data)
 
         return data

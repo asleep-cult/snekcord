@@ -215,7 +215,7 @@ WelcomeScreenChannelTemplate = JsonTemplate(
     emoji_name=JsonField('emoji_name'),
 )
 
-WelcomeScreenTemplate = JsonField(
+WelcomeScreenTemplate = JsonTemplate(
     description=JsonField('description'),
     _welcome_channels=JsonField('welcome_channels'),
 )

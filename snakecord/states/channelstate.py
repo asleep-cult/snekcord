@@ -18,14 +18,15 @@ class ChannelState(BaseState):
     }
     __default_class__ = BaseObject
 
-    def append(self, data):
+    def append(self, data, *args, **kwargs):
         channel = self.get(data['id'])
         if channel is not None:
             channel.update(data)
         else:
             Class = self.__channel_classes__.get(
                 data['type'], self.__default_class__)
-            channel = Class.unmarshal(data, state=self)
+            channel = Class.unmarshal(data, *args,
+                                      state=self, **kwargs)
             channel.cache()
 
         return channel

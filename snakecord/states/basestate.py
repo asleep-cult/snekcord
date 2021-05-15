@@ -69,8 +69,8 @@ class BaseState(_StateCommon):
         self.manager = manager
 
     def __repr__(self):
-        return (f'<{self.__class__.__name__} length={len(self)},'
-                f' recycled={len(self._recycle_bin)}>')
+        return (f'{self.__class__.__name__}(length={len(self)}, '
+                f'recycled={len(self._recycle_bin)})')
 
     @classmethod
     def set_maxsize(cls, maxsize):

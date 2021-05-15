@@ -2,21 +2,23 @@ from .baseobject import BaseObject
 from .inviteobject import GuildVanityUrl
 from .widgetobject import GuildWidget
 from .. import rest
-from ..states.channelstate import GuildChannelState
 from ..templates import GuildBanTemplate, GuildPreviewTemplate, GuildTemplate
 from ..utils import Snowflake, _validate_keys
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('widget', 'vanity_url', 'channels')
+    __slots__ = (*GuildPreviewTemplate.local_fields, 'widget', 'vanity_url',
+                 'channels')
 
     def __init__(self, *, state):
         super().__init__(state=state)
         self.widget = GuildWidget(owner=self)
         self.vanity_url = GuildVanityUrl(owner=self)
-        self.channels = GuildChannelState(
-            superstate=self.state.manager.channels,
-            guild=self)
+        self.channels = (
+            self.state.manager.get_class('GuildChannelState')(
+                superstate=self.state.manager.channels,
+                guild=self)
+        )
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild.keys
@@ -104,7 +106,8 @@ class Guild(BaseObject, template=GuildTemplate):
         channels = getattr(self, '_channels', None)
         if channels is not None:
             for channel in channels:
-                channel = self.state.manager.channels.append(channel)
+                channel = self.state.manager.channels.append(
+                    channel, guild=self)
                 self.channels.add_key(channel.id)
 
             del self._channels
