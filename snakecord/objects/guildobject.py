@@ -8,7 +8,7 @@ from ..utils import Snowflake, _validate_keys
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('channels',)
+    __slots__ = ('widget', 'vanity_url', 'channels')
 
     def __init__(self, *, state):
         super().__init__(state=state)

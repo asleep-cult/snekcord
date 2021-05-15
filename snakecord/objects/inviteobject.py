@@ -45,6 +45,8 @@ class Invite(BaseObject, template=InviteTemplate):
 
 
 class GuildVanityUrl(BaseStatelessObject):
+    __slots__ = ('code',)
+
     def __init__(self, *, owner):
         super().__init__(owner=owner)
         self.code = None
