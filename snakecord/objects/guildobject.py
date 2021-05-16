@@ -13,11 +13,11 @@ class Guild(BaseObject, template=GuildTemplate):
         super().__init__(state=state)
         self.widget = GuildWidget(owner=self)
         self.vanity_url = GuildVanityUrl(owner=self)
-        self.channels = (
-            self.state.manager.get_class('GuildChannelState')(
+
+        GuildChannelState = self.state.manager.get_class('GuildChannelState')
+        self.channels = GuildChannelState(
                 superstate=self.state.manager.channels,
                 guild=self)
-        )
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild.keys

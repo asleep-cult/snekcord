@@ -113,7 +113,9 @@ class JsonObjectMeta(type):
         slots = tuple(attrs.get('__slots__', ()))
         if template is not None:
             fields = template.fields
-            slots += tuple(field for field in fields if field not in slots)
+            slots += tuple(field for field in fields
+                           if field not in slots
+                           and field not in external_slots)
 
         attrs['__slots__'] = slots
         attrs['__template__'] = template

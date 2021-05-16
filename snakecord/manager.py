@@ -12,13 +12,19 @@ from .states.userstate import UserState
 
 class BaseManager:
     DEFAULT_CLASSES = {
-        klass.__name__: klass
-        for klass in (ChannelState, GuildChannelState, GuildState,
-                      GuildBanState, InviteState, RoleState, GuildMemberState,
-                      GuildMemberRoleState, UserState, RestSession)
+        'ChannelState': ChannelState,
+        'GuildChannelState': GuildChannelState,
+        'GuildState': GuildState,
+        'GuildBanState': GuildBanState,
+        'InviteState': InviteState,
+        'RoleState': RoleState,
+        'GuildMemberState': GuildMemberState,
+        'GuildMemberRoleState': GuildMemberRoleState,
+        'UserState': UserState,
+        'RestSession': RestSession,
     }
 
-    __classes__ = DEFAULT_CLASSES
+    __classes__ = DEFAULT_CLASSES.copy()
     __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
 
     def __init__(self, token, *, loop=None, api_version='9'):
