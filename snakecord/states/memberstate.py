@@ -9,8 +9,8 @@ class GuildMemberState(BaseState):
     __recycled_container__ = WeakValueSnowflakeMapping
     __guild_member_class__ = GuildMember
 
-    def __init__(self, *, superstate, guild):
-        super().__init__(superstate=superstate)
+    def __init__(self, *, manager, guild):
+        super().__init__(manager=manager)
         self.guild = guild
 
     def append(self, data):

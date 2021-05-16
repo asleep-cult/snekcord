@@ -20,8 +20,8 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
     def __init__(self, *, state, guild):
         super().__init__(state=state)
         self.guild = guild
-        self.roles = GuildMemberRoleState(superstate=self.guild.roles,
-                                          member=self)
+        self.roles = GuildMemberRoleState(
+            superstate=self.guild.roles, member=self)
 
     @property
     def removed(self):

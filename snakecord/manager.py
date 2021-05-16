@@ -6,6 +6,7 @@ from .states.channelstate import ChannelState, GuildChannelState
 from .states.guildstate import GuildBanState, GuildState
 from .states.invitestate import InviteState
 from .states.memberstate import GuildMemberState
+from .states.messagestate import MessageState
 from .states.rolestate import GuildMemberRoleState, RoleState
 from .states.userstate import UserState
 
@@ -19,6 +20,7 @@ class BaseManager:
         'InviteState': InviteState,
         'RoleState': RoleState,
         'GuildMemberState': GuildMemberState,
+        'MessageState': MessageState,
         'GuildMemberRoleState': GuildMemberRoleState,
         'UserState': UserState,
         'RestSession': RestSession,

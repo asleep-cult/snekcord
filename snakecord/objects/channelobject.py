@@ -11,7 +11,7 @@ GuildChannelTemplate = JsonTemplate(
     _permission_overwrites=JsonArray('permission_overwrites'),
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
-    category_id=JsonField('parent_id'),
+    parent_id=JsonField('parent_id'),
     type=JsonField('type'),
     __extends__=(BaseTemplate,)
 )
@@ -76,15 +76,17 @@ def _guild_channel_modification_keys(channel_type):
 
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, state, guild):
-        super().__init__(state=state)
-        self.guild = guild
-
     @property
     def mention(self):
         return f'<#{self.id}>'
+
+    @property
+    def guild(self):
+        return self.state.manager.guilds.get(self.guild_id)
+
+    @property
+    def parent(self):
+        return self.state.manager.channels.get(self.parent_id)
 
     async def delete(self):
         await rest.delete_channel.request(
@@ -121,7 +123,13 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):
-    pass
+    __slots__ = ('messages',)
+
+    def __init__(self, *, state):
+        super().__init__(state=state)
+        self.messages = self.state.manager.get_class('MessageState')(
+            manager=self.state.manager,
+            channel=self)
 
 
 class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):

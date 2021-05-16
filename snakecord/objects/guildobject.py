@@ -29,7 +29,6 @@ GuildTemplate = JsonTemplate(
     verification_level=JsonField('verification_level'),
     default_message_notifications=JsonField('default_message_notifications'),
     explicit_content_filter=JsonField('explicit_content_filter'),
-    _roles=JsonArray('roles'),
     mfa_level=JsonField('mfa_level'),
     application_id=JsonField('application_id', Snowflake, str),
     system_channel_id=JsonField('system_channel_id', Snowflake, str),
@@ -40,7 +39,6 @@ GuildTemplate = JsonTemplate(
     unavailable=JsonField('unavailable'),
     member_count=JsonField('member_count'),
     _voice_states=JsonArray('voice_states'),
-    _members=JsonArray('members'),
     _threads=JsonArray('threads'),
     _presences=JsonArray('presences'),
     max_presences=JsonField('max_presences'),
@@ -65,17 +63,24 @@ GuildBanTemplate = JsonTemplate(
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('widget', 'vanity_url', 'channels')
+    __slots__ = ('widget', 'vanity_url', 'channels', 'roles', 'members')
 
     def __init__(self, *, state):
         super().__init__(state=state)
         self.widget = GuildWidget(owner=self)
         self.vanity_url = GuildVanityUrl(owner=self)
 
-        GuildChannelState = self.state.manager.get_class('GuildChannelState')
-        self.channels = GuildChannelState(
+        self.channels = self.state.manager.get_class('GuildChannelState')(
                 superstate=self.state.manager.channels,
                 guild=self)
+
+        self.roles = self.state.manager.get_class('RoleState')(
+            manager=self.state.manager,
+            guild=self)
+
+        self.members = self.state.manager.get_class('GuildMemberState')(
+            manager=self.state.manager,
+            guild=self)
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild.keys
@@ -160,9 +165,16 @@ class Guild(BaseObject, template=GuildTemplate):
         channels = data.get('channels')
         if channels is not None:
             for channel in channels:
-                channel = self.state.manager.channels.append(
-                    channel, guild=self)
+                channel = self.state.manager.channels.append(channel)
                 self.channels.add_key(channel.id)
+
+        roles = data.get('roles')
+        if roles is not None:
+            self.roles.extend(roles)
+
+        members = data.get('members')
+        if members is not None:
+            self.members.extend(members)
 
 
 class GuildBan(BaseObject, template=GuildBanTemplate):
