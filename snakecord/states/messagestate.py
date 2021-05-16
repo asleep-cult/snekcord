@@ -23,8 +23,8 @@ class MessageState(BaseState):
 
         return message
 
-    async def fetch_messages(self, around=None, before=None, after=None,
-                             limit=None):
+    async def fetch_many(self, around=None, before=None, after=None,
+                         limit=None):
         params = {}
 
         if around is not None:
