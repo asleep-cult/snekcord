@@ -37,6 +37,7 @@ class BaseManager:
         self.users = self.get_class('UserState')(manager=self)
 
         self.closing = False
+        self.finalized = False
 
         self._sigpending = []
         self._sighandlers = {}
@@ -72,9 +73,30 @@ class BaseManager:
 
         self.closing = True
 
-        task = self.loop.create_task(self.rest.aclose())
+        task = asyncio.shield(self.finalize(), loop=self.loop)
         task.add_done_callback(
             lambda future: self._repropagate())
+
+    async def close(self):
+        await self.rest.aclose()
+
+    async def finalize(self):
+        if self.finalized:
+            return
+
+        self.finalized = True
+
+        await self.close()
+
+        tasks = asyncio.all_tasks(loop=self.loop)
+        for task in tasks:
+            if task is not asyncio.current_task():
+                if not task.done():
+                    task.cancel()
+
+        await asyncio.sleep(0)  # allow the task callbacks to run
+
+        self.loop.stop()
 
     def run_forever(self):
         for signo in self.__handled_signals__:
