@@ -81,9 +81,7 @@ class BaseManager:
 
         self.closing = True
 
-        task = asyncio.shield(self.finalize(), loop=self.loop)
-        task.add_done_callback(
-            lambda future: self._repropagate())
+        asyncio.run_coroutine_threadsafe(self.finalize(), loop=self.loop)
 
     async def close(self):
         await self.rest.aclose()
@@ -100,10 +98,9 @@ class BaseManager:
         for task in tasks:
             if task is not asyncio.current_task() and not task.done():
                 task.cancel()
-
-        await asyncio.sleep(0)  # allow the task callbacks to run
-
-        self.loop.stop()
+        
+        self.loop.call_soon_threadsafe(self._repropagate)
+        self.loop.call_soon_threadsafe(self.loop.close)
 
     def run_forever(self):
         for signo in self.__handled_signals__:
@@ -115,5 +112,5 @@ class BaseManager:
 
         try:
             self.loop.run_forever()
-        except BaseException as e:
-            return e
+        except BaseException as exc:
+            return exc
