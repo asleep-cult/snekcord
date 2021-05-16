@@ -1,6 +1,13 @@
 import json
+from http import HTTPStatus
 
 from httpx import AsyncClient
+
+
+class HTTPError(Exception):
+    def __init__(self, msg, response):
+        super().__init__(msg)
+        self.response = response
 
 
 class HTTPEndpoint:
@@ -660,15 +667,21 @@ class RestSession(AsyncClient):
 
         super().__init__(*args, **kwargs)
 
-    async def request(self, *args, **kwargs):
-        response = await super().request(*args, **kwargs)
-        response.raise_for_status()
+    async def request(self, method, url, *args, **kwargs):
+        response = await super().request(
+            method, url, *args, **kwargs)
         await response.aclose()
 
         data = await response.aread()
 
         content_type = response.headers.get('content-type')
-        if 'application/json' in content_type.lower():
+        if content_type.lower() == 'application/json':
             data = json.loads(data)
+
+        if response.status_code >= 400:
+            status = HTTPStatus(response.status_code)
+            raise HTTPError(
+                f'{method} {url} responded with {status} {status.phrase}: '
+                f'{data}', response)
 
         return data

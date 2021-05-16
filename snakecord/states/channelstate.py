@@ -110,7 +110,7 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return self.superstate.append(data)
+        return self.superstate.append(data, guild=self.guild)
 
     async def modify(self, positions):
         required_keys = ('id',)

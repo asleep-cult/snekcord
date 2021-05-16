@@ -92,11 +92,28 @@ class JsonArray(JsonField):
         return [super().marshal(value) for value in values]
 
 
+def _flatten_slots(cls, slots=None):
+    if slots is None:
+        slots = set()
+
+    slots.update(getattr(cls, '__slos__', ()))
+
+    for base in cls.__bases__:
+        _flatten_slots(base, slots)
+
+    return slots
+
+
 class JsonObjectMeta(type):
     def __new__(mcs, name, bases, attrs, template=None):
-        slots = set(attrs.get('__slots__', ()))
+        external_slots = set()
+        for base in bases:
+            _flatten_slots(base, external_slots)
+
+        slots = tuple(attrs.get('__slots__', ()))
         if template is not None:
-            slots.update(template.local_fields)
+            fields = template.fields
+            slots += tuple(field for field in fields if field not in slots)
 
         attrs['__slots__'] = slots
         attrs['__template__'] = template

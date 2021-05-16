@@ -9,18 +9,17 @@ from .states.memberstate import GuildMemberState
 from .states.rolestate import GuildMemberRoleState, RoleState
 from .states.userstate import UserState
 
-HANDLED_SIGNALS = (signal.SIGINT, signal.SIGTERM)
-
-DEFAULT_CLASSES = {
-    klass.__name__: klass
-    for klass in (ChannelState, GuildChannelState, GuildState,
-                  GuildBanState, InviteState, RoleState, GuildMemberState,
-                  GuildMemberRoleState, UserState, RestSession)
-}
-
 
 class BaseManager:
+    DEFAULT_CLASSES = {
+        klass.__name__: klass
+        for klass in (ChannelState, GuildChannelState, GuildState,
+                      GuildBanState, InviteState, RoleState, GuildMemberState,
+                      GuildMemberRoleState, UserState, RestSession)
+    }
+
     __classes__ = DEFAULT_CLASSES
+    __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
 
     def __init__(self, token, *, loop=None, api_version='9'):
         if loop is not None:
@@ -38,11 +37,13 @@ class BaseManager:
         self.users = self.get_class('UserState')(manager=self)
 
         self.closing = False
-        self._old_handlers = {}
+
+        self._sigpending = []
+        self._sighandlers = {}
 
     @classmethod
     def set_class(cls, name, klass):
-        default = DEFAULT_CLASSES[name]
+        default = cls.DEFAULT_CLASSES[name]
         assert issubclass(klass, default)
         cls.__classes__[name] = klass
 
@@ -50,13 +51,22 @@ class BaseManager:
     def get_class(cls, name):
         return cls.__classes__[name]
 
-    def _repropagate(self, signo, frame):
-        self._old_handlers[signo](signo, frame)
+    @classmethod
+    def add_handled_signal(cls, signo):
+        cls.__handled_signals__.append(signo)
 
-        for signo in HANDLED_SIGNALS:
-            signal.signal(signo, self._old_handlers[signo])
+    def _repropagate(self):
+        for signo, frame in self._sigpending:
+            self._sighandlers[signo](signo, frame)
+
+        self._sigpending.clear()
+
+        for signo in self.__handled_signals__:
+            signal.signal(signo, self._sighandlers[signo])
 
     def _sighandle(self, signo, frame):
+        self._sigpending.append((signo, frame))
+
         if self.closing:
             return
 
@@ -64,14 +74,17 @@ class BaseManager:
 
         task = self.loop.create_task(self.rest.aclose())
         task.add_done_callback(
-            lambda future: self._repropagate(signo, frame))
+            lambda future: self._repropagate())
 
     def run_forever(self):
-        for signo in HANDLED_SIGNALS:
+        for signo in self.__handled_signals__:
             try:
-                self._old_handlers[signo] = signal.getsignal(signo)
+                self._sighandlers[signo] = signal.getsignal(signo)
                 signal.signal(signo, self._sighandle)
             except BaseException:
                 pass
 
-        self.loop.run_forever()
+        try:
+            self.loop.run_forever()
+        except BaseException as e:
+            return e
