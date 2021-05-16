@@ -156,7 +156,10 @@ class Guild(BaseObject, template=GuildTemplate):
 
         widget_enabled = data.get('widget_enabled')
         if widget_enabled is not None:
-            self.widget.enabled = widget_enabled
+            widget_data['widget_enabled'] = widget_enabled
+
+        if widget_enabled:
+            self.widget.update(data)
 
         vanity_url_code = data.get('vanity_url_code')
         if vanity_url_code is None:
