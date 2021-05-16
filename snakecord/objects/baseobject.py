@@ -1,12 +1,15 @@
 from datetime import datetime
 
 from ..exceptions import PartialObjectError
-from ..templates import BaseTemplate
-from ..utils import JsonObject
+from ..utils import JsonField, JsonObject, JsonTemplate, Snowflake
+
+BaseTemplate = JsonTemplate(
+    id=JsonField('id', Snowflake, str),
+)
 
 
 class BaseObject(JsonObject, template=BaseTemplate):
-    __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at')
+    __slots__ = ('state', 'cached', 'deleted', 'deleted_at')
 
     def __init__(self, *, state):
         self.state = state

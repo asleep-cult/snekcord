@@ -1,8 +1,17 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..states.rolestate import GuildMemberRoleState
-from ..templates import GuildMemberTemplate
-from ..utils import Snowflake, _validate_keys
+from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
+
+GuildMemberTemplate = JsonTemplate(
+    nick=JsonField('nick'),
+    joined_at=JsonField('joined_at'),
+    premium_since=JsonField('premium_since'),
+    deaf=JsonField('deaf'),
+    mute=JsonField('mute'),
+    pending=JsonField('pending'),
+    _permissions=JsonField('permissions'),
+)
 
 
 class GuildMember(BaseObject, template=GuildMemberTemplate):

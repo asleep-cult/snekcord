@@ -1,10 +1,30 @@
-from .baseobject import BaseStatelessObject
+from .baseobject import BaseStatelessObject, BaseTemplate
 from .. import rest
-from ..templates import GuildWidgetTemplate
-from ..utils import Snowflake
+from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
+GuildWidgetChannel = JsonTemplate(
+    name=JsonField('name'),
+    position=JsonField('position'),
+    __extends__=(BaseTemplate,)
+).default_object('GuildWidgetChannel')
 
-GuildWidgetJson = GuildWidgetTemplate.default_object('GuildWidgetJson')
+GuildWidgetMember = JsonTemplate(
+    username=JsonField('username'),
+    discriminator=JsonField('discriminator'),
+    avatar=JsonField('avatar'),
+    status=JsonField('status'),
+    avatar_url=JsonField('avatar_url'),
+    __extends__=(BaseTemplate,)
+).default_object('GuildWidgetMember')
+
+GuildWidgetJson = JsonTemplate(
+    name=JsonField('name'),
+    instant_invite=JsonField('instant_invite'),
+    channels=JsonArray('channels', object=GuildWidgetChannel),
+    members=JsonArray('members', object=GuildWidgetMember),
+    presence_count=JsonField('presence_count'),
+    __extends__=(BaseTemplate,)
+).default_object('GuildWidgetJson')
 
 
 class GuildWidget(BaseStatelessObject):

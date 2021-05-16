@@ -1,10 +1,40 @@
 import enum
 
-from .baseobject import BaseObject
+from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..templates import (DMChannelTemplate, GuildChannelTemplate,
-                         TextChannelTemplate, VoiceChannelTemplate)
-from ..utils import Snowflake, _validate_keys
+from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
+                     _validate_keys)
+
+GuildChannelTemplate = JsonTemplate(
+    name=JsonField('name'),
+    guild_id=JsonField('guild_id', Snowflake, str),
+    _permission_overwrites=JsonArray('permission_overwrites'),
+    position=JsonField('position'),
+    nsfw=JsonField('nsfw'),
+    category_id=JsonField('parent_id'),
+    type=JsonField('type'),
+    __extends__=(BaseTemplate,)
+)
+
+TextChannelTemplate = JsonTemplate(
+    topic=JsonField('topic'),
+    slowmode=JsonField('rate_limit_per_user'),
+    last_message_id=JsonField('last_message_id'),
+    __extends__=(GuildChannelTemplate,)
+)
+
+VoiceChannelTemplate = JsonTemplate(
+    bitrate=JsonField('bitrate'),
+    user_limit=JsonField('user_limit'),
+    __extends__=(GuildChannelTemplate,)
+)
+
+DMChannelTemplate = JsonTemplate(
+    last_message_id=JsonField('last_message_id', Snowflake, str),
+    type=JsonField('type'),
+    _recipients=JsonArray('recipients'),
+    __extends__=(BaseTemplate,)
+)
 
 
 class ChannelType(enum.IntEnum):

@@ -1,7 +1,24 @@
-from .baseobject import BaseObject
+from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..templates import RoleTemplate
-from ..utils import _validate_keys
+from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
+
+RoleTags = JsonTemplate(
+    bot_id=JsonField('bot_id', Snowflake, str),
+    integration_id=JsonField('integration_id', Snowflake, str),
+    premium_subscriber=JsonField('premium_subscriber')
+).default_object('RoleTags')
+
+RoleTemplate = JsonTemplate(
+    name=JsonField('name'),
+    color=JsonField('color'),
+    hoist=JsonField('hoist'),
+    position=JsonField('position'),
+    permissions=JsonField('permissions'),
+    managed=JsonField('managed'),
+    mentionable=JsonField('mentionable'),
+    tags=JsonField('tags', object=RoleTags),
+    __extends__=(BaseTemplate,)
+)
 
 
 class Role(BaseObject, template=RoleTemplate):

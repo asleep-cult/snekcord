@@ -1,6 +1,20 @@
 from .baseobject import BaseObject, BaseStatelessObject
 from .. import rest
-from ..templates import InviteTemplate
+from ..utils import JsonField, JsonTemplate
+
+InviteTemplate = JsonTemplate(
+    code=JsonField('code'),
+    target_type=JsonField('target_type'),
+    presence_count=JsonField('approximate_presence_count'),
+    member_count=JsonField('approximate_member_count'),
+    expires_at=JsonField('expires_at'),
+
+    uses=JsonField('uses'),
+    max_uses=JsonField('max_uses'),
+    max_age=JsonField('max_age'),
+    temporary=JsonField('temporary'),
+    created_at=JsonField('temporary'),
+)
 
 
 class Invite(BaseObject, template=InviteTemplate):
