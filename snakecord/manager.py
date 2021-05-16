@@ -98,9 +98,9 @@ class BaseManager:
         for task in tasks:
             if task is not asyncio.current_task() and not task.done():
                 task.cancel()
-        
+
         self.loop.call_soon_threadsafe(self._repropagate)
-        self.loop.call_soon_threadsafe(self.loop.close)
+        self.loop.call_soon_threadsafe(self.loop.stop)
 
     def run_forever(self):
         for signo in self.__handled_signals__:
