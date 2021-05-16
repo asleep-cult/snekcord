@@ -1,3 +1,4 @@
+from .objects.baseobject import BaseTemplate
 from .utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 
