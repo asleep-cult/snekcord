@@ -44,8 +44,7 @@ class BaseManager:
         self.invites = self.get_class('InviteState')(manager=self)
         self.users = self.get_class('UserState')(manager=self)
 
-        self.closing = False
-        self.finalized = False
+        self.finalizing = False
 
         self._sigpending = []
         self._sighandlers = {}
@@ -76,10 +75,10 @@ class BaseManager:
     def _sighandle(self, signo, frame):
         self._sigpending.append((signo, frame))
 
-        if self.closing:
+        if self.finalizing:
             return
 
-        self.closing = True
+        self.finalizing = True
 
         asyncio.run_coroutine_threadsafe(self.finalize(), loop=self.loop)
 
@@ -87,11 +86,6 @@ class BaseManager:
         await self.rest.aclose()
 
     async def finalize(self):
-        if self.finalized:
-            return
-
-        self.finalized = True
-
         await self.close()
 
         tasks = asyncio.all_tasks(loop=self.loop)
@@ -100,7 +94,7 @@ class BaseManager:
                 task.cancel()
 
         self.loop.call_soon_threadsafe(self._repropagate)
-        self.loop.call_soon_threadsafe(self.loop.stop)
+        self.loop.call_soon_threadsafe(self.loop.close)
 
     def run_forever(self):
         for signo in self.__handled_signals__:
