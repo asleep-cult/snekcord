@@ -90,9 +90,8 @@ class BaseManager:
 
         tasks = asyncio.all_tasks(loop=self.loop)
         for task in tasks:
-            if task is not asyncio.current_task():
-                if not task.done():
-                    task.cancel()
+            if task is not asyncio.current_task() and not task.done():
+                task.cancel()
 
         await asyncio.sleep(0)  # allow the task callbacks to run
 
