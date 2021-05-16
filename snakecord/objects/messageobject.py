@@ -1,6 +1,7 @@
 from .baseobject import BaseObject, BaseTemplate
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
+
 MessageTemplate = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),
     guild_id=JsonField('guild_id', Snowflake, str),
@@ -32,8 +33,8 @@ MessageTemplate = JsonTemplate(
 class Message(BaseObject, template=MessageTemplate):
     __slots__ = ('author', 'member')
 
-    def __init__(self, *, state):
-        super().__init__(state=state)
+    def __json_init__(self, *, state):
+        super().__json_init__(state=state)
         self.author = None
         self.member = None
 

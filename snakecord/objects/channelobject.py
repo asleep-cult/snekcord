@@ -5,37 +5,6 @@ from .. import rest
 from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
-GuildChannelTemplate = JsonTemplate(
-    name=JsonField('name'),
-    guild_id=JsonField('guild_id', Snowflake, str),
-    _permission_overwrites=JsonArray('permission_overwrites'),
-    position=JsonField('position'),
-    nsfw=JsonField('nsfw'),
-    parent_id=JsonField('parent_id'),
-    type=JsonField('type'),
-    __extends__=(BaseTemplate,)
-)
-
-TextChannelTemplate = JsonTemplate(
-    topic=JsonField('topic'),
-    slowmode=JsonField('rate_limit_per_user'),
-    last_message_id=JsonField('last_message_id'),
-    __extends__=(GuildChannelTemplate,)
-)
-
-VoiceChannelTemplate = JsonTemplate(
-    bitrate=JsonField('bitrate'),
-    user_limit=JsonField('user_limit'),
-    __extends__=(GuildChannelTemplate,)
-)
-
-DMChannelTemplate = JsonTemplate(
-    last_message_id=JsonField('last_message_id', Snowflake, str),
-    type=JsonField('type'),
-    _recipients=JsonArray('recipients'),
-    __extends__=(BaseTemplate,)
-)
-
 
 class ChannelType(enum.IntEnum):
     GUILD_TEXT = 0
@@ -73,6 +42,18 @@ def _guild_channel_modification_keys(channel_type):
         keys += ('rtc_region', 'video_quality_mode')
 
     return keys
+
+
+GuildChannelTemplate = JsonTemplate(
+    name=JsonField('name'),
+    guild_id=JsonField('guild_id', Snowflake, str),
+    _permission_overwrites=JsonArray('permission_overwrites'),
+    position=JsonField('position'),
+    nsfw=JsonField('nsfw'),
+    parent_id=JsonField('parent_id'),
+    type=JsonField('type'),
+    __extends__=(BaseTemplate,)
+)
 
 
 class GuildChannel(BaseObject, template=GuildChannelTemplate):
@@ -122,18 +103,41 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         return self.state.append(data)
 
 
+TextChannelTemplate = JsonTemplate(
+    topic=JsonField('topic'),
+    slowmode=JsonField('rate_limit_per_user'),
+    last_message_id=JsonField('last_message_id'),
+    __extends__=(GuildChannelTemplate,)
+)
+
+
 class TextChannel(GuildChannel, template=TextChannelTemplate):
     __slots__ = ('messages',)
 
-    def __init__(self, *, state):
-        super().__init__(state=state)
+    def __json_init__(self, *, state):
+        super().__json_init__(state=state)
         self.messages = self.state.manager.get_class('MessageState')(
             manager=self.state.manager,
             channel=self)
 
 
+VoiceChannelTemplate = JsonTemplate(
+    bitrate=JsonField('bitrate'),
+    user_limit=JsonField('user_limit'),
+    __extends__=(GuildChannelTemplate,)
+)
+
+
 class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
     pass
+
+
+DMChannelTemplate = JsonTemplate(
+    last_message_id=JsonField('last_message_id', Snowflake, str),
+    type=JsonField('type'),
+    _recipients=JsonArray('recipients'),
+    __extends__=(BaseTemplate,)
+)
 
 
 class DMChannel(BaseObject, template=DMChannelTemplate):

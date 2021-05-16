@@ -2,8 +2,9 @@ from .baseobject import BaseObject, BaseTemplate
 from .inviteobject import GuildVanityUrl
 from .widgetobject import GuildWidget
 from .. import rest
-from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
+from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake,
                      _validate_keys)
+
 
 GuildPreviewTemplate = JsonTemplate(
     name=JsonField('name'),
@@ -17,6 +18,7 @@ GuildPreviewTemplate = JsonTemplate(
     description=JsonField('description'),
     __extends__=(BaseTemplate,)
 )
+
 
 GuildTemplate = JsonTemplate(
     icon_hash=JsonField('icon_hash'),
@@ -51,24 +53,20 @@ GuildTemplate = JsonTemplate(
         'public_updates_channel_id', Snowflake, str
     ),
     max_video_channel_users=JsonField('max_video_channel_users'),
-    welcome_screen=JsonField('welcome_screen'),
     nsfw=JsonField('nsfw'),
     __extends__=(GuildPreviewTemplate,)
 )
 
-GuildBanTemplate = JsonTemplate(
-    reason=JsonField('reason'),
-    _user=JsonField('user')
-)
-
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('widget', 'vanity_url', 'channels', 'roles', 'members')
+    __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
+                 'roles', 'members')
 
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.widget = GuildWidget(owner=self)
-        self.vanity_url = GuildVanityUrl(owner=self)
+    def __json_init__(self, *, state):
+        super().__json_init__(state=state)
+        self.widget = GuildWidget.unmarshal(guild=self)
+        self.vanity_url = GuildVanityUrl.unmarshal(guild=self)
+        self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
                 superstate=self.state.manager.channels,
@@ -150,9 +148,11 @@ class Guild(BaseObject, template=GuildTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
+        widget_data = {}
+
         widget_channel_id = data.get('widget_channel_id')
         if widget_channel_id is not None:
-            self.widget.channel_id = widget_channel_id
+            widget_data['channel_id'] = widget_channel_id
 
         widget_enabled = data.get('widget_enabled')
         if widget_enabled is not None:
@@ -160,7 +160,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
         vanity_url_code = data.get('vanity_url_code')
         if vanity_url_code is None:
-            self.vanity_url.code = vanity_url_code
+            self.vanity_url.update({'code': vanity_url_code})
 
         channels = data.get('channels')
         if channels is not None:
@@ -176,12 +176,21 @@ class Guild(BaseObject, template=GuildTemplate):
         if members is not None:
             self.members.extend(members)
 
+        welcome_screen = data.get('welcome_screen')
+        if welcome_screen is not None:
+            self.welcome_screen.update(data)
+
+
+GuildBanTemplate = JsonTemplate(
+    reason=JsonField('reason'),
+)
+
 
 class GuildBan(BaseObject, template=GuildBanTemplate):
     __slots__ = ('guild', 'user')
 
-    def __init__(self, *, state, guild):
-        super().__init__(state)
+    def __json_init__(self, *, state, guild):
+        super().__json_init__(state)
         self.guild = guild
 
     def update(self, data, *args, **kwargs):
@@ -191,3 +200,75 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
         if user is not None:
             self.user = self.state.manager.users.append(user)
             self.id = self.user.id
+
+
+WelcomeScreenChannelTemplate = JsonTemplate(
+    channel_id=JsonField('channel_id', Snowflake, str),
+    description=JsonField('description'),
+    enoji_id=JsonField('emoji', Snowflake, str),
+    emoji_name=JsonField('emoji_name'),
+)
+
+
+class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
+    __slots__ = ('guild',)
+
+    def __json_init__(self, *, guild):
+        self.guild = guild
+
+    @property
+    def channel(self):
+        return self.state.manager.channels.get(self.id)
+
+    @property
+    def emoji(self):
+        return self.guild.emojis.get(self.emoji_id)
+
+
+WelcomeScreenTemplate = JsonTemplate(
+    description=JsonField('description'),
+)
+
+
+class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
+    __slots__ = ('guild', 'welcome_channels')
+
+    def __json_init__(self, *, guild):
+        self.guild = guild
+        self.welcome_channels = []
+
+    async def fetch(self):
+        data = await rest.get_guild_welcome_screen.request(
+            session=self.guild.manager.rest,
+            fmt=dict(guild_id=self.guild.id))
+
+        self.update(data)
+
+        return self
+
+    async def modify(self, **kwargs):
+        keys = rest.modify_guild_welcome_screen.json
+
+        _validate_keys(f'{self.__class__.__name__}.modify',
+                       kwargs, (), keys)
+
+        data = await rest.modify_guild_welcome_screen.request(
+            session=self.guild.manager.rest,
+            fmt=dict(guild_id=self.guild.id),
+            json=kwargs)
+
+        self.update(data)
+
+        return self
+
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
+
+        welcome_channels = data.get('welcome_channels')
+        if welcome_channels is not None:
+            self.welcome_channels.clear()
+
+            for channel in welcome_channels:
+                channel = WelcomeScreenChannel.unmarshal(
+                    channel, guild=self.guild)
+                self.welcome_channels.append(channel)

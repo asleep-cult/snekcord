@@ -12,11 +12,6 @@ GuildEmojiTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
-GuildWidgetSettingsTemplate = JsonTemplate(
-    enabled=JsonField('enabled'),
-    channel_id=JsonField('channel_id'),
-)
-
 IntegrationAccountTemplate = JsonTemplate(
     name=JsonField('name'),
     __extends__=(BaseTemplate,)
@@ -53,17 +48,6 @@ IntegrationTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
-WelcomeScreenChannelTemplate = JsonTemplate(
-    channel_id=JsonField('channel_id', Snowflake, str),
-    description=JsonField('description'),
-    enoji_id=JsonField('emoji', Snowflake, str),
-    emoji_name=JsonField('emoji_name'),
-)
-
-WelcomeScreenTemplate = JsonTemplate(
-    description=JsonField('description'),
-    _welcome_channels=JsonField('welcome_channels'),
-)
 
 ReactionTemplate = JsonTemplate(
     count=JsonField('count'),

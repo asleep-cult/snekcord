@@ -124,16 +124,22 @@ class JsonObjectMeta(type):
 
 
 class JsonObject(metaclass=JsonObjectMeta):
+    def __json_init__(self, *args, **kwargs):
+        pass
+
     @classmethod
-    def unmarshal(cls, data, *args, **kwargs):
+    def unmarshal(cls, data=None, *args, **kwargs):
         if cls.__template__ is None:
             raise NotImplementedError
 
         if isinstance(data, (bytes, bytearray, memoryview, str)):
             data = json.loads(data)
 
-        self = cls(*args, **kwargs)
-        self.update(data, set_defaults=True)
+        self = cls.__new__(cls)
+        cls.__json_init__(self, *args, **kwargs)
+
+        if data is not None:
+            self.update(data, set_defaults=True)
 
         return self
 

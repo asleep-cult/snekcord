@@ -8,11 +8,22 @@ from ..utils import Snowflake, _validate_keys
 class RoleState(BaseState):
     __container__ = SnowflakeMapping
     __recycled_container__ = WeakValueSnowflakeMapping
-    __guild_class__ = Role
+    __role_class__ = Role
 
     def __init__(self, *, manager, guild):
         super().__init__(manager=manager)
         self.guild = guild
+
+    def append(self, data):
+        role = self.get(data['id'])
+        if role is not None:
+            role.update(data)
+        else:
+            role = self.__role_class__.unmarshal(
+                data, state=self, guild=self.guild)
+            role.cache()
+
+        return role
 
     async def fetch_all(self):
         data = await rest.get_guild_roles.request(

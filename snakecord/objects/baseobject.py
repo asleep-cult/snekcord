@@ -3,6 +3,7 @@ from datetime import datetime
 from ..exceptions import PartialObjectError
 from ..utils import JsonField, JsonObject, JsonTemplate, Snowflake
 
+
 BaseTemplate = JsonTemplate(
     id=JsonField('id', Snowflake, str),
 )
@@ -11,7 +12,7 @@ BaseTemplate = JsonTemplate(
 class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('state', 'cached', 'deleted', 'deleted_at')
 
-    def __init__(self, *, state):
+    def __json_init__(self, *, state):
         self.state = state
         self.id = None
         self.cached = False
@@ -47,10 +48,3 @@ class BaseObject(JsonObject, template=BaseTemplate):
 
     async def fetch(self):
         return await self.state.fetch(self.id)
-
-
-class BaseStatelessObject(JsonObject):
-    __slots__ = ('owner',)
-
-    def __init__(self, *, owner):
-        self.owner = owner

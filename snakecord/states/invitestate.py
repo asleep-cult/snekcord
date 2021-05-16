@@ -11,7 +11,7 @@ class InviteState(BaseState):
         if invite is not None:
             invite.update(data)
         else:
-            invite = self.__invite_class__.unmarshal(data)
+            invite = self.__invite_class__.unmarshal(data, state=self)
             invite.cache()
 
         return invite

@@ -1,6 +1,7 @@
-from .baseobject import BaseObject, BaseStatelessObject
+from .baseobject import BaseObject
 from .. import rest
-from ..utils import JsonField, JsonTemplate
+from ..utils import JsonField, JsonObject, JsonTemplate
+
 
 InviteTemplate = JsonTemplate(
     code=JsonField('code'),
@@ -21,8 +22,8 @@ class Invite(BaseObject, template=InviteTemplate):
     __slots__ = ('guild', 'channel', 'inviter', 'target_user',
                  'target_application')
 
-    def __init__(self, *, state):
-        super().__init__(state=state)
+    def __json_init__(self, *, state):
+        super().__json_init__(state=state)
         self.guild = None
         self.channel = None
         self.inviter = None
@@ -54,26 +55,32 @@ class Invite(BaseObject, template=InviteTemplate):
             self.target_user = self.state.manager.users.append(target_user)
 
 
-class GuildVanityUrl(BaseStatelessObject):
-    __slots__ = ('code',)
+GuildVanityUrlTemplate = JsonTemplate(
+    code=JsonField('code')
+)
 
-    def __init__(self, *, owner):
-        super().__init__(owner=owner)
-        self.code = None
+
+class GuildVanityUrl(JsonObject, template=GuildVanityUrlTemplate):
+    __slots__ = ('guild',)
+
+    def __json_init__(self, *, guild):
+        self.guild = guild
 
     @property
     def invite(self):
-        return self.owner.state.manager.invites.get(self.code)
+        return self.guild.state.manager.invites.get(self.code)
 
     async def fetch(self):
         data = await rest.get_guild_vanity_url.request(
-            session=self.owner.state.manager.rest,
-            fmt=dict(guild_id=self.owner.id))
+            session=self.guild.state.manager.rest,
+            fmt=dict(guild_id=self.guild.id))
 
-        self._update_invite(data)
+        self.update(data)
 
         return self
 
-    def _update_invite(self, data):
-        self.code = data['code']
-        self.owner.state.manager.invites.append(data)
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
+
+        data['guild_id'] = self.guild.id
+        self.guild.state.manager.invites.append(data)

@@ -2,11 +2,13 @@ from .baseobject import BaseObject, BaseTemplate
 from .. import rest
 from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
 
+
 RoleTags = JsonTemplate(
     bot_id=JsonField('bot_id', Snowflake, str),
     integration_id=JsonField('integration_id', Snowflake, str),
     premium_subscriber=JsonField('premium_subscriber')
 ).default_object('RoleTags')
+
 
 RoleTemplate = JsonTemplate(
     name=JsonField('name'),
@@ -24,8 +26,8 @@ RoleTemplate = JsonTemplate(
 class Role(BaseObject, template=RoleTemplate):
     __slots__ = ('guild',)
 
-    def __init__(self, *, state, guild):
-        super().__init__(state)
+    def __json_init__(self, *, state, guild):
+        super().__json_init__(state=state)
         self.guild = guild
 
     async def modify(self, **kwargs):
