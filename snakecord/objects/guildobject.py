@@ -11,7 +11,6 @@ GuildPreviewTemplate = JsonTemplate(
     icon=JsonField('icon'),
     splash=JsonField('splash'),
     discovery_splash=JsonField('discovery_splash'),
-    _emojis=JsonArray('emojis'),
     features=JsonArray('features'),
     member_count=JsonField('approximate_member_count'),
     presence_count=JsonField('approximate_presence_count'),
@@ -71,6 +70,10 @@ class Guild(BaseObject, template=GuildTemplate):
         self.channels = self.state.manager.get_class('GuildChannelState')(
                 superstate=self.state.manager.channels,
                 guild=self)
+
+        self.emojis = self.state.manager.get_class('GuildEmojiState')(
+            manager=self.state.manager,
+            guild=self)
 
         self.roles = self.state.manager.get_class('RoleState')(
             manager=self.state.manager,
@@ -170,6 +173,10 @@ class Guild(BaseObject, template=GuildTemplate):
             for channel in channels:
                 channel = self.state.manager.channels.append(channel)
                 self.channels.add_key(channel.id)
+
+        emojis = data.get('emojis')
+        if emojis is not None:
+            self.emojis.extend(emojis)
 
         roles = data.get('roles')
         if roles is not None:

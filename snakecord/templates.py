@@ -1,17 +1,6 @@
 from .utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 
-GuildEmojiTemplate = JsonTemplate(
-    name=JsonField('name'),
-    _roles=JsonArray('roles'),
-    _user=JsonField('user'),
-    required_colons=JsonField('required_colons'),
-    managed=JsonField('managed'),
-    animated=JsonField('animated'),
-    available=JsonField('available'),
-    __extends__=(BaseTemplate,)
-)
-
 IntegrationAccountTemplate = JsonTemplate(
     name=JsonField('name'),
     __extends__=(BaseTemplate,)

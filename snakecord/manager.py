@@ -3,11 +3,13 @@ import signal
 
 from .rest import RestSession
 from .states.channelstate import ChannelState, GuildChannelState
+from .states.emojistate import GuildEmojiState
 from .states.guildstate import GuildBanState, GuildState
 from .states.invitestate import InviteState
 from .states.memberstate import GuildMemberState
 from .states.messagestate import MessageState
 from .states.rolestate import GuildMemberRoleState, RoleState
+from .states.stagestage import StageState
 from .states.userstate import UserState
 
 
@@ -15,6 +17,7 @@ class BaseManager:
     DEFAULT_CLASSES = {
         'ChannelState': ChannelState,
         'GuildChannelState': GuildChannelState,
+        'GuildEmojiState': GuildEmojiState,
         'GuildState': GuildState,
         'GuildBanState': GuildBanState,
         'InviteState': InviteState,
@@ -23,6 +26,7 @@ class BaseManager:
         'MessageState': MessageState,
         'GuildMemberRoleState': GuildMemberRoleState,
         'UserState': UserState,
+        'StageState': StageState,
         'RestSession': RestSession,
     }
 
@@ -42,6 +46,7 @@ class BaseManager:
         self.channels = self.get_class('ChannelState')(manager=self)
         self.guilds = self.get_class('GuildState')(manager=self)
         self.invites = self.get_class('InviteState')(manager=self)
+        self.stages = self.get_class('StageState')(manager=self)
         self.users = self.get_class('UserState')(manager=self)
 
         self.finalizing = False

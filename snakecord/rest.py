@@ -212,8 +212,13 @@ create_guild_emoji = HTTPEndpoint(
 
 modify_guild_emoji = HTTPEndpoint(
     'PATCH',
-    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji)s',
+    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji_id)s',
     json=('name', 'roles'),
+)
+
+delete_guild_emoji = HTTPEndpoint(
+    'DELETE',
+    BASE_API_URL + 'guilds/%(guild_id)s/emojis/%(emoji_id)s',
 )
 
 create_guild = HTTPEndpoint(
@@ -464,6 +469,28 @@ get_invite = HTTPEndpoint(
 delete_invite = HTTPEndpoint(
     'DELETE',
     BASE_API_URL + 'invites/%(invite_code)s',
+)
+
+create_stage_instance = HTTPEndpoint(
+    'POST',
+    BASE_API_URL + 'stage-instances',
+    json=('channel_id', 'topic'),
+)
+
+get_stage_instance = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + 'stage-instances/%(channel_id)s',
+)
+
+modify_stage_instance = HTTPEndpoint(
+    'PATCH',
+    BASE_API_URL + 'stage-instances/%(channel_id)s',
+    json=('topic',),
+)
+
+delete_stage_instance = HTTPEndpoint(
+    'DELETE',
+    BASE_API_URL + 'stage-instances/%(channel_id)s',
 )
 
 get_template = HTTPEndpoint(
