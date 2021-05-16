@@ -51,13 +51,11 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        user = getattr(self, '_user', None)
+        user = data.get('user')
         if user is not None:
             self.user = self.state.manager.users.append(user)
             self.id = self.user.id
-            del self._user
 
-        roles = getattr(self, '_roles', None)
+        roles = data.get('roles')
         if roles is not None:
             self.roles.set_keys(roles)
-            del self._roles

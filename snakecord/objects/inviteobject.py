@@ -18,30 +18,26 @@ class Invite(BaseObject, template=InviteTemplate):
     async def delete(self):
         await self.state.delete(self.code)
 
-    def update(self, *args, **kwargs):
-        super().update(*args, **kwargs)
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
 
         self.id = self.code
 
-        guild = getattr(self, '_guild', None)
+        guild = data.get('guild')
         if guild is not None:
             self.guild = self.state.manager.guilds.append(guild)
-            del self._guild
 
-        channel = getattr(self, '_channel', None)
+        channel = data.get('channel')
         if channel is not None:
             self.channel = self.state.manager.channels.append(channel)
-            del self._channel
 
-        inviter = getattr(self, '_inviter', None)
+        inviter = data.get('inviter')
         if inviter is not None:
             self.inviter = self.state.manager.users.append(inviter)
-            del self._inviter
 
-        target_user = getattr(self, '_target_user', None)
+        target_user = data.get('target_user')
         if target_user is not None:
             self.target_user = self.state.manager.users.append(target_user)
-            del self._target_user
 
 
 class GuildVanityUrl(BaseStatelessObject):

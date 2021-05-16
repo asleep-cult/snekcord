@@ -79,8 +79,6 @@ GuildTemplate = JsonTemplate(
     region=JsonField('region'),
     afk_channel_id=JsonField('afk_channel_id', Snowflake, str),
     afk_timeout=JsonField('afk_timeout'),
-    _widget_enabled=JsonField('widget_enabled'),
-    _widget_channel_id=JsonField('widget_channel_id', Snowflake, str),
     verification_level=JsonField('verification_level'),
     default_message_notifications=JsonField('default_message_notifications'),
     explicit_content_filter=JsonField('explicit_content_filter'),
@@ -96,7 +94,6 @@ GuildTemplate = JsonTemplate(
     member_count=JsonField('member_count'),
     _voice_states=JsonArray('voice_states'),
     _members=JsonArray('members'),
-    _channels=JsonArray('channels'),
     _threads=JsonArray('threads'),
     _presences=JsonArray('presences'),
     max_presences=JsonField('max_presences'),
@@ -131,6 +128,10 @@ GuildWidgetChannelTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
+GuildWidgetChannel = GuildWidgetChannelTemplate.default_object(
+    'GuildWidgetChannel'
+)
+
 GuildWidgetMemberTemplate = JsonTemplate(
     username=JsonField('username'),
     discriminator=JsonField('discriminator'),
@@ -140,29 +141,21 @@ GuildWidgetMemberTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
+GuildWidgetMember = GuildWidgetMemberTemplate.default_object(
+    'GuildWidgetMember'
+)
+
 GuildWidgetTemplate = JsonTemplate(
     name=JsonField('name'),
     instant_invite=JsonField('instant_invite'),
-    channels=JsonArray(
-        'channels',
-        object=GuildWidgetChannelTemplate.default_object(
-            'GuildWidgetChannel'
-        )
-    ),
-    members=JsonArray(
-        'members',
-        object=GuildWidgetMemberTemplate.default_object(
-            'GuildWidgetMember'
-        )
-    ),
+    channels=JsonArray('channels', object=GuildWidgetChannel),
+    members=JsonArray('members', object=GuildWidgetMember),
     presence_count=JsonField('presence_count'),
     __extends__=(BaseTemplate,)
 )
 
 GuildMemberTemplate = JsonTemplate(
-    _user=JsonField('user'),
     nick=JsonField('nick'),
-    _roles=JsonArray('roles'),
     joined_at=JsonField('joined_at'),
     premium_since=JsonField('premium_since'),
     deaf=JsonField('deaf'),
@@ -174,6 +167,10 @@ GuildMemberTemplate = JsonTemplate(
 IntegrationAccountTemplate = JsonTemplate(
     name=JsonField('name'),
     __extends__=(BaseTemplate,)
+)
+
+IntegrationAccount = IntegrationAccountTemplate.default_object(
+    'IntegrationAccount'
 )
 
 IntegrationApplicationTemplate = JsonTemplate(
@@ -195,12 +192,7 @@ IntegrationTemplate = JsonTemplate(
     expire_behavior=JsonField('expire_behavior'),
     expire_grace_period=JsonField('expire_grace_period'),
     _user=JsonField('user'),
-    account=JsonField(
-        'account',
-        object=IntegrationAccountTemplate.default_object(
-            'IntegrationAccount'
-        )
-    ),
+    account=JsonField('account', object=IntegrationAccount),
     synced_at=JsonField('synced_at'),
     subscriber_count=JsonField('subscriber_count'),
     revoked=JsonField('revoked'),
@@ -261,6 +253,10 @@ RoleTagsTemplate = JsonTemplate(
     premium_subscriber=JsonField('premium_subscriber')
 )
 
+RoleTags = RoleTagsTemplate.default_object(
+    'RoleTags'
+)
+
 RoleTemplate = JsonTemplate(
     name=JsonField('name'),
     color=JsonField('color'),
@@ -269,21 +265,13 @@ RoleTemplate = JsonTemplate(
     permissions=JsonField('permissions'),
     managed=JsonField('managed'),
     mentionable=JsonField('mentionable'),
-    tags=JsonField(
-        'tags',
-        object=RoleTagsTemplate.default_object('RoleTags')
-    ),
+    tags=JsonField('tags', object=RoleTags),
     __extends__=(BaseTemplate,)
 )
 
 InviteTemplate = JsonTemplate(
     code=JsonField('code'),
-    _guild=JsonField('guild'),
-    _channel=JsonField('channel'),
-    _inviter=JsonField('inviter'),
-    terget_type=JsonField('target_type'),
-    _target_user=JsonField('target_user'),
-    _target_application=JsonField('target_application'),
+    target_type=JsonField('target_type'),
     presence_count=JsonField('approximate_presence_count'),
     member_count=JsonField('approximate_member_count'),
     expires_at=JsonField('expires_at'),
@@ -311,9 +299,13 @@ UserTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
-WebSocketResponse = JsonTemplate(
+WebSocketResponseTemplate = JsonTemplate(
     opcode=JsonField('op'),
     sequence=JsonField('s'),
     name=JsonField('t'),
     data=JsonField('d'),
-).default_object()
+)
+
+WebSocketResponse = WebSocketResponseTemplate.default_object(
+    'WebSocketResponse'
+)

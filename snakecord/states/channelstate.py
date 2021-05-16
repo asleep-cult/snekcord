@@ -31,8 +31,9 @@ class ChannelState(BaseState):
 
         return channel
 
-    async def fetch(self, channel_id):
-        channel_id = Snowflake.try_snowflake(channel_id)
+    async def fetch(self, channel):
+        channel_id = Snowflake.try_snowflake(channel)
+
         data = await rest.get_channel.request(
             session=self.manager.rest,
             fmt=dict(channel_id=channel_id))
