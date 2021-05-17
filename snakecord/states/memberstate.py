@@ -67,14 +67,13 @@ class GuildMemberState(BaseState):
         return self.extend(data)
 
     async def add(self, user, **kwargs):
-        user_id = Snowflake.try_snowflake(user)
-
         required_keys = ('access_token',)
-
         keys = rest.add_guild_member.keys
 
         _validate_keys(f'{self.__class__.__name__}.add',
                        kwargs, required_keys, keys)
+
+        user_id = Snowflake.try_snowflake(user)
 
         data = await rest.add_guild_member.request(
             session=self.manager.rest,

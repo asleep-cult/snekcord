@@ -30,7 +30,6 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
     async def create_guild(self, **kwargs):
         required_keys = ('name',)
-
         keys = rest.create_guild_from_template.json
 
         _validate_keys(f'{self.__class__.__name__}.create_guild',
