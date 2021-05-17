@@ -95,7 +95,7 @@ class GuildChannelState(BaseSubState):
             except KeyError:
                 pass
 
-        if channel_type is ChannelType.GUILD_TEXT:
+        if channel_type == ChannelType.GUILD_TEXT:
             try:
                 kwargs['rate_limit_per_user'] = kwargs.pop('slowmode')
             except KeyError:
@@ -113,7 +113,6 @@ class GuildChannelState(BaseSubState):
 
     async def modify(self, positions):
         required_keys = ('id',)
-
         keys = rest.modify_guild_channel_positions.json
 
         json = []

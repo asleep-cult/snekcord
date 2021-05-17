@@ -26,7 +26,6 @@ class GuildState(BaseState):
 
     async def create(self, **kwargs):
         required_keys = ('name',)
-
         keys = rest.create_guild.json
 
         _validate_keys(f'{self.__class__.__name__}.create',
@@ -108,12 +107,12 @@ class GuildBanState(BaseState):
         return self.extend(data)
 
     async def add(self, user, **kwargs):
-        user_id = Snowflake.try_snowflake(user)
-
         keys = rest.create_guild_ban.json
 
         _validate_keys(f'{self.__class__.__name__}.create',
                        kwargs, (), keys)
+
+        user_id = Snowflake.try_snowflake(user)
 
         data = await rest.create_guild_ban.request(
             session=self.state.manager.rest,

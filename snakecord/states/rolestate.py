@@ -47,7 +47,6 @@ class RoleState(BaseState):
 
     async def modify(self, positions):
         required_keys = ('id',)
-
         keys = rest.modify_guild_role_positions.json
 
         json = []

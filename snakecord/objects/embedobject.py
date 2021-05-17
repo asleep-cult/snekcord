@@ -1,91 +1,89 @@
 from datetime import datetime
 
-from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate,
+                     _validate_keys)
 
-EmbedThumbnailTemplate = JsonTemplate(
+
+EmbedThumbnail = JsonTemplate(
     url=JsonField('url'),
     proxy_url=JsonField('proxy_url'),
     height=JsonField('height'),
     width=JsonField('width')
-)
+).default_object('EmbedThumbnail')
 
-EmbedThumnail = EmbedThumbnailTemplate.default_object('EmbedThumbnail')
 
-EmbedVideoTemplate = JsonTemplate(
+EmbedVideo = JsonTemplate(
     url=JsonField('url'),
     proxy_url=JsonField('proxy_url'),
     height=JsonField('height'),
     width=JsonField('width')
-)
+).default_object('EmbedVideo')
 
-EmbedVideo = EmbedVideoTemplate.default_object('EmbedVideo')
 
-EmbedImageTemplate = JsonTemplate(
+EmbedImage = JsonTemplate(
     url=JsonField('url'),
     proxy_url=JsonField('proxy_url'),
     height=JsonField('height'),
     width=JsonField('width')
-)
+).default_object('EmbedImage')
 
-EmbedImage = EmbedImageTemplate.default_object('EmbedImage')
 
-EmbedProviderTemplate = JsonTemplate(
+EmbedProvider = JsonTemplate(
     name=JsonField('name'),
     url=JsonField('url')
-)
+).default_object('EmbedProvider')
 
-EmbedProvider = EmbedProviderTemplate.default_object('EmbedProvider')
 
-EmbedAuthorTemplate = JsonTemplate(
+EmbedAuthor = JsonTemplate(
     name=JsonField('name'),
     url=JsonField('url'),
     icon_url=JsonField('icon_url'),
     proxy_icon_url=JsonField('proxy_icon_url')
-)
+).default_object('EmbedAuthor')
 
-EmbedAuthor = EmbedAuthorTemplate.default_object('EmbedAuthor')
 
-EmbedFooterTemplate = JsonTemplate(
+EmbedFooter = JsonTemplate(
     text=JsonField('text'),
     icon_url=JsonField('icon_url'),
     proxy_icon_url=JsonField('proxy_icon_url')
-)
+).default_object('EmbedFooter')
 
-EmbedFooter = EmbedFooterTemplate.default_object('EmbedFooter')
 
-EmbedFieldTemplate = JsonTemplate(
+EmbedField = JsonTemplate(
     name=JsonField('name'),
     value=JsonField('value'),
     inline=JsonField('inline')
-)
+).default_object('EmbedField')
 
-EmbedField = EmbedFieldTemplate.default_object('EmbedField')
 
 EmbedTemplate = JsonTemplate(
     title=JsonField('title'),
     type=JsonField('type'),
     description=JsonField('description'),
     url=JsonField('url'),
-    timestamp=JsonField('timestamp', unmarshal=datetime.fromisoformat),
+    timestamp=JsonField(
+        'timestamp', datetime.fromisoformat, datetime.isoformat
+    ),
     color=JsonField('color'),
     footer=JsonField('footer', object=EmbedFooter),
     image=JsonField('image', object=EmbedImage),
-    thumbnail=JsonField('thumbnail', object=EmbedThumnail),
+    thumbnail=JsonField('thumbnail', object=EmbedThumbnail),
     video=JsonField('video', object=EmbedVideo),
     provider=JsonField('provider', object=EmbedProvider),
     author=JsonField('author', object=EmbedAuthor),
     fields=JsonArray('fields', object=EmbedField)
 )
 
+
 class Embed(JsonObject, template=EmbedTemplate):
     def __init__(self, **kwargs):
-        self.title = kwargs.get('title')
-        self.type = kwargs.get('type')
-        self.description = kwargs.get('description')
-        self.url = kwargs.get('url')
-        self.timestamp = kwargs.get('timestamp')
-        self.color = kwargs.get('color')
-    
+        keys = ('title', 'type', 'description', 'url', 'timestamp', 'color')
+
+        _validate_keys(f'{self.__class__.__name__}.__init__',
+                       kwargs, (), keys)
+
+        self.update(kwargs)
+
     @property
     def colour(self):
         return self.color
@@ -93,13 +91,12 @@ class Embed(JsonObject, template=EmbedTemplate):
     @colour.setter
     def colour(self, value):
         self.color = value
-    
-    def add_field(self, name, value, inline=True):
-        self.fields.append(
-            EmbedField.unmarshal(dict(name=name, value=value, inline=inline))
-        )
 
-    def insert_field(self, index, name, value, inline=True):
-        self.fields.insert(
-            index, EmbedField.unmarshal(dict(name=name, value=value, inline=inline))
-        )
+    def add_field(self, **kwargs):
+        required_keys = ('name', 'value')
+        keys = EmbedField.fields
+
+        _validate_keys(f'{self.__class__.__name__}.add_field',
+                       kwargs, required_keys, keys)
+
+        self.fields.append(EmbedField.unmarshal(kwargs))
