@@ -145,6 +145,28 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return data
 
+    async def fetch_templates(self):
+        data = await rest.get_guild_templates.request(
+            session=self.state.manager.rest,
+            fmt=dict(guild_id=self.id))
+
+        return [self.state._create_template(template) for template in data]
+
+    async def create_template(self, **kwargs):
+        required_keys = ('name',)
+
+        keys = rest.create_guild_template.json
+
+        _validate_keys(f'{self.__class__.__name__}.create_template',
+                       kwargs, required_keys, keys)
+
+        data = await rest.create_guild_template.request(
+            session=self.state.manager.rest,
+            fmt=dict(guild_id=self.id),
+            json=kwargs)
+
+        return self.state._create_template(data)
+
     def to_preview_dict(self):
         return GuildPreviewTemplate.to_dict(self)
 
