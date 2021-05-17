@@ -86,12 +86,10 @@ class JsonArray(JsonField):
         super().__init__(*args, **kwargs)
 
     def unmarshal(self, values):
-        unmarshal = super().unmarshal
-        return [unmarshal(value) for value in values]
+        return [super(JsonArray, self).unmarshal(value) for value in values]
 
     def marshal(self, values):
-        marshal = super().marshal
-        return [marshal(value) for value in values]
+        return [super(JsonArray, self).marshal(value) for value in values]
 
 
 def _flatten_slots(cls, slots=None):
