@@ -1,6 +1,5 @@
 from typing import Final, Literal
 
-
 class _Undefined:
     def __bool__(self) -> Literal[False]: ...
 

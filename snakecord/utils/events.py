@@ -25,14 +25,14 @@ class EventNamespace:
 
 class EventWaiter:
     def __init__(self, name, *, dispatcher, timeout=None,
-                 filterer=None) -> None:
+                 filterer=None):
         self.name = name.lower()
         self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
         self._queue = asyncio.Queue()
 
-    def _put(self, value) -> None:
+    def _put(self, value):
         if self.filterer is not None:
             if not self.filterer(*value):
                 return

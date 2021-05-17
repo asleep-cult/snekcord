@@ -6,7 +6,7 @@ from typing import Any, Callable, Final, Optional
 class JsonTemplate:
     fields: dict[str, JsonField]
 
-    def __init__(self, *, __extends__: tuple[JsonField] = ...,
+    def __init__(self, *, __extends__: tuple[JsonField, ...] = ...,
                  **fields: JsonField) -> None: ...
 
     def update(self, obj: Any, data: dict[str, Any],
@@ -43,9 +43,9 @@ class JsonField:
 
 
 class JsonArray(JsonField):
-    def unmarshal(self, value: list) -> list: ...
+    def unmarshal(self, value: list[Any]) -> list[Any]: ...
 
-    def marshal(self, value: list) -> list: ...
+    def marshal(self, value: list[Any]) -> list[Any]: ...
 
 
 class JsonObjectMeta(type):
@@ -54,8 +54,10 @@ class JsonObjectMeta(type):
 
 
 class JsonObject(metaclass=JsonObjectMeta):
+    def __json_init__(self, *args: Any, **kwargs: Any) -> None: ...
+
     @classmethod
-    def unmarshal(cls, data, *args: Any, **kwargs: Any) -> JsonObject: ...
+    def unmarshal(cls, data: Any, *args: Any, **kwargs: Any) -> JsonObject: ...
 
     def update(self, *args: Any, **kwargs: Any) -> None: ...
 
