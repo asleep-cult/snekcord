@@ -76,7 +76,13 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
                      template_code=self.code))
 
     async def fetch(self):
-        return await self.state.fetch_template(self.id)
+        data = await rest.get_template.request(
+            session=self.manager.rest,
+            fmt=dict(code=self.code))
+
+        self.update(data)
+
+        return self
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
