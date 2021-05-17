@@ -1,4 +1,5 @@
 from .baseobject import BaseObject, BaseTemplate
+from .embedobject import Embed
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 
@@ -13,7 +14,7 @@ MessageTemplate = JsonTemplate(
     _mention_roles=JsonArray('mention_roles'),
     _mention_channels=JsonArray('mention_channels'),
     _attachments=JsonArray('attachments'),
-    _embeds=JsonArray('embeds'),
+    embeds=JsonArray('embeds', object=Embed),
     _reactions=JsonArray('reactions'),
     nonce=JsonField('nonce'),
     pinned=JsonField('pinned'),

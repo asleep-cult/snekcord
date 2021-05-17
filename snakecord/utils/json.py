@@ -75,9 +75,9 @@ class JsonField:
         return value
 
     def default(self):
-        if self._default is not None:
+        if callable(self._default):
             return self._default()
-        return None
+        return self._default
 
 
 class JsonArray(JsonField):

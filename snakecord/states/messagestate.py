@@ -57,6 +57,9 @@ class MessageState(BaseState):
 
     async def create(self, **kwargs):
         keys = rest.create_channel_message.json
+        embed = kwargs.get('embed')
+        if embed is not None:
+            kwargs['embed'] = embed.to_dict()
 
         _validate_keys(f'{self.__class__.__name__}.create',
                        kwargs, (), keys)

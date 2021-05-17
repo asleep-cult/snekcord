@@ -1,5 +1,5 @@
 from .objects.baseobject import BaseTemplate
-from .utils import JsonArray, JsonField, JsonTemplate, Snowflake
+from .utils import JsonField, JsonTemplate, Snowflake
 
 
 IntegrationAccountTemplate = JsonTemplate(
