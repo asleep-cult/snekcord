@@ -1,6 +1,6 @@
 import builtins
 
-from ..utils import undefined
+from . import undefined
 
 __all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
            'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax')

@@ -145,7 +145,7 @@ class BaseState(_StateCommon):
     def popitem(self, *args, **kwargs):
         self._items.popitem(*args, **kwargs)
 
-    def append(self, data: dict):
+    def append(self, data):
         raise NotImplementedError
 
     def extend(self, data):
