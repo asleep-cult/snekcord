@@ -2,8 +2,9 @@ import enum
 import json
 import platform
 
-from wsaio import WebSocketClient
+from wsaio import WebSocketClient, taskify
 
+from .basews import WebSocketResponse
 from ..utils import Snowflake
 
 
@@ -11,7 +12,7 @@ class ShardOpcode(enum.IntEnum):
     DISPATCH = 0  # Discord -> Shard
     HEARTBEAT = 1  # Discord <-> Shard
     IDENTIFY = 2  # Discord <- Shard
-    PRESENCE_UPDATE = 3  # Discord -> Shard
+    PRESENCE_UPDATE = 3  # Discord <- Shard
     VOICE_STATE_UPDATE = 4  # Discord -> Shard
     VOICE_SERVER_PING = 5  # Discord ~ Shard
     RESUME = 6  # Discord <- Shard
@@ -26,13 +27,10 @@ class Shard(WebSocketClient):
     def __init__(self, manager, shard_id):
         super().__init__(loop=manager.loop)
         self.manager = manager
-
-        self.url = manager.url
         self.id = shard_id
 
         self.session_id = None
-        self.sequence = None
-
+        self.sequence = -1
         self._chunk_nonce = -1
 
     async def identify(self):
@@ -99,3 +97,33 @@ class Shard(WebSocketClient):
         payload['nonce'] = str(self._chunk_nonce)
 
         await self.send_str(json.dumps(payload))
+
+    @taskify
+    async def ws_text_received(self, data):
+        response = WebSocketResponse.unmarshal(data)
+
+        try:
+            opcode = ShardOpcode(response.opcode)
+        except ValueError:
+            return
+
+        if (
+            response.sequence is not None
+            and response.sequence > self.sequence
+        ):
+            self.sequence = response.sequence
+
+        if opcode is ShardOpcode.DISPATCH:
+            self.manager.dispatch(response.name, self, response.data)
+        elif opcode is ShardOpcode.HEARTBEAT:
+            await self.send_heartbeat()
+        elif opcode is ShardOpcode.VOICE_STATE_UPDATE:
+            return
+        elif opcode is ShardOpcode.RECONNECT:
+            return
+        elif opcode is ShardOpcode.INVALID_SESSION:
+            return
+        elif opcode is ShardOpcode.HELLO:
+            await self.identify()
+        elif opcode is ShardOpcode.HEARTBEAT_ACK:
+            return

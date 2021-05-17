@@ -11,9 +11,10 @@ from .states.messagestate import MessageState
 from .states.rolestate import GuildMemberRoleState, RoleState
 from .states.stagestage import StageState
 from .states.userstate import UserState
+from .utils import EventDispatcher
 
 
-class BaseManager:
+class BaseManager(EventDispatcher):
     DEFAULT_CLASSES = {
         'ChannelState': ChannelState,
         'GuildChannelState': GuildChannelState,
@@ -34,10 +35,7 @@ class BaseManager:
     __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
 
     def __init__(self, token, *, loop=None, api_version='9'):
-        if loop is not None:
-            self.loop = loop
-        else:
-            self.loop = asyncio.get_event_loop()
+        super().__init__(loop=loop)
 
         self.token = token
         self.api_version = f'v{api_version}'

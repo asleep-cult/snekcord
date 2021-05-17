@@ -1,5 +1,5 @@
-from .objects.baseobject import BaseTemplate
-from .utils import JsonField, JsonTemplate, Snowflake
+from .baseobject import BaseTemplate
+from ..utils import JsonField, JsonTemplate, Snowflake
 
 
 IntegrationAccountTemplate = JsonTemplate(
@@ -36,22 +36,4 @@ IntegrationTemplate = JsonTemplate(
     revoked=JsonField('revoked'),
     _application=JsonField('application'),
     __extends__=(BaseTemplate,)
-)
-
-
-ReactionTemplate = JsonTemplate(
-    count=JsonField('count'),
-    me=JsonField('me'),
-    emoji=JsonField('emoji')
-)
-
-WebSocketResponseTemplate = JsonTemplate(
-    opcode=JsonField('op'),
-    sequence=JsonField('s'),
-    name=JsonField('t'),
-    data=JsonField('d'),
-)
-
-WebSocketResponse = WebSocketResponseTemplate.default_object(
-    'WebSocketResponse'
 )

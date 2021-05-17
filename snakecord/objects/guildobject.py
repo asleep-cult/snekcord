@@ -63,6 +63,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
+
         self.widget = GuildWidget.unmarshal(guild=self)
         self.vanity_url = GuildVanityUrl.unmarshal(guild=self)
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
