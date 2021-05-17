@@ -1,6 +1,7 @@
 from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from .. import rest
 from ..objects.guildobject import Guild, GuildBan
+from ..objects.templateobject import GuildTemplate
 from ..utils import Snowflake, _validate_keys
 
 
@@ -8,6 +9,10 @@ class GuildState(BaseState):
     __container__ = SnowflakeMapping
     __recycled_container__ = WeakValueSnowflakeMapping
     __guild_class__ = Guild
+    __guild_template_class__ = GuildTemplate
+
+    def _create_template(self, data):
+        return self.__guild_template_class__.unmarshal(data, state=self)
 
     def append(self, data):
         guild = self.get(data['id'])
@@ -67,6 +72,13 @@ class GuildState(BaseState):
             fmt=dict(guild_id=guild_id))
 
         return self.append(data)
+
+    async def fetch_template(self, code):
+        data = await rest.get_template.request(
+            session=self.manager.rest,
+            fmt=dict(code=code))
+
+        return self._create_template(data)
 
 
 class GuildBanState(BaseState):
