@@ -50,3 +50,6 @@ class BaseObject(JsonObject, template=BaseTemplate):
 
     async def fetch(self):
         return await self.state.fetch(self.id)
+
+    def to_idict(self):
+        return dict(id=self.id)

@@ -72,8 +72,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
             superstate=self.state.manager.channels,
-            guild=self
-        )
+            guild=self)
 
         self.emojis = self.state.manager.get_class('GuildEmojiState')(
             manager=self.state.manager,
@@ -184,7 +183,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
         widget_enabled = data.get('widget_enabled')
         if widget_enabled is not None:
-            widget_data['widget_enabled'] = widget_enabled
+            widget_data['enabled'] = widget_enabled
 
         if widget_data:
             self.widget.update(data)

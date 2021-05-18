@@ -6,7 +6,7 @@ __all__ = ('Invite', 'GuildVanityUrl')
 
 
 InviteTemplate = JsonTemplate(
-    code=JsonField('code'),
+    id=JsonField('code'),
     target_type=JsonField('target_type'),
     presence_count=JsonField('approximate_presence_count'),
     member_count=JsonField('approximate_member_count'),
@@ -32,13 +32,15 @@ class Invite(BaseObject, template=InviteTemplate):
         self.target_user = None
         self.target_application = None
 
+    @property
+    def code(self):
+        return self.id
+
     async def delete(self):
         await self.state.delete(self.code)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
-
-        self.id = self.code
 
         guild = data.get('guild')
         if guild is not None:
@@ -84,5 +86,5 @@ class GuildVanityUrl(JsonObject, template=GuildVanityUrlTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        data['guild_id'] = self.guild.id
+        data['guild'] = self.guild.to_idict()
         self.guild.state.manager.invites.append(data)

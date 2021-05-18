@@ -6,7 +6,7 @@ __all__ = ('GuildTemplate',)
 
 
 GuildTemplateTemplate = JsonTemplate(
-    code=JsonField('code'),
+    id=JsonField('code'),
     name=JsonField('name'),
     description=JsonField('description'),
     usage_count=JsonField('usage_count'),
@@ -22,6 +22,10 @@ GuildTemplateTemplate = JsonTemplate(
 
 
 class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
+    @property
+    def code(self):
+        return self.id
+
     @property
     def creator(self):
         return self.state.manager.users.get(self.creator_id)
@@ -87,8 +91,6 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
-
-        self.id = self.code
 
         creator = data.get('creator')
         if creator is not None:
