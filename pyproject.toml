@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "snakecord"
+version = "0.2.3"
+description = "A work-in-progress Discord API wrapper written in Python."
+authors = ["Your Name <you@example.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+wsaio = "^0.0.4"
+snakecord-emojis = "^0.0.2"
+httpx = "^0.18.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
