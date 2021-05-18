@@ -25,7 +25,7 @@ class MessageState(BaseState):
 
         return message
 
-    async def fetch_many(self, around=None, before=None, after=None,
+    async def bulk_fetch(self, around=None, before=None, after=None,
                          limit=None):
         params = {}
 
