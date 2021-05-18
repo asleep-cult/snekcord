@@ -12,6 +12,8 @@ snakecord-emojis = "^0.0.2"
 httpx = "^0.18.1"
 
 [tool.poetry.dev-dependencies]
+flake8 = "^3.9.2"
+pre-commit = "^2.12.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
