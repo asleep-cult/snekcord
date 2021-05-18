@@ -3,6 +3,21 @@ from .. import rest
 from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
+import sys  # noqa: I100
+
+module_path = sys.path.pop(0)
+module = sys.modules.pop('snakecord')
+# This will import the snakecord from site packages
+# because that's where the emojis module is.
+# This is only needed when snakecord.emojis and snakecord
+# are not in the same module (during development).
+# Will remove later
+
+from snakecord.emojis import ALL_CATEGORIES  # noqa: E402
+
+sys.path.insert(0, module_path)
+sys.modules['snakecord'] = module
+
 __all__ = ('GuildEmoji',)
 
 
@@ -61,3 +76,31 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
         user = data.get('user')
         if user is not None:
             self.user = self.state.manager.users.append(user)
+
+
+class BuiltinEmoji:
+    def __init__(self, category, data):
+        self.category = category
+
+        self.surrogates = data[0]
+        self.names = data[1]
+        self.unicode_version = data[2]
+
+        self.diversity_children = []
+        for child in data[3]:
+            self.diversity_children.append(
+                BuiltinEmoji(category, child))
+
+    def store(self, cache):
+        cache[self.surrogates] = self
+
+        for child in self.diversity_children:
+            child.store(cache)
+
+
+BUILTIN_EMOJIS = {}
+
+for category, emojis in ALL_CATEGORIES.items():
+    for data in emojis:
+        emoji = BuiltinEmoji(category, data)
+        emoji.store(BUILTIN_EMOJIS)

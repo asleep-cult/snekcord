@@ -1,6 +1,6 @@
 from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from .. import rest
-from ..objects.emojiobject import GuildEmoji
+from ..objects.emojiobject import BUILTIN_EMOJIS, GuildEmoji
 from ..utils import Snowflake
 
 __all__ = ('GuildEmojiState',)
@@ -16,13 +16,18 @@ class GuildEmojiState(BaseState):
         self.guild = guild
 
     def append(self, data):
-        emoji = self.get(data['id'])
-        if emoji is not None:
-            emoji.update(data)
+        emoji_id = data['id']
+        if emoji_id is not None:
+            emoji = self.get(emoji_id)
+            if emoji is not None:
+                emoji.update(data)
+            else:
+                emoji = self.__guild_emoji_class__.unmarshal(
+                    data, state=self, guild=self.guild)
+                emoji.cache()
         else:
-            emoji = self.__guild_emoji_class__.unmarshal(
-                data, state=self, guild=self.guild)
-            emoji.cache()
+            surrogates = data['name'].encode()
+            emoji = BUILTIN_EMOJIS.get(surrogates)
 
         return emoji
 

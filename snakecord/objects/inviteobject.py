@@ -86,5 +86,5 @@ class GuildVanityUrl(JsonObject, template=GuildVanityUrlTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        data['guild'] = self.guild.to_idict()
-        self.guild.state.manager.invites.append(data)
+        invite = self.guild.state.manager.invites.append(data)
+        invite.guild = self.guild

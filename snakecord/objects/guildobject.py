@@ -61,7 +61,7 @@ GuildTemplate = JsonTemplate(
 
 class Guild(BaseObject, template=GuildTemplate):
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
-                 'roles', 'members')
+                 'emojis', 'roles', 'members')
 
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
