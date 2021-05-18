@@ -4,6 +4,7 @@ from ..utils import JsonField, JsonTemplate, Snowflake
 
 __all__ = ('Stage',)
 
+
 StageTemplate = JsonTemplate(
     guild_id=JsonField('guild_id', Snowflake, str),
     channel_id=JsonField('channel_id', Snowflake, str),

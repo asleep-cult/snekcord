@@ -5,6 +5,7 @@ from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
 
 __all__ = ('GuildEmoji',)
 
+
 GuildEmojiTemplate = JsonTemplate(
     name=JsonField('name'),
     role_ids=JsonArray('roles'),

@@ -3,6 +3,7 @@ from ..utils import JsonField, JsonTemplate, Snowflake
 
 __all__ = ('IntegrationAccount', 'IntegrationApplication', 'Integration')
 
+
 IntegrationAccountTemplate = JsonTemplate(
     name=JsonField('name'),
     __extends__=(BaseTemplate,)

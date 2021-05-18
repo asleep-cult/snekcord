@@ -49,7 +49,7 @@ class JsonArray(JsonField):
 
 
 class JsonObjectMeta(type):
-    __slots__: Final[set[str]]
+    __slots__: tuple[str]
     __template__: Final[JsonTemplate]
 
 

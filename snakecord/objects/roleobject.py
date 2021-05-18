@@ -4,6 +4,7 @@ from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
 
 __all__ = ('RoleTags', 'Role')
 
+
 RoleTags = JsonTemplate(
     bot_id=JsonField('bot_id', Snowflake, str),
     integration_id=JsonField('integration_id', Snowflake, str),

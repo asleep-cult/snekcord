@@ -7,6 +7,7 @@ from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake,
 
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
+
 GuildPreviewTemplate = JsonTemplate(
     name=JsonField('name'),
     icon=JsonField('icon'),

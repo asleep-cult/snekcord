@@ -5,6 +5,7 @@ from ..utils import JsonField, JsonObject, JsonTemplate, Snowflake
 
 __all__ = ('BaseObject',)
 
+
 BaseTemplate = JsonTemplate(
     id=JsonField('id', Snowflake, str),
 )

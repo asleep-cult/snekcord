@@ -4,6 +4,7 @@ from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
 
 __all__ = ('GuildTemplate',)
 
+
 GuildTemplateTemplate = JsonTemplate(
     code=JsonField('code'),
     name=JsonField('name'),

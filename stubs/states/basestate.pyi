@@ -1,15 +1,17 @@
-from snakecord.utils.snowflake import Snowflake
-from typing import (
-    Any, Callable, Generator, Generic, Iterable, Iterator, Optional, Protocol, TypeVar, Union, overload
-)
 import weakref
+from typing import (Any, Callable, Generator, Generic, Iterable,
+                    Iterator, Optional, Protocol, TypeVar, Union, overload)
+
+from ..utils import Snowflake
 
 KT = TypeVar('KT')
 VT = TypeVar('VT')
 DT = TypeVar('DT')
 
+
 class _ConvertableToInt(Protocol):
     def __int__(self) -> int: ...
+
 
 _SnowflakeType = Union[str, _ConvertableToInt]
 
@@ -22,16 +24,18 @@ class BaseMapping(Generic[KT, VT]):
     @classmethod
     def for_type(cls, klass: type) -> type: ...
 
+
 class BaseSnowflakeMapping(BaseMapping[KT, VT]):
     def __setitem__(self, key: _SnowflakeType, value: VT) -> None: ...
 
     def __getitem__(self, key: _SnowflakeType) -> VT: ...
 
-    def __delitem__(self, key: _SnowflakeType) -> None: ... 
+    def __delitem__(self, key: _SnowflakeType) -> None: ...
 
     def __contains__(self, key: _SnowflakeType) -> bool: ...
 
-    def get(self, key: _SnowflakeType, default: Optional[DT] = ...) -> Union[VT, DT]: ...
+    def get(self, key: _SnowflakeType,
+            default: Optional[DT] = ...) -> Union[VT, DT]: ...
 
     @overload
     def pop(self, key: _SnowflakeType) -> VT: ...
@@ -39,18 +43,31 @@ class BaseSnowflakeMapping(BaseMapping[KT, VT]):
     @overload
     def pop(self, key: _SnowflakeType, default: DT) -> Union[VT, DT]: ...
 
-class Mapping(BaseMapping[KT, VT], dict[KT, VT]): ...
 
-class SnowflakeMapping(BaseSnowflakeMapping[Snowflake, VT], dict[Snowflake, VT]): ...
+class Mapping(BaseMapping[KT, VT], dict[KT, VT]):
+    ...
 
-class WeakValueMapping(BaseMapping[KT, VT], weakref.WeakValueDictionary): ...
 
-class WeakValueSnowflakeMapping(BaseSnowflakeMapping[int, VT], weakref.WeakValueDictionary): ...
+class SnowflakeMapping(BaseSnowflakeMapping[Snowflake, VT],
+                       dict[Snowflake, VT]):
+    ...
+
+
+class WeakValueMapping(BaseMapping[KT, VT],
+                       weakref.WeakValueDictionary):
+    ...
+
+
+class WeakValueSnowflakeMapping(BaseSnowflakeMapping[int, VT],
+                                weakref.WeakValueDictionary):
+    ...
+
 
 class _StateCommon:
     def __contains__(self, key: Any) -> bool: ...
 
     def find(self, func: Callable[[Any], Any]) -> Any: ...
+
 
 class BaseState(_StateCommon, Generic[KT, VT]):
     __container__: type[Mapping[KT, VT]]
@@ -111,6 +128,7 @@ class BaseState(_StateCommon, Generic[KT, VT]):
     def append(self, data: dict[str, Any]) -> VT: ...
 
     def extend(self, data: Iterable[dict[str, Any]]) -> list[VT]: ...
+
 
 class BaseSubState(Generic[KT, VT]):
     superstate: BaseState[KT, VT]

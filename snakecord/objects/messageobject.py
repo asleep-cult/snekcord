@@ -4,6 +4,7 @@ from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 __all__ = ('Message',)
 
+
 MessageTemplate = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),
     guild_id=JsonField('guild_id', Snowflake, str),

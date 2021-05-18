@@ -4,6 +4,7 @@ from ..utils import JsonField, JsonObject, JsonTemplate
 
 __all__ = ('Invite', 'GuildVanityUrl')
 
+
 InviteTemplate = JsonTemplate(
     code=JsonField('code'),
     target_type=JsonField('target_type'),

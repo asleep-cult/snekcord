@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import asyncio
 from numbers import Number
-from typing import Any, Awaitable, Callable, ClassVar, Generator, Optional,     TypeVar
+from typing import (Any, Awaitable, Callable, ClassVar, Final,
+                    Generator, Optional, TypeVar)
 
 T = TypeVar('T')
+
 
 class EventDefinition:
     pass
 
 
 class EventNamespace:
-    __events__: ClassVar[dict[str, EventDefinition]]
+    __events__: Final[ClassVar[dict[str, EventDefinition]]]
 
 
 class EventWaiter:
@@ -35,7 +37,8 @@ class EventWaiter:
 
     async def __await__impl(self) -> tuple[Any, ...]: ...
 
-    def __await__(self) -> Generator[Optional[asyncio.Future], None, tuple[Any, ...]]: ...
+    def __await__(self) -> Generator[Optional[asyncio.Future],
+                                     None, tuple[Any, ...]]: ...
 
     def close(self) -> None: ...
 
@@ -52,7 +55,8 @@ class EventDispatcher:
     _subscribers: list[EventDispatcher]
     events: ClassVar[EventNamespace]
 
-    def __init__(self, *, loop: Optional[asyncio.AbstractEventLoop] = ...) -> None: ...
+    def __init__(self, *,
+                 loop: Optional[asyncio.AbstractEventLoop] = ...) -> None: ...
 
     def register_listener(self, name: str,
                           callback: Callable[..., Any]) -> None: ...
@@ -75,6 +79,8 @@ class EventDispatcher:
 
     def unsubscribe(self, dispatcher: EventDispatcher) -> None: ...
 
-    def on(self, name: Optional[str] = None) -> Callable[[Callable[..., T]], Callable[..., T]]: ...
+    def on(self, name: Optional[str] = None
+           ) -> Callable[[Callable[..., T]], Callable[..., T]]: ...
 
-    def once(self, name: Optional[str] = None) -> Callable[[Callable[..., T]], Callable[..., T]]: ...
+    def once(self, name: Optional[str] = None
+             ) -> Callable[[Callable[..., T]], Callable[..., T]]: ...

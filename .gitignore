@@ -3,4 +3,5 @@ test.py
 __pycache__
 .vscode
 .idea
+.mypy_cache
 docs/_build
