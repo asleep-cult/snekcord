@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import ClassVar, Final, Optional, TypeVar
+from typing import ClassVar, Optional, TypeVar
 
 from ..states.basestate import BaseState
 from ..utils import JsonObject, JsonTemplate, Snowflake
@@ -12,7 +12,7 @@ T = TypeVar('T')
 
 
 class BaseObject(JsonObject):
-    __slots__: Final[ClassVar[tuple[str, ...]]]
+    __slots__: ClassVar[tuple[str, ...]]
     id: Optional[int]
     state: BaseState[Snowflake, BaseObject]
     cached: bool
