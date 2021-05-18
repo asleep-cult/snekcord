@@ -3,6 +3,8 @@ from .. import rest
 from ..objects.stageobject import Stage
 from ..utils import Snowflake
 
+__all__ = ('StageState',)
+
 
 class StageState(BaseState):
     __container__ = SnowflakeMapping

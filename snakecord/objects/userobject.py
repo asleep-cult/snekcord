@@ -1,6 +1,8 @@
 from .baseobject import BaseObject, BaseTemplate
 from ..utils import JsonField, JsonTemplate
 
+__all__ = ('User',)
+
 UserTemplate = JsonTemplate(
     name=JsonField('username'),
     discriminator=JsonField('discriminator'),

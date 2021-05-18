@@ -1,0 +1,15 @@
+from .baseobject import *  # noqa: F401, F403
+from .channelobject import *  # noqa: F401, F403
+from .embedobject import *  # noqa: F401, F403
+from .emojiobject import *  # noqa: F401, F403
+from .guildobject import *  # noqa: F401, F403
+from .integrationobject import *  # noqa: F401, F403
+from .inviteobject import *  # noqa: F401, F403
+from .memberobject import *  # noqa: F401, F403
+from .messageobject import *  # noqa: F401, F403
+from .reactionobject import *  # noqa: F401, F403
+from .roleobject import *  # noqa: F401, F403
+from .stageobject import *  # noqa: F401, F403
+from .templateobject import *  # noqa: F401, F403
+from .userobject import *  # noqa: F401, F403
+from .widgetobject import *  # noqa: F401, F403

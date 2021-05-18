@@ -2,6 +2,8 @@ from .basestate import BaseState
 from .. import rest
 from ..objects.inviteobject import Invite
 
+__all__ = ('InviteState',)
+
 
 class InviteState(BaseState):
     __invite_class__ = Invite

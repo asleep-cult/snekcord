@@ -1,5 +1,6 @@
 from ..utils import JsonField, JsonTemplate
 
+__all__ = ()
 
 ReactionTemplate = JsonTemplate(
     count=JsonField('count'),

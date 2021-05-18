@@ -7,6 +7,8 @@ from ..objects.channelobject import (ChannelType, DMChannel, GuildChannel,
                                      _guild_channel_creation_keys)
 from ..utils import Snowflake, _validate_keys
 
+__all__ = ('ChannelState',)
+
 
 class ChannelState(BaseState):
     __container__ = SnowflakeMapping

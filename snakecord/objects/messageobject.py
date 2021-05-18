@@ -2,6 +2,7 @@ from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
+__all__ = ('Message',)
 
 MessageTemplate = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),

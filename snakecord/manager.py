@@ -13,6 +13,8 @@ from .states.stagestage import StageState
 from .states.userstate import UserState
 from .utils import EventDispatcher
 
+__all__ = ('BaseManager',)
+
 
 class BaseManager(EventDispatcher):
     DEFAULT_CLASSES = {

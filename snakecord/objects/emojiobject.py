@@ -3,6 +3,7 @@ from .. import rest
 from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
+__all__ = ('GuildEmoji',)
 
 GuildEmojiTemplate = JsonTemplate(
     name=JsonField('name'),

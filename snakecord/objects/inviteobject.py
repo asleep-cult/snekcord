@@ -2,6 +2,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..utils import JsonField, JsonObject, JsonTemplate
 
+__all__ = ('Invite', 'GuildVanityUrl')
 
 InviteTemplate = JsonTemplate(
     code=JsonField('code'),

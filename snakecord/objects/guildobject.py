@@ -5,6 +5,7 @@ from .. import rest
 from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake,
                      _validate_keys)
 
+__all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 GuildPreviewTemplate = JsonTemplate(
     name=JsonField('name'),

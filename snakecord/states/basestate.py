@@ -2,6 +2,10 @@ import weakref
 
 from ..utils.snowflake import Snowflake
 
+__all__ = ('BaseMapping', 'BaseSnowflakeMapping',
+           'Mapping', 'SnowflakeMapping', 'WeakValueMapping',
+           'WeakValueSnowflakeMapping', 'BaseState', 'BaseSubState')
+
 
 class BaseMapping:
     def __iter__(self):

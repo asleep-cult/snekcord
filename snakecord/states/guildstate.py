@@ -4,6 +4,8 @@ from ..objects.guildobject import Guild, GuildBan
 from ..objects.templateobject import GuildTemplate
 from ..utils import Snowflake, _validate_keys
 
+__all__ = ('GuildState',)
+
 
 class GuildState(BaseState):
     __container__ = SnowflakeMapping

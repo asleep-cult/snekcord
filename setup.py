@@ -21,8 +21,9 @@ else:
 
 OPUS_PATH = Path('./snakecord/audio/_opusmodule.c')
 OPUS_RELEASE = 'https://archive.mozilla.org/pub/opus/opus-1.3.1.tar.gz'
-OPUS_HEADERS = ('opus.h', 'opus_custom.h', 'opus_defines.h', 'opus_multistream.h',
-                'opus_projection.h', 'opus_types.h')
+OPUS_HEADERS = ('opus.h', 'opus_custom.h', 'opus_defines.h',
+                'opus_multistream.h', 'opus_projection.h',
+                'opus_types.h')
 
 opus_include_dir: Optional[str] = None
 

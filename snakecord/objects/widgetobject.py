@@ -2,6 +2,8 @@ from .baseobject import BaseTemplate
 from .. import rest
 from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake
 
+__all__ = ('GuildWidgetChannel', 'GuildWidgetMember',
+           'GuildWidgetJson', 'GuildWidget')
 
 GuildWidgetChannel = JsonTemplate(
     name=JsonField('name'),

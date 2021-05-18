@@ -3,6 +3,8 @@ from .. import rest
 from ..objects.emojiobject import GuildEmoji
 from ..utils import Snowflake
 
+__all__ = ('GuildEmojiState',)
+
 
 class GuildEmojiState(BaseState):
     __container__ = SnowflakeMapping

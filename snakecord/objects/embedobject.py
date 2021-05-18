@@ -3,6 +3,9 @@ from datetime import datetime
 from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate,
                      _validate_keys)
 
+__all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
+           'EmbedProvider', 'EmbedAuthor', 'EmbedFooter',
+           'EmbedField', 'Embed')
 
 EmbedThumbnail = JsonTemplate(
     url=JsonField('url'),

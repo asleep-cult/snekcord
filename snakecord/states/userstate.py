@@ -3,6 +3,8 @@ from .. import rest
 from ..objects.userobject import User
 from ..utils import Snowflake
 
+__all__ = ('UserState',)
+
 
 class UserState(BaseState):
     __container__ = SnowflakeMapping

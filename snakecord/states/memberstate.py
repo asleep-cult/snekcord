@@ -3,6 +3,8 @@ from .. import rest
 from ..objects.memberobject import GuildMember
 from ..utils import Snowflake, _validate_keys
 
+__all__ = ('GuildMemberState',)
+
 
 class GuildMemberState(BaseState):
     __container__ = SnowflakeMapping

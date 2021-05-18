@@ -2,6 +2,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
 
+__all__ = ('GuildMember',)
 
 GuildMemberTemplate = JsonTemplate(
     nick=JsonField('nick'),

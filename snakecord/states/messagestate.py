@@ -3,6 +3,8 @@ from .. import rest
 from ..objects.messageobject import Message
 from ..utils import Snowflake, _validate_keys
 
+__all__ = ('MessageState',)
+
 
 class MessageState(BaseState):
     __container__ = SnowflakeMapping

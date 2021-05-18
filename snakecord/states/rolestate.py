@@ -4,6 +4,8 @@ from .. import rest
 from ..objects.roleobject import Role
 from ..utils import Snowflake, _validate_keys
 
+__all__ = ('RoleState',)
+
 
 class RoleState(BaseState):
     __container__ = SnowflakeMapping
