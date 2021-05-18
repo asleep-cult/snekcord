@@ -70,8 +70,9 @@ class Guild(BaseObject, template=GuildTemplate):
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
-                superstate=self.state.manager.channels,
-                guild=self)
+            superstate=self.state.manager.channels,
+            guild=self
+        )
 
         self.emojis = self.state.manager.get_class('GuildEmojiState')(
             manager=self.state.manager,
