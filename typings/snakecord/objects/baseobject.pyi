@@ -1,26 +1,25 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import ClassVar, Optional, TypeVar
+from typing import Generic, Optional, TypeVar
 
 from ..states.basestate import BaseState
 from ..utils import JsonObject, JsonTemplate, Snowflake
 
-BaseTemplate: JsonTemplate
+
+BaseTemplate: JsonTemplate = ...
 
 T = TypeVar('T')
 
 
-class BaseObject(JsonObject):
-    __slots__: ClassVar[tuple[str, ...]]
-    id: Optional[int]
-    state: BaseState[Snowflake, BaseObject]
+class BaseObject(JsonObject, Generic[T]):
+    id: Optional[T]
+    state: BaseState[T]
     cached: bool
     deleted: bool
     deleted_at: Optional[datetime]
 
-    def __json_init__(self, *,
-                      state: BaseState[Snowflake, BaseObject]) -> None: ...
+    def __json_init__(self, *, state: BaseState[T]) -> None: ...
 
     def __hash__(self) -> int: ...
 
@@ -32,4 +31,7 @@ class BaseObject(JsonObject):
 
     def uncache(self) -> None: ...
 
-    async def fetch(self: T) -> T: ...
+    async def fetch(self: BaseObject[T]) -> BaseObject[T]: ...
+
+
+BaseSnowflakeObject = BaseObject[Snowflake]

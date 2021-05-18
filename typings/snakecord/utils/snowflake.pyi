@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from numbers import Number
-from typing import Any, ClassVar, Final, Optional
+from typing import ClassVar, Final, Optional, Union, SupportsInt
 
-from ..objects.baseobject import BaseObject
+from ..objects.baseobject import BaseSnowflakeObject
+
+
+_IntConvertable = Union[SupportsInt, str, bytes, bytearray]
+SnowflakeConvertable = Union[BaseSnowflakeObject, _IntConvertable]
 
 
 class Snowflake(int):
@@ -24,7 +28,7 @@ class Snowflake(int):
               increment: int = ...) -> Snowflake: ...
 
     @classmethod
-    def try_snowflake(cls, obj: BaseObject | Any) -> Snowflake | Any: ...
+    def try_snowflake(cls, obj: SnowflakeConvertable) -> Snowflake: ...
 
     @property
     def timestamp(self) -> int: ...
