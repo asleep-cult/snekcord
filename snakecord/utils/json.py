@@ -21,7 +21,7 @@ class JsonTemplate:
                     setattr(obj, name, field.default())
 
     def to_dict(self, obj):
-        data = {}
+        data = set()
 
         for name, field in self.fields.items():
             value = getattr(obj, name, field.default())
