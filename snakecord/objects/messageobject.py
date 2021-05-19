@@ -1,6 +1,7 @@
 from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
 from .. import rest
+from ..states.reactionstate import ReactionState
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 __all__ = ('Message',)
@@ -18,7 +19,6 @@ MessageTemplate = JsonTemplate(
     _mention_channels=JsonArray('mention_channels'),
     _attachments=JsonArray('attachments'),
     embeds=JsonArray('embeds', object=Embed),
-    _reactions=JsonArray('reactions'),
     nonce=JsonField('nonce'),
     pinned=JsonField('pinned'),
     webhook_id=JsonField('webhook_id'),
@@ -35,12 +35,14 @@ MessageTemplate = JsonTemplate(
 
 
 class Message(BaseObject, template=MessageTemplate):
-    __slots__ = ('author', 'member')
+    __slots__ = ('author', 'member', 'reactions')
 
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
         self.author = None
         self.member = None
+        self.reactions = ReactionState(
+            manager=self.state.manager, message=self)
 
     @property
     def channel(self):
@@ -69,3 +71,8 @@ class Message(BaseObject, template=MessageTemplate):
             if member is not None and guild is not None:
                 member['user'] = author
                 self.member = guild.members.append(member)
+
+        reactions = data.get('reactions')
+        if reactions is not None:
+            self.reactions.clear()
+            self.reactions.extend(reactions)

@@ -155,6 +155,9 @@ class BaseState(_StateCommon):
     def extend(self, data):
         return [self.append(d) for d in data]
 
+    def clear(self):
+        self._items.clear()
+
 
 class BaseSubState(_StateCommon):
     def __init__(self, *, superstate):

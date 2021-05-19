@@ -12,16 +12,6 @@ class ReactionState(BaseState):
         super().__init__(manager=manager)
         self.message = message
 
-    @property
-    def channel(self):
-        return self.message.channel
-
-    async def delete_all(self):
-        await rest.delete_all_reactions.request(
-            session=self.manager.rest,
-            fmt=dict(channel_id=self.channel.id,
-                     message_id=self.message.id))
-
     def append(self, data):
         ident = self.guild.emojis.append(data['emoji']).id
         reaction = self.get(ident)
@@ -32,3 +22,13 @@ class ReactionState(BaseState):
             reaction.cache()
 
         return reaction
+
+    @property
+    def channel(self):
+        return self.message.channel
+
+    async def delete_all(self):
+        await rest.delete_all_reactions.request(
+            session=self.manager.rest,
+            fmt=dict(channel_id=self.channel.id,
+                     message_id=self.message.id))
