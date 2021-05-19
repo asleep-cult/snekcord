@@ -1,7 +1,6 @@
 from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
 from .. import rest
-from ..states.reactionstate import ReactionState
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 __all__ = ('Message',)
@@ -41,7 +40,7 @@ class Message(BaseObject, template=MessageTemplate):
         super().__json_init__(state=state)
         self.author = None
         self.member = None
-        self.reactions = ReactionState(
+        self.reactions = self.state.manager.get_class('ReactionState')(
             manager=self.state.manager, message=self)
 
     @property

@@ -1,6 +1,5 @@
 from .baseobject import BaseObject
 from .. import rest
-from ..states.reactorstate import ReactorState
 from ..utils import JsonField, JsonTemplate
 
 __all__ = ('Reaction',)
@@ -18,7 +17,7 @@ class Reaction(BaseObject, template=ReactionTemplate):
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
         self.emoji = None
-        self.reactors = ReactorState(
+        self.reactors = self.state.manager.get_class('ReactorState')(
             superstate=self.state.manager.users, reaction=self)
 
     @property

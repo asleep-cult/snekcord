@@ -8,6 +8,8 @@ from .states.guildstate import GuildBanState, GuildState
 from .states.invitestate import InviteState
 from .states.memberstate import GuildMemberState
 from .states.messagestate import MessageState
+from .states.reactionstate import ReactionState
+from .states.reactorstate import ReactorState
 from .states.rolestate import GuildMemberRoleState, RoleState
 from .states.stagestage import StageState
 from .states.userstate import UserState
@@ -27,6 +29,8 @@ class BaseManager(EventDispatcher):
         'RoleState': RoleState,
         'GuildMemberState': GuildMemberState,
         'MessageState': MessageState,
+        'ReactionState': ReactionState,
+        'ReactorState': ReactorState,
         'GuildMemberRoleState': GuildMemberRoleState,
         'UserState': UserState,
         'StageState': StageState,
