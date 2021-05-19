@@ -1,5 +1,6 @@
 from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
+from .. import rest
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 __all__ = ('Message',)
@@ -43,11 +44,18 @@ class Message(BaseObject, template=MessageTemplate):
 
     @property
     def channel(self):
-        return self.state.manager.channels.get(self.channel_id)
+        return self.state.channel
 
     @property
     def guild(self):
         return self.state.manager.guilds.get(self.guild_id)
+
+    async def crosspost(self):
+        data = await rest.crosspost_message.request(
+            session=self.state.manager.rest,
+            fmt=dict(channel_id=self.state.channel.id, message_id=self.id))
+
+        return self.state.append(data)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
@@ -57,7 +65,6 @@ class Message(BaseObject, template=MessageTemplate):
             self.author = self.state.manager.users.append(author)
 
             guild = self.guild
-
             member = data.get('member')
             if member is not None and guild is not None:
                 member['user'] = author

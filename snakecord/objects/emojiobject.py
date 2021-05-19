@@ -1,8 +1,9 @@
+from urllib.parse import quote
+
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
 from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
-from ..utils import JsonArray, JsonField
 
 import sys
 
@@ -71,6 +72,9 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=self.id))
 
+    def to_reaction(self):
+        return quote(f'{self.name}:{self.id}')
+
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
@@ -92,11 +96,18 @@ class BuiltinEmoji:
             self.diversity_children.append(
                 BuiltinEmoji(category, child))
 
+    @property
+    def id(self):
+        return self.surrogates
+
     def store(self, cache):
         cache[self.surrogates] = self
 
         for child in self.diversity_children:
             child.store(cache)
+
+    def to_reaction(self):
+        return quote(self.surrogates)
 
 
 BUILTIN_EMOJIS = {}
