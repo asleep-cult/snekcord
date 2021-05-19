@@ -1,7 +1,8 @@
 from .baseobject import BaseTemplate
 from ..utils import JsonField, JsonTemplate, Snowflake
 
-__all__ = ('IntegrationAccount', 'IntegrationApplication', 'Integration')
+__all__ = ('IntegrationAccount', 'IntegrationApplicationTemplate',
+           'IntegrationTemplate')
 
 
 IntegrationAccount = JsonTemplate(
