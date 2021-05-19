@@ -2,8 +2,9 @@ from .baseobject import BaseObject, BaseTemplate
 from .. import rest
 from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
+from ..utils import JsonArray, JsonField
 
-import sys  # noqa: I100
+import sys
 
 module_path = sys.path.pop(0)
 module = sys.modules.pop('snakecord')
@@ -13,7 +14,7 @@ module = sys.modules.pop('snakecord')
 # are not in the same module (during development).
 # Will remove later
 
-from snakecord.emojis import ALL_CATEGORIES  # noqa: E402
+from snakecord.emojis import ALL_CATEGORIES
 
 sys.path.insert(0, module_path)
 sys.modules['snakecord'] = module

@@ -12,7 +12,7 @@ BaseTemplate: JsonTemplate = ...
 T = TypeVar('T')
 
 
-class BaseObject(JsonObject, Generic[T]):
+class BaseObject(JsonObject, Generic[T], template=BaseTemplate):
     id: Optional[T]
     state: BaseState[T]
     cached: bool
