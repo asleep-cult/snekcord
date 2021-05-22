@@ -1,5 +1,6 @@
 from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
+from .. import rest
 from ..utils import JsonArray, JsonField, JsonTemplate, Snowflake
 
 __all__ = ('Message',)
@@ -17,7 +18,6 @@ MessageTemplate = JsonTemplate(
     _mention_channels=JsonArray('mention_channels'),
     _attachments=JsonArray('attachments'),
     embeds=JsonArray('embeds', object=Embed),
-    _reactions=JsonArray('reactions'),
     nonce=JsonField('nonce'),
     pinned=JsonField('pinned'),
     webhook_id=JsonField('webhook_id'),
@@ -34,20 +34,29 @@ MessageTemplate = JsonTemplate(
 
 
 class Message(BaseObject, template=MessageTemplate):
-    __slots__ = ('author', 'member')
+    __slots__ = ('author', 'member', 'reactions')
 
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
         self.author = None
         self.member = None
+        self.reactions = self.state.manager.get_class('ReactionState')(
+            manager=self.state.manager, message=self)
 
     @property
     def channel(self):
-        return self.state.manager.channels.get(self.channel_id)
+        return self.state.channel
 
     @property
     def guild(self):
         return self.state.manager.guilds.get(self.guild_id)
+
+    async def crosspost(self):
+        data = await rest.crosspost_message.request(
+            session=self.state.manager.rest,
+            fmt=dict(channel_id=self.state.channel.id, message_id=self.id))
+
+        return self.state.append(data)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
@@ -57,8 +66,12 @@ class Message(BaseObject, template=MessageTemplate):
             self.author = self.state.manager.users.append(author)
 
             guild = self.guild
-
             member = data.get('member')
             if member is not None and guild is not None:
                 member['user'] = author
                 self.member = guild.members.append(member)
+
+        reactions = data.get('reactions')
+        if reactions is not None:
+            self.reactions.clear()
+            self.reactions.extend(reactions)

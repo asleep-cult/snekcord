@@ -107,14 +107,20 @@ delete_reaction = HTTPEndpoint(
 
 get_reactions = HTTPEndpoint(
     'GET',
-    BASE_API_URL + 'channels/%(channel_id)s/messages/%(message_id)s/reactions'
+    BASE_API_URL + 'channels/%(channel_id)s/messages/%(message_id)s/reactions',
+    params=('limit', 'after')
 )
 
 delete_reactions = HTTPEndpoint(
     'DELETE',
     BASE_API_URL
     + 'channels/%(channel_id)s/messages/%(message_id)s/reactions/%(emoji)s',
-    # emoji may be an empty string
+)
+
+delete_all_reactions = HTTPEndpoint(
+    'DELETE',
+    BASE_API_URL
+    + 'channels/%(channel_id)s/messages/%(message_id)s/reactions',
 )
 
 edit_message = HTTPEndpoint(

@@ -5,8 +5,8 @@ from .. import rest
 from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
-__all__ = ('ChannelType', 'GuildChannel',
-           'TextChannel', 'VoiceChannel', 'DMChannel')
+__all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'VoiceChannel',
+           'DMChannel')
 
 
 class ChannelType(enum.IntEnum):

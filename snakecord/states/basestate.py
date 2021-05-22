@@ -155,6 +155,9 @@ class BaseState(_StateCommon):
     def extend(self, data):
         return [self.append(d) for d in data]
 
+    def clear(self):
+        self._items.clear()
+
 
 class BaseSubState(_StateCommon):
     def __init__(self, *, superstate):
@@ -163,6 +166,9 @@ class BaseSubState(_StateCommon):
 
     def add_key(self, key):
         self._keys.add(key)
+
+    def extend_keys(self, keys):
+        self._keys.update(keys)
 
     def set_keys(self, keys):
         self._keys = set(keys)
@@ -174,7 +180,7 @@ class BaseSubState(_StateCommon):
         raise NotImplementedError
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} length={len(self)}>'
+        return f'{self.__class__.__name__}(length={len(self)})'
 
     def __len__(self):
         return len(self._keys)

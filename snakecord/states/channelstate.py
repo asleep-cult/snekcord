@@ -80,7 +80,10 @@ class GuildChannelState(BaseSubState):
             session=self.superstate.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.superstate.extend(data)
+        channels = self.superstate.extend(data)
+        self.extend_keys(channel.id for channel in channels)
+
+        return channels
 
     async def create(self, **kwargs):
         required_keys = ('name',)
