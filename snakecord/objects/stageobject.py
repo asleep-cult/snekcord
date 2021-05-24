@@ -14,14 +14,6 @@ StageTemplate = JsonTemplate(
 
 
 class Stage(BaseObject, template=StageTemplate):
-    @property
-    def guild(self):
-        return self.state.manager.guilds.get(self.guild_id)
-
-    @property
-    def channel(self):
-        return self.state.manager.channels.get(self.channel_id)
-
     async def modify(self, topic):
         json = {'topic': topic}
 
@@ -30,9 +22,7 @@ class Stage(BaseObject, template=StageTemplate):
             fmt=dict(channel_id=self.channel_id),
             json=json)
 
-        self.update(data)
-
-        return self
+        return await self.state.new(data)
 
     async def delete(self):
         await rest.delete_stage_instance.request(

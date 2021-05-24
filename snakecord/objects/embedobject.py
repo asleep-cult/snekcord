@@ -7,6 +7,7 @@ __all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter',
            'EmbedField', 'Embed')
 
+
 EmbedThumbnail = JsonTemplate(
     url=JsonField('url'),
     proxy_url=JsonField('proxy_url'),

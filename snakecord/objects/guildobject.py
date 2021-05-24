@@ -63,20 +63,20 @@ class Guild(BaseObject, template=GuildTemplate):
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
                  'emojis', 'roles', 'members')
 
-    def __json_init__(self, *, state):
-        super().__json_init__(state=state)
+    async def __json_init__(self, *, state):
+        await super().__json_init__(state=state)
 
-        self.widget = GuildWidget.unmarshal(guild=self)
-        self.vanity_url = GuildVanityUrl.unmarshal(guild=self)
-        self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
+        self.widget = await GuildWidget.unmarshal(guild=self)
+        self.vanity_url = await GuildVanityUrl.unmarshal(guild=self)
+        self.welcome_screen = await WelcomeScreen.unmarshal(guild=self)
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
             superstate=self.state.manager.channels,
             guild=self)
 
-        self.emojis = self.state.manager.get_class('GuildEmojiState')(
-            manager=self.state.manager,
-            guild=self)
+        # self.emojis = self.state.manager.get_class('GuildEmojiState')(
+        #     manager=self.state.manager,
+        #     guild=self)
 
         self.roles = self.state.manager.get_class('RoleState')(
             manager=self.state.manager,
@@ -97,7 +97,7 @@ class Guild(BaseObject, template=GuildTemplate):
             fmt=dict(guild_id=self.id),
             json=kwargs)
 
-        return self.append(data)
+        return await self.state.new(data)
 
     async def delete(self):
         await rest.delete_guild.request(
@@ -167,13 +167,13 @@ class Guild(BaseObject, template=GuildTemplate):
             fmt=dict(guild_id=self.id),
             json=kwargs)
 
-        return self.state._create_template(data)
+        return await self.state.new_template(data)
 
     def to_preview_dict(self):
         return GuildPreviewTemplate.to_dict(self)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    async def update(self, data, *args, **kwargs):
+        await super().update(data, *args, **kwargs)
 
         widget_data = {}
 
@@ -186,33 +186,33 @@ class Guild(BaseObject, template=GuildTemplate):
             widget_data['enabled'] = widget_enabled
 
         if widget_data:
-            self.widget.update(data)
+            await self.widget.update(data)
 
         vanity_url_code = data.get('vanity_url_code')
         if vanity_url_code is None:
-            self.vanity_url.update({'code': vanity_url_code})
+            await self.vanity_url.update({'code': vanity_url_code})
 
         channels = data.get('channels')
         if channels is not None:
             for channel in channels:
-                channel = self.state.manager.channels.append(channel)
+                channel = await self.state.manager.channels.new(channel)
                 self.channels.add_key(channel.id)
 
-        emojis = data.get('emojis')
-        if emojis is not None:
-            self.emojis.extend(emojis)
+        # emojis = data.get('emojis')
+        # if emojis is not None:
+        #     await self.emojis.extend_new(emojis)
 
         roles = data.get('roles')
         if roles is not None:
-            self.roles.extend(roles)
+            await self.roles.extend_new(roles)
 
         members = data.get('members')
         if members is not None:
-            self.members.extend(members)
+            await self.members.extend_new(members)
 
         welcome_screen = data.get('welcome_screen')
         if welcome_screen is not None:
-            self.welcome_screen.update(data)
+            await self.welcome_screen.update(data)
 
 
 GuildBanTemplate = JsonTemplate(
@@ -227,12 +227,12 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
         super().__json_init__(state)
         self.guild = guild
 
-    def update(self, data, *args, **kwargs):
+    async def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.append(user)
+            self.user = await self.state.manager.users.new(user)
             self.id = self.user.id
 
 
@@ -247,16 +247,14 @@ WelcomeScreenChannelTemplate = JsonTemplate(
 class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, guild):
+    async def __json_init__(self, *, guild):
         self.guild = guild
 
-    @property
-    def channel(self):
-        return self.state.manager.channels.get(self.id)
+    async def get_channel(self):
+        return await self.state.manager.channels.get(self.id)
 
-    @property
-    def emoji(self):
-        return self.guild.emojis.get(self.emoji_id)
+    async def get_emoji(self):
+        return await self.guild.emojis.get(self.emoji_id)
 
 
 WelcomeScreenTemplate = JsonTemplate(
@@ -267,7 +265,7 @@ WelcomeScreenTemplate = JsonTemplate(
 class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
     __slots__ = ('guild', 'welcome_channels')
 
-    def __json_init__(self, *, guild):
+    async def __json_init__(self, *, guild):
         self.guild = guild
         self.welcome_channels = []
 
@@ -276,9 +274,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             session=self.guild.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        self.update(data)
-
-        return self
+        return await self.state.new(data)
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild_welcome_screen.json
@@ -291,18 +287,16 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        self.update(data)
+        return await self.state.new(data)
 
-        return self
-
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    async def update(self, data, *args, **kwargs):
+        await super().update(data, *args, **kwargs)
 
         welcome_channels = data.get('welcome_channels')
         if welcome_channels is not None:
             self.welcome_channels.clear()
 
             for channel in welcome_channels:
-                channel = WelcomeScreenChannel.unmarshal(
+                channel = await WelcomeScreenChannel.unmarshal(
                     channel, guild=self.guild)
                 self.welcome_channels.append(channel)

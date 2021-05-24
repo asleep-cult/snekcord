@@ -28,8 +28,8 @@ RoleTemplate = JsonTemplate(
 class Role(BaseObject, template=RoleTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, state, guild):
-        super().__json_init__(state=state)
+    async def __json_init__(self, *, state, guild):
+        await super().__json_init__(state=state)
         self.guild = guild
 
     async def modify(self, **kwargs):
@@ -43,7 +43,7 @@ class Role(BaseObject, template=RoleTemplate):
             fmt=dict(guild_id=self.guild.id, role_id=self.id),
             json=kwargs)
 
-        return self.state.append(data)
+        return await self.state.new(data)
 
     async def delete(self):
         await rest.delete_guild_role.request(

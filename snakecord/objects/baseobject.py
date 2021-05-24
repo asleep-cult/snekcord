@@ -14,12 +14,17 @@ BaseTemplate = JsonTemplate(
 class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at')
 
-    def __json_init__(self, *, state):
+    async def __json_init__(self, *, state):
         self.state = state
         self.id = None
         self.cached = False
         self.deleted = False
         self.deleted_at = None
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.id == other.id
 
     def __hash__(self):
         if self.id is None:
@@ -32,24 +37,31 @@ class BaseObject(JsonObject, template=BaseTemplate):
         return (f'{self.__class__.__name__}(id={self.id!r}, '
                 f'cached={self.cached}, deleted={self.deleted})')
 
-    def _delete(self):
+    async def _delete(self):
         self.deleted = True
         self.deleted_at = datetime.now()
-        self.uncache(recycle=False)
+        await self.uncache(recycle=False)
 
-    def cache(self):
-        self.cached = self.state.set(self.id, self)
-        if self.cached:
-            self.state.unrecycle(self.id, None)
+    async def cache(self):
+        self.cached = await self.state.set(self.id, self)
+        # if self.cached:
+        #     self.state.unrecycle(self.id, None)
 
-    def uncache(self, recycle=True):
+    async def uncache(self, recycle=True):
         self.cached = False
-        self.state.pop(self.id, None)
-        if recycle:
-            self.state.recycle(self.id, self)
+        await self.state.delete(self.id, None)
+        # if recycle:
+        #     self.state.recycle(self.id, self)
+
+    def strict_equals(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        for name in self.__template__.fields:
+            if getattr(self, name) != getattr(other, name):
+                return False
+
+        return True
 
     async def fetch(self):
         return await self.state.fetch(self.id)
-
-    def to_idict(self):
-        return dict(id=self.id)
