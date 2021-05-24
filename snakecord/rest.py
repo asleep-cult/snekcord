@@ -705,7 +705,7 @@ class RestSession(AsyncClient):
             method, url, *args, **kwargs)
         await response.aclose()
 
-        data = await response.aread()
+        data = response.content
 
         content_type = response.headers.get('content-type')
         if content_type.lower() == 'application/json':
