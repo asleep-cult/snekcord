@@ -117,8 +117,8 @@ TextChannelTemplate = JsonTemplate(
 class TextChannel(GuildChannel, template=TextChannelTemplate):
     __slots__ = ('messages',)
 
-    def __json_init__(self, *, state):
-        super().__json_init__(state=state)
+    async def __json_init__(self, *, state):
+        await super().__json_init__(state=state)
 
         self.messages = self.state.manager.get_class('MessageState')(
             manager=self.state.manager, channel=self)

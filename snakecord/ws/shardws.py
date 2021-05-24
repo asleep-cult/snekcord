@@ -100,7 +100,7 @@ class Shard(WebSocketClient):
 
     @taskify
     async def ws_text_received(self, data):
-        response = WebSocketResponse.unmarshal(data)
+        response = await WebSocketResponse.unmarshal(data)
 
         try:
             opcode = ShardOpcode(response.opcode)

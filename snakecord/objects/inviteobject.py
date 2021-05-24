@@ -24,8 +24,8 @@ class Invite(BaseObject, template=InviteTemplate):
     __slots__ = ('guild', 'channel', 'inviter', 'target_user',
                  'target_application')
 
-    def __json_init__(self, *, state):
-        super().__json_init__(state=state)
+    async def __json_init__(self, *, state):
+        await super().__json_init__(state=state)
         self.guild = None
         self.channel = None
         self.inviter = None
@@ -39,24 +39,24 @@ class Invite(BaseObject, template=InviteTemplate):
     async def delete(self):
         await self.state.delete(self.code)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    async def update(self, data, *args, **kwargs):
+        await super().update(data, *args, **kwargs)
 
         guild = data.get('guild')
         if guild is not None:
-            self.guild = self.state.manager.guilds.append(guild)
+            self.guild = await self.state.manager.guilds.new(guild)
 
         channel = data.get('channel')
         if channel is not None:
-            self.channel = self.state.manager.channels.append(channel)
+            self.channel = await self.state.manager.channels.new(channel)
 
         inviter = data.get('inviter')
         if inviter is not None:
-            self.inviter = self.state.manager.users.append(inviter)
+            self.inviter = await self.state.manager.users.new(inviter)
 
         target_user = data.get('target_user')
         if target_user is not None:
-            self.target_user = self.state.manager.users.append(target_user)
+            self.target_user = await self.state.manager.users.new(target_user)
 
 
 GuildVanityUrlTemplate = JsonTemplate(
@@ -67,24 +67,18 @@ GuildVanityUrlTemplate = JsonTemplate(
 class GuildVanityUrl(JsonObject, template=GuildVanityUrlTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, guild):
+    async def __json_init__(self, *, guild):
         self.guild = guild
-
-    @property
-    def invite(self):
-        return self.guild.state.manager.invites.get(self.code)
 
     async def fetch(self):
         data = await rest.get_guild_vanity_url.request(
             session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        self.update(data)
+        return await self.state.new(data)
 
-        return self
+    async def update(self, data, *args, **kwargs):
+        await super().update(data, *args, **kwargs)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
-
-        invite = self.guild.state.manager.invites.append(data)
+        invite = await self.guild.state.manager.invites.new(data)
         invite.guild = self.guild

@@ -1,4 +1,4 @@
-from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
+from .basestate import BaseState
 from .. import rest
 from ..objects.stageobject import Stage
 from ..utils import Snowflake
@@ -7,16 +7,16 @@ __all__ = ('StageState',)
 
 
 class StageState(BaseState):
-    __container__ = SnowflakeMapping
-    __recycled_container__ = WeakValueSnowflakeMapping
+    __key_transformer__ = Snowflake.try_snowflake
     __stage_class__ = Stage
 
-    def append(self, data):
-        stage = self.get(data['id'])
+    async def new(self, data):
+        stage = await self.get(data['id'])
         if stage is not None:
-            stage.update(data)
+            await stage.update(data)
         else:
-            stage = self.__stage_class__.unmarshal(data)
+            stage = await self.__stage_class__.unmarshal(data, state=self)
+            await stage.cache()
 
         return stage
 
@@ -27,4 +27,4 @@ class StageState(BaseState):
             session=self.manager.rest,
             fmt=dict(stage_id=stage_id))
 
-        return self.append(data)
+        return await self.new(data)
