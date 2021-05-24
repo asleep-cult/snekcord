@@ -57,7 +57,7 @@ class MutableMappingState(BaseState):
         del self.mapping[self.transform_key(key)]
 
     async def has(self, key):
-        return key in self.mapping.values()
+        return self.transform_key(key) in self.mapping
 
     async def first(self, func=None):
         for value in self.mapping.values():
@@ -65,7 +65,7 @@ class MutableMappingState(BaseState):
                 return value
 
     async def size(self):
-        return len(self)
+        return len(self.mapping)
 
     async def clear(self):
         return self.mapping.clear()
