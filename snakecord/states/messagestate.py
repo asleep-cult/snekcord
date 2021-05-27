@@ -1,4 +1,4 @@
-from .basestate import BaseState
+from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from .. import rest
 from ..objects.messageobject import Message
 from ..utils import Snowflake, _validate_keys
@@ -7,20 +7,21 @@ __all__ = ('MessageState',)
 
 
 class MessageState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
+    __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __message_class__ = Message
 
     def __init__(self, *, manager, channel):
         super().__init__(manager=manager)
         self.channel = channel
 
-    async def new(self, data):
-        message = await self.get(data['id'])
+    def append(self, data):
+        message = self.get(data['id'])
         if message is not None:
-            await message.update(data)
+            message.update(data)
         else:
-            message = await self.__message_class__.unmarshal(data, state=self)
-            await message.cache()
+            message = self.__message_class__.unmarshal(data, state=self)
+            message.cache()
 
         return message
 
@@ -45,16 +46,16 @@ class MessageState(BaseState):
             fmt=dict(channel_id=self.channel.id),
             params=params)
 
-        return await self.extend_new(data)
+        return self.extend(data)
 
     async def fetch(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        data = await rest.get_channel_message.request(
+        data = await rest.get_channel_messages.request(
             session=self.manager.rest,
             fmt=dict(channel_id=self.channel.id, message_id=message_id))
 
-        return await self.new(data)
+        return self.append(data)
 
     async def create(self, **kwargs):
         keys = rest.create_channel_message.json
@@ -72,4 +73,4 @@ class MessageState(BaseState):
             fmt=dict(channel_id=self.channel.id),
             json=kwargs)
 
-        return await self.new(data)
+        return self.append(data)

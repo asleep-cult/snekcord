@@ -2,12 +2,14 @@ import asyncio
 import signal
 
 from .rest import RestSession
-from .states.basestate import MutableMappingState
 from .states.channelstate import ChannelState, GuildChannelState
+from .states.emojistate import GuildEmojiState
 from .states.guildstate import GuildBanState, GuildState
 from .states.invitestate import InviteState
 from .states.memberstate import GuildMemberState
 from .states.messagestate import MessageState
+from .states.reactionstate import ReactionState
+from .states.reactorstate import ReactorState
 from .states.rolestate import GuildMemberRoleState, RoleState
 from .states.stagestage import StageState
 from .states.userstate import UserState
@@ -18,20 +20,21 @@ __all__ = ('BaseManager',)
 
 class BaseManager(EventDispatcher):
     DEFAULT_CLASSES = {
-        'ChannelState': MutableMappingState.for_base(ChannelState),
-        'GuildChannelState': MutableMappingState.for_base(GuildChannelState),
-        'GuildState': MutableMappingState.for_base(GuildState),
-        'GuildBanState': MutableMappingState.for_base(GuildBanState),
-        'InviteState': MutableMappingState.for_base(InviteState),
-        'RoleState': MutableMappingState.for_base(RoleState),
-        'GuildMemberState': MutableMappingState.for_base(GuildMemberState),
-        'MessageState': MutableMappingState.for_base(MessageState),
-        'GuildMemberRoleState': (
-            MutableMappingState.for_base(GuildMemberRoleState)
-        ),
-        'UserState': MutableMappingState.for_base(UserState),
-        'StageState': MutableMappingState.for_base(StageState),
-        'RestSession': MutableMappingState.for_base(RestSession),
+        'ChannelState': ChannelState,
+        'GuildChannelState': GuildChannelState,
+        'GuildEmojiState': GuildEmojiState,
+        'GuildState': GuildState,
+        'GuildBanState': GuildBanState,
+        'InviteState': InviteState,
+        'RoleState': RoleState,
+        'GuildMemberState': GuildMemberState,
+        'MessageState': MessageState,
+        'ReactionState': ReactionState,
+        'ReactorState': ReactorState,
+        'GuildMemberRoleState': GuildMemberRoleState,
+        'UserState': UserState,
+        'StageState': StageState,
+        'RestSession': RestSession,
     }
 
     __classes__ = DEFAULT_CLASSES.copy()

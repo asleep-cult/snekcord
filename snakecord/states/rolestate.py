@@ -1,4 +1,5 @@
-from .basestate import BaseState, BaseSubState
+from .basestate import (BaseState, BaseSubState, SnowflakeMapping,
+                        WeakValueSnowflakeMapping)
 from .. import rest
 from ..objects.roleobject import Role
 from ..utils import Snowflake, _validate_keys
@@ -7,21 +8,22 @@ __all__ = ('RoleState',)
 
 
 class RoleState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
+    __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __role_class__ = Role
 
     def __init__(self, *, manager, guild):
         super().__init__(manager=manager)
         self.guild = guild
 
-    async def new(self, data):
-        role = await self.get(data['id'])
+    def append(self, data):
+        role = self.get(data['id'])
         if role is not None:
-            await role.update(data)
+            role.update(data)
         else:
-            role = await self.__role_class__.unmarshal(
+            role = self.__role_class__.unmarshal(
                 data, state=self, guild=self.guild)
-            await role.cache()
+            role.cache()
 
         return role
 
@@ -30,7 +32,7 @@ class RoleState(BaseState):
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return await self.extend_new(data)
+        return self.extend(data)
 
     async def create(self, **kwargs):
         keys = rest.create_guild_role.json
@@ -43,7 +45,7 @@ class RoleState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return await self.extend_new(data)
+        return self.append(data)
 
     async def bulk_modify(self, positions):
         required_keys = ('id',)

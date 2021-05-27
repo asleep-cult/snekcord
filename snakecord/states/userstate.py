@@ -1,4 +1,4 @@
-from .basestate import BaseState
+from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from .. import rest
 from ..objects.userobject import User
 from ..utils import Snowflake
@@ -7,16 +7,17 @@ __all__ = ('UserState',)
 
 
 class UserState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
+    __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __user_class__ = User
 
-    async def new(self, data):
-        user = await self.get(data['id'])
+    def append(self, data):
+        user = self.get(data['id'])
         if user is not None:
-            await user.update(data)
+            user.update(data)
         else:
-            user = await self.__user_class__.unmarshal(data, state=self)
-            await user.cache()
+            user = self.__user_class__.unmarshal(data, state=self)
+            user.cache()
 
         return user
 
@@ -27,4 +28,4 @@ class UserState(BaseState):
             session=self.manager.rest,
             fmt=dict(user_id=user_id))
 
-        return await self.new(data)
+        return self.append(data)

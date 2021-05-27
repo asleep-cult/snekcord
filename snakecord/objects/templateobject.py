@@ -26,6 +26,14 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
     def code(self):
         return self.id
 
+    @property
+    def creator(self):
+        return self.state.manager.users.get(self.creator_id)
+
+    @property
+    def source_guild(self):
+        return self.state.manager.guilds.get(self.source_guild_id)
+
     async def create_guild(self, **kwargs):
         required_keys = ('name',)
         keys = rest.create_guild_from_template.json
@@ -81,8 +89,8 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
         return self
 
-    async def update(self, data, *args, **kwargs):
-        await super().update(data, *args, **kwargs)
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
 
         creator = data.get('creator')
         if creator is not None:

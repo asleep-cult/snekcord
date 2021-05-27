@@ -1,11 +1,9 @@
-import asyncio
 import builtins
 
 from . import undefined
 
 __all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
-           'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
-           'maybe_await')
+           'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax')
 
 
 def _validate_keys(name, source, required, keys):
@@ -116,9 +114,3 @@ async def amax(obj, key=None, default=undefined):
         raise ValueError('amax() arg is an empty async-gen')
 
     return minimun
-
-
-async def maybe_await(value):
-    if asyncio.iscoroutine(value):
-        return await value
-    return value

@@ -59,12 +59,12 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
         return self.state.append(data)
 
-    async def update(self, data, *args, **kwargs):
-        await super().update(data, *args, **kwargs)
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
 
         user = data.get('user')
         if user is not None:
-            self.user = await self.state.manager.users.new(user)
+            self.user = self.state.manager.users.append(user)
             self.id = self.user.id
 
         roles = data.get('roles')
