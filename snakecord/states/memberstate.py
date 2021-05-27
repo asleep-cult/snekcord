@@ -1,4 +1,4 @@
-from .basestate import BaseState
+from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
 from .. import rest
 from ..objects.memberobject import GuildMember
 from ..utils import Snowflake, _validate_keys
@@ -7,21 +7,22 @@ __all__ = ('GuildMemberState',)
 
 
 class GuildMemberState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
+    __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __guild_member_class__ = GuildMember
 
     def __init__(self, *, manager, guild):
         super().__init__(manager=manager)
         self.guild = guild
 
-    async def new(self, data):
-        member = await self.get(data['id'])
+    def append(self, data):
+        member = self.get(data['id'])
         if member is not None:
-            await member.update(data)
+            member.update(data)
         else:
-            member = await self.__guild_member_class__.unmarshal(
+            member = self.__guild_member_class__.unmarshal(
                 data, state=self, guild=self.guild)
-            await member.cache()
+            member.cache()
 
         return member
 
@@ -33,7 +34,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id,
                      user_id=user_id))
 
-        return await self.new(data)
+        return self.append(data)
 
     async def bulk_fetch(self, *, before=None, after=None, limit=None):
         params = {}
@@ -52,7 +53,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
-        return await self.extend_new(data)
+        return self.extend(data)
 
     async def search(self, query, limit=None):
         params = {'query': query}
@@ -65,7 +66,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
-        return await self.extend_new(data)
+        return self.extend(data)
 
     async def add(self, user, **kwargs):
         required_keys = ('access_token',)
@@ -81,7 +82,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
-        return await self.new(data)
+        return self.append(data)
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)

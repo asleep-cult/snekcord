@@ -1,4 +1,5 @@
-from .basestate import BaseState, BaseSubState
+from .basestate import (BaseState, BaseSubState, SnowflakeMapping,
+                        WeakValueSnowflakeMapping)
 from .. import rest
 from ..objects.baseobject import BaseObject
 from ..objects.channelobject import (ChannelType, DMChannel, GuildChannel,
@@ -10,7 +11,8 @@ __all__ = ('ChannelState',)
 
 
 class ChannelState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
+    __container__ = SnowflakeMapping
+    __recycled_container__ = WeakValueSnowflakeMapping
     __channel_classes__ = {
         ChannelType.GUILD_TEXT: TextChannel,
         ChannelType.GUILD_VOICE: VoiceChannel,
@@ -18,17 +20,15 @@ class ChannelState(BaseState):
     }
     __default_class__ = BaseObject
 
-    def get_class(self, type):
-        return self.__channel_classes__.get(type, self.__default_class__)
-
-    async def new(self, data):
-        channel = await self.get(data['id'])
+    def append(self, data):
+        channel = self.get(data['id'])
         if channel is not None:
-            await channel.update(data)
+            channel.update(data)
         else:
-            channel = await self.get_class(data['type']).unmarshal(
-                data, state=self)
-            await channel.cache()
+            Class = self.__channel_classes__.get(
+                data['type'], self.__default_class__)
+            channel = Class.unmarshal(data, state=self)
+            channel.cache()
 
         return channel
 
@@ -39,7 +39,7 @@ class ChannelState(BaseState):
             session=self.manager.rest,
             fmt=dict(channel_id=channel_id))
 
-        return await self.new(data)
+        return self.append(data)
 
 
 class GuildChannelState(BaseSubState):
@@ -71,7 +71,7 @@ class GuildChannelState(BaseSubState):
     def public_updates(self):
         return self.get(self.guild.public_updates_channel_id)
 
-    def key_for(self, item):
+    def __key_for__(self, item):
         if isinstance(item, GuildChannel):
             return item.id
 
@@ -114,7 +114,7 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return await self.superstate.new(data)
+        return self.superstate.append(data)
 
     async def bulk_modify(self, positions):
         required_keys = ('id',)

@@ -42,7 +42,7 @@ GuildWidgetSettingsTemplate = JsonTemplate(
 class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
     __slots__ = ('guild', 'enabled', 'channel_id')
 
-    async def __json_init__(self, *, guild):
+    def __json_init__(self, *, guild):
         self.guild = guild
 
     @property
@@ -54,7 +54,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
             session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        await self.update(data)
+        self.update(data)
 
         return self
 
@@ -72,7 +72,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
             fmt=dict(guild_id=self.guild.id),
             json=json)
 
-        await self.update(data)
+        self.update(data)
 
         return self
 
@@ -81,7 +81,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
             session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return await GuildWidgetJson.unmarshal(data)
+        return GuildWidgetJson.unmarshal(data)
 
     async def fetch_shield(self):
         data = await rest.get_guild_widget_image.request(

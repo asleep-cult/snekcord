@@ -1,7 +1,5 @@
 import json
 
-from .misc import maybe_await
-
 __all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
 
@@ -13,26 +11,26 @@ class JsonTemplate:
         for template in __extends__:
             self.fields.update(template.fields)
 
-    async def update(self, obj, data, *, set_defaults=False):
+    def update(self, obj, data, *, set_defaults=False):
         for name, field in self.fields.items():
             try:
-                value = await field.unmarshal(data[field.key])
+                value = field.unmarshal(data[field.key])
                 setattr(obj, name, value)
             except Exception:
                 if set_defaults:
-                    setattr(obj, name, await field.default())
+                    setattr(obj, name, field.default())
 
-    async def to_dict(self, obj):
+    def to_dict(self, obj):
         data = {}
 
         for name, field in self.fields.items():
-            value = getattr(obj, name, await field.default())
+            value = getattr(obj, name, field.default())
 
             if value is None and field.omitempty:
                 continue
 
             try:
-                value = await field.marshal(value)
+                value = field.marshal(value)
             except Exception:
                 continue
 
@@ -43,8 +41,8 @@ class JsonTemplate:
 
         return data
 
-    async def marshal(self, obj, *args, **kwargs):
-        return json.dumps(await self.to_dict(obj), *args, **kwargs)
+    def marshal(self, obj, *args, **kwargs):
+        return json.dumps(self.to_dict(obj), *args, **kwargs)
 
     def default_object(self, name='GenericObject'):
         return JsonObjectMeta(name, (JsonObject,), {},
@@ -66,19 +64,19 @@ class JsonField:
             self._unmarshal = unmarshal
             self._marshal = marshal
 
-    async def unmarshal(self, value):
+    def unmarshal(self, value):
         if self._unmarshal is not None:
-            value = await maybe_await(self._unmarshal(value))
+            value = self._unmarshal(value)
         return value
 
-    async def marshal(self, value):
+    def marshal(self, value):
         if self._marshal is not None:
-            value = await maybe_await(self._marshal(value))
+            value = self._marshal(value)
         return value
 
-    async def default(self):
+    def default(self):
         if callable(self._default):
-            return await maybe_await(self._default())
+            return self._default()
         return self._default
 
 
@@ -87,13 +85,11 @@ class JsonArray(JsonField):
         kwargs.setdefault('default', list)
         super().__init__(*args, **kwargs)
 
-    async def unmarshal(self, values):
-        return [await super(JsonArray, self).unmarshal(value)
-                for value in values]
+    def unmarshal(self, values):
+        return [super(JsonArray, self).unmarshal(value) for value in values]
 
-    async def marshal(self, values):
-        return [await super(JsonArray, self).marshal(value)
-                for value in values]
+    def marshal(self, values):
+        return [super(JsonArray, self).marshal(value) for value in values]
 
 
 def _flatten_slots(cls, slots=None):
@@ -128,11 +124,11 @@ class JsonObjectMeta(type):
 
 
 class JsonObject(metaclass=JsonObjectMeta):
-    async def __json_init__(self, *args, **kwargs):
+    def __json_init__(self, *args, **kwargs):
         pass
 
     @classmethod
-    async def unmarshal(cls, data=None, *args, **kwargs):
+    def unmarshal(cls, data=None, *args, **kwargs):
         if cls.__template__ is None:
             raise NotImplementedError
 
@@ -140,24 +136,24 @@ class JsonObject(metaclass=JsonObjectMeta):
             data = json.loads(data)
 
         self = cls.__new__(cls)
-        await cls.__json_init__(self, *args, **kwargs)
+        cls.__json_init__(self, *args, **kwargs)
 
         if data is not None:
-            await self.update(data, set_defaults=True)
+            self.update(data, set_defaults=True)
 
         return self
 
-    async def update(self, *args, **kwargs):
+    def update(self, *args, **kwargs):
         if self.__template__ is None:
             raise NotImplementedError
-        return await self.__template__.update(self, *args, **kwargs)
+        return self.__template__.update(self, *args, **kwargs)
 
-    async def to_dict(self, *args, **kwargs):
+    def to_dict(self, *args, **kwargs):
         if self.__template__ is None:
             raise NotImplementedError
-        return await self.__template__.to_dict(self, *args, **kwargs)
+        return self.__template__.to_dict(self, *args, **kwargs)
 
-    async def marshal(self, *args, **kwargs):
+    def marshal(self, *args, **kwargs):
         if self.__template__ is None:
             raise NotImplementedError
-        return await self.__template__.marshal(self, *args, **kwargs)
+        return self.__template__.marshal(self, *args, **kwargs)

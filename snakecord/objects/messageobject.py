@@ -36,8 +36,8 @@ MessageTemplate = JsonTemplate(
 class Message(BaseObject, template=MessageTemplate):
     __slots__ = ('author', 'member', 'reactions')
 
-    async def __json_init__(self, *, state):
-        await super().__json_init__(state=state)
+    def __json_init__(self, *, state):
+        super().__json_init__(state=state)
         self.author = None
         self.member = None
         self.reactions = self.state.manager.get_class('ReactionState')(
@@ -47,26 +47,31 @@ class Message(BaseObject, template=MessageTemplate):
     def channel(self):
         return self.state.channel
 
+    @property
+    def guild(self):
+        return self.state.manager.guilds.get(self.guild_id)
+
     async def crosspost(self):
         data = await rest.crosspost_message.request(
             session=self.state.manager.rest,
             fmt=dict(channel_id=self.state.channel.id, message_id=self.id))
 
-        return await self.state.new(data)
+        return self.state.append(data)
 
-    async def update(self, data, *args, **kwargs):
-        await super().update(data, *args, **kwargs)
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
 
         author = data.get('author')
         if author is not None:
-            self.author = await self.state.manager.users.new(author)
+            self.author = self.state.manager.users.append(author)
 
             guild = self.guild
             member = data.get('member')
             if member is not None and guild is not None:
                 member['user'] = author
-                self.member = await guild.members.new(member)
+                self.member = guild.members.append(member)
 
         reactions = data.get('reactions')
         if reactions is not None:
-            await self.reactions.extend_new(reactions)
+            self.reactions.clear()
+            self.reactions.extend(reactions)
