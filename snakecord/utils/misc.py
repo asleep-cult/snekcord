@@ -3,7 +3,8 @@ import builtins
 from . import undefined
 
 __all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
-           'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax')
+           'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
+           'aany', 'aall')
 
 
 def _validate_keys(name, source, required, keys):
@@ -38,8 +39,13 @@ if aiter is None:
 
 anext = getattr(builtins, 'anext', None)
 if anext is None:
-    def anext(obj):
-        return type(obj).__anext__(obj)
+    async def anext(obj, default=undefined):
+        try:
+            return await type(obj).__anext__(obj)
+        except StopAsyncIteration:
+            if default is not undefined:
+                return default
+            raise
 
 
 async def aenumerate(obj, start=0):
@@ -51,10 +57,7 @@ async def aenumerate(obj, start=0):
 
 async def afilter(func, obj):
     async for value in obj:
-        if func is None:
-            if value:
-                yield value
-        elif func(value):
+        if func is None and value or func(value):
             yield value
 
 
@@ -72,7 +75,7 @@ async def azip(*objs):
                 values.append(await anext(iterators[i]))
             except StopAsyncIteration:
                 return
-        yield values
+        yield tuple(values)
 
 
 async def asum(obj, start=0):
@@ -114,3 +117,17 @@ async def amax(obj, key=None, default=undefined):
         raise ValueError('amax() arg is an empty async-gen')
 
     return minimun
+
+
+async def aall(obj):
+    async for value in obj:
+        if not value:
+            return False
+    return True
+
+
+async def aany(obj):
+    async for value in obj:
+        if value:
+            return True
+    return False
