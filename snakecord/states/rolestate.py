@@ -70,10 +70,6 @@ class GuildMemberRoleState(BaseSubState):
         super().__init__(superstate=superstate)
         self.member = member
 
-    def key_for(self, value):
-        if isinstance(value, Role):
-            return value.id
-
     async def add(self, role):
         role_id = Snowflake.try_snowflake(role)
 

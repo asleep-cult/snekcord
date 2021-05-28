@@ -11,10 +11,6 @@ class ReactorState(BaseSubState):
         super().__init__(superstate=superstate)
         self.reaction = reaction
 
-    def key_for(self, value):
-        if isinstance(value, Reaction):
-            return value.emoji.id
-
     async def fetch_many(self, *, after=None, limit=None):
         params = {}
 

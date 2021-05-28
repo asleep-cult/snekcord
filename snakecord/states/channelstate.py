@@ -70,10 +70,6 @@ class GuildChannelState(BaseSubState):
     def public_updates(self):
         return self.get(self.guild.public_updates_channel_id)
 
-    def key_for(self, value):
-        if isinstance(value, GuildChannel):
-            return value.id
-
     async def fetch_all(self):
         data = await rest.get_guild_channels.request(
             session=self.superstate.manager.rest,

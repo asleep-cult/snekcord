@@ -110,7 +110,7 @@ class BaseState(_StateCommon):
                 self.recycle_bin, self.transform_key(key), *args, **kwargs)
 
 
-class BaseSubState:
+class BaseSubState(_StateCommon):
     def __init__(self, *, superstate):
         self.superstate = superstate
         self._keys = set()
@@ -149,9 +149,6 @@ class BaseSubState:
 
     def remove_key(self, key):
         self._keys.remove(self.superstate.transform_key(key))
-
-    def key_for(self, value):
-        raise NotImplementedError
 
     def keys(self):
         return self._keys
