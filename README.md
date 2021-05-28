@@ -13,9 +13,9 @@ client = snakecord.UserClient(TOKEN)
 
 
 @client.on()
-async def message_create(evnt):
-    message = evnt.message
-    channel = evnt.channel
+async def message_create(evt):
+    message = evt.message
+    channel = evt.channel
     if message.content == '.ping':
         await channel.messages.create('Pong!')
 
