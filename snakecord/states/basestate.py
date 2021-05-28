@@ -1,5 +1,7 @@
 import weakref
 
+from ..utils import undefined
+
 __all__ = ('BaseState', 'BaseSubState')
 
 
@@ -70,12 +72,23 @@ class BaseState(_StateCommon):
     def items(self):
         return self.__mapping__.items(self.mapping)
 
-    def get(self, key):
-        return self.__mapping__.get(self.mapping, self.transform_key(key))
+    def get(self, key, default=None):
+        key = self.transform_key(key)
+        return (self.__mapping__.get(self.mapping, key, default)
+                or self.__recycled_mapping__.get(
+                    self.recycle_bin, key, default))
 
-    def pop(self, key, *args, **kwargs):
-        return self.__mapping__.pop(self.mapping, self.transform_key(key),
-                                    *args, **kwargs)
+    def pop(self, key, default=undefined):
+        key = self.transform_key(key)
+        try:
+            return self.__mapping__.pop(self.mapping, key)
+        except KeyError:
+            try:
+                return self.__recycled_mapping__.pop(self.recycle_bin, key)
+            except KeyError:
+                if default is not undefined:
+                    return default
+                raise
 
     def popitem(self):
         return self.__mapping__.popitem(self.mapping)
@@ -117,6 +130,8 @@ class BaseSubState:
         return self.superstate.transform_key(key) in self._keys
 
     def __getitem__(self, key):
+        if self.superstate.transform_key(key) not in self._keys:
+            raise KeyError(key)
         return self.superstate[key]
 
     def __repr__(self):
@@ -148,5 +163,7 @@ class BaseSubState:
         for key in self._keys:
             yield key, self.superstate[key]
 
-    def get(self, key):
-        return self.superstate.get(key)
+    def get(self, key, default=None):
+        if self.superstate.transform_key(key) not in self._keys:
+            return default
+        return self.superstate.get(key, default)
