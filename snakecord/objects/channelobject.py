@@ -103,7 +103,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             fmt=dict(channel_id=self.id),
             json=kwargs)
 
-        return self.state.append(data)
+        return self.state.new(data)
 
 
 TextChannelTemplate = JsonTemplate(

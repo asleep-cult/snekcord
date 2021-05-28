@@ -1,4 +1,4 @@
-from .basestate import BaseState, SnowflakeMapping, WeakValueSnowflakeMapping
+from .basestate import BaseState
 from .. import rest
 from ..objects.emojiobject import BUILTIN_EMOJIS, GuildEmoji
 from ..utils import Snowflake
@@ -7,15 +7,14 @@ __all__ = ('GuildEmojiState',)
 
 
 class GuildEmojiState(BaseState):
-    __container__ = SnowflakeMapping
-    __recycled_container__ = WeakValueSnowflakeMapping
+    __key_transformer__ = Snowflake.try_snowflake
     __guild_emoji_class__ = GuildEmoji
 
     def __init__(self, *, manager, guild):
         super().__init__(manager=manager)
         self.guild = guild
 
-    def append(self, data):
+    def new(self, data):
         emoji_id = data['id']
         if emoji_id is not None:
             emoji = self.get(emoji_id)
@@ -38,11 +37,11 @@ class GuildEmojiState(BaseState):
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=emoji_id))
 
-        return self.append(data)
+        return self.new(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.extend(data)
+        return self.new_ex(data)

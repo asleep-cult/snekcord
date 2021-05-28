@@ -1,212 +1,152 @@
 import weakref
 
-from ..utils.snowflake import Snowflake
-
-__all__ = ('BaseMapping', 'BaseSnowflakeMapping',
-           'Mapping', 'SnowflakeMapping', 'WeakValueMapping',
-           'WeakValueSnowflakeMapping', 'BaseState', 'BaseSubState')
-
-
-class BaseMapping:
-    def __iter__(self):
-        return iter(list(self.values()))
-
-    def __reversed__(self):
-        return reversed(list(self.items()))
-
-    @classmethod
-    def for_type(cls, klass):
-        return type('Mapping', (cls, klass), {})
-
-
-class BaseSnowflakeMapping(BaseMapping):
-    def __setitem__(self, key, value):
-        return super().__setitem__(Snowflake.try_snowflake(key), value)
-
-    def __getitem__(self, key):
-        return super().__getitem__(Snowflake.try_snowflake(key))
-
-    def __delitem__(self, key):
-        return super().__delitem__(Snowflake.try_snowflake(key))
-
-    def __contains__(self, key):
-        return Snowflake.try_snowflake(key) in self
-
-    def get(self, key, default=None):
-        return super().get(Snowflake.try_snowflake(key), default)
-
-    def pop(self, key, *args, **kwargs):
-        return super().pop(Snowflake.try_snowflake(key), *args, **kwargs)
-
-
-Mapping = BaseMapping.for_type(dict)
-SnowflakeMapping = BaseSnowflakeMapping.for_type(dict)
-WeakValueMapping = BaseMapping.for_type(weakref.WeakValueDictionary)
-WeakValueSnowflakeMapping = (
-    SnowflakeMapping.for_type(weakref.WeakValueDictionary)
-)
+__all__ = ('BaseState', 'BaseSubState')
 
 
 class _StateCommon:
-    def __contains__(self, key):
-        try:
-            self[key]
-        except KeyError:
-            return False
-        return True
-
-    def find(self, func):
-        for item in self:
-            if func(item):
-                return item
+    def first(self, func=None):
+        for value in self:
+            if func is None or func(value):
+                return value
 
 
 class BaseState(_StateCommon):
-    __container__ = Mapping
-    __recycled_container__ = WeakValueMapping
-    __maxsize__ = 0
-    __replace__ = True
+    __key_transformer__ = None
+    __mapping__ = dict
+    __recycle_enabled__ = True
+    __recycled_mapping__ = weakref.WeakValueDictionary
 
     def __init__(self, *, manager):
-        self._items = self.__container__()
-        self._recycle_bin = self.__recycled_container__()
         self.manager = manager
+        self.mapping = self.__mapping__()
+        if self.__recycle_enabled__:
+            self.recycle_bin = self.__recycled_mapping__()
 
-    def __repr__(self):
-        return (f'{self.__class__.__name__}(length={len(self)}, '
-                f'recycled={len(self._recycle_bin)})')
-
-    @classmethod
-    def set_maxsize(cls, maxsize):
-        cls.__maxsize__ = maxsize
-
-    @classmethod
-    def get_maxsize(cls):
-        return cls.__maxsize__
-
-    @classmethod
-    def set_replace(cls, replace):
-        cls.__replace__ = replace
+    def transform_key(self, key):
+        if self.__key_transformer__ is None:
+            return key
+        return self.__key_transformer__(key)
 
     def __len__(self):
-        return len(self._items)
+        return self.__mapping__.__len__(self.mapping)
 
     def __iter__(self):
-        return self._items.__iter__()
+        return iter(self.values())
 
     def __reversed__(self):
-        return self._items.__reversed__()
-
-    def set(self, key, value):
-        if self.__maxsize__ < 0:
-            return False
-
-        if (
-            self.__maxsize__ != 0
-            and len(self) >= self.__maxsize__
-        ):
-            if not self.__replace__:
-                return False
-
-            self.popitem().uncache()
-
-        self._items.__setitem__(key, value)
-        return True
-
-    __setitem__ = set
-
-    def __getitem__(self, key):
-        return self._items.__getitem__(key)
-
-    def __delitem__(self, key):
-        return self._items.__delitem__(key)
+        return self.__mapping__.__reversed__(self.mapping)
 
     def __contains__(self, key):
-        return self._items.__contains__(key)
+        return self.__mapping__.__contains__(
+            self.mapping, self.transform_key(key))
+
+    def __getitem__(self, key):
+        return self.__mapping__.__getitem__(
+            self.mapping, self.transform_key(key))
+
+    def __setitem__(self, key, value):
+        return self.__mapping__.__setitem__(
+            self.mapping, self.transform_key(key), value)
+
+    def __delitem__(self, key):
+        return self.__mapping__.__delitem__(
+            self.mapping, self.transform_key(key))
+
+    def __repr__(self):
+        attrs = [('length', len(self))]
+
+        if self.__recycle_enabled__:
+            attrs.append(('recycled', len(self.recycle_bin)))
+
+        formatted = ', '.join(f'{name}={value}' for name, value in attrs)
+        return f'{self.__class__.__name__}({formatted})'
 
     def keys(self):
-        return self._items.keys()
-
-    def items(self):
-        return self._items.items()
+        return self.__mapping__.keys(self.mapping)
 
     def values(self):
-        return self._items.values()
+        return self.__mapping__.values(self.mapping)
 
-    def recycle(self, key, value):
-        self._recycle_bin[key] = value
+    def items(self):
+        return self.__mapping__.items(self.mapping)
 
-    def unrecycle(self, *args, **kwargs):
-        return self._recycle_bin.pop(*args, **kwargs)
+    def get(self, key):
+        return self.__mapping__.get(self.mapping, self.transform_key(key))
 
-    def get(self, *args, **kwargs):
-        return (self._recycle_bin.get(*args, **kwargs)
-                or self._items.get(*args, **kwargs))
+    def pop(self, key, *args, **kwargs):
+        return self.__mapping__.pop(self.mapping, self.transform_key(key),
+                                    *args, **kwargs)
 
-    def pop(self, *args, **kwargs):
-        return self._items.pop(*args, **kwargs)
+    def popitem(self):
+        return self.__mapping__.popitem(self.mapping)
 
-    def popitem(self, *args, **kwargs):
-        self._items.popitem(*args, **kwargs)
-
-    def append(self, data):
+    def new(self, *args, **kwargs):
         raise NotImplementedError
 
-    def extend(self, data):
-        return [self.append(d) for d in data]
+    def new_ex(self, values, *args, **kwargs):
+        return [self.new(value, *args, **kwargs) for value in values]
 
-    def clear(self):
-        self._items.clear()
+    def recycle(self, key, value):
+        if self.__recycle_enabled__:
+            return self.__recycled_mapping__.__setitem__(
+                self.recycle_bin, self.transform_key(key), value)
+
+    def unrecycle(self, key, *args, **kwargs):
+        if self.__recycle_enabled__:
+            return self.__recycled_mapping__.pop(
+                self.recycle_bin, self.transform_key(key), *args, **kwargs)
 
 
-class BaseSubState(_StateCommon):
+class BaseSubState:
     def __init__(self, *, superstate):
         self.superstate = superstate
         self._keys = set()
-
-    def add_key(self, key):
-        self._keys.add(key)
-
-    def extend_keys(self, keys):
-        self._keys.update(keys)
-
-    def set_keys(self, keys):
-        self._keys = set(keys)
-
-    def remove_key(self, key):
-        self._keys.remove(key)
-
-    def __key_for__(self, item):
-        raise NotImplementedError
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}(length={len(self)})'
 
     def __len__(self):
         return len(self._keys)
 
     def __iter__(self):
-        for key in self._keys.copy():
-            try:
-                yield self.superstate[key]
-            except KeyError:
-                self.remove_key(key)
+        for key in self._keys:
+            yield self.superstate[key]
 
     def __reversed__(self):
-        for key in reversed(self._keys.copy()):
-            try:
-                yield self.superstate[key]
-            except KeyError:
-                self.remove_key(key)
+        for key in reversed(self._keys):
+            yield self.superstate[key]
+
+    def __contains__(self, key):
+        return self.superstate.transform_key(key) in self._keys
 
     def __getitem__(self, key):
-        item = self.superstate.__getitem__(key)
-        if self.__key_for__(item) not in self._keys:
-            raise KeyError(key)
-        return item
+        return self.superstate[key]
 
-    def get(self, key, default=None):
-        item = self.superstate.get(key, default)
-        if self.__key_for__(item) not in self._keys:
-            return default
-        return item
+    def __repr__(self):
+        return (f'{self.__class__.__name__}(length={len(self)},'
+                f' superstate={self.superstate!r})')
+
+    def set_keys(self, keys):
+        self._keys = {self.superstate.transform_key(key) for key in keys}
+
+    def add_key(self, key):
+        self._keys.add(self.superstate.transform_key(key))
+
+    def extend_keys(self, keys):
+        self._keys.update({self.superstate.transform_key(key) for key in keys})
+
+    def remove_key(self, key):
+        self._keys.remove(self.superstate.transform_key(key))
+
+    def key_for(self, value):
+        raise NotImplementedError
+
+    def keys(self):
+        return self._keys
+
+    def values(self):
+        return iter(self)
+
+    def items(self):
+        for key in self._keys:
+            yield key, self.superstate[key]
+
+    def get(self, key):
+        return self.superstate.get(key)

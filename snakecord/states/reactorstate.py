@@ -11,9 +11,9 @@ class ReactorState(BaseSubState):
         super().__init__(superstate=superstate)
         self.reaction = reaction
 
-    def __key_for__(self, item):
-        if isinstance(item, Reaction):
-            return item.emoji.id
+    def key_for(self, value):
+        if isinstance(value, Reaction):
+            return value.emoji.id
 
     async def bulk_fetch(self, *, after=None, limit=None):
         params = {}
@@ -30,7 +30,7 @@ class ReactorState(BaseSubState):
                      message_id=self.reaction.message.id,
                      emoji=self.reaction.emoji.to_reaction()))
 
-        users = self.superstate.manager.users.extend(data)
+        users = self.superstate.manager.users.new_ex(data)
         self.extend_keys(user.id for user in users)
 
         return users

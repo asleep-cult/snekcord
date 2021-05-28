@@ -12,8 +12,8 @@ class ReactionState(BaseState):
         super().__init__(manager=manager)
         self.message = message
 
-    def append(self, data):
-        ident = self.guild.emojis.append(data['emoji']).id
+    def new(self, data):
+        ident = self.guild.emojis.new(data['emoji']).id
         reaction = self.get(ident)
         if reaction is not None:
             reaction.update(data)

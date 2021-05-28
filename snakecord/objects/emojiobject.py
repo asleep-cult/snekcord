@@ -80,7 +80,7 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.append(user)
+            self.user = self.state.manager.users.new(user)
 
 
 class BuiltinEmoji:

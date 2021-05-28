@@ -57,14 +57,14 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
             fmt=dict(guild_id=self.guild.id,
                      user_id=self.id))
 
-        return self.state.append(data)
+        return self.state.new(data)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.append(user)
+            self.user = self.state.manager.users.new(user)
             self.id = self.user.id
 
         roles = data.get('roles')

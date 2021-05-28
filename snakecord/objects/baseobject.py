@@ -38,7 +38,8 @@ class BaseObject(JsonObject, template=BaseTemplate):
         self.uncache(recycle=False)
 
     def cache(self):
-        self.cached = self.state.set(self.id, self)
+        self.cached = True
+        self.state[self.id] = self
         if self.cached:
             self.state.unrecycle(self.id, None)
 
@@ -50,6 +51,3 @@ class BaseObject(JsonObject, template=BaseTemplate):
 
     async def fetch(self):
         return await self.state.fetch(self.id)
-
-    def to_idict(self):
-        return dict(id=self.id)

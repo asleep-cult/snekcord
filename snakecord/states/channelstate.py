@@ -1,18 +1,16 @@
-from .basestate import (BaseState, BaseSubState, SnowflakeMapping,
-                        WeakValueSnowflakeMapping)
+from .basestate import (BaseState, BaseSubState)
 from .. import rest
 from ..objects.baseobject import BaseObject
-from ..objects.channelobject import (ChannelType, DMChannel, GuildChannel,
-                                     TextChannel, VoiceChannel,
-                                     _guild_channel_creation_keys)
+from ..objects.channelobject import (
+    ChannelType, DMChannel, GuildChannel, TextChannel, VoiceChannel,
+    _guild_channel_creation_keys)
 from ..utils import Snowflake, _validate_keys
 
 __all__ = ('ChannelState',)
 
 
 class ChannelState(BaseState):
-    __container__ = SnowflakeMapping
-    __recycled_container__ = WeakValueSnowflakeMapping
+    __key_transformer__ = Snowflake.try_snowflake
     __channel_classes__ = {
         ChannelType.GUILD_TEXT: TextChannel,
         ChannelType.GUILD_VOICE: VoiceChannel,
@@ -20,14 +18,15 @@ class ChannelState(BaseState):
     }
     __default_class__ = BaseObject
 
-    def append(self, data):
+    def get_class(self, type):
+        return self.__channel_classes__.get(type, self.__default_class__)
+
+    def new(self, data):
         channel = self.get(data['id'])
         if channel is not None:
             channel.update(data)
         else:
-            Class = self.__channel_classes__.get(
-                data['type'], self.__default_class__)
-            channel = Class.unmarshal(data, state=self)
+            channel = self.get_class(data['type']).unmarshal(data, state=self)
             channel.cache()
 
         return channel
@@ -39,7 +38,7 @@ class ChannelState(BaseState):
             session=self.manager.rest,
             fmt=dict(channel_id=channel_id))
 
-        return self.append(data)
+        return self.new(data)
 
 
 class GuildChannelState(BaseSubState):
@@ -71,16 +70,16 @@ class GuildChannelState(BaseSubState):
     def public_updates(self):
         return self.get(self.guild.public_updates_channel_id)
 
-    def __key_for__(self, item):
-        if isinstance(item, GuildChannel):
-            return item.id
+    def key_for(self, value):
+        if isinstance(value, GuildChannel):
+            return value.id
 
     async def fetch_all(self):
         data = await rest.get_guild_channels.request(
             session=self.superstate.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        channels = self.superstate.extend(data)
+        channels = self.superstate.new_ex(data)
         self.extend_keys(channel.id for channel in channels)
 
         return channels
@@ -114,7 +113,7 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return self.superstate.append(data)
+        return self.superstate.new(data)
 
     async def bulk_modify(self, positions):
         required_keys = ('id',)

@@ -44,19 +44,19 @@ class Invite(BaseObject, template=InviteTemplate):
 
         guild = data.get('guild')
         if guild is not None:
-            self.guild = self.state.manager.guilds.append(guild)
+            self.guild = self.state.manager.guilds.new(guild)
 
         channel = data.get('channel')
         if channel is not None:
-            self.channel = self.state.manager.channels.append(channel)
+            self.channel = self.state.manager.channels.new(channel)
 
         inviter = data.get('inviter')
         if inviter is not None:
-            self.inviter = self.state.manager.users.append(inviter)
+            self.inviter = self.state.manager.users.new(inviter)
 
         target_user = data.get('target_user')
         if target_user is not None:
-            self.target_user = self.state.manager.users.append(target_user)
+            self.target_user = self.state.manager.users.new(target_user)
 
 
 GuildVanityUrlTemplate = JsonTemplate(
@@ -86,5 +86,5 @@ class GuildVanityUrl(JsonObject, template=GuildVanityUrlTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        invite = self.guild.state.manager.invites.append(data)
+        invite = self.guild.state.manager.invites.new(data)
         invite.guild = self.guild

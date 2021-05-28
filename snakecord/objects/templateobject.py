@@ -46,7 +46,7 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
             fmt=dict(template_code=self.code),
             json=kwargs)
 
-        return self.state.manager.guilds.append(data)
+        return self.state.manager.guilds.new(data)
 
     async def sync(self):
         data = await rest.sync_guild_template.request(
@@ -94,4 +94,4 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
         creator = data.get('creator')
         if creator is not None:
-            self.state.manager.users.append(creator)
+            self.state.manager.users.new(creator)

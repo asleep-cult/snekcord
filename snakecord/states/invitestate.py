@@ -8,7 +8,7 @@ __all__ = ('InviteState',)
 class InviteState(BaseState):
     __invite_class__ = Invite
 
-    def append(self, data):
+    def new(self, data):
         invite = self.get(data['code'])
         if invite is not None:
             invite.update(data)
@@ -32,7 +32,7 @@ class InviteState(BaseState):
             fmt=dict(invite_code=code),
             params=params)
 
-        return self.append(data)
+        return self.new(data)
 
     async def delete(self, code):
         await rest.delete_invite.request(

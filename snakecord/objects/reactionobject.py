@@ -40,5 +40,5 @@ class Reaction(BaseObject, template=ReactionTemplate):
 
         emoji = data.get('emoji')
         if emoji is not None:
-            self.emoji = self.state.guild.emojis.append(emoji)
+            self.emoji = self.state.guild.emojis.new(emoji)
             self.id = self.emoji.id
