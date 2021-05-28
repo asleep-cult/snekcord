@@ -71,7 +71,7 @@ class GuildState(BaseState):
         guild_id = Snowflake.try_snowflake(guild)
 
         data = await rest.get_guild_preview.request(
-            state=self.manager.state,
+            session=self.manager.rest,
             fmt=dict(guild_id=guild_id))
 
         return self.upsert(data)
