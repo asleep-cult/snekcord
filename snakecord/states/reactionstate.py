@@ -1,19 +1,19 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.reactionobject import Reaction
+from ..objects.reactionsobject import Reactions
 
 __all__ = ('ReactionState',)
 
 
 class ReactionState(BaseState):
-    __reaction_class__ = Reaction
+    __reactions_class__ = Reactions
 
     def __init__(self, *, manager, message):
         super().__init__(manager=manager)
         self.message = message
 
     def upsert(self, data):
-        ident = self.guild.emojis.upsert(data['emoji']).id
+        ident = self.message.guild.emojis.upsert(data['emoji']).id
         reaction = self.get(ident)
         if reaction is not None:
             reaction.update(data)
@@ -23,12 +23,15 @@ class ReactionState(BaseState):
 
         return reaction
 
-    @property
-    def channel(self):
-        return self.message.channel
+    async def add(self, emoji):
+        await rest.create_reaction.request(
+            session=self.manager.rest,
+            fmt=dict(channel_id=self.message.channel_id,
+                     message_id=self.message.id,
+                     emoji=emoji.to_reaction()))
 
-    async def delete_all(self):
+    async def remove_all(self):
         await rest.delete_all_reactions.request(
             session=self.manager.rest,
-            fmt=dict(channel_id=self.channel.id,
+            fmt=dict(channel_id=self.message.channel_id,
                      message_id=self.message.id))

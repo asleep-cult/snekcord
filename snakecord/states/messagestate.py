@@ -24,6 +24,15 @@ class MessageState(BaseState):
 
         return message
 
+    async def fetch(self, message):
+        message_id = Snowflake.try_snowflake(message)
+
+        data = await rest.get_channel_message.request(
+            session=self.manager.rest,
+            fmt=dict(channel_id=self.channel.id, message_id=message_id))
+
+        return self.upsert(data)
+
     async def fetch_many(self, around=None, before=None, after=None,
                          limit=None):
         params = {}
@@ -46,15 +55,6 @@ class MessageState(BaseState):
             params=params)
 
         return self.upsert_many(data)
-
-    async def fetch(self, message):
-        message_id = Snowflake.try_snowflake(message)
-
-        data = await rest.get_channel_messages.request(
-            session=self.manager.rest,
-            fmt=dict(channel_id=self.channel.id, message_id=message_id))
-
-        return self.upsert(data)
 
     async def create(self, **kwargs):
         keys = rest.create_channel_message.json

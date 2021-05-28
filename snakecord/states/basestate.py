@@ -93,6 +93,9 @@ class BaseState(_StateCommon):
     def popitem(self):
         return self.__mapping__.popitem(self.mapping)
 
+    def clear(self):
+        return self.__mapping__.clear(self.mapping)
+
     def upsert(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -149,6 +152,9 @@ class BaseSubState(_StateCommon):
 
     def remove_key(self, key):
         self._keys.remove(self.superstate.transform_key(key))
+
+    def clear_keys(self):
+        self._keys.clear()
 
     def keys(self):
         return self._keys
