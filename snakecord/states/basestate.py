@@ -93,11 +93,11 @@ class BaseState(_StateCommon):
     def popitem(self):
         return self.__mapping__.popitem(self.mapping)
 
-    def new(self, *args, **kwargs):
+    def upsert(self, *args, **kwargs):
         raise NotImplementedError
 
-    def new_ex(self, values, *args, **kwargs):
-        return [self.new(value, *args, **kwargs) for value in values]
+    def upsert_many(self, values, *args, **kwargs):
+        return [self.upsert(value, *args, **kwargs) for value in values]
 
     def recycle(self, key, value):
         if self.__recycle_enabled__:

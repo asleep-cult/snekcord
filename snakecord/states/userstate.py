@@ -10,7 +10,7 @@ class UserState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __user_class__ = User
 
-    def new(self, data):
+    def upsert(self, data):
         user = self.get(data['id'])
         if user is not None:
             user.update(data)
@@ -27,4 +27,4 @@ class UserState(BaseState):
             session=self.manager.rest,
             fmt=dict(user_id=user_id))
 
-        return self.new(data)
+        return self.upsert(data)

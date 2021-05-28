@@ -97,7 +97,7 @@ class Guild(BaseObject, template=GuildTemplate):
             fmt=dict(guild_id=self.id),
             json=kwargs)
 
-        return self.state.new(data)
+        return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_guild.request(
@@ -153,7 +153,7 @@ class Guild(BaseObject, template=GuildTemplate):
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))
 
-        return self.state.new_template_ex(data)
+        return self.state.new_template_many(data)
 
     async def create_template(self, **kwargs):
         required_keys = ('name',)
@@ -195,20 +195,20 @@ class Guild(BaseObject, template=GuildTemplate):
         channels = data.get('channels')
         if channels is not None:
             for channel in channels:
-                channel = self.state.manager.channels.new(channel)
+                channel = self.state.manager.channels.upsert(channel)
                 self.channels.add_key(channel.id)
 
         emojis = data.get('emojis')
         if emojis is not None:
-            self.emojis.new_ex(emojis)
+            self.emojis.upsert_many(emojis)
 
         roles = data.get('roles')
         if roles is not None:
-            self.roles.new_ex(roles)
+            self.roles.upsert_many(roles)
 
         members = data.get('members')
         if members is not None:
-            self.members.new_ex(members)
+            self.members.upsert_many(members)
 
         welcome_screen = data.get('welcome_screen')
         if welcome_screen is not None:
@@ -232,7 +232,7 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.new(user)
+            self.user = self.state.manager.users.upsert(user)
             self.id = self.user.id
 
 

@@ -56,22 +56,22 @@ class Message(BaseObject, template=MessageTemplate):
             session=self.state.manager.rest,
             fmt=dict(channel_id=self.state.channel.id, message_id=self.id))
 
-        return self.state.new(data)
+        return self.state.upsert(data)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         author = data.get('author')
         if author is not None:
-            self.author = self.state.manager.users.new(author)
+            self.author = self.state.manager.users.upsert(author)
 
             guild = self.guild
             member = data.get('member')
             if member is not None and guild is not None:
                 member['user'] = author
-                self.member = guild.members.new(member)
+                self.member = guild.members.upsert(member)
 
         reactions = data.get('reactions')
         if reactions is not None:
             self.reactions.clear()
-            self.reactions.new_ex(reactions)
+            self.reactions.upsert_many(reactions)

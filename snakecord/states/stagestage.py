@@ -10,7 +10,7 @@ class StageState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __stage_class__ = Stage
 
-    def new(self, data):
+    def upsert(self, data):
         stage = self.get(data['id'])
         if stage is not None:
             stage.update(data)
@@ -26,4 +26,4 @@ class StageState(BaseState):
             session=self.manager.rest,
             fmt=dict(stage_id=stage_id))
 
-        return self.new(data)
+        return self.upsert(data)

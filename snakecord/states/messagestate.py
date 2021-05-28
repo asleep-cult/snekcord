@@ -14,7 +14,7 @@ class MessageState(BaseState):
         super().__init__(manager=manager)
         self.channel = channel
 
-    def new(self, data):
+    def upsert(self, data):
         message = self.get(data['id'])
         if message is not None:
             message.update(data)
@@ -45,7 +45,7 @@ class MessageState(BaseState):
             fmt=dict(channel_id=self.channel.id),
             params=params)
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def fetch(self, message):
         message_id = Snowflake.try_snowflake(message)
@@ -54,7 +54,7 @@ class MessageState(BaseState):
             session=self.manager.rest,
             fmt=dict(channel_id=self.channel.id, message_id=message_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def create(self, **kwargs):
         keys = rest.create_channel_message.json
@@ -72,4 +72,4 @@ class MessageState(BaseState):
             fmt=dict(channel_id=self.channel.id),
             json=kwargs)
 
-        return self.new(data)
+        return self.upsert(data)

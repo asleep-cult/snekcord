@@ -14,7 +14,7 @@ class RoleState(BaseState):
         super().__init__(manager=manager)
         self.guild = guild
 
-    def new(self, data):
+    def upsert(self, data):
         role = self.get(data['id'])
         if role is not None:
             role.update(data)
@@ -30,7 +30,7 @@ class RoleState(BaseState):
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def create(self, **kwargs):
         keys = rest.create_guild_role.json
@@ -43,7 +43,7 @@ class RoleState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def bulk_modify(self, positions):
         required_keys = ('id',)

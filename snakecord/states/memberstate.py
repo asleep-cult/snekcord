@@ -14,7 +14,7 @@ class GuildMemberState(BaseState):
         super().__init__(manager=manager)
         self.guild = guild
 
-    def new(self, data):
+    def upsert(self, data):
         member = self.get(data['id'])
         if member is not None:
             member.update(data)
@@ -33,7 +33,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id,
                      user_id=user_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def fetch_many(self, *, before=None, after=None, limit=None):
         params = {}
@@ -52,7 +52,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def search(self, query, limit=None):
         params = {'query': query}
@@ -65,7 +65,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def add(self, user, **kwargs):
         required_keys = ('access_token',)
@@ -81,7 +81,7 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)

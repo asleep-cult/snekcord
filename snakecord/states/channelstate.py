@@ -21,7 +21,7 @@ class ChannelState(BaseState):
     def get_class(self, type):
         return self.__channel_classes__.get(type, self.__default_class__)
 
-    def new(self, data):
+    def upsert(self, data):
         channel = self.get(data['id'])
         if channel is not None:
             channel.update(data)
@@ -38,7 +38,7 @@ class ChannelState(BaseState):
             session=self.manager.rest,
             fmt=dict(channel_id=channel_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
 
 class GuildChannelState(BaseSubState):
@@ -79,7 +79,7 @@ class GuildChannelState(BaseSubState):
             session=self.superstate.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        channels = self.superstate.new_ex(data)
+        channels = self.superstate.upsert_many(data)
         self.extend_keys(channel.id for channel in channels)
 
         return channels
@@ -113,7 +113,7 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return self.superstate.new(data)
+        return self.superstate.upsert(data)
 
     async def bulk_modify(self, positions):
         required_keys = ('id',)

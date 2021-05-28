@@ -43,7 +43,7 @@ class Role(BaseObject, template=RoleTemplate):
             fmt=dict(guild_id=self.guild.id, role_id=self.id),
             json=kwargs)
 
-        return self.state.new(data)
+        return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_guild_role.request(

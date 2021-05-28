@@ -30,7 +30,7 @@ class ReactorState(BaseSubState):
                      message_id=self.reaction.message.id,
                      emoji=self.reaction.emoji.to_reaction()))
 
-        users = self.superstate.manager.users.new_ex(data)
+        users = self.superstate.manager.users.upsert_many(data)
         self.extend_keys(user.id for user in users)
 
         return users

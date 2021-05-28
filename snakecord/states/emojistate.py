@@ -14,7 +14,7 @@ class GuildEmojiState(BaseState):
         super().__init__(manager=manager)
         self.guild = guild
 
-    def new(self, data):
+    def upsert(self, data):
         emoji_id = data['id']
         if emoji_id is not None:
             emoji = self.get(emoji_id)
@@ -37,11 +37,11 @@ class GuildEmojiState(BaseState):
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=emoji_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.new_ex(data)
+        return self.upsert_many(data)

@@ -12,7 +12,7 @@ class GuildState(BaseState):
     __guild_class__ = Guild
     __guild_template_class__ = GuildTemplate
 
-    def new(self, data):
+    def upsert(self, data):
         guild = self.get(data['id'])
         if guild is not None:
             guild.update(data)
@@ -25,7 +25,7 @@ class GuildState(BaseState):
     def new_template(self, data):
         return self.__guild_template_class__.unmarshal(data, state=self)
 
-    def new_template_ex(self, values):
+    def new_template_many(self, values):
         return [self.new_template(value) for value in values]
 
     async def create(self, **kwargs):
@@ -38,7 +38,7 @@ class GuildState(BaseState):
         data = await rest.create_guild.request(
             session=self.manager.rest, json=kwargs)
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def fetch(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
@@ -47,7 +47,7 @@ class GuildState(BaseState):
             session=self.manager.rest,
             fmt=dict(guild_id=guild_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def fetch_many(self, *, before=None, after=None, limit=None):
         params = {}
@@ -65,7 +65,7 @@ class GuildState(BaseState):
             session=self.manager.rest,
             params=params)
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def fetch_preview(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
@@ -74,7 +74,7 @@ class GuildState(BaseState):
             state=self.manager.state,
             fmt=dict(guild_id=guild_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def fetch_template(self, code):
         data = await rest.get_template.request(
@@ -99,14 +99,14 @@ class GuildBanState(BaseState):
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id))
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_bans.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.new_ex(data)
+        return self.upsert_many(data)
 
     async def add(self, user, **kwargs):
         keys = rest.create_guild_ban.json
@@ -121,7 +121,7 @@ class GuildBanState(BaseState):
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
-        return self.new(data)
+        return self.upsert(data)
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
