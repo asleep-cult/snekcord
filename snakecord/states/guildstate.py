@@ -49,7 +49,7 @@ class GuildState(BaseState):
 
         return self.new(data)
 
-    async def bulk_fetch(self, *, before=None, after=None, limit=None):
+    async def fetch_many(self, *, before=None, after=None, limit=None):
         params = {}
 
         if before is not None:

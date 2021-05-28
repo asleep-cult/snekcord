@@ -15,7 +15,7 @@ class ReactorState(BaseSubState):
         if isinstance(value, Reaction):
             return value.emoji.id
 
-    async def bulk_fetch(self, *, after=None, limit=None):
+    async def fetch_many(self, *, after=None, limit=None):
         params = {}
 
         if after is not None:
