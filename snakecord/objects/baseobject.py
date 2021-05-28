@@ -23,9 +23,8 @@ class BaseObject(JsonObject, template=BaseTemplate):
 
     def __hash__(self):
         if self.id is None:
-            raise PartialObjectError(f'{self.__class__.__name__} object is '
-                                     'missing a proper id and therefore is '
-                                     'unhashable')
+            raise PartialObjectError(
+                f'{self.__class__.__name__} object is missing a valid id')
         return hash(self.id)
 
     def __repr__(self):
