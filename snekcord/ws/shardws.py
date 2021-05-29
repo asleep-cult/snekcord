@@ -41,8 +41,8 @@ class Shard(WebSocketClient):
                 'intents': self.manager.intents,
                 'properties': {
                     '$os': platform.system(),
-                    '$browser': 'snakecord',
-                    '$device': 'snakecord'
+                    '$browser': 'snekcord',
+                    '$device': 'snekcord'
                 }
             }
         }

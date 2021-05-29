@@ -8,17 +8,17 @@ from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
 import sys
 
 module_path = sys.path.pop(0)
-module = sys.modules.pop('snakecord')
-# This will import the snakecord from site packages
+module = sys.modules.pop('snekcord')
+# This will import the snekcord from site packages
 # because that's where the emojis module is.
-# This is only needed when snakecord.emojis and snakecord
+# This is only needed when snekcord.emojis and snekcord
 # are not in the same module (during development).
 # Will remove later
 
-from snakecord.emojis import ALL_CATEGORIES
+from snekcord.emojis import ALL_CATEGORIES
 
 sys.path.insert(0, module_path)
-sys.modules['snakecord'] = module
+sys.modules['snekcord'] = module
 
 __all__ = ('GuildEmoji',)
 

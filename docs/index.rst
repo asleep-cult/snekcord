@@ -1,4 +1,4 @@
-.. currentmodule:: snakecord
+.. currentmodule:: snekcord
 
 
 Documentation
@@ -9,20 +9,20 @@ Documentation
    :caption: Contents:
 
 
-.. autoclass:: snakecord.utils.Cycler
+.. autoclass:: snekcord.utils.Cycler
     :members:
 
-.. autoclass:: snakecord.utils.EventDefinition
+.. autoclass:: snekcord.utils.EventDefinition
     :members:
 
-.. autoclass:: snakecord.utils.EventNamespace
+.. autoclass:: snekcord.utils.EventNamespace
     :members:
 
-.. autoclass:: snakecord.utils.EventWaiter
+.. autoclass:: snekcord.utils.EventWaiter
     :members:
 
-.. autoclass:: snakecord.utils.EventDispatcher
+.. autoclass:: snekcord.utils.EventDispatcher
     :members:
 
-.. autoclass:: snakecord.utils.JsonTemplate
+.. autoclass:: snekcord.utils.JsonTemplate
     :members:

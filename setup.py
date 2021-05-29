@@ -1,12 +1,13 @@
 import setuptools
 
 setuptools.setup(
-    name='snakecord',
+    name='snekcord',
     version='0.2.3',
-    url='https://github.com/asleep-cult/snakecord',
+    url='https://github.com/asleep-cult/snekcord',
     packages=setuptools.find_packages(),
     install_requires=[
+        'httpx',
         'wsaio',
-        'snakecord-emojis',
+        'snekcord-emojis',
     ],
 )

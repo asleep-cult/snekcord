@@ -16,7 +16,7 @@ GuildTemplateTemplate = JsonTemplate(
     source_guild_id=JsonField('source_guild_id', Snowflake, str),
     serialized_source_guild=JsonField('serialized_source_guild'),
     # if someone actually needs this field to be more user friendly...
-    # ever... make an issue https://github.com/asleep-cult/snakecord/issues
+    # ever... make an issue https://github.com/asleep-cult/snekcord/issues
     is_dirty=JsonField('is_dirty'),
 )
 
