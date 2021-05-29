@@ -29,12 +29,14 @@ class MessageState(BaseState):
 
         data = await rest.get_channel_message.request(
             session=self.manager.rest,
-            fmt=dict(channel_id=self.channel.id, message_id=message_id))
+            fmt=dict(channel_id=self.channel.id, message_id=message_id),
+        )
 
         return self.upsert(data)
 
-    async def fetch_many(self, around=None, before=None, after=None,
-                         limit=None):
+    async def fetch_many(
+        self, around=None, before=None, after=None, limit=None
+    ):
         params = {}
 
         if around is not None:
@@ -52,7 +54,8 @@ class MessageState(BaseState):
         data = await rest.get_channel_messages.request(
             session=self.manager.rest,
             fmt=dict(channel_id=self.channel.id),
-            params=params)
+            params=params,
+        )
 
         return self.upsert_many(data)
 
@@ -64,13 +67,13 @@ class MessageState(BaseState):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.create', kwargs, (), keys)
 
         data = await rest.create_channel_message.request(
             session=self.manager.rest,
             fmt=dict(channel_id=self.channel.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.upsert(data)
 
@@ -80,4 +83,5 @@ class MessageState(BaseState):
         await rest.bulk_delete_messages.request(
             session=self.manager.rest,
             fmt=dict(channel_id=self.id),
-            json=dict(messages=message_ids))
+            json=dict(messages=message_ids),
+        )

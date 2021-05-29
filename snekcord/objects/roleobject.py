@@ -8,7 +8,7 @@ __all__ = ('RoleTags', 'Role')
 RoleTags = JsonTemplate(
     bot_id=JsonField('bot_id', Snowflake, str),
     integration_id=JsonField('integration_id', Snowflake, str),
-    premium_subscriber=JsonField('premium_subscriber')
+    premium_subscriber=JsonField('premium_subscriber'),
 ).default_object('RoleTags')
 
 
@@ -21,7 +21,7 @@ RoleTemplate = JsonTemplate(
     managed=JsonField('managed'),
     mentionable=JsonField('mentionable'),
     tags=JsonField('tags', object=RoleTags),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
@@ -35,17 +35,18 @@ class Role(BaseObject, template=RoleTemplate):
     async def modify(self, **kwargs):
         keys = rest.modify_guild_role_positions.json
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_guild_role_positions.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.guild.id, role_id=self.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_guild_role.request(
             session=self.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id, role_id=self.id))
+            fmt=dict(guild_id=self.guild.id, role_id=self.id),
+        )

@@ -2,8 +2,13 @@ from urllib.parse import quote
 
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
-                     _validate_keys)
+from ..utils import (
+    JsonArray,
+    JsonField,
+    JsonTemplate,
+    Snowflake,
+    _validate_keys,
+)
 
 import sys
 
@@ -30,7 +35,7 @@ GuildEmojiTemplate = JsonTemplate(
     managed=JsonField('managed'),
     animated=JsonField('animated'),
     available=JsonField('available'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
@@ -55,13 +60,13 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_guild_emoji.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=self.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         self.update(data)
 
@@ -70,7 +75,8 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
     async def delete(self):
         await rest.delete_guild_emoji.request(
             session=self.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id, emoji_id=self.id))
+            fmt=dict(guild_id=self.guild.id, emoji_id=self.id),
+        )
 
     def to_reaction(self):
         return quote(f'{self.name}:{self.id}')
@@ -93,8 +99,7 @@ class BuiltinEmoji:
 
         self.diversity_children = []
         for child in data[3]:
-            self.diversity_children.append(
-                BuiltinEmoji(category, child))
+            self.diversity_children.append(BuiltinEmoji(category, child))
 
     @property
     def id(self):

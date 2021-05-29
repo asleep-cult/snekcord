@@ -18,16 +18,17 @@ class HTTPEndpoint:
         self.json = json
         self.array = array
 
-    def request(self, *, session, params=None, json=None, fast=False,
-                **kwargs):
+    def request(self, *, session, params=None, json=None, fast=False, **kwargs):
         if not fast:
             if params is not None:
                 params = {k: v for k, v in params.items() if k in self.params}
 
             if json is not None:
                 if self.array:
-                    json = [{k: v for k, v in i.items() if k in self.json}
-                            for i in json]
+                    json = [
+                        {k: v for k, v in i.items() if k in self.json}
+                        for i in json
+                    ]
                 else:
                     json = {k: v for k, v in json.items() if k in self.json}
 
@@ -38,8 +39,9 @@ class HTTPEndpoint:
         fmt.update(session.global_fmt)
 
         url = self.url % fmt
-        return session.request(self.method, url, params=params, json=json,
-                               **kwargs)
+        return session.request(
+            self.method, url, params=params, json=json, **kwargs
+        )
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -58,9 +60,18 @@ get_channel = HTTPEndpoint(
 modify_channel = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'channels/%(channel_id)s',
-    json=('name', 'type', 'position', 'topic', 'nsfw',
-          'ratelimit_per_user', 'bitrrate', 'user_limit',
-          'permission_overwrites', 'parent_id'),
+    json=(
+        'name',
+        'type',
+        'position',
+        'topic',
+        'nsfw',
+        'ratelimit_per_user',
+        'bitrrate',
+        'user_limit',
+        'permission_overwrites',
+        'parent_id',
+    ),
 )
 
 delete_channel = HTTPEndpoint(
@@ -82,8 +93,14 @@ get_channel_message = HTTPEndpoint(
 create_channel_message = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'channels/%(channel_id)s/messages',
-    json=('content', 'nonce', 'tts', 'embed', 'allowed_mentions',
-          'message_reference'),
+    json=(
+        'content',
+        'nonce',
+        'tts',
+        'embed',
+        'allowed_mentions',
+        'message_reference',
+    ),
 )
 
 crosspost_message = HTTPEndpoint(
@@ -102,14 +119,14 @@ delete_reaction = HTTPEndpoint(
     'DELETE',
     BASE_API_URL
     + 'channels/%(channel_id)s/messages/'
-    + '%(message_id)s/reactions/%(emoji)s/%(user_id)s'
+    + '%(message_id)s/reactions/%(emoji)s/%(user_id)s',
 )
 
 get_reactions = HTTPEndpoint(
     'GET',
     BASE_API_URL
     + 'channels/%(channel_id)s/messages/%(message_id)s/reactions/%(emoji_id)s',
-    params=('limit', 'after')
+    params=('limit', 'after'),
 )
 
 delete_reactions = HTTPEndpoint(
@@ -120,8 +137,7 @@ delete_reactions = HTTPEndpoint(
 
 delete_all_reactions = HTTPEndpoint(
     'DELETE',
-    BASE_API_URL
-    + 'channels/%(channel_id)s/messages/%(message_id)s/reactions',
+    BASE_API_URL + 'channels/%(channel_id)s/messages/%(message_id)s/reactions',
 )
 
 edit_message = HTTPEndpoint(
@@ -155,8 +171,15 @@ get_channel_invites = HTTPEndpoint(
 create_channel_invite = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'channels/%(channel_id)s/invites',
-    json=('max_age', 'max_uses', 'temporary', 'unique', 'target_type',
-          'target_user_id', 'target_application_id'),
+    json=(
+        'max_age',
+        'max_uses',
+        'temporary',
+        'unique',
+        'target_type',
+        'target_user_id',
+        'target_application_id',
+    ),
 )
 
 delete_channel_permission = HTTPEndpoint(
@@ -231,10 +254,20 @@ delete_guild_emoji = HTTPEndpoint(
 create_guild = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'guilds',
-    json=('name', 'region', 'icon', 'verification_level',
-          'default_message_notifications', 'explicit_content_filter',
-          'roles', 'channels', 'afk_channel_id', 'afk_timeout',
-          'system_channel_id', 'system_channel_flags'),
+    json=(
+        'name',
+        'region',
+        'icon',
+        'verification_level',
+        'default_message_notifications',
+        'explicit_content_filter',
+        'roles',
+        'channels',
+        'afk_channel_id',
+        'afk_timeout',
+        'system_channel_id',
+        'system_channel_flags',
+    ),
 )
 
 get_guild = HTTPEndpoint(
@@ -251,13 +284,27 @@ get_guild_preview = HTTPEndpoint(
 modify_guild = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s',
-    json=('name', 'region', 'icon', 'verification_level',
-          'default_message_notifications', 'explicit_content_filter',
-          'afk_channel_id', 'afk_timeout', 'owner_id', 'splash',
-          'discovery_splash', 'banner', 'system_channel_id',
-          'system_channel_flags', 'rules_channel_id',
-          'public_updates_channel_id', 'preferred_locals',
-          'features', 'description'),
+    json=(
+        'name',
+        'region',
+        'icon',
+        'verification_level',
+        'default_message_notifications',
+        'explicit_content_filter',
+        'afk_channel_id',
+        'afk_timeout',
+        'owner_id',
+        'splash',
+        'discovery_splash',
+        'banner',
+        'system_channel_id',
+        'system_channel_flags',
+        'rules_channel_id',
+        'public_updates_channel_id',
+        'preferred_locals',
+        'features',
+        'description',
+    ),
 )
 
 delete_guild = HTTPEndpoint(
@@ -273,16 +320,25 @@ get_guild_channels = HTTPEndpoint(
 create_guild_channel = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'guilds/%(guild_id)s/channels',
-    json=('name', 'type', 'topic', 'bitrate', 'user_limit',
-          'ratelimit_per_user', 'position', 'permission_overwrites',
-          'parent_id', 'nsfw'),
+    json=(
+        'name',
+        'type',
+        'topic',
+        'bitrate',
+        'user_limit',
+        'ratelimit_per_user',
+        'position',
+        'permission_overwrites',
+        'parent_id',
+        'nsfw',
+    ),
 )
 
 modify_guild_channel_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/channels',
     json=('id', 'position', 'lock_permissions', 'parent_id'),
-    array=True
+    array=True,
 )
 
 get_guild_member = HTTPEndpoint(
@@ -341,8 +397,7 @@ get_guild_bans = HTTPEndpoint(
 )
 
 get_guild_ban = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'guilds/%(guild_id)s/bans/%(user_id)s'
+    'GET', BASE_API_URL + 'guilds/%(guild_id)s/bans/%(user_id)s'
 )
 
 create_guild_ban = HTTPEndpoint(
@@ -370,7 +425,10 @@ create_guild_role = HTTPEndpoint(
 modify_guild_role_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/roles',
-    json=('id', 'position',),
+    json=(
+        'id',
+        'position',
+    ),
     array=True,
 )
 
@@ -425,7 +483,7 @@ get_guild_widget_settings = HTTPEndpoint(
 modify_guild_widget_settings = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/widget',
-    json=('enabled', 'channel_id')
+    json=('enabled', 'channel_id'),
 )
 
 get_guild_widget = HTTPEndpoint(
@@ -512,8 +570,7 @@ create_guild_from_template = HTTPEndpoint(
 )
 
 get_guild_templates = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'guilds/%(guild_id)s/templates'
+    'GET', BASE_API_URL + 'guilds/%(guild_id)s/templates'
 )
 
 create_guild_template = HTTPEndpoint(
@@ -543,10 +600,7 @@ get_user_client = HTTPEndpoint(
     BASE_API_URL + 'users/@me',
 )
 
-get_user = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'users/%(user_id)s'
-)
+get_user = HTTPEndpoint('GET', BASE_API_URL + 'users/%(user_id)s')
 
 modify_user_client = HTTPEndpoint(
     'PATCH',
@@ -578,8 +632,7 @@ create_group_dm = HTTPEndpoint(
 )
 
 get_user_connections = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'users/@me/connections'
+    'GET', BASE_API_URL + 'users/@me/connections'
 )
 
 get_voice_regions = HTTPEndpoint(
@@ -603,10 +656,7 @@ get_guild_webhooks = HTTPEndpoint(
     BASE_API_URL + 'channels/%(guild_id)s/webhooks',
 )
 
-get_webhook = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'webhooks/%(webhook_id)s'
-)
+get_webhook = HTTPEndpoint('GET', BASE_API_URL + 'webhooks/%(webhook_id)s')
 
 get_webhook_with_token = HTTPEndpoint(
     'GET',
@@ -639,8 +689,16 @@ execute_webhook = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'webhooks/%(webhook_id)s/%(webhook_token)s',
     params=('wait',),
-    json=('content', 'username', 'avatar_url', 'tts', 'file', 'embeds',
-          'payload_json', 'allowed_mentions'),
+    json=(
+        'content',
+        'username',
+        'avatar_url',
+        'tts',
+        'file',
+        'embeds',
+        'payload_json',
+        'allowed_mentions',
+    ),
 )
 
 execute_slack_webhook = HTTPEndpoint(
@@ -670,15 +728,9 @@ delete_webhook_message = HTTPEndpoint(
     + '/messages/%(message_id)s',
 )
 
-get_gateway = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'gateway'
-)
+get_gateway = HTTPEndpoint('GET', BASE_API_URL + 'gateway')
 
-get_gateway_bot = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'gateway/bot'
-)
+get_gateway_bot = HTTPEndpoint('GET', BASE_API_URL + 'gateway/bot')
 
 
 class RestSession(AsyncClient):
@@ -690,20 +742,19 @@ class RestSession(AsyncClient):
         self.api_version = self.manager.api_version
 
         self.global_headers = kwargs.pop('global_headers', {})
-        self.global_headers.update({
-            'Authorization': self.authorization,
-        })
+        self.global_headers.update(
+            {
+                'Authorization': self.authorization,
+            }
+        )
 
         self.global_fmt = kwargs.pop('global_fmt', {})
-        self.global_fmt.update({
-            'version': self.api_version
-        })
+        self.global_fmt.update({'version': self.api_version})
 
         super().__init__(*args, **kwargs)
 
     async def request(self, method, url, *args, **kwargs):
-        response = await super().request(
-            method, url, *args, **kwargs)
+        response = await super().request(method, url, *args, **kwargs)
         await response.aclose()
 
         data = response.content
@@ -716,6 +767,8 @@ class RestSession(AsyncClient):
             status = HTTPStatus(response.status_code)
             raise HTTPError(
                 f'{method} {url} responded with {status} {status.phrase}: '
-                f'{data}', response)
+                f'{data}',
+                response,
+            )
 
         return data

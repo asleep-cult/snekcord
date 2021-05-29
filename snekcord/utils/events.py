@@ -2,8 +2,12 @@ import asyncio
 import functools
 from weakref import WeakSet
 
-__all__ = ('EventNamespace', 'EventWaiter', 'EventDispatcher',
-           'EventDefinition')
+__all__ = (
+    'EventNamespace',
+    'EventWaiter',
+    'EventDispatcher',
+    'EventDefinition',
+)
 
 
 class EventDefinition:
@@ -24,8 +28,7 @@ class EventNamespace:
 
 
 class EventWaiter:
-    def __init__(self, name, *, dispatcher, timeout=None,
-                 filterer=None):
+    def __init__(self, name, *, dispatcher, timeout=None, filterer=None):
         self.name = name.lower()
         self.dispatcher = dispatcher
         self.timeout = timeout
@@ -42,7 +45,7 @@ class EventWaiter:
     async def _get(self):
         value = await asyncio.wait_for(self._queue.get(), timeout=self.timeout)
         if len(value) == 1:
-            value, = value
+            (value,) = value
 
         return value
 
@@ -148,6 +151,7 @@ class EventDispatcher:
         def wrapped(func):
             self.register_listener(name or func.__name__, func)
             return func
+
         return wrapped
 
     def once(self, name=None):
@@ -163,4 +167,5 @@ class EventDispatcher:
             self.remove_listener(name, callback)
 
             return func
+
         return wrapped

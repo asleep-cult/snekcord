@@ -2,14 +2,18 @@ from .baseobject import BaseTemplate
 from .. import rest
 from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake
 
-__all__ = ('GuildWidgetChannel', 'GuildWidgetMember',
-           'GuildWidgetJson', 'GuildWidget')
+__all__ = (
+    'GuildWidgetChannel',
+    'GuildWidgetMember',
+    'GuildWidgetJson',
+    'GuildWidget',
+)
 
 
 GuildWidgetChannel = JsonTemplate(
     name=JsonField('name'),
     position=JsonField('position'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 ).default_object('GuildWidgetChannel')
 
 
@@ -19,7 +23,7 @@ GuildWidgetMember = JsonTemplate(
     avatar=JsonField('avatar'),
     status=JsonField('status'),
     avatar_url=JsonField('avatar_url'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 ).default_object('GuildWidgetMember')
 
 
@@ -29,7 +33,7 @@ GuildWidgetJson = JsonTemplate(
     channels=JsonArray('channels', object=GuildWidgetChannel),
     members=JsonArray('members', object=GuildWidgetMember),
     presence_count=JsonField('presence_count'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 ).default_object('GuildWidgetJson')
 
 
@@ -52,7 +56,8 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
     async def fetch(self):
         data = await rest.get_guild_widget_settings.request(
             session=self.guild.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id))
+            fmt=dict(guild_id=self.guild.id),
+        )
 
         self.update(data)
 
@@ -70,7 +75,8 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
         data = await rest.modify_guild_widget_settings.request(
             session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id),
-            json=json)
+            json=json,
+        )
 
         self.update(data)
 
@@ -79,14 +85,16 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
     async def fetch_json(self):
         data = await rest.get_guild_widget.request(
             session=self.guild.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id))
+            fmt=dict(guild_id=self.guild.id),
+        )
 
         return GuildWidgetJson.unmarshal(data)
 
     async def fetch_shield(self):
         data = await rest.get_guild_widget_image.request(
             session=self.guild.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id))
+            fmt=dict(guild_id=self.guild.id),
+        )
 
         return data
 
@@ -96,6 +104,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
         data = await rest.get_guild_widget_image.request(
             session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id),
-            params=dict(style=style))
+            params=dict(style=style),
+        )
 
         return data

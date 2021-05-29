@@ -40,19 +40,23 @@ class BaseState(_StateCommon):
 
     def __contains__(self, key):
         return self.__mapping__.__contains__(
-            self.mapping, self.transform_key(key))
+            self.mapping, self.transform_key(key)
+        )
 
     def __getitem__(self, key):
         return self.__mapping__.__getitem__(
-            self.mapping, self.transform_key(key))
+            self.mapping, self.transform_key(key)
+        )
 
     def __setitem__(self, key, value):
         return self.__mapping__.__setitem__(
-            self.mapping, self.transform_key(key), value)
+            self.mapping, self.transform_key(key), value
+        )
 
     def __delitem__(self, key):
         return self.__mapping__.__delitem__(
-            self.mapping, self.transform_key(key))
+            self.mapping, self.transform_key(key)
+        )
 
     def __repr__(self):
         attrs = [('length', len(self))]
@@ -74,9 +78,9 @@ class BaseState(_StateCommon):
 
     def get(self, key, default=None):
         key = self.transform_key(key)
-        return (self.__mapping__.get(self.mapping, key, default)
-                or self.__recycled_mapping__.get(
-                    self.recycle_bin, key, default))
+        return self.__mapping__.get(
+            self.mapping, key, default
+        ) or self.__recycled_mapping__.get(self.recycle_bin, key, default)
 
     def pop(self, key, default=undefined):
         key = self.transform_key(key)
@@ -105,12 +109,14 @@ class BaseState(_StateCommon):
     def recycle(self, key, value):
         if self.__recycle_enabled__:
             return self.__recycled_mapping__.__setitem__(
-                self.recycle_bin, self.transform_key(key), value)
+                self.recycle_bin, self.transform_key(key), value
+            )
 
     def unrecycle(self, key, *args, **kwargs):
         if self.__recycle_enabled__:
             return self.__recycled_mapping__.pop(
-                self.recycle_bin, self.transform_key(key), *args, **kwargs)
+                self.recycle_bin, self.transform_key(key), *args, **kwargs
+            )
 
 
 class BaseSubState(_StateCommon):
@@ -138,8 +144,10 @@ class BaseSubState(_StateCommon):
         return self.superstate[key]
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(length={len(self)},'
-                f' superstate={self.superstate!r})')
+        return (
+            f'{self.__class__.__name__}(length={len(self)},'
+            f' superstate={self.superstate!r})'
+        )
 
     def set_keys(self, keys):
         self._keys = {self.superstate.transform_key(key) for key in keys}

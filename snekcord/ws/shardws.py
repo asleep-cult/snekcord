@@ -42,9 +42,9 @@ class Shard(WebSocketClient):
                 'properties': {
                     '$os': platform.system(),
                     '$browser': 'snekcord',
-                    '$device': 'snekcord'
-                }
-            }
+                    '$device': 'snekcord',
+                },
+            },
         }
         await self.send_str(json.dumps(payload))
 
@@ -54,23 +54,19 @@ class Shard(WebSocketClient):
             'd': {
                 'token': self.manager.token,
                 'session_id': self.session_id,
-                'seq': self.sequence
-            }
+                'seq': self.sequence,
+            },
         }
         await self.send_str(json.dumps(payload))
 
     async def send_heartbeat(self):
-        payload = {
-            'op': ShardOpcode.HEARTBEAT,
-            'd': None
-        }
+        payload = {'op': ShardOpcode.HEARTBEAT, 'd': None}
         await self.send_str(json.dumps(payload))
 
-    async def request_guild_members(self, guild, presences=None, limit=None,
-                                    users=None, query=None):
-        payload = {
-            'guild_id': Snowflake.try_snowflake(guild)
-        }
+    async def request_guild_members(
+        self, guild, presences=None, limit=None, users=None, query=None
+    ):
+        payload = {'guild_id': Snowflake.try_snowflake(guild)}
 
         if presences is not None:
             payload['presences'] = presences
@@ -107,10 +103,7 @@ class Shard(WebSocketClient):
         except ValueError:
             return
 
-        if (
-            response.sequence is not None
-            and response.sequence > self.sequence
-        ):
+        if response.sequence is not None and response.sequence > self.sequence:
             self.sequence = response.sequence
 
         if opcode is ShardOpcode.DISPATCH:

@@ -45,13 +45,19 @@ class JsonTemplate:
         return json.dumps(self.to_dict(obj), *args, **kwargs)
 
     def default_object(self, name='GenericObject'):
-        return JsonObjectMeta(name, (JsonObject,), {},
-                              template=self)
+        return JsonObjectMeta(name, (JsonObject,), {}, template=self)
 
 
 class JsonField:
-    def __init__(self, key, unmarshal=None, marshal=None, object=None,
-                 default=None, omitempty=False):
+    def __init__(
+        self,
+        key,
+        unmarshal=None,
+        marshal=None,
+        object=None,
+        default=None,
+        omitempty=False,
+    ):
         self.key = key
         self.object = object
         self.omitempty = omitempty
@@ -113,9 +119,11 @@ class JsonObjectMeta(type):
         slots = tuple(attrs.get('__slots__', ()))
         if template is not None:
             fields = template.fields
-            slots += tuple(field for field in fields
-                           if field not in slots
-                           and field not in external_slots)
+            slots += tuple(
+                field
+                for field in fields
+                if field not in slots and field not in external_slots
+            )
 
         attrs['__slots__'] = slots
         attrs['__template__'] = template

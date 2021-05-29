@@ -20,7 +20,8 @@ class GuildMemberState(BaseState):
             member.update(data)
         else:
             member = self.__guild_member_class__.unmarshal(
-                data, state=self, guild=self.guild)
+                data, state=self, guild=self.guild
+            )
             member.cache()
 
         return member
@@ -30,8 +31,8 @@ class GuildMemberState(BaseState):
 
         data = await rest.get_guild_member.request(
             session=self.manager.rest,
-            fmt=dict(guild_id=self.guild.id,
-                     user_id=user_id))
+            fmt=dict(guild_id=self.guild.id, user_id=user_id),
+        )
 
         return self.upsert(data)
 
@@ -50,7 +51,8 @@ class GuildMemberState(BaseState):
         data = await rest.get_guild_members.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id),
-            params=params)
+            params=params,
+        )
 
         return self.upsert_many(data)
 
@@ -63,7 +65,8 @@ class GuildMemberState(BaseState):
         data = await rest.search_guild_members.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id),
-            params=params)
+            params=params,
+        )
 
         return self.upsert_many(data)
 
@@ -71,15 +74,17 @@ class GuildMemberState(BaseState):
         required_keys = ('access_token',)
         keys = rest.add_guild_member.keys
 
-        _validate_keys(f'{self.__class__.__name__}.add',
-                       kwargs, required_keys, keys)
+        _validate_keys(
+            f'{self.__class__.__name__}.add', kwargs, required_keys, keys
+        )
 
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.add_guild_member.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.upsert_many(data)
 
@@ -88,4 +93,5 @@ class GuildMemberState(BaseState):
 
         await rest.remove_guild_member.request(
             session=self.manager.rest,
-            fmt=dict(guild_id=self.guild.id, user_id=user_id))
+            fmt=dict(guild_id=self.guild.id, user_id=user_id),
+        )

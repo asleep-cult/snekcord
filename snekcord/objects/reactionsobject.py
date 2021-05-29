@@ -31,9 +31,12 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
 
         data = await rest.get_reactions.request(
             session=self.state.rest,
-            fmt=dict(channel_id=self.state.message.channel_id,
-                     message_id=self.state.message.id,
-                     emoji=self.emoji.to_reaction()))
+            fmt=dict(
+                channel_id=self.state.message.channel_id,
+                message_id=self.state.message.id,
+                emoji=self.emoji.to_reaction(),
+            ),
+        )
 
         users = self.superstate.upsert_many(data)
         self.extend_keys(user.id for user in users)
@@ -51,17 +54,23 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
 
         await rest.delete_reaction.request(
             session=self.state.rest,
-            fmt=dict(channel_id=self.state.message.channel_id,
-                     message_id=self.state.message.id,
-                     emoji=self.emoji.to_reaction(),
-                     user_id=user_id))
+            fmt=dict(
+                channel_id=self.state.message.channel_id,
+                message_id=self.state.message.id,
+                emoji=self.emoji.to_reaction(),
+                user_id=user_id,
+            ),
+        )
 
     async def remove_all(self):
         await rest.delete_reactions.request(
             session=self.state.rest,
-            fmt=dict(channel_id=self.state.message.channel_id,
-                     message_id=self.state.message.id,
-                     emoji=self.emoji.to_reaction()))
+            fmt=dict(
+                channel_id=self.state.message.channel_id,
+                message_id=self.state.message.id,
+                emoji=self.emoji.to_reaction(),
+            ),
+        )
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)

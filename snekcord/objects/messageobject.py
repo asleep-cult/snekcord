@@ -29,7 +29,7 @@ MessageTemplate = JsonTemplate(
     _stickers=JsonArray('stickers'),
     _referenced_message=JsonField('referenced_message'),
     _interaction=JsonField('interaction'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
@@ -41,7 +41,8 @@ class Message(BaseObject, template=MessageTemplate):
         self.author = None
         self.member = None
         self.reactions = self.state.manager.get_class('ReactionsState')(
-            manager=self.state.manager, message=self)
+            manager=self.state.manager, message=self
+        )
 
     @property
     def channel(self):
@@ -49,13 +50,15 @@ class Message(BaseObject, template=MessageTemplate):
 
     @property
     def guild(self):
-        return (self.state.manager.guilds.get(self.guild_id)
-                or getattr(self.state.channel, 'guild', None))
+        return self.state.manager.guilds.get(self.guild_id) or getattr(
+            self.state.channel, 'guild', None
+        )
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
             session=self.state.manager.rest,
-            fmt=dict(channel_id=self.state.channel.id, message_id=self.id))
+            fmt=dict(channel_id=self.state.channel.id, message_id=self.id),
+        )
 
         return self.state.upsert(data)
 

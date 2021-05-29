@@ -1,13 +1,15 @@
 from .baseobject import BaseTemplate
 from ..utils import JsonField, JsonTemplate, Snowflake
 
-__all__ = ('IntegrationAccount', 'IntegrationApplicationTemplate',
-           'IntegrationTemplate')
+__all__ = (
+    'IntegrationAccount',
+    'IntegrationApplicationTemplate',
+    'IntegrationTemplate',
+)
 
 
 IntegrationAccount = JsonTemplate(
-    name=JsonField('name'),
-    __extends__=(BaseTemplate,)
+    name=JsonField('name'), __extends__=(BaseTemplate,)
 ).default_object('IntegrationAccount')
 
 
@@ -17,7 +19,7 @@ IntegrationApplicationTemplate = JsonTemplate(
     description=JsonField('description'),
     summary=JsonField('summary'),
     _bot=JsonField('bot'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 IntegrationTemplate = JsonTemplate(
@@ -35,5 +37,5 @@ IntegrationTemplate = JsonTemplate(
     subscriber_count=JsonField('subscriber_count'),
     revoked=JsonField('revoked'),
     _application=JsonField('application'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )

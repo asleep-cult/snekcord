@@ -2,8 +2,14 @@ from .baseobject import BaseObject, BaseTemplate
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
-from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake,
-                     _validate_keys)
+from ..utils import (
+    JsonArray,
+    JsonField,
+    JsonObject,
+    JsonTemplate,
+    Snowflake,
+    _validate_keys,
+)
 
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
@@ -17,7 +23,7 @@ GuildPreviewTemplate = JsonTemplate(
     member_count=JsonField('approximate_member_count'),
     presence_count=JsonField('approximate_presence_count'),
     description=JsonField('description'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
@@ -55,13 +61,20 @@ GuildTemplate = JsonTemplate(
     ),
     max_video_channel_users=JsonField('max_video_channel_users'),
     nsfw=JsonField('nsfw'),
-    __extends__=(GuildPreviewTemplate,)
+    __extends__=(GuildPreviewTemplate,),
 )
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
-                 'emojis', 'roles', 'members')
+    __slots__ = (
+        'widget',
+        'vanity_url',
+        'welcome_screen',
+        'channels',
+        'emojis',
+        'roles',
+        'members',
+    )
 
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
@@ -71,38 +84,38 @@ class Guild(BaseObject, template=GuildTemplate):
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
-            superstate=self.state.manager.channels,
-            guild=self)
+            superstate=self.state.manager.channels, guild=self
+        )
 
         self.emojis = self.state.manager.get_class('GuildEmojiState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self
+        )
 
         self.roles = self.state.manager.get_class('RoleState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self
+        )
 
         self.members = self.state.manager.get_class('GuildMemberState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self
+        )
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild.keys
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_guild.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_guild.request(
-            session=self.state.manager.rest,
-            fmt=dict(guild_id=self.id))
+            session=self.state.manager.rest, fmt=dict(guild_id=self.id)
+        )
 
     async def prune(self, **kwargs):
         remove = kwargs.pop('remove', True)
@@ -122,19 +135,20 @@ class Guild(BaseObject, template=GuildTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.prune',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.prune', kwargs, (), keys)
 
         if remove:
             data = await rest.begin_guild_prune.request(
                 session=self.state.manager.rest,
                 fmt=dict(guild_id=self.id),
-                json=kwargs)
+                json=kwargs,
+            )
         else:
             data = await rest.get_guild_prune_count.request(
                 session=self.state.manager.rest,
                 fmt=dict(guild_id=self.id),
-                params=kwargs)
+                params=kwargs,
+            )
 
         return data['pruned']
 
@@ -143,22 +157,22 @@ class Guild(BaseObject, template=GuildTemplate):
 
     async def voice_regions(self):
         data = await rest.get_guild_voice_regions.request(
-            session=self.state.manager.rest,
-            fmt=dict(guild_id=self.id))
+            session=self.state.manager.rest, fmt=dict(guild_id=self.id)
+        )
 
         return data
 
     async def invites(self):
         data = await rest.get_guild_invites.request(
-            session=self.state.manager.rest,
-            fmt=dict(guild_id=self.id))
+            session=self.state.manager.rest, fmt=dict(guild_id=self.id)
+        )
 
         return self.state.manager.upsert_many(data)
 
     async def templates(self):
         data = await rest.get_guild_templates.request(
-            session=self.state.manager.rest,
-            fmt=dict(guild_id=self.id))
+            session=self.state.manager.rest, fmt=dict(guild_id=self.id)
+        )
 
         return self.state.new_template_many(data)
 
@@ -166,13 +180,18 @@ class Guild(BaseObject, template=GuildTemplate):
         required_keys = ('name',)
         keys = rest.create_guild_template.json
 
-        _validate_keys(f'{self.__class__.__name__}.create_template',
-                       kwargs, required_keys, keys)
+        _validate_keys(
+            f'{self.__class__.__name__}.create_template',
+            kwargs,
+            required_keys,
+            keys,
+        )
 
         data = await rest.create_guild_template.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.state.new_template(data)
 
@@ -280,8 +299,8 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
 
     async def fetch(self):
         data = await rest.get_guild_welcome_screen.request(
-            session=self.guild.manager.rest,
-            fmt=dict(guild_id=self.guild.id))
+            session=self.guild.manager.rest, fmt=dict(guild_id=self.guild.id)
+        )
 
         self.update(data)
 
@@ -290,13 +309,13 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
     async def modify(self, **kwargs):
         keys = rest.modify_guild_welcome_screen.json
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_guild_welcome_screen.request(
             session=self.guild.manager.rest,
             fmt=dict(guild_id=self.guild.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         self.update(data)
 
@@ -311,5 +330,6 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
 
             for channel in welcome_channels:
                 channel = WelcomeScreenChannel.unmarshal(
-                    channel, guild=self.guild)
+                    channel, guild=self.guild
+                )
                 self.welcome_channels.append(channel)

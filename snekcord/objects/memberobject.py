@@ -23,7 +23,8 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         super().__json_init__(state=state)
         self.guild = guild
         self.roles = self.state.manager.get_class('GuildMemberRoleState')(
-            superstate=self.guild.roles, member=self)
+            superstate=self.guild.roles, member=self
+        )
 
     @property
     def removed(self):
@@ -37,8 +38,8 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         keys = rest.modify_guild_member.json
 
         try:
-            kwargs['channel_id'] = (
-                Snowflake.try_snowflake(kwargs.pop('voice_channel'))
+            kwargs['channel_id'] = Snowflake.try_snowflake(
+                kwargs.pop('voice_channel')
             )
         except KeyError:
             pass
@@ -49,13 +50,12 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_guild_member.request(
             session=self.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id,
-                     user_id=self.id))
+            fmt=dict(guild_id=self.guild.id, user_id=self.id),
+        )
 
         return self.state.upsert(data)
 

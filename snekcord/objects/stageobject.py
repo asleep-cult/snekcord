@@ -9,7 +9,7 @@ StageTemplate = JsonTemplate(
     guild_id=JsonField('guild_id', Snowflake, str),
     channel_id=JsonField('channel_id', Snowflake, str),
     topic=JsonField('topic'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
@@ -28,7 +28,8 @@ class Stage(BaseObject, template=StageTemplate):
         data = await rest.modify_stage_instance.request(
             session=self.state.manager.rest,
             fmt=dict(channel_id=self.channel_id),
-            json=json)
+            json=json,
+        )
 
         self.update(data)
 
@@ -37,4 +38,5 @@ class Stage(BaseObject, template=StageTemplate):
     async def delete(self):
         await rest.delete_stage_instance.request(
             session=self.state.manager.rest,
-            fmt=dict(channel_id=self.channel_id))
+            fmt=dict(channel_id=self.channel_id),
+        )

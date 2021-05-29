@@ -26,12 +26,17 @@ class ReactionsState(BaseState):
     async def add(self, emoji):
         await rest.create_reaction.request(
             session=self.manager.rest,
-            fmt=dict(channel_id=self.message.channel_id,
-                     message_id=self.message.id,
-                     emoji=emoji.to_reaction()))
+            fmt=dict(
+                channel_id=self.message.channel_id,
+                message_id=self.message.id,
+                emoji=emoji.to_reaction(),
+            ),
+        )
 
     async def remove_all(self):
         await rest.delete_all_reactions.request(
             session=self.manager.rest,
-            fmt=dict(channel_id=self.message.channel_id,
-                     message_id=self.message.id))
+            fmt=dict(
+                channel_id=self.message.channel_id, message_id=self.message.id
+            ),
+        )

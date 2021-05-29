@@ -6,11 +6,9 @@ from typing import Generic, Optional, TypeVar
 from ..states.basestate import BaseState
 from ..utils import JsonObject, JsonTemplate, Snowflake
 
-
 BaseTemplate: JsonTemplate = ...
 
 T = TypeVar('T')
-
 
 class BaseObject(JsonObject, Generic[T], template=BaseTemplate):
     id: Optional[T]
@@ -18,20 +16,12 @@ class BaseObject(JsonObject, Generic[T], template=BaseTemplate):
     cached: bool
     deleted: bool
     deleted_at: Optional[datetime]
-
     def __json_init__(self, *, state: BaseState[T]) -> None: ...
-
     def __hash__(self) -> int: ...
-
     def __repr__(self) -> str: ...
-
     def _delete(self) -> None: ...
-
     def cache(self) -> None: ...
-
     def uncache(self) -> None: ...
-
     async def fetch(self: BaseObject[T]) -> BaseObject[T]: ...
-
 
 BaseSnowflakeObject = BaseObject[Snowflake]

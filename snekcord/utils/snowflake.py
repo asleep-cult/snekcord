@@ -25,10 +25,12 @@ class Snowflake(int):
 
         timestamp = int((timestamp * 1000) - cls.DISCORD_EPOCH)
 
-        return cls((timestamp << cls.TIMESTAMP_SHIFT)
-                   | (worker_id << cls.WORKER_ID_SHIFT)
-                   | (process_id << cls.PROCESS_ID_SHIFT)
-                   | increment)
+        return cls(
+            (timestamp << cls.TIMESTAMP_SHIFT)
+            | (worker_id << cls.WORKER_ID_SHIFT)
+            | (process_id << cls.PROCESS_ID_SHIFT)
+            | increment
+        )
 
     @classmethod
     def try_snowflake(cls, obj):

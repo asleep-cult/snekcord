@@ -2,9 +2,23 @@ import builtins
 
 from . import undefined
 
-__all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
-           'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
-           'aany', 'aall')
+__all__ = (
+    '_validate_keys',
+    'alist',
+    'aset',
+    'aiter',
+    'anext',
+    'aenumerate',
+    'afilter',
+    'amap',
+    'azip',
+    'asum',
+    'asorted',
+    'amin',
+    'amax',
+    'aany',
+    'aall',
+)
 
 
 def _validate_keys(name, source, required, keys):
@@ -33,12 +47,14 @@ async def aset(obj):
 
 aiter = getattr(builtins, 'aiter', None)
 if aiter is None:
+
     def aiter(obj):
         return type(obj).__aiter__(obj)
 
 
 anext = getattr(builtins, 'anext', None)
 if anext is None:
+
     async def anext(obj, default=undefined):
         try:
             return await type(obj).__anext__(obj)

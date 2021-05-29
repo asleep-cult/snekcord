@@ -2,11 +2,21 @@ import enum
 
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
-                     _validate_keys)
+from ..utils import (
+    JsonArray,
+    JsonField,
+    JsonTemplate,
+    Snowflake,
+    _validate_keys,
+)
 
-__all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'VoiceChannel',
-           'DMChannel')
+__all__ = (
+    'ChannelType',
+    'GuildChannel',
+    'TextChannel',
+    'VoiceChannel',
+    'DMChannel',
+)
 
 
 class ChannelType(enum.IntEnum):
@@ -55,7 +65,7 @@ GuildChannelTemplate = JsonTemplate(
     nsfw=JsonField('nsfw'),
     parent_id=JsonField('parent_id'),
     type=JsonField('type'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
@@ -74,17 +84,20 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
     async def delete(self):
         await rest.delete_channel.request(
-            session=self.state.manager.rest,
-            fmt=dict(channel_id=self.id))
+            session=self.state.manager.rest, fmt=dict(channel_id=self.id)
+        )
 
     async def modify(self, **kwargs):
         keys = _guild_channel_modification_keys(self.type)
 
-        if self.type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS,
-                         ChannelType.GUILD_STORE):
+        if self.type in (
+            ChannelType.GUILD_TEXT,
+            ChannelType.GUILD_NEWS,
+            ChannelType.GUILD_STORE,
+        ):
             try:
-                kwargs['parent_id'] = (
-                    Snowflake.try_snowflake(kwargs.pop('parent'))
+                kwargs['parent_id'] = Snowflake.try_snowflake(
+                    kwargs.pop('parent')
                 )
             except KeyError:
                 pass
@@ -95,13 +108,13 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             except KeyError:
                 pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_channel.request(
             session=self.state.manager.rest,
             fmt=dict(channel_id=self.id),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.state.upsert(data)
 
@@ -110,7 +123,7 @@ TextChannelTemplate = JsonTemplate(
     topic=JsonField('topic'),
     slowmode=JsonField('rate_limit_per_user'),
     last_message_id=JsonField('last_message_id'),
-    __extends__=(GuildChannelTemplate,)
+    __extends__=(GuildChannelTemplate,),
 )
 
 
@@ -121,17 +134,18 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         super().__json_init__(state=state)
 
         self.messages = self.state.manager.get_class('MessageState')(
-            manager=self.state.manager, channel=self)
+            manager=self.state.manager, channel=self
+        )
 
     async def typing(self):
         await rest.trigger_typing_indicator.request(
-            session=self.state.manager.rest,
-            fmt=dict(channel_id=self.id))
+            session=self.state.manager.rest, fmt=dict(channel_id=self.id)
+        )
 
     async def pins(self):
         data = await rest.get_pinned_messages.request(
-            session=self.state.manager.rest,
-            fmt=dict(channel_id=self.id))
+            session=self.state.manager.rest, fmt=dict(channel_id=self.id)
+        )
 
         return self.messages.upsert_many(data)
 
@@ -139,7 +153,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
 VoiceChannelTemplate = JsonTemplate(
     bitrate=JsonField('bitrate'),
     user_limit=JsonField('user_limit'),
-    __extends__=(GuildChannelTemplate,)
+    __extends__=(GuildChannelTemplate,),
 )
 
 
@@ -151,12 +165,12 @@ DMChannelTemplate = JsonTemplate(
     last_message_id=JsonField('last_message_id', Snowflake, str),
     type=JsonField('type'),
     _recipients=JsonArray('recipients'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 
 class DMChannel(BaseObject, template=DMChannelTemplate):
     async def close(self):
         await rest.delete_channel.request(
-            session=self.state.manager.rest,
-            fmt=dict(channel_id=self.id))
+            session=self.state.manager.rest, fmt=dict(channel_id=self.id)
+        )

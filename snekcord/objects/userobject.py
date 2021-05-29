@@ -17,7 +17,7 @@ UserTemplate = JsonTemplate(
     flags=JsonField('flags'),
     premium_type=JsonField('premium_type'),
     public_flags=JsonField('public_flags'),
-    __extends__=(BaseTemplate,)
+    __extends__=(BaseTemplate,),
 )
 
 

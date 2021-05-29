@@ -11,7 +11,6 @@ InviteTemplate = JsonTemplate(
     presence_count=JsonField('approximate_presence_count'),
     member_count=JsonField('approximate_member_count'),
     expires_at=JsonField('expires_at'),
-
     uses=JsonField('uses'),
     max_uses=JsonField('max_uses'),
     max_age=JsonField('max_age'),
@@ -21,8 +20,13 @@ InviteTemplate = JsonTemplate(
 
 
 class Invite(BaseObject, template=InviteTemplate):
-    __slots__ = ('guild', 'channel', 'inviter', 'target_user',
-                 'target_application')
+    __slots__ = (
+        'guild',
+        'channel',
+        'inviter',
+        'target_user',
+        'target_application',
+    )
 
     def __json_init__(self, *, state):
         super().__json_init__(state=state)
@@ -38,8 +42,8 @@ class Invite(BaseObject, template=InviteTemplate):
 
     async def delete(self):
         await rest.delete_invite.request(
-                session=self.state.manager.rest,
-                fmt=dict(code=self.code))
+            session=self.state.manager.rest, fmt=dict(code=self.code)
+        )
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
@@ -61,9 +65,7 @@ class Invite(BaseObject, template=InviteTemplate):
             self.target_user = self.state.manager.users.upsert(target_user)
 
 
-GuildVanityURLTemplate = JsonTemplate(
-    code=JsonField('code')
-)
+GuildVanityURLTemplate = JsonTemplate(code=JsonField('code'))
 
 
 class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
@@ -79,7 +81,8 @@ class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
     async def fetch(self):
         data = await rest.get_guild_vanity_url.request(
             session=self.guild.state.manager.rest,
-            fmt=dict(guild_id=self.guild.id))
+            fmt=dict(guild_id=self.guild.id),
+        )
 
         self.update(data)
 

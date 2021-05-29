@@ -22,7 +22,8 @@ class GuildEmojiState(BaseState):
                 emoji.update(data)
             else:
                 emoji = self.__guild_emoji_class__.unmarshal(
-                    data, state=self, guild=self.guild)
+                    data, state=self, guild=self.guild
+                )
                 emoji.cache()
         else:
             surrogates = data['name'].encode()
@@ -35,13 +36,14 @@ class GuildEmojiState(BaseState):
 
         data = await rest.get_guild_emoji.request(
             session=self.manager.rest,
-            fmt=dict(guild_id=self.guild.id, emoji_id=emoji_id))
+            fmt=dict(guild_id=self.guild.id, emoji_id=emoji_id),
+        )
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
-            session=self.manager.rest,
-            fmt=dict(guild_id=self.guild.id))
+            session=self.manager.rest, fmt=dict(guild_id=self.guild.id)
+        )
 
         return self.upsert_many(data)

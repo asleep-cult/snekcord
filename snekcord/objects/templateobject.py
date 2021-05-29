@@ -36,8 +36,8 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
     async def fetch(self):
         data = await rest.get_template.request(
-            session=self.manager.rest,
-            fmt=dict(code=self.code))
+            session=self.manager.rest, fmt=dict(code=self.code)
+        )
 
         self.update(data)
 
@@ -47,21 +47,26 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
         required_keys = ('name',)
         keys = rest.create_guild_from_template.json
 
-        _validate_keys(f'{self.__class__.__name__}.create_guild',
-                       kwargs, required_keys, keys)
+        _validate_keys(
+            f'{self.__class__.__name__}.create_guild',
+            kwargs,
+            required_keys,
+            keys,
+        )
 
         data = await rest.create_guild_from_template.request(
             session=self.state.manager.rest,
             fmt=dict(template_code=self.code),
-            json=kwargs)
+            json=kwargs,
+        )
 
         return self.state.manager.guilds.upsert(data)
 
     async def sync(self):
         data = await rest.sync_guild_template.request(
             session=self.state.manager.rest,
-            fmt=dict(guild_id=self.source_guild_id,
-                     template_code=self.code))
+            fmt=dict(guild_id=self.source_guild_id, template_code=self.code),
+        )
 
         self.update(data)
 
@@ -70,14 +75,13 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
     async def modify(self, **kwargs):
         keys = rest.modify_guild_template.json
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.modify', kwargs, (), keys)
 
         data = await rest.modify_guild_template.request(
             sesison=self.state.manager.rest,
-            fmt=dict(guild_id=self.source_guild_id,
-                     template_code=self.code),
-            json=kwargs)
+            fmt=dict(guild_id=self.source_guild_id, template_code=self.code),
+            json=kwargs,
+        )
 
         self.update(data)
 
@@ -86,8 +90,8 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
     async def delete(self):
         await rest.delete_guild_template.request(
             session=self.state.manager.rest,
-            fmt=dict(guild_id=self.source_guild_id,
-                     template_code=self.code))
+            fmt=dict(guild_id=self.source_guild_id, template_code=self.code),
+        )
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)

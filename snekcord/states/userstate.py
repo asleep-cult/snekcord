@@ -24,7 +24,7 @@ class UserState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_user.request(
-            session=self.manager.rest,
-            fmt=dict(user_id=user_id))
+            session=self.manager.rest, fmt=dict(user_id=user_id)
+        )
 
         return self.upsert(data)

@@ -23,7 +23,7 @@ class StageState(BaseState):
         stage_id = Snowflake.try_snowflake(stage)
 
         data = await rest.get_stage_instance.request(
-            session=self.manager.rest,
-            fmt=dict(stage_id=stage_id))
+            session=self.manager.rest, fmt=dict(stage_id=stage_id)
+        )
 
         return self.upsert(data)

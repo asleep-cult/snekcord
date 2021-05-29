@@ -24,12 +24,15 @@ class BaseObject(JsonObject, template=BaseTemplate):
     def __hash__(self):
         if self.id is None:
             raise PartialObjectError(
-                f'{self.__class__.__name__} object is missing a valid id')
+                f'{self.__class__.__name__} object is missing a valid id'
+            )
         return hash(self.id)
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(id={self.id!r}, '
-                f'cached={self.cached}, deleted={self.deleted})')
+        return (
+            f'{self.__class__.__name__}(id={self.id!r}, '
+            f'cached={self.cached}, deleted={self.deleted})'
+        )
 
     def _delete(self):
         self.deleted = True
