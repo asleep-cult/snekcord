@@ -6,19 +6,18 @@ from ..utils import JsonField, JsonTemplate, Snowflake
 __all__ = ('Reactions',)
 
 
-ReactionTemplate = JsonTemplate(
+ReactionsTemplate = JsonTemplate(
     count=JsonField('count'),
     me=JsonField('me'),
 )
 
 
-class Reactions(BaseSubState, BaseObject, template=ReactionTemplate):
+class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
     __slots__ = ('emoji',)
 
     def __json_init__(self, *, state):
         BaseSubState.__init__(self, superstate=state.manager.users)
         BaseObject.__json_init__(self, state=state)
-        self.state = state
         self.emoji = None
 
     async def fetch_many(self, after=None, limit=None):
@@ -65,7 +64,7 @@ class Reactions(BaseSubState, BaseObject, template=ReactionTemplate):
                      emoji=self.emoji.to_reaction()))
 
     def update(self, data, *args, **kwargs):
-        super().update(*args, **kwargs)
+        super().update(data, *args, **kwargs)
 
         emoji = data.get('emoji')
         if emoji is not None:

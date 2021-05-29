@@ -40,7 +40,7 @@ class Message(BaseObject, template=MessageTemplate):
         super().__json_init__(state=state)
         self.author = None
         self.member = None
-        self.reactions = self.state.manager.get_class('ReactionState')(
+        self.reactions = self.state.manager.get_class('ReactionsState')(
             manager=self.state.manager, message=self)
 
     @property
@@ -49,7 +49,8 @@ class Message(BaseObject, template=MessageTemplate):
 
     @property
     def guild(self):
-        return self.state.manager.guilds.get(self.guild_id)
+        return (self.state.manager.guilds.get(self.guild_id)
+                or getattr(self.state.channel, 'guild', None))
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
