@@ -6,7 +6,7 @@ __all__ = ('Snowflake',)
 class Snowflake(int):
     __slots__ = ()
 
-    DISCORD_EPOCH = 1420070400000
+    SNOWFLAKE_EPOCH = 1420070400000
 
     TIMESTAMP_SHIFT = 22
     WORKER_ID_SHIFT = 17
@@ -23,7 +23,7 @@ class Snowflake(int):
         elif isinstance(timestamp, datetime):
             timestamp = timestamp.timestamp()
 
-        timestamp = int((timestamp * 1000) - cls.DISCORD_EPOCH)
+        timestamp = int((timestamp * 1000) - cls.SNOWFLAKE_EPOCH)
 
         return cls((timestamp << cls.TIMESTAMP_SHIFT)
                    | (worker_id << cls.WORKER_ID_SHIFT)
@@ -53,7 +53,7 @@ class Snowflake(int):
 
     @property
     def timestamp(self):
-        return ((self >> self.TIMESTAMP_SHIFT) + self.DISCORD_EPOCH) / 1000
+        return ((self >> self.TIMESTAMP_SHIFT) + self.SNOWFLAKE_EPOCH) / 1000
 
     @property
     def time(self):
