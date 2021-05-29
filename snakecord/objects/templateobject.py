@@ -34,6 +34,15 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
     def source_guild(self):
         return self.state.manager.guilds.get(self.source_guild_id)
 
+    async def fetch(self):
+        data = await rest.get_template.request(
+            session=self.manager.rest,
+            fmt=dict(code=self.code))
+
+        self.update(data)
+
+        return self
+
     async def create_guild(self, **kwargs):
         required_keys = ('name',)
         keys = rest.create_guild_from_template.json
@@ -79,15 +88,6 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.source_guild_id,
                      template_code=self.code))
-
-    async def fetch(self):
-        data = await rest.get_template.request(
-            session=self.manager.rest,
-            fmt=dict(code=self.code))
-
-        self.update(data)
-
-        return self
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
