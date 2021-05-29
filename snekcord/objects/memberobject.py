@@ -37,9 +37,8 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         keys = rest.modify_guild_member.json
 
         try:
-            kwargs['channel_id'] = (
-                Snowflake.try_snowflake(kwargs.pop('voice_channel'))
-            )
+            kwargs['channel_id'] = Snowflake.try_snowflake(
+                kwargs.pop('voice_channel'))
         except KeyError:
             pass
 

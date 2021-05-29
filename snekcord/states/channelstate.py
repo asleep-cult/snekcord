@@ -120,9 +120,8 @@ class GuildChannelState(BaseSubState):
             value['id'] = Snowflake.try_snowflake(key)
 
             try:
-                value['parent_id'] = (
-                    Snowflake.try_snowflake(value.pop('parent'))
-                )
+                value['parent_id'] = Snowflake.try_snowflake(
+                    value.pop('parent'))
             except KeyError:
                 pass
 
