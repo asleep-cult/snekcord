@@ -4,17 +4,17 @@
 
 Installation can be done with `pip`
 ```
-pip install -U snakecord
+pip install -U snekcord
 ```
 
 ## Examples
 
 ```python
-import snakecord
+import snekcord
 
 TOKEN = ''
 
-client = snakecord.UserClient(TOKEN)
+client = snekcord.UserClient(TOKEN)
 
 
 @client.on()

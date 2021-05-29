@@ -1,4 +1,4 @@
-# Snakecord
+# Snekcord
 
 A work-in-progress Discord API wrapper written in Python.
 
