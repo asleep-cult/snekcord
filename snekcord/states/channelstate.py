@@ -89,9 +89,8 @@ class GuildChannelState(BaseSubState):
         if channel_type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS,
                             ChannelType.GUILD_STORE):
             try:
-                kwargs['parent_id'] = (
-                    Snowflake.try_snowflake(kwargs.pop('parent'))
-                )
+                kwargs['parent_id'] = Snowflake.try_snowflake(
+                    kwargs.pop('parent'))
             except KeyError:
                 pass
 

@@ -702,8 +702,7 @@ class RestSession(AsyncClient):
         super().__init__(*args, **kwargs)
 
     async def request(self, method, url, *args, **kwargs):
-        response = await super().request(
-            method, url, *args, **kwargs)
+        response = await super().request(method, url, *args, **kwargs)
         await response.aclose()
 
         data = response.content

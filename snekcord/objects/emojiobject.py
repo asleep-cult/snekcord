@@ -93,8 +93,7 @@ class BuiltinEmoji:
 
         self.diversity_children = []
         for child in data[3]:
-            self.diversity_children.append(
-                BuiltinEmoji(category, child))
+            self.diversity_children.append(BuiltinEmoji(category, child))
 
     @property
     def id(self):

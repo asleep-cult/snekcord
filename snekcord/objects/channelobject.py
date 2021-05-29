@@ -83,9 +83,8 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         if self.type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS,
                          ChannelType.GUILD_STORE):
             try:
-                kwargs['parent_id'] = (
-                    Snowflake.try_snowflake(kwargs.pop('parent'))
-                )
+                kwargs['parent_id'] = Snowflake.try_snowflake(
+                    kwargs.pop('parent'))
             except KeyError:
                 pass
 
