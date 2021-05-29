@@ -1,5 +1,5 @@
 from .baseobject import BaseObject, BaseTemplate
-from .inviteobject import GuildVanityUrl
+from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
 from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake,
@@ -67,7 +67,7 @@ class Guild(BaseObject, template=GuildTemplate):
         super().__json_init__(state=state)
 
         self.widget = GuildWidget.unmarshal(guild=self)
-        self.vanity_url = GuildVanityUrl.unmarshal(guild=self)
+        self.vanity_url = GuildVanityURL.unmarshal(guild=self)
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
@@ -138,17 +138,24 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return data['pruned']
 
-    async def fetch_preview(self):
+    async def preview(self):
         return await self.state.fetch_preview(self.id)
 
-    async def fetch_voice_regions(self):
+    async def voice_regions(self):
         data = await rest.get_guild_voice_regions.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))
 
         return data
 
-    async def fetch_templates(self):
+    async def invites(self):
+        data = await rest.get_guild_invites.request(
+            session=self.state.manager.rest,
+            fmt=dict(guild_id=self.id))
+
+        return self.state.manager.upsert_many(data)
+
+    async def templates(self):
         data = await rest.get_guild_templates.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))

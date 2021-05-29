@@ -33,8 +33,3 @@ class InviteState(BaseState):
             params=params)
 
         return self.upsert(data)
-
-    async def delete(self, code):
-        await rest.delete_invite.request(
-            session=self.manager.rest,
-            fmt=dict(code=code))

@@ -111,7 +111,7 @@ class GuildChannelState(BaseSubState):
 
         return self.superstate.upsert(data)
 
-    async def bulk_modify(self, positions):
+    async def modify_many(self, positions):
         required_keys = ('id',)
         keys = rest.modify_guild_channel_positions.json
 

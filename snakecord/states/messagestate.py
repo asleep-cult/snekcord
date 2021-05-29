@@ -73,3 +73,11 @@ class MessageState(BaseState):
             json=kwargs)
 
         return self.upsert(data)
+
+    async def bulk_delete(self, messages):
+        message_ids = tuple(Snowflake.try_snowflake_set(messages))
+
+        await rest.bulk_delete_messages.request(
+            session=self.manager.rest,
+            fmt=dict(channel_id=self.id),
+            json=dict(messages=message_ids))

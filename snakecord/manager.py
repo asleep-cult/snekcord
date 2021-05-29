@@ -83,7 +83,7 @@ class BaseManager(EventDispatcher):
         self._sigpending.append((signo, frame))
 
         if self.finalizing:
-            return
+            exit()  # give up
 
         self.finalizing = True
 

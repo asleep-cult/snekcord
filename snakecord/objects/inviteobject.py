@@ -2,7 +2,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..utils import JsonField, JsonObject, JsonTemplate
 
-__all__ = ('Invite', 'GuildVanityUrl')
+__all__ = ('Invite', 'GuildVanityURL')
 
 
 InviteTemplate = JsonTemplate(
@@ -37,7 +37,9 @@ class Invite(BaseObject, template=InviteTemplate):
         return self.id
 
     async def delete(self):
-        await self.state.delete(self.code)
+        await rest.delete_invite.request(
+                session=self.state.manager.rest,
+                fmt=dict(code=self.code))
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
@@ -59,12 +61,12 @@ class Invite(BaseObject, template=InviteTemplate):
             self.target_user = self.state.manager.users.upsert(target_user)
 
 
-GuildVanityUrlTemplate = JsonTemplate(
+GuildVanityURLTemplate = JsonTemplate(
     code=JsonField('code')
 )
 
 
-class GuildVanityUrl(JsonObject, template=GuildVanityUrlTemplate):
+class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
     __slots__ = ('guild',)
 
     def __json_init__(self, *, guild):

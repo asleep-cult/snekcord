@@ -123,6 +123,18 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         self.messages = self.state.manager.get_class('MessageState')(
             manager=self.state.manager, channel=self)
 
+    async def typing(self):
+        await rest.trigger_typing_indicator.request(
+            session=self.state.manager.rest,
+            fmt=dict(channel_id=self.id))
+
+    async def pins(self):
+        data = await rest.get_pinned_messages.request(
+            session=self.state.manager.rest,
+            fmt=dict(channel_id=self.id))
+
+        return self.messages.upsert_many(data)
+
 
 VoiceChannelTemplate = JsonTemplate(
     bitrate=JsonField('bitrate'),
