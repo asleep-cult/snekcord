@@ -23,7 +23,7 @@ class Token(str):
     @property
     def id(self):
         decoded = urlsafe_b64decode(_padded(self.parts[0]))
-        return Snowflake(decoded.decode())
+        return Snowflake(decoded)
 
     @property
     def timestamp(self):
