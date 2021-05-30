@@ -111,7 +111,7 @@ class EmbedBuilder:
     def set_title(self, title):
         if title is not None and not isinstance(title, str):
             raise TypeError(
-                f'title should be a string or None, got'
+                f'title should be a str or None, got'
                 f'{title.__class__.__name__!r}')
 
         self.embed.title = title
