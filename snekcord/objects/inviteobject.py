@@ -24,8 +24,8 @@ class Invite(BaseObject, template=InviteTemplate):
     __slots__ = ('guild', 'channel', 'inviter', 'target_user',
                  'target_application')
 
-    def __json_init__(self, *, state):
-        super().__json_init__(state=state)
+    def __init__(self, *, state):
+        super().__init__(state=state)
         self.guild = None
         self.channel = None
         self.inviter = None
@@ -69,7 +69,7 @@ GuildVanityURLTemplate = JsonTemplate(
 class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, guild):
+    def __init__(self, *, guild):
         self.guild = guild
 
     @property

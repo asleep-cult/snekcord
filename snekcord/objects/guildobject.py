@@ -63,8 +63,8 @@ class Guild(BaseObject, template=GuildTemplate):
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
                  'emojis', 'roles', 'members')
 
-    def __json_init__(self, *, state):
-        super().__json_init__(state=state)
+    def __init__(self, *, state):
+        super().__init__(state=state)
 
         self.widget = GuildWidget.unmarshal(guild=self)
         self.vanity_url = GuildVanityURL.unmarshal(guild=self)
@@ -230,8 +230,8 @@ GuildBanTemplate = JsonTemplate(
 class GuildBan(BaseObject, template=GuildBanTemplate):
     __slots__ = ('guild', 'user')
 
-    def __json_init__(self, *, state, guild):
-        super().__json_init__(state)
+    def __init__(self, *, state, guild):
+        super().__init__(state)
         self.guild = guild
 
     def update(self, data, *args, **kwargs):
@@ -254,7 +254,7 @@ WelcomeScreenChannelTemplate = JsonTemplate(
 class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, guild):
+    def __init__(self, *, guild):
         self.guild = guild
 
     @property
@@ -274,7 +274,7 @@ WelcomeScreenTemplate = JsonTemplate(
 class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
     __slots__ = ('guild', 'welcome_channels')
 
-    def __json_init__(self, *, guild):
+    def __init__(self, *, guild):
         self.guild = guild
         self.welcome_channels = []
 

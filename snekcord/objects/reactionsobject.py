@@ -15,9 +15,9 @@ ReactionsTemplate = JsonTemplate(
 class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
     __slots__ = ('emoji',)
 
-    def __json_init__(self, *, state):
+    def __init__(self, *, state):
         BaseSubState.__init__(self, superstate=state.manager.users)
-        BaseObject.__json_init__(self, state=state)
+        BaseObject.__init__(self, state=state)
         self.emoji = None
 
     async def fetch_many(self, after=None, limit=None):

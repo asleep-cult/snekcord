@@ -28,8 +28,8 @@ RoleTemplate = JsonTemplate(
 class Role(BaseObject, template=RoleTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, state, guild):
-        super().__json_init__(state=state)
+    def __init__(self, *, state, guild):
+        super().__init__(state=state)
         self.guild = guild
 
     async def modify(self, **kwargs):

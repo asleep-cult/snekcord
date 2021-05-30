@@ -37,8 +37,8 @@ GuildEmojiTemplate = JsonTemplate(
 class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
     __slots__ = ('guild', 'user')
 
-    def __json_init__(self, *, state, guild):
-        super().__json_init__(state=state)
+    def __init__(self, *, state, guild):
+        super().__init__(state=state)
         self.guild = guild
         self.user = None
 

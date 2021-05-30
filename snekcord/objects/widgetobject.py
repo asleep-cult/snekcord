@@ -42,7 +42,7 @@ GuildWidgetSettingsTemplate = JsonTemplate(
 class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
     __slots__ = ('guild',)
 
-    def __json_init__(self, *, guild):
+    def __init__(self, *, guild):
         self.guild = guild
 
     @property

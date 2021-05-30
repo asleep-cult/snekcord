@@ -124,7 +124,7 @@ class JsonObjectMeta(type):
 
 
 class JsonObject(metaclass=JsonObjectMeta):
-    def __json_init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         pass
 
     @classmethod
@@ -136,7 +136,7 @@ class JsonObject(metaclass=JsonObjectMeta):
             data = json.loads(data)
 
         self = cls.__new__(cls)
-        cls.__json_init__(self, *args, **kwargs)
+        cls.__init__(self, *args, **kwargs)
 
         if data is not None:
             self.update(data, set_defaults=True)

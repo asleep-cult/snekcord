@@ -36,8 +36,8 @@ MessageTemplate = JsonTemplate(
 class Message(BaseObject, template=MessageTemplate):
     __slots__ = ('author', 'member', 'reactions')
 
-    def __json_init__(self, *, state):
-        super().__json_init__(state=state)
+    def __init__(self, *, state):
+        super().__init__(state=state)
         self.author = None
         self.member = None
         self.reactions = self.state.manager.get_class('ReactionsState')(

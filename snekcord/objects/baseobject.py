@@ -14,7 +14,7 @@ BaseTemplate = JsonTemplate(
 class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at')
 
-    def __json_init__(self, *, state):
+    def __init__(self, *, state):
         self.state = state
         self.id = None
         self.cached = False
