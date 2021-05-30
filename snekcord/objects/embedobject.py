@@ -111,8 +111,8 @@ class EmbedBuilder:
     def set_title(self, title):
         if title is not None and not isinstance(title, str):
             raise TypeError(
-                'title should be a string or None, '
-                'got {.__class__.__name__!r}'.format(title))
+                f'title should be a string or None, got'
+                f'{title.__class__.__name__!r}')
 
         self.embed.title = title
 
@@ -133,8 +133,8 @@ class EmbedBuilder:
     def set_description(self, description):
         if description is not None and not isinstance(description, str):
             raise TypeError(
-                'description should be a str or None, got '
-                '{.__class__.__name__!r}'.format(description))
+                f'description should be a str or None, got '
+                f'{description.__class__.__name__!r}')
 
         self.embed.description = description
 
@@ -147,8 +147,8 @@ class EmbedBuilder:
     def set_url(self, url):
         if url is not None and not isinstance(url, str):
             raise TypeError(
-                'url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(url))
+                f'url should be a str or None, got '
+                f'{url.__class__.__name__!r}')
 
         self.embed.url = url
 
@@ -166,8 +166,8 @@ class EmbedBuilder:
 
         if timestamp is not None and not isinstance(timestamp, datetime):
             raise TypeError(
-                'timestamp should be a str, int, float, datetime or None, ',
-                'got {.__class__.__name__!r}'.format(timestamp))
+                f'timestamp should be a str, int, float, datetime or None, ',
+                f'got {timestamp.__class__.__name__!r}')
 
         self.embed.timestamp = timestamp
 
@@ -180,8 +180,7 @@ class EmbedBuilder:
     def set_color(self, color):
         if color is not None and not isinstance(color, int):
             raise TypeError(
-                'color should be an int, got '
-                '{.__clas__.__name__!r}'.format(color))
+                f'color should be an int, got {color.__class__.__name__!r}')
 
         self.embed.color = color
 
@@ -194,18 +193,17 @@ class EmbedBuilder:
     def set_footer(self, text, icon_url=None, proxy_icon_url=None):
         if not isinstance(text, str):
             raise TypeError(
-                'text should be a str, got '
-                '{.__class__.__name__!r}'.format(text))
+                f'text should be a str, got {text.__class__.__name__!r}')
 
         if icon_url is not None and not isinstance(icon_url, str):
             raise TypeError(
-                'icon_url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(icon_url))
+                f'icon_url should be a str or None, got '
+                f'{icon_url.__class__.__name__!r}')
 
         if proxy_icon_url is not None and not isinstance(proxy_icon_url, str):
             raise TypeError(
-                'proxy_icon_url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(proxy_icon_url))
+                f'proxy_icon_url should be a str or None, got '
+                f'{proxy_icon_url.__class__.__name__!r}')
 
         self.embed.foooter = EmbedFooter.unmarshal({
             'text': text,
@@ -222,23 +220,22 @@ class EmbedBuilder:
     def _attachment(self, url=None, proxy_url=None, height=None, width=None):
         if url is not None and not isinstance(url, str):
             raise TypeError(
-                'url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(url))
+                f'url should be a str or None, got {url.__class__.__name__!r}')
 
         if proxy_url is not None and not isinstance(proxy_url, str):
             raise TypeError(
-                'proxy_url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(proxy_url))
+                f'proxy_url should be a str or None, got '
+                f'{proxy_url.__class__.__name__!r}')
 
         if height is not None and not isinstance(height, int):
             raise TypeError(
-                'height should be an int or None, got '
-                '{.__class__.__name__!r}'.format(height))
+                f'height should be an int or None, got '
+                f'{height.__class__.__name__!r}')
 
         if width is not None and not isinstance(width, int):
             raise TypeError(
-                'width should be an int or None, got '
-                '{.__class__.__name__!r}'.format(width))
+                f'width should be an int or None, got '
+                f'{width.__class__.__name__!r}')
 
         return {
             'url': url,
@@ -276,13 +273,11 @@ class EmbedBuilder:
     def set_provider(self, name=None, url=None):
         if name is not None and not isinstance(name, str):
             raise TypeError(
-                'name should be a str or None, got '
-                '{.__class__.__name__}'.format(name))
+                f'name should be a str or None, got {name.__class__.__name__}')
 
         if url is not None and not isinstance(url, str):
             raise TypeError(
-                'url should be a str or None, got '
-                '{.__class__.__name__}'.format(url))
+                f'url should be a str or None, got {url.__class__.__name__}')
 
         self.embed.provider = EmbedProvider.unmarshal({
             'name': name,
@@ -298,18 +293,17 @@ class EmbedBuilder:
     def set_author(self, name, icon_url=None, proxy_icon_url=None):
         if not isinstance(name, str):
             raise TypeError(
-                'name should be a str, got '
-                '{.__class__.__name__!r}'.format(name))
+                f'name should be a str, got {name.__class__.__name__!r}')
 
         if icon_url is not None and not isinstance(icon_url, str):
             raise TypeError(
-                'icon_url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(icon_url))
+                f'icon_url should be a str or None, got '
+                f'{icon_url.__class__.__name__!r}')
 
         if proxy_icon_url is not None and not isinstance(proxy_icon_url, str):
             raise TypeError(
-                'proxy_icon_url should be a str or None, got '
-                '{.__class__.__name__!r}'.format(proxy_icon_url))
+                f'proxy_icon_url should be a str or None, got '
+                f'{proxy_icon_url.__class__.__name__!r}')
 
         self.embed.foooter = EmbedAuthor.unmarshal({
             'name': name,
@@ -326,18 +320,16 @@ class EmbedBuilder:
     def _field(self, name, value, inline=None):
         if not isinstance(name, str):
             raise TypeError(
-                'name should be a str, got '
-                '{.__class__.__name__!r}'.format(name))
+                f'name should be a str, got {name.__class__.__name__!r}')
 
         if not isinstance(value, str):
             raise TypeError(
-                'value should be a str, got '
-                '{.__class__.__name__!r}'.format(value))
+                f'value should be a str, got {value.__class__.__name__!r}')
 
         if inline is not None and not isinstance(inline, bool):
             raise TypeError(
-                'inline should be a bool or None, got '
-                '{.__class__.__name__!r}'.format(inline))
+                f'inline should be a bool or None, got '
+                f'{inline.__class__.__name__!r}')
 
         return EmbedField.unmarshal({
             'name': name,

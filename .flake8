@@ -1,4 +1,5 @@
 [flake8]
 # F401 and F403 is when flake8 complains about imports
 per-file-ignores =
+    F541,
     __init__.py: F401,F403
