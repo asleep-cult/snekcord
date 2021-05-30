@@ -1,4 +1,4 @@
-from .basestate import (BaseState, BaseSubState)
+from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..objects.baseobject import BaseObject
 from ..objects.channelobject import (
@@ -108,7 +108,10 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return self.superstate.upsert(data)
+        channel = self.superstate.upsert(data)
+        self.add_key(channel.id)
+
+        return channel
 
     async def modify_many(self, positions):
         required_keys = ('id',)

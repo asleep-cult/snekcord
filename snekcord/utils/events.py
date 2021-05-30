@@ -2,25 +2,7 @@ import asyncio
 import functools
 from weakref import WeakSet
 
-__all__ = ('EventNamespace', 'EventWaiter', 'EventDispatcher',
-           'EventDefinition')
-
-
-class EventDefinition:
-    pass
-
-
-class EventNamespace:
-    def __init_subclass__(cls):
-        cls.__events__ = {}
-
-        for base in cls.__bases__:
-            if issubclass(base, EventNamespace):
-                cls.__events__.update(base.__events__)
-
-        for name, attr in cls.__dict__.items():
-            if isinstance(attr, type) and issubclass(attr, EventDefinition):
-                cls.__events__[name] = attr
+__all__ = ('EventWaiter', 'EventDispatcher',)
 
 
 class EventWaiter:
@@ -77,7 +59,7 @@ def ensure_future(coro):
 
 
 class EventDispatcher:
-    events = None
+    __events__ = None
 
     def __init__(self, *, loop=None):
         if loop is not None:
@@ -112,7 +94,6 @@ class EventDispatcher:
             waiters.remove(waiter)
 
     def run_callbacks(self, name, *args):
-        name = name.lower()
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
 
@@ -128,12 +109,8 @@ class EventDispatcher:
             subscriber.run_callbacks(name, *args)
 
     def dispatch(self, name, *args):
-        if self.events is not None:
-            event = self.events.__events__.get(name.lower())
-        else:
-            event = None
-
-        if event is not None:
+        if self.__events__ is not None:
+            event = self.__events__.get(name.lower())
             args = (event(self, *args),)
 
         self.run_callbacks(name, *args)
