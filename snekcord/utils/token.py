@@ -8,8 +8,6 @@ __all__ = ('TOKEN_EPOCH', 'get_token_type', 'strip_token_type', 'split_token',
            'get_token_hmac')
 
 TOKEN_EPOCH = 1293840000
-# Some tokens are based on Unix epoch, others are based on this epoch.
-# Don't ask me why.
 
 
 def _padded(string):
@@ -42,6 +40,10 @@ def get_token_timestamp(token):
     part = _padded(split_token(token)[1])
     timestamp = int.from_bytes(b64decode(part), 'big', signed=False)
     if timestamp < TOKEN_EPOCH:
+        # If the timestamp is less than TOKEN_EPOCH then
+        # it represents the time the token was generated (I think?)
+        # otherwise this timestamp represents the time the application
+        # was created.
         timestamp += TOKEN_EPOCH
     return timestamp
 
