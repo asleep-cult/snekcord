@@ -305,7 +305,7 @@ class EmbedBuilder:
                 f'proxy_icon_url should be a str or None, got '
                 f'{proxy_icon_url.__class__.__name__!r}')
 
-        self.embed.footer = EmbedAuthor.unmarshal({
+        self.embed.author = EmbedAuthor.unmarshal({
             'name': name,
             'icon_url': icon_url,
             'proxy_icon_url': proxy_icon_url
@@ -354,7 +354,7 @@ class EmbedBuilder:
         self.embed.fields.clear()
         return self
 
-    async def sendto(self, channel, **kwargs):
+    async def send_to(self, channel, **kwargs):
         kwargs['embed'] = self.embed
         return await channel.messages.create(**kwargs)
 
