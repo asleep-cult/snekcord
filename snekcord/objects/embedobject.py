@@ -3,7 +3,7 @@ import enum
 import operator
 from datetime import datetime
 
-from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate)
+from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate
 
 __all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
@@ -123,7 +123,7 @@ class EmbedBuilder:
         return self
 
     def set_type(self, type):
-        self.embed.type = EmbedType(type)
+        self.embed.type = EmbedType(type) if type is not None else None
         return self
 
     def clear_type(self):
@@ -205,7 +205,7 @@ class EmbedBuilder:
                 f'proxy_icon_url should be a str or None, got '
                 f'{proxy_icon_url.__class__.__name__!r}')
 
-        self.embed.foooter = EmbedFooter.unmarshal({
+        self.embed.footer = EmbedFooter.unmarshal({
             'text': text,
             'icon_url': icon_url,
             'proxy_icon_url': proxy_icon_url
@@ -305,7 +305,7 @@ class EmbedBuilder:
                 f'proxy_icon_url should be a str or None, got '
                 f'{proxy_icon_url.__class__.__name__!r}')
 
-        self.embed.foooter = EmbedAuthor.unmarshal({
+        self.embed.footer = EmbedAuthor.unmarshal({
             'name': name,
             'icon_url': icon_url,
             'proxy_icon_url': proxy_icon_url
@@ -353,6 +353,10 @@ class EmbedBuilder:
     def clear_fields(self):
         self.embed.fields.clear()
         return self
+
+    async def sendto(self, channel, **kwargs):
+        kwargs['embed'] = self.embed
+        return await channel.messages.create(**kwargs)
 
     @classmethod
     def from_embed(cls, embed):
