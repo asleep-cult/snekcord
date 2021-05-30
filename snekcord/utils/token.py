@@ -1,41 +1,55 @@
-from base64 import urlsafe_b64decode
+from base64 import b64decode
 from datetime import datetime
 
 from . import Snowflake
 
-__all__ = ('Token',)
+__all__ = ('TOKEN_EPOCH', 'get_token_type', 'strip_token_type', 'split_token',
+           'get_token_id', 'get_token_timestamp', 'get_token_time',
+           'get_token_hmac')
+
+TOKEN_EPOCH = 1293840000
+# Some tokens are based on Unix epoch, others are based on this epoch.
+# Don't ask me why.
 
 
 def _padded(string):
     return string + '=' * (4 - len(string) % 4)
 
 
-class Token(str):
-    __slots__ = ('parts',)
+def get_token_type(token):
+    return token.strip().split()[0].strip()
 
-    TOKEN_EPOCH = 1293840000
 
-    def __new__(cls, *args, **kwargs):
-        self = super().__new__(cls, *args, **kwargs)
-        self.parts = tuple(self.split('.', 2))
-        return self
+def strip_token_type(token):
+    if ' ' not in token:
+        return token
+    return ' '.join(token.strip().split()[1:])
 
-    @property
-    def id(self):
-        decoded = urlsafe_b64decode(_padded(self.parts[0]))
-        return Snowflake(decoded)
 
-    @property
-    def timestamp(self):
-        decoded = urlsafe_b64decode(_padded(self.parts[1]))
-        return (self.TOKEN_EPOCH
-                + int.from_bytes(decoded, 'little', signed=False))
+def split_token(token):
+    parts = strip_token_type(token).split('.', 2)
+    if len(parts) != 3:
+        raise ValueError('Invalid Token')
+    return parts
 
-    @property
-    def time(self):
-        return datetime.fromtimestamp(self.timestamp)
 
-    @property
-    def hmac(self):
-        # I don't know if this is right... ?
-        return urlsafe_b64decode(_padded(self.parts[2]))
+def get_token_id(token):
+    part = _padded(split_token(token)[0])
+    return Snowflake(b64decode(part))
+
+
+def get_token_timestamp(token):
+    part = _padded(split_token(token)[1])
+    timestamp = int.from_bytes(b64decode(part), 'big', signed=False)
+    if timestamp < TOKEN_EPOCH:
+        timestamp += TOKEN_EPOCH
+    return timestamp
+
+
+def get_token_time(token):
+    return datetime.fromtimestamp(get_token_timestamp(token))
+
+
+def get_token_hmac(token):
+    part = _padded(split_token(token)[2])
+    return b64decode(part)
