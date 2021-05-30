@@ -5,9 +5,9 @@ from datetime import datetime
 
 from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate)
 
-__all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
-           'EmbedProvider', 'EmbedAuthor', 'EmbedFooter',
-           'EmbedField', 'Embed')
+__all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
+           'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
+           'Embed', 'EmbedBuilder')
 
 
 class EmbedType(enum.Enum):
@@ -116,14 +116,19 @@ class EmbedBuilder:
 
         self.embed.title = title
 
+        return self
+
     def clear_title(self):
         self.embed.title = None
+        return self
 
     def set_type(self, type):
         self.embed.type = EmbedType(type)
+        return self
 
     def clear_type(self):
         self.embed.type = None
+        return self
 
     def set_description(self, description):
         if description is not None and not isinstance(description, str):
@@ -133,8 +138,11 @@ class EmbedBuilder:
 
         self.embed.description = description
 
+        return self
+
     def clear_description(self):
         self.embed.description = None
+        return self
 
     def set_url(self, url):
         if url is not None and not isinstance(url, str):
@@ -144,8 +152,11 @@ class EmbedBuilder:
 
         self.embed.url = url
 
+        return self
+
     def clear_url(self):
         self.embed.url = None
+        return self
 
     def set_timestamp(self, timestamp):
         if isinstance(timestamp, str):
@@ -160,8 +171,11 @@ class EmbedBuilder:
 
         self.embed.timestamp = timestamp
 
+        return self
+
     def clear_timestamp(self):
         self.embed.timestamp = None
+        return self
 
     def set_color(self, color):
         if color is not None and not isinstance(color, int):
@@ -171,8 +185,11 @@ class EmbedBuilder:
 
         self.embed.color = color
 
+        return self
+
     def clear_color(self):
         self.embed.color = None
+        return self
 
     def set_footer(self, text, icon_url=None, proxy_icon_url=None):
         if not isinstance(text, str):
@@ -196,8 +213,11 @@ class EmbedBuilder:
             'proxy_icon_url': proxy_icon_url
         })
 
+        return self
+
     def clear_footer(self):
         self.embed.footer = None
+        return self
 
     def _attachment(self, url=None, proxy_url=None, height=None, width=None):
         if url is not None and not isinstance(url, str):
@@ -230,6 +250,7 @@ class EmbedBuilder:
     def set_image(self, url=None, proxy_url=None, height=None, width=None):
         self.embed.image = EmbedImage.unmarshal(
             self._attachment(url, proxy_url, height, width))
+        return self
 
     def clear_image(self):
         self.embed.image = None
@@ -237,16 +258,20 @@ class EmbedBuilder:
     def set_thumbnail(self, url=None, proxy_url=None, height=None, width=None):
         self.embed.thumbnail = EmbedThumbnail.unmarshal(
             self._attachment(url, proxy_url, height, width))
+        return self
 
     def clear_thumbnail(self):
         self.embed.thumbnail = None
+        return self
 
     def set_video(self, url=None, proxy_url=None, height=None, width=None):
         self.embed.video = EmbedImage.unmarshal(
             self._attachment(url, proxy_url, height, width))
+        return self
 
     def clear_video(self):
         self.embed.video = None
+        return self
 
     def set_provider(self, name=None, url=None):
         if name is not None and not isinstance(name, str):
@@ -264,8 +289,11 @@ class EmbedBuilder:
             'url': url
         })
 
+        return self
+
     def clear_provider(self):
         self.embed.provider = None
+        return self
 
     def set_author(self, name, icon_url=None, proxy_icon_url=None):
         if not isinstance(name, str):
@@ -289,8 +317,11 @@ class EmbedBuilder:
             'proxy_icon_url': proxy_icon_url
         })
 
+        return self
+
     def clear_author(self):
         self.embed.author = None
+        return self
 
     def _field(self, name, value, inline=None):
         if not isinstance(name, str):
@@ -316,19 +347,20 @@ class EmbedBuilder:
 
     def add_field(self, name, value, inline=None):
         self.embed.fields.append(self._field(name, value, inline))
-
-    def pop_field(self, index):
-        return self.embed.fields.pop(index)
+        return self
 
     def insert_field(self, index, name, value, inline=None):
         self.embed.fields.insert(index, self._field(name, value, inline))
+        return self
 
     def extend_fields(self, *fields):
         for field in fields:
             self.add_field(*field)
+        return self
 
     def clear_fields(self):
         self.embed.fields.clear()
+        return self
 
     @classmethod
     def from_embed(cls, embed):
