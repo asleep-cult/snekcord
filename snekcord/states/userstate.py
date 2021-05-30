@@ -28,3 +28,9 @@ class UserState(BaseState):
             fmt=dict(user_id=user_id))
 
         return self.upsert(data)
+
+    async def fetch_self(self):
+        data = await rest.get_user_client.request(
+            session=self.manager.rest)
+
+        return self.upsert(data)

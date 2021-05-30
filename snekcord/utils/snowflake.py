@@ -44,12 +44,7 @@ class Snowflake(int):
 
     @classmethod
     def try_snowflake_set(cls, objs):
-        snowflakes = set()
-
-        for obj in objs:
-            snowflakes.add(cls.try_snowflake(obj))
-
-        return snowflakes
+        return {cls.try_snowflake(obj) for obj in objs}
 
     @property
     def timestamp(self):

@@ -28,24 +28,18 @@ class GuildState(BaseState):
     def new_template_many(self, values):
         return [self.new_template(value) for value in values]
 
-    async def create(self, **kwargs):
-        required_keys = ('name',)
-        keys = rest.create_guild.json
+    async def fetch(self, guild, with_counts=None):
+        params = {}
 
-        _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, required_keys, keys)
+        if with_counts is not None:
+            params['with_counts'] = with_counts
 
-        data = await rest.create_guild.request(
-            session=self.manager.rest, json=kwargs)
-
-        return self.upsert(data)
-
-    async def fetch(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
 
         data = await rest.get_guild.request(
             session=self.manager.rest,
-            fmt=dict(guild_id=guild_id))
+            fmt=dict(guild_id=guild_id),
+            params=params)
 
         return self.upsert(data)
 
@@ -83,6 +77,18 @@ class GuildState(BaseState):
 
         return self.new_template(data)
 
+    async def create(self, **kwargs):
+        required_keys = ('name',)
+        keys = rest.create_guild.json
+
+        _validate_keys(f'{self.__class__.__name__}.create',
+                       kwargs, required_keys, keys)
+
+        data = await rest.create_guild.request(
+            session=self.manager.rest, json=kwargs)
+
+        return self.upsert(data)
+
 
 class GuildBanState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
@@ -91,6 +97,16 @@ class GuildBanState(BaseState):
     def __init__(self, *, manager, guild):
         super().__init__(manager=manager)
         self.guild = guild
+
+    def upsert(self, data):
+        ban = self.get(data['user']['id'])
+        if ban is not None:
+            ban.update(data)
+        else:
+            ban = self.__ban_class__.unmarshal(data, state=self)
+            ban.cache()
+
+        return ban
 
     async def fetch(self, user):
         user_id = Snowflake.try_snowflake(user)

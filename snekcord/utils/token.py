@@ -17,7 +17,7 @@ class Token(str):
 
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls, *args, **kwargs)
-        self.parts = tuple(self.split('.', 3))
+        self.parts = tuple(self.split('.', 2))
         return self
 
     @property
