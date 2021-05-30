@@ -13,7 +13,7 @@ class ShardOpcode(enum.IntEnum):
     HEARTBEAT = 1  # Discord <-> Shard
     IDENTIFY = 2  # Discord <- Shard
     PRESENCE_UPDATE = 3  # Discord <- Shard
-    VOICE_STATE_UPDATE = 4  # Discord -> Shard
+    VOICE_STATE_UPDATE = 4  # Discord <- Shard
     VOICE_SERVER_PING = 5  # Discord ~ Shard
     RESUME = 6  # Discord <- Shard
     RECONNECT = 7  # Discord -> Shard
@@ -23,14 +23,37 @@ class ShardOpcode(enum.IntEnum):
     HEARTBEAT_ACK = 11  # Discord -> Shard
 
 
+class ShardCloseCode(enum.IntEnum):
+    UNKNOWN_ERROR = 4000
+    UNKNOWN_OPCODE = 4001
+    DECODE_ERROR = 4002
+    NOT_AUTHENTICATED = 4003
+    AUTHENTICATION_FAILED = 4004
+    ALREADY_AUTHENTICATED = 4005
+    INVALID_SEQUENCE = 4007
+    RATE_LIMITED = 4008
+    SESSION_TIMED_OUT = 4009
+    INVALID_SHARD = 4010
+    SHARDING_REQUIRED = 4011
+    INVALID_API_VERSION = 4012
+    INVALID_INTENTS = 4013
+    DISALLOWED_INTENTS = 4014
+
+
 class Shard(WebSocketClient):
-    def __init__(self, manager, shard_id):
-        super().__init__(loop=manager.loop)
-        self.manager = manager
+    def __init__(self, sharder, shard_id):
+        super().__init__(loop=sharder.loop)
+        self.sharder = sharder
         self.id = shard_id
 
+        self.v = None
+        self.user = None
+        self.available_guilds = set()
+        self.unavailable_guilds = set()
         self.session_id = None
-        self.sequence = -1
+        self.info = None
+
+        self.sequence = None
         self._chunk_nonce = -1
 
     async def identify(self):
@@ -107,18 +130,26 @@ class Shard(WebSocketClient):
         except ValueError:
             return
 
-        if (
-            response.sequence is not None
-            and response.sequence > self.sequence
-        ):
+        if (response.sequence is not None
+                and response.sequence > self.sequence):
             self.sequence = response.sequence
 
         if opcode is ShardOpcode.DISPATCH:
-            self.manager.dispatch(response.name, self, response.data)
+            if response.name == 'READY':
+                data = response.data
+
+                self.v = data['v']
+                self.user = self.sharder.manager.users.upsert(data['user'])
+                self.session_id = data['session_id']
+                self.info = data['shard']
+
+                for guild in data['guilds']:
+                    (self.unavailable_guilds if guild['unavailable']
+                     else self.available_guilds).add(guild['id'])
+            else:
+                self.sharder.dispatch(response.name, self, response.data)
         elif opcode is ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
-        elif opcode is ShardOpcode.VOICE_STATE_UPDATE:
-            return
         elif opcode is ShardOpcode.RECONNECT:
             return
         elif opcode is ShardOpcode.INVALID_SESSION:
