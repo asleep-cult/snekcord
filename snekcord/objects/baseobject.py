@@ -50,9 +50,6 @@ class BaseObject(JsonObject, template=BaseTemplate):
 
         Raises:
             PartialObjectError: Raised when the object's id is None.
-
-        Returns:
-            int: The hash of the object's id.
         """
         if self.id is None:
             raise PartialObjectError(
