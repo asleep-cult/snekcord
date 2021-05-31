@@ -328,13 +328,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#snekcord.objects.baseobject.BaseObject.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#snekcord.objects.baseobject.BaseObject.cache" class="md-nav__link">
     cache()
   </a>
@@ -457,13 +450,6 @@
           <li class="md-nav__item">
   <a href="#snekcord.objects.baseobject.BaseObject.__hash__" class="md-nav__link">
     __hash__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#snekcord.objects.baseobject.BaseObject.__init__" class="md-nav__link">
-    __init__()
   </a>
   
 </li>
@@ -655,60 +641,6 @@ for objects maintained by a Discord WebSocket connection</p>
 
   </div>
 
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="snekcord.objects.baseobject.BaseObject.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>state</code></td>
-        <td><code>BaseState</code></td>
-        <td><p>The state that the object belongs to</p></td>
-        <td><em>required</em></td>
-      </tr>
-  </tbody>
-</table>
-        <details class="quote">
-          <summary>Source code in <code>snekcord\objects\baseobject.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Arguments:</span>
-<span class="sd">        state BaseState: The state that the object belongs to</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">cached</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">deleted</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">deleted_at</span> <span class="o">=</span> <span class="kc">None</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
 
 
 
