@@ -9,9 +9,13 @@ repo_url: https://github.com/asleep-cult/snekcord
 
 nav:
   - Home: index.md
-  - Getting Started: getting_started.md
+  - Getting Started: getting-started.md
   - API Reference:
-    - Objects: api_reference/objects.md
+    - Objects:
+      - Base: api-reference/objects/base.md
+      - Channels: api-reference/objects/channels.md
+      - Embed: api-reference/objects/embed.md
+      - Guild: api-reference/objects/guild.md
 
 plugins:
   - search

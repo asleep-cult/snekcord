@@ -60,6 +60,24 @@ GuildTemplate = JsonTemplate(
 
 
 class Guild(BaseObject, template=GuildTemplate):
+    """Represend a Guild from Discord
+
+    Attributes:
+        widget GuildWidget: The guild's widget interface
+
+        vanity_url GuildVanityURL: The guild's vanity url interface
+
+        welcome_screen GuildWelcomeScreen: The guild's welcome screen interface
+
+        channels GuildChannelState: The guild's channel state
+
+        emojis GuildEmojiState: The guild's emoji state
+
+        roles RoleState: The guild's role state
+
+        members GuildMemberState: The guild's member state
+    """
+    # TODO(asleep-cult): Do it
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
                  'emojis', 'roles', 'members')
 

@@ -79,18 +79,18 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     """The base class for all channels that belong to a `Guild`
 
     Attributes:
-        name str: The name of the channel
+        name str: The channel's name
 
         guild_id Snowflake: The id of the guild that the channel is in
 
-        position int: The position of the channel
+        position int: The channel's position
 
         nsfw bool: `True` if the channel is allowed to have explicit content
             otherwise `False`
 
         parent_id Snowflake: The id of the channel's parent/category
 
-        type ChannelType: The type of the channel
+        type ChannelType: The channel's type
     """
     @property
     def mention(self):
@@ -181,12 +181,12 @@ TextChannelTemplate = JsonTemplate(
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):
-    """A class for the `GUILD_TEXT` channel type
+    """Represens the `GUILD_TEXT` channel type
 
     Attributes:
-        messages MessageState: The message state of the channel
+        messages MessageState: The channel's message state
 
-        topic str: The topic of the channel
+        topic str: The channel's topic
 
         slowmode int: The amount of time you have to wait between
             sending sucessive messages in the channel
