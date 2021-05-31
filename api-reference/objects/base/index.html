@@ -559,29 +559,29 @@
       <tr>
         <td><code>state</code></td>
         <td><code>BaseState</code></td>
-        <td><p>The state that this object belongs to</p></td>
+        <td><p>The state that the object belongs to</p></td>
       </tr>
       <tr>
         <td><code>id</code></td>
         <td><code>Optional[Snowflake|str]</code></td>
         <td><p>The object's unique identifier
-provided by Discord's API, this will be the object's <code>code</code>
+provided by Discord's API, the will be the object's <code>code</code>
 for <code>GuildTemplate</code> and <code>Invite</code> objects</p></td>
       </tr>
       <tr>
         <td><code>cached</code></td>
         <td><code>bool</code></td>
-        <td><p>Whether or not this object is stored in its state's cache</p></td>
+        <td><p>Whether or not the object is stored in its state's cache</p></td>
       </tr>
       <tr>
         <td><code>deleted</code></td>
         <td><code>bool</code></td>
-        <td><p>Whether or not this object is deleted</p></td>
+        <td><p>Whether or not the object is deleted</p></td>
       </tr>
       <tr>
         <td><code>deleted_at</code></td>
         <td><code>Optional[datetime]</code></td>
-        <td><p>The time at which this object was
+        <td><p>The time at which the object was
 marked as deleted</p></td>
       </tr>
   </tbody>
@@ -687,7 +687,7 @@ for objects maintained by a Discord WebSocket connection</p>
       <tr>
         <td><code>state</code></td>
         <td><code>BaseState</code></td>
-        <td><p>The state that this object belongs to</p></td>
+        <td><p>The state that the object belongs to</p></td>
         <td><em>required</em></td>
       </tr>
   </tbody>
@@ -697,7 +697,7 @@ for objects maintained by a Discord WebSocket connection</p>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        state BaseState: The state that this object belongs to</span>
+<span class="sd">        state BaseState: The state that the object belongs to</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="kc">None</span>

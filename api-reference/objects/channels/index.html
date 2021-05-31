@@ -325,6 +325,26 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.CategoryChannel" class="md-nav__link">
+    CategoryChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="CategoryChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.CategoryChannel.children" class="md-nav__link">
+    children()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#snekcord.objects.channelobject.ChannelType" class="md-nav__link">
     ChannelType
   </a>
@@ -430,6 +450,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.VoiceChannel" class="md-nav__link">
+    VoiceChannel
+  </a>
   
 </li>
       
@@ -508,6 +535,26 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.CategoryChannel" class="md-nav__link">
+    CategoryChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="CategoryChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.CategoryChannel.children" class="md-nav__link">
+    children()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#snekcord.objects.channelobject.ChannelType" class="md-nav__link">
     ChannelType
   </a>
@@ -616,6 +663,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.VoiceChannel" class="md-nav__link">
+    VoiceChannel
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -653,6 +707,74 @@
 
 
 
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.channelobject.CategoryChannel" class="doc doc-heading">
+        <code>CategoryChannel</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Represents the <code>GUILD_CATEGORY</code> channel type</p>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.channelobject.CategoryChannel.children" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">children</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Yields all of the <code>GuildChannels</code> that belong to this category</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\channelobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Yields all of the `GuildChannels` that belong to this category&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">parent_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">channel</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
 
 
 
@@ -1366,6 +1488,67 @@ in the channel</p>
 
   </div>
 
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.channelobject.VoiceChannel" class="doc doc-heading">
+        <code>VoiceChannel</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Represents the <code>GUILD_VOICE</code> channel type</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>bitrate</code></td>
+        <td><code>int</code></td>
+        <td><p>The channel's bitrate</p></td>
+      </tr>
+      <tr>
+        <td><code>user_limit</code></td>
+        <td><code>int</code></td>
+        <td><p>The maximum amount of people who can be in this
+channel at once</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
 
 
 

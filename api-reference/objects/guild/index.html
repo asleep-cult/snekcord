@@ -355,6 +355,60 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreen" class="md-nav__link">
+    WelcomeScreen
+  </a>
+  
+    <nav class="md-nav" aria-label="WelcomeScreen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreen.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreen.modify" class="md-nav__link">
+    modify()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreenChannel" class="md-nav__link">
+    WelcomeScreenChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="WelcomeScreenChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreenChannel.channel" class="md-nav__link">
+    channel
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreenChannel.emoji" class="md-nav__link">
+    emoji
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -412,6 +466,60 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreen" class="md-nav__link">
+    WelcomeScreen
+  </a>
+  
+    <nav class="md-nav" aria-label="WelcomeScreen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreen.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreen.modify" class="md-nav__link">
+    modify()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreenChannel" class="md-nav__link">
+    WelcomeScreenChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="WelcomeScreenChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreenChannel.channel" class="md-nav__link">
+    channel
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.guildobject.WelcomeScreenChannel.emoji" class="md-nav__link">
+    emoji
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -466,7 +574,7 @@
 
     <div class="doc doc-contents ">
 
-      <p>Represend a Guild from Discord</p>
+      <p>Represents a Guild from Discord</p>
 
 <p><strong>Attributes:</strong></p>
 <table>
@@ -550,6 +658,439 @@
 
 
 
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.guildobject.WelcomeScreen" class="doc doc-heading">
+        <code>WelcomeScreen</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Represents a <code>Guild</code>'s welcome screen</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>description</code></td>
+        <td><code>str</code></td>
+        <td><p>The welcome screen's description</p></td>
+      </tr>
+      <tr>
+        <td><code>guild</code></td>
+        <td><code>Guild</code></td>
+        <td><p>The guild associated with the welcome screen</p></td>
+      </tr>
+      <tr>
+        <td><code>welcome_channels</code></td>
+        <td><code>list[WelcomeChannel]</code></td>
+        <td><p>The welcome screen's channels</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.guildobject.WelcomeScreen.fetch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to get the welcome screen</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>WelcomeScreen</code></td>
+      <td><p>The updated welcome screen</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\guildobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to get the welcome screen</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        WelcomeScreen: The updated welcome screen</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_guild_welcome_screen</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">guild</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">guild_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">guild</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.guildobject.WelcomeScreen.modify" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to modify the welcome screen</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enabled</td>
+<td>bool</td>
+<td>Whether or not the welcome screen is enabled</td>
+</tr>
+<tr>
+<td>welcome_channels</td>
+<td>dict</td>
+<td>The new welcome channels <code>{channel: options}</code></td>
+</tr>
+<tr>
+<td>description</td>
+<td>str</td>
+<td>The welcome screen's new description</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Welcome Channel Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>description</td>
+<td>The welcome channel's description</td>
+</tr>
+<tr>
+<td>emoji</td>
+<td>The welcome channel's emoji</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>WelcomeScreen</code></td>
+      <td><p>The modified welcome screen</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="k">await</span> <span class="n">guild</span><span class="o">.</span><span class="n">welcome_screen</span><span class="o">.</span><span class="n">modify</span><span class="p">(</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Welcome to this fantastic guild&#39;</span><span class="p">,</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">welcome_channels</span><span class="o">=</span><span class="p">{</span>
+        <span class="mi">8235356323523452</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Get roles here&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;emoji&#39;</span><span class="p">:</span> <span class="n">some_emoji</span>
+        <span class="p">},</span>
+        <span class="mi">7583857293758372</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Use bot commands here&#39;</span><span class="p">,</span>
+            <span class="n">emoji</span><span class="p">:</span> <span class="n">another_emoji</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\guildobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to modify the welcome screen</span>
+
+<span class="sd">    **Parameters:**</span>
+
+<span class="sd">    | Name             | Type | Description                                   |</span>
+<span class="sd">    | ---------------- | ---- | --------------------------------------------- |</span>
+<span class="sd">    | enabled          | bool | Whether or not the welcome screen is enabled  |</span>
+<span class="sd">    | welcome_channels | dict | The new welcome channels `{channel: options}` |</span>
+<span class="sd">    | description      | str  | The welcome screen&#39;s new description          |</span>
+
+<span class="sd">    **Welcome Channel Options:**</span>
+
+<span class="sd">    | Name        | Description                       |</span>
+<span class="sd">    | ----------- | --------------------------------- |</span>
+<span class="sd">    | description | The welcome channel&#39;s description |</span>
+<span class="sd">    | emoji       | The welcome channel&#39;s emoji       |</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        WelcomeScreen: The modified welcome screen</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        ```py</span>
+<span class="sd">        await guild.welcome_screen.modify(</span>
+<span class="sd">            description=&#39;Welcome to this fantastic guild&#39;,</span>
+<span class="sd">            enabled=True,</span>
+<span class="sd">            welcome_channels={</span>
+<span class="sd">                8235356323523452: {</span>
+<span class="sd">                    &#39;description&#39;: &#39;Get roles here&#39;,</span>
+<span class="sd">                    &#39;emoji&#39;: some_emoji</span>
+<span class="sd">                },</span>
+<span class="sd">                7583857293758372: {</span>
+<span class="sd">                    &#39;description&#39;: &#39;Use bot commands here&#39;,</span>
+<span class="sd">                    emoji: another_emoji</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+<span class="sd">        )</span>
+<span class="sd">        ```</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="n">welcome_channel_keys</span> <span class="o">=</span> <span class="n">WelcomeScreenChannelTemplate</span><span class="o">.</span><span class="n">fields</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">welcome_channels</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;welcome_channels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">value</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Snowflake</span><span class="o">.</span><span class="n">try_snowflake</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">emoji</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s1">&#39;emoji&#39;</span><span class="p">]</span>
+                <span class="n">value</span><span class="p">[</span><span class="s1">&#39;emoji_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">emoji</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">value</span><span class="p">[</span><span class="s1">&#39;emoji_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">emoji</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="n">_validate_keys</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;welcome_channels[</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">,</span>
+                           <span class="n">value</span><span class="p">,</span> <span class="p">(),</span> <span class="n">welcome_channel_keys</span><span class="p">)</span>
+
+            <span class="n">welcome_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">modify_guild_welcome_screen</span><span class="o">.</span><span class="n">json</span>
+
+    <span class="n">_validate_keys</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">.modify&#39;</span><span class="p">,</span>
+                   <span class="n">kwargs</span><span class="p">,</span> <span class="p">(),</span> <span class="n">keys</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">modify_guild_welcome_screen</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">guild</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">guild_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">guild</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+        <span class="n">json</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.guildobject.WelcomeScreenChannel" class="doc doc-heading">
+        <code>WelcomeScreenChannel</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Represents a channel in a <code>WelcomeScreen</code></p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>channel_id</code></td>
+        <td><code>Snowflake</code></td>
+        <td><p>The id of the channel that this welcome channel
+refers to</p></td>
+      </tr>
+      <tr>
+        <td><code>description</code></td>
+        <td><code>str</code></td>
+        <td><p>The welcome channel's description</p></td>
+      </tr>
+      <tr>
+        <td><code>emoji_id</code></td>
+        <td><code>Snowflake</code></td>
+        <td><p>The id of the welcome channel's emoji</p></td>
+      </tr>
+      <tr>
+        <td><code>emoji_name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the welcome channel's emoji</p></td>
+      </tr>
+      <tr>
+        <td><code>welcome_screen</code></td>
+        <td><code>WelcomeScreen</code></td>
+        <td><p>The welcome screen associated with the
+channel</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="snekcord.objects.guildobject.WelcomeScreenChannel.channel" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">channel</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The actual channel that this welcome channel refers to</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This property relies on the channel cache so it could return None</p>
+</div>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="snekcord.objects.guildobject.WelcomeScreenChannel.emoji" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">emoji</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The welcome channel's emoji</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This property relies on the emoji cache to it could return None</p>
+</div>
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
 
 
 
