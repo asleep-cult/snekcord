@@ -79,18 +79,18 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     """The base class for all channels that belong to a `Guild`
 
     Attributes:
-        name str: The name of this channel
+        name str: The name of the channel
 
-        guild_id Snowflake: The id of the guild that this channel is in
+        guild_id Snowflake: The id of the guild that the channel is in
 
-        position int: The position of this channel
+        position int: The position of the channel
 
-        nsfw bool: `True` if this channel is allowed to have explicit content
+        nsfw bool: `True` if the channel is allowed to have explicit content
             otherwise `False`
 
-        parent_id Snowflake: The id of this channel's parent/category
+        parent_id Snowflake: The id of the channel's parent/category
 
-        type ChannelType: The type of this channel
+        type ChannelType: The type of the channel
     """
     @property
     def mention(self):
@@ -99,7 +99,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
     @property
     def guild(self):
-        """The `Guild` that this channel belongs to
+        """The `Guild` that the channel belongs to
 
         warning:
             This propery relies on the guild cache so it could return None
@@ -108,7 +108,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
     @property
     def parent(self):
-        """The channel's parent
+        """The channel's parent/category
 
         warning:
             This propery relies on the channel cache so it could return None
@@ -184,14 +184,14 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
     """A class for the `GUILD_TEXT` channel type
 
     Attributes:
-        messages MessageState: The message state of this channel
+        messages MessageState: The message state of the channel
 
-        topic str: The topic of this channel
+        topic str: The topic of the channel
 
         slowmode int: The amount of time you have to wait between
-            sending sucessive messages in this channel
+            sending sucessive messages in the channel
 
-        last_message_id Snowflake: The id of the last message send in this
+        last_message_id Snowflake: The id of the last message send in the
             channel
     """
     __slots__ = ('messages',)
@@ -204,7 +204,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
 
     @property
     def last_message(self):
-        """The last message sent in this channel
+        """The last message sent in the channel
 
         warning:
             This property relies on the message cache so it could return None
