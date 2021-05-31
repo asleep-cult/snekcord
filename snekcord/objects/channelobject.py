@@ -191,7 +191,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         slowmode int: The amount of time you have to wait between
             sending sucessive messages in the channel
 
-        last_message_id Snowflake: The id of the last message send in the
+        last_message_id Snowflake: The id of the last message sent in the
             channel
     """
     __slots__ = ('messages',)

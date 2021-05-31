@@ -5,4 +5,5 @@ __pycache__
 .idea
 .mypy_cache
 docs/_build
+site
 venv
