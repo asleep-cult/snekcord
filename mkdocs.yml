@@ -15,6 +15,7 @@ nav:
       - Base: api-reference/objects/base.md
       - Channels: api-reference/objects/channels.md
       - Embed: api-reference/objects/embed.md
+      - Guild: api-reference/objects/guild.md
 
 plugins:
   - search

@@ -42,13 +42,13 @@ EmbedThumbnail = JsonTemplate(
 """An embed thumbnail
 
 Attributes:
-    url str: The url of the thumbnail
+    url str: The thumbnail's url
 
-    proxy_url str: The proxy url of the thumbnail
+    proxy_url str: The thumbnail's proxy url
 
-    height int: The height of the thumbnail
+    height int: The thumbnail's height
 
-    width int: The width of the thumbnail
+    width int: The thumbnail's width
 """
 
 
@@ -61,13 +61,13 @@ EmbedVideo = JsonTemplate(
 """An embed video
 
 Attributes:
-    url str: The url of the video
+    url str: The video's url
 
-    proxy_url str: The proxy url of the video
+    proxy_url str: The video's proxy url
 
-    height int: The height of the video
+    height int: The video's height
 
-    width int: The width of the video
+    width int: The video's width
 """
 
 
@@ -80,13 +80,13 @@ EmbedImage = JsonTemplate(
 """An embed image
 
 Attributes:
-    url str: The url of the image
+    url str: The image's url
 
-    proxy_url str: The proxy url of the image
+    proxy_url str: The image's proxy url
 
-    height int: The height of the image
+    height int: The image's height
 
-    width int: The width of the image
+    width int: The image's width
 """
 
 
@@ -97,9 +97,9 @@ EmbedProvider = JsonTemplate(
 """An embed provider
 
 Attributes:
-    name str: The name of the provider
+    name str: The provider's name
 
-    url str: The url of the provider
+    url str: The provider's url
 """
 
 
@@ -111,11 +111,11 @@ EmbedAuthor = JsonTemplate(
 """An embed author
 
 Attributes:
-    name str: The name of the author
+    name str: The author's name
 
-    icon_url str: The icon url of the author
+    icon_url str: The author's icon url
 
-    proxy_icon_url str: The proxy icon url of the author
+    proxy_icon_url str: The author's proxy icon url
 """
 
 
@@ -127,11 +127,11 @@ EmbedFooter = JsonTemplate(
 """An embed footer
 
 Attributes:
-    text str: The text of the footer
+    text str: The footer's text
 
-    icon_url str: The icon url of the footer
+    icon_url str: The footer's icon url
 
-    proxy_icon_url str: The proxy icon url of the footer
+    proxy_icon_url str: The footer's proxy icon url
 """
 
 
@@ -143,9 +143,9 @@ EmbedField = JsonTemplate(
 """An embed field
 
 Attributes:
-    name str: The name of the field
+    name str: The field's name
 
-    value str: The value of the field
+    value str: The field's value
 
     inline bool: Whather or not the field is inline
 """
@@ -177,31 +177,31 @@ class Embed(JsonObject, template=EmbedTemplate):
     """Represents embedded rich content in a `Message`
 
     Attributes:
-        title str: The title of the embed
+        title str: The embed's title
 
-        type EmbedType: The type of the embed
+        type EmbedType: The embed's type
 
-        description str: The description of the embed
+        description str: The embed's description
 
-        url str: The url of the embed
+        url str: The embed's url
 
-        timestamp datetime: The timestamp of the embed
+        timestamp datetime: The embed's timestamp
 
-        color int: The color of the embed
+        color int: The embed's color
 
-        footer EmbedFooter: The footer of the embed
+        footer EmbedFooter: The embed's footer
 
-        image EmbedImage: The image of the embed
+        image EmbedImage: The embed's image
 
-        thumbnail EmbedThumbnail: The thumbnail of the embed
+        thumbnail EmbedThumbnail: The embed's thumbnail
 
-        video EmbedVideo: The video of the embed
+        video EmbedVideo: The embed's video
 
-        provider EmbedProvider: The provider of the embed
+        provider EmbedProvider: The embed's provider
 
-        author EmbedAuthor: The author of the embed
+        author EmbedAuthor: The embed's author
 
-        fields list[EmbedField]: The fields of the embed
+        fields list[EmbedField]: The embed's fields
     """
     def to_builder(self):
         """Equivalent to `EmbedBuilder.from_embed(self)`"""
@@ -232,7 +232,7 @@ class EmbedBuilder:
         self.set_color(kwargs.get('color'))
 
     def set_title(self, title):
-        """Sets the title of the embed
+        """Sets the embed's title
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -247,12 +247,12 @@ class EmbedBuilder:
         return self
 
     def clear_title(self):
-        """Clears the title of the embed"""
+        """Clears the embed's title"""
         self.embed.title = None
         return self
 
     def set_type(self, type):
-        """Sets the type of the embed
+        """Sets the embed's type
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -261,12 +261,12 @@ class EmbedBuilder:
         return self
 
     def clear_type(self):
-        """Clears the type of the embed"""
+        """Clears embed's type"""
         self.embed.type = None
         return self
 
     def set_description(self, description):
-        """Sets the description of the embed
+        """Sets the embed's description
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -281,12 +281,12 @@ class EmbedBuilder:
         return self
 
     def clear_description(self):
-        """Clears the description of the embed"""
+        """Clears the embed's description"""
         self.embed.description = None
         return self
 
     def set_url(self, url):
-        """Sets the url of the embed
+        """Sets the embed's url
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -301,12 +301,12 @@ class EmbedBuilder:
         return self
 
     def clear_url(self):
-        """Clears the url of the embed"""
+        """Clears the embed's url"""
         self.embed.url = None
         return self
 
     def set_timestamp(self, timestamp):
-        """Sets the timestamp of the embed
+        """Sets the embed's timestamp
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -326,12 +326,12 @@ class EmbedBuilder:
         return self
 
     def clear_timestamp(self):
-        """Clears the timestamp of the embed"""
+        """Clears the embed's timestamp"""
         self.embed.timestamp = None
         return self
 
     def set_color(self, color):
-        """Sets the color of the embed
+        """Sets the embed's color
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -345,12 +345,12 @@ class EmbedBuilder:
         return self
 
     def clear_color(self):
-        """Clears the color of the embed"""
+        """Clears the embed's color"""
         self.embed.color = None
         return self
 
     def set_footer(self, text, icon_url=None, proxy_icon_url=None):
-        """Sets the footer of the embed
+        """Sets the embed's footer
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -378,7 +378,7 @@ class EmbedBuilder:
         return self
 
     def clear_footer(self):
-        """Clears the footer of the embed"""
+        """Clears the embed's footer"""
         self.embed.footer = None
         return self
 
@@ -410,7 +410,7 @@ class EmbedBuilder:
         }
 
     def set_image(self, url=None, proxy_url=None, height=None, width=None):
-        """Sets the image of the embed
+        """Sets the embed's image
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -420,11 +420,11 @@ class EmbedBuilder:
         return self
 
     def clear_image(self):
-        """Clears the image of the embed"""
+        """Clears the embed's image"""
         self.embed.image = None
 
     def set_thumbnail(self, url=None, proxy_url=None, height=None, width=None):
-        """Sets the thumbnail of the embed
+        """Sets the embed's thumbnail
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -434,12 +434,12 @@ class EmbedBuilder:
         return self
 
     def clear_thumbnail(self):
-        """Clears the thumbnail of the embed"""
+        """Clears the embed's thumbnail"""
         self.embed.thumbnail = None
         return self
 
     def set_video(self, url=None, proxy_url=None, height=None, width=None):
-        """Sets the video of the embed
+        """Sets the embed's video
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -449,12 +449,12 @@ class EmbedBuilder:
         return self
 
     def clear_video(self):
-        """Clears the video of the embed"""
+        """Clears the embed's video"""
         self.embed.video = None
         return self
 
     def set_provider(self, name=None, url=None):
-        """Sets the provider of the embed
+        """Sets the embed's provider
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -475,12 +475,12 @@ class EmbedBuilder:
         return self
 
     def clear_provider(self):
-        """Clears the provider of the embed"""
+        """Clears the embed's provider"""
         self.embed.provider = None
         return self
 
     def set_author(self, name, icon_url=None, proxy_icon_url=None):
-        """Sets the author of the embed
+        """Sets the embed's author
 
         Raises:
             TypeError: Raised when an invalid argument type is provided
@@ -508,7 +508,7 @@ class EmbedBuilder:
         return self
 
     def clear_author(self):
-        """Clears the author of the embed"""
+        """Clears the embed's author"""
         self.embed.author = None
         return self
 
@@ -583,6 +583,14 @@ class EmbedBuilder:
 
     @classmethod
     def from_embed(cls, embed):
+        """Creates a builder from an `Embed`
+
+        Arguments:
+            embed Embed: The embed to create a builder from
+
+        Returns:
+            EmbedBuilder: The builder
+        """
         self = cls.__new__(cls)
         self.embed = copy.copy(embed)
         return self

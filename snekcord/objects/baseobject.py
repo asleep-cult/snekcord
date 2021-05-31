@@ -12,7 +12,7 @@ BaseTemplate = JsonTemplate(
 
 
 class BaseObject(JsonObject, template=BaseTemplate):
-    """This is the base class for all cachable Discord entities
+    """The base class for all cachable Discord entities
 
     Attributes:
         state BaseState: The state that this object belongs to
@@ -21,7 +21,7 @@ class BaseObject(JsonObject, template=BaseTemplate):
             provided by Discord's API, this will be the object's `code`
             for `GuildTemplate` and `Invite` objects
 
-        cached bool: Whether or not this object is stored in its state's cache.
+        cached bool: Whether or not this object is stored in its state's cache
 
         deleted bool: Whether or not this object is deleted
 
