@@ -35,10 +35,6 @@ class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at')
 
     def __init__(self, *, state):
-        """
-        Arguments:
-            state BaseState: The state that the object belongs to
-        """
         self.state = state
         self.id = None
         self.cached = False
