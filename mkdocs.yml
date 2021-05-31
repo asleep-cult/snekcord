@@ -11,7 +11,9 @@ nav:
   - Home: index.md
   - Getting Started: getting_started.md
   - API Reference:
-    - Objects: api_reference/objects.md
+    - Objects:
+      - Base: api_reference/objects/base.md
+      - Channels: api_reference/objects/channels.md
 
 plugins:
   - search
