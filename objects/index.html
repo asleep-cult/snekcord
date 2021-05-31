@@ -1,0 +1,1797 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A work-in-progress Discord API wrapper written in Python.">
+      
+      
+      
+        <meta name="author" content="asleep-cult">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.6">
+    
+    
+      
+        <title>Objects - snekcord</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.875de78c.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.f1a3b89f.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#snekcord.objects.baseobject" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="snekcord" class="md-header__button md-logo" aria-label="snekcord" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            snekcord
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Objects
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/asleep-cult/snekcord/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    asleep-cult/snekcord
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="snekcord" class="md-nav__button md-logo" aria-label="snekcord" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    snekcord
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/asleep-cult/snekcord/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    asleep-cult/snekcord
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Objects
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Objects
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject" class="md-nav__link">
+    snekcord.objects.baseobject
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject" class="md-nav__link">
+    BaseObject
+  </a>
+  
+    <nav class="md-nav" aria-label="BaseObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.cache" class="md-nav__link">
+    cache()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.uncache" class="md-nav__link">
+    uncache()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject" class="md-nav__link">
+    snekcord.objects.channelobject
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.ChannelType" class="md-nav__link">
+    ChannelType
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.DMChannel" class="md-nav__link">
+    DMChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="DMChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.DMChannel.close" class="md-nav__link">
+    close()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel" class="md-nav__link">
+    GuildChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="GuildChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.guild" class="md-nav__link">
+    guild
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.mention" class="md-nav__link">
+    mention
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.parent" class="md-nav__link">
+    parent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.delete" class="md-nav__link">
+    delete()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.modify" class="md-nav__link">
+    modify()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel" class="md-nav__link">
+    TextChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="TextChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel.last_message" class="md-nav__link">
+    last_message
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel.pins" class="md-nav__link">
+    pins()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel.typing" class="md-nav__link">
+    typing()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject" class="md-nav__link">
+    snekcord.objects.baseobject
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject" class="md-nav__link">
+    BaseObject
+  </a>
+  
+    <nav class="md-nav" aria-label="BaseObject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.__hash__" class="md-nav__link">
+    __hash__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.cache" class="md-nav__link">
+    cache()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.fetch" class="md-nav__link">
+    fetch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.baseobject.BaseObject.uncache" class="md-nav__link">
+    uncache()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject" class="md-nav__link">
+    snekcord.objects.channelobject
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.ChannelType" class="md-nav__link">
+    ChannelType
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.DMChannel" class="md-nav__link">
+    DMChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="DMChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.DMChannel.close" class="md-nav__link">
+    close()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel" class="md-nav__link">
+    GuildChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="GuildChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.guild" class="md-nav__link">
+    guild
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.mention" class="md-nav__link">
+    mention
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.parent" class="md-nav__link">
+    parent
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.delete" class="md-nav__link">
+    delete()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.GuildChannel.modify" class="md-nav__link">
+    modify()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel" class="md-nav__link">
+    TextChannel
+  </a>
+  
+    <nav class="md-nav" aria-label="TextChannel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel.last_message" class="md-nav__link">
+    last_message
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel.pins" class="md-nav__link">
+    pins()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.channelobject.TextChannel.typing" class="md-nav__link">
+    typing()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/asleep-cult/snekcord/edit/master/docs/objects.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>Objects</h1>
+                
+                <div class="doc doc-object doc-module">
+
+<a id="snekcord.objects.baseobject"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.baseobject.BaseObject" class="doc doc-heading">
+        <code>BaseObject</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>This is the base class for all cachable Discord entities</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>state</code></td>
+        <td><code>BaseState</code></td>
+        <td><p>The state that this object belongs to</p></td>
+      </tr>
+      <tr>
+        <td><code>id</code></td>
+        <td><code>Optional[Snowflake|str]</code></td>
+        <td><p>The object's unique identifier
+provided by Discord's API, this will be the object's <code>code</code>
+for <code>GuildTemplate</code> and <code>Invite</code> objects</p></td>
+      </tr>
+      <tr>
+        <td><code>cached</code></td>
+        <td><code>bool</code></td>
+        <td><p>Whether or not this object is stored in its state's cache.</p></td>
+      </tr>
+      <tr>
+        <td><code>deleted</code></td>
+        <td><code>bool</code></td>
+        <td><p>Whether or not this object is deleted</p></td>
+      </tr>
+      <tr>
+        <td><code>deleted_at</code></td>
+        <td><code>Optional[datetime]</code></td>
+        <td><p>The time at which this object was
+marked as deleted</p></td>
+      </tr>
+  </tbody>
+</table>      <div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <code>deleted</code> and <code>deleted_at</code> attributes will only be accurate
+for objects maintained by a Discord WebSocket connection</p>
+</div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.baseobject.BaseObject.__hash__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Equivalent to <code>hash(self.id)</code></p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>PartialObjectError</code></td>
+        <td><p>Raised when the object's id is None</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\baseobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Equivalent to `hash(self.id)`</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        PartialObjectError: Raised when the object&#39;s id is None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PartialObjectError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> object is missing a valid id&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.baseobject.BaseObject.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>state</code></td>
+        <td><code>BaseState</code></td>
+        <td><p>The state that this object belongs to</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\baseobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        state BaseState: The state that this object belongs to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cached</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">deleted</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">deleted_at</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.baseobject.BaseObject.cache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Stores the object in the state's cache and attempts
+to remove it from the state's recycle bin</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\baseobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stores the object in the state&#39;s cache and attempts</span>
+<span class="sd">    to remove it from the state&#39;s recycle bin</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cached</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">unrecycle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.baseobject.BaseObject.fetch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Equivalent to <code>self.state.fetch(self.id)</code></p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\baseobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Equivalent to `self.state.fetch(self.id)`&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.baseobject.BaseObject.uncache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">uncache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recycle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes the object from the state's cache</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>recycle</code></td>
+        <td><code>bool</code></td>
+        <td><p>Wether or not to put the object in the
+state's recycle bin</p></td>
+        <td><code>True</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\baseobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">uncache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recycle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Removes the object from the state&#39;s cache</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        recycle bool: Wether or not to put the object in the</span>
+<span class="sd">            state&#39;s recycle bin</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cached</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">recycle</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">recycle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-module">
+
+<a id="snekcord.objects.channelobject"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.channelobject.ChannelType" class="doc doc-heading">
+        <code>ChannelType</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An enumaration of Discord's channel types</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GUILD_TEXT</code></td>
+<td>A text channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>DM</code></td>
+<td>A direct message channel</td>
+</tr>
+<tr>
+<td><code>GUILD_VOICE</code></td>
+<td>A voice channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GROUP_DM</code></td>
+<td>A <code>DM</code> channel with multiple recipients</td>
+</tr>
+<tr>
+<td><code>GUILD_CATEGORY</code></td>
+<td>A category channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GUILD_NEWS</code></td>
+<td>A news channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GUILD_STORE</code></td>
+<td>A store channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GUILD_NEWS_THREAD</code></td>
+<td>A news thread channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GUILD_PUBLIC_THREAD</code></td>
+<td>A public thread channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GUILD_PRIVATE_THREAD</code></td>
+<td>A private thread channel in a <code>Guild</code></td>
+</tr>
+<tr>
+<td><code>GUILD_STAGE_VOICE</code></td>
+<td>A stage channel in a <code>Guild</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.channelobject.DMChannel" class="doc doc-heading">
+        <code>DMChannel</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.channelobject.DMChannel.close" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to close the channel</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\channelobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to close the channel&quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">delete_channel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.channelobject.GuildChannel" class="doc doc-heading">
+        <code>GuildChannel</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>The base class for all channels that belong to a <code>Guild</code></p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the channel</p></td>
+      </tr>
+      <tr>
+        <td><code>guild_id</code></td>
+        <td><code>Snowflake</code></td>
+        <td><p>The id of the guild that the channel is in</p></td>
+      </tr>
+      <tr>
+        <td><code>position</code></td>
+        <td><code>int</code></td>
+        <td><p>The position of the channel</p></td>
+      </tr>
+      <tr>
+        <td><code>nsfw</code></td>
+        <td><code>bool</code></td>
+        <td><p><code>True</code> if the channel is allowed to have explicit content
+otherwise <code>False</code></p></td>
+      </tr>
+      <tr>
+        <td><code>parent_id</code></td>
+        <td><code>Snowflake</code></td>
+        <td><p>The id of the channel's parent/category</p></td>
+      </tr>
+      <tr>
+        <td><code>type</code></td>
+        <td><code>ChannelType</code></td>
+        <td><p>The type of the channel</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="snekcord.objects.channelobject.GuildChannel.guild" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">guild</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The <code>Guild</code> that the channel belongs to</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This propery relies on the guild cache so it could return None</p>
+</div>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="snekcord.objects.channelobject.GuildChannel.mention" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mention</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The channel in mention format, equivalent to <code>f'&lt;#{self.id}&gt;'</code></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="snekcord.objects.channelobject.GuildChannel.parent" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parent</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The channel's parent/category</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This propery relies on the channel cache so it could return None</p>
+</div>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.channelobject.GuildChannel.delete" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to delete the channel</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\channelobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to delete the channel&quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">delete_channel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.channelobject.GuildChannel.modify" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to modify the channel</p>
+<p><strong>Arguments:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Channel Types</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td><code>All</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>ChannelType</code></td>
+<td><code>GUILD_TEXT</code>, <code>GUILD_NEWS</code></td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code>int</code></td>
+<td><code>All</code></td>
+</tr>
+<tr>
+<td><code>topic</code></td>
+<td><code>str</code></td>
+<td><code>GUILD_TEXT</code>, <code>GUILD_NEWS</code></td>
+</tr>
+<tr>
+<td><code>nsfw</code></td>
+<td><code>bool</code></td>
+<td><code>GUILD_TEXT</code>, <code>GUILD_NEWS</code>, <code>GUILD_STORE</code></td>
+</tr>
+<tr>
+<td><code>slowmode</code></td>
+<td><code>int</code></td>
+<td><code>GUILD_TEXT</code></td>
+</tr>
+<tr>
+<td><code>bitrate</code></td>
+<td><code>int</code></td>
+<td><code>GUILD_VOICE</code></td>
+</tr>
+<tr>
+<td><code>user_limit</code></td>
+<td><code>int</code></td>
+<td><code>GUILD_VOICE</code></td>
+</tr>
+<tr>
+<td><code>parent</code></td>
+<td><code>SnowflakeLike</code></td>
+<td><code>GUILD_TEXT</code>, <code>GUILD_NEWS</code>, <code>GUILD_STORE</code>, <code>GUILD_VOICE</code></td>
+</tr>
+<tr>
+<td><code>rtc_region</code></td>
+<td><code>str</code></td>
+<td><code>GUILD_VOICE</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Discord only supports conversion between <code>GUILD_TEXT</code> and <code>GUILD_NEWS</code></p>
+</div>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>GuildChannel</code></td>
+      <td><p>The modified channel</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\channelobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to modify the channel</span>
+
+<span class="sd">    **Arguments:**</span>
+
+<span class="sd">    | Name         | Type            | Channel Types                                            |</span>
+<span class="sd">    | ------------ | --------------- | -------------------------------------------------------- |</span>
+<span class="sd">    | `name`       | `str`           | `All`                                                    |</span>
+<span class="sd">    | `type`       | `ChannelType`   | `GUILD_TEXT`, `GUILD_NEWS`                               |</span>
+<span class="sd">    | `position`   | `int`           | `All`                                                    |</span>
+<span class="sd">    | `topic`      | `str`           | `GUILD_TEXT`, `GUILD_NEWS`                               |</span>
+<span class="sd">    | `nsfw`       | `bool`          | `GUILD_TEXT`, `GUILD_NEWS`, `GUILD_STORE`                |</span>
+<span class="sd">    | `slowmode`   | `int`           | `GUILD_TEXT`                                             |</span>
+<span class="sd">    | `bitrate`    | `int`           | `GUILD_VOICE`                                            |</span>
+<span class="sd">    | `user_limit` | `int`           | `GUILD_VOICE`                                            |</span>
+<span class="sd">    | `parent`     | `SnowflakeLike` | `GUILD_TEXT`, `GUILD_NEWS`, `GUILD_STORE`, `GUILD_VOICE` |</span>
+<span class="sd">    | `rtc_region` | `str`           | `GUILD_VOICE`                                            |</span>
+
+<span class="sd">    note:</span>
+<span class="sd">        Discord only supports conversion between `GUILD_TEXT` and `GUILD_NEWS`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        GuildChannel: The modified channel</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="n">_guild_channel_modification_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ChannelType</span><span class="o">.</span><span class="n">GUILD_TEXT</span><span class="p">,</span> <span class="n">ChannelType</span><span class="o">.</span><span class="n">GUILD_NEWS</span><span class="p">,</span>
+                     <span class="n">ChannelType</span><span class="o">.</span><span class="n">GUILD_STORE</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;parent_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Snowflake</span><span class="o">.</span><span class="n">try_snowflake</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;parent&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="ow">is</span> <span class="n">ChannelType</span><span class="o">.</span><span class="n">GUILD_TEXT</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rate_limit_per_user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;slowmode&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="n">_validate_keys</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">.modify&#39;</span><span class="p">,</span>
+                   <span class="n">kwargs</span><span class="p">,</span> <span class="p">(),</span> <span class="n">keys</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">modify_channel</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+        <span class="n">json</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.channelobject.TextChannel" class="doc doc-heading">
+        <code>TextChannel</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>A class for the <code>GUILD_TEXT</code> channel type</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>messages</code></td>
+        <td><code>MessageState</code></td>
+        <td><p>The message state of the channel</p></td>
+      </tr>
+      <tr>
+        <td><code>topic</code></td>
+        <td><code>str</code></td>
+        <td><p>The topic of the channel</p></td>
+      </tr>
+      <tr>
+        <td><code>slowmode</code></td>
+        <td><code>int</code></td>
+        <td><p>The amount of time you have to wait between
+sending sucessive messages in the channel</p></td>
+      </tr>
+      <tr>
+        <td><code>last_message_id</code></td>
+        <td><code>Snowflake</code></td>
+        <td><p>The id of the last message sent in the
+channel</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="snekcord.objects.channelobject.TextChannel.last_message" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">last_message</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The last message sent in the channel</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This property relies on the message cache so it could return None</p>
+</div>
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.channelobject.TextChannel.pins" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pins</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to get the pinned messages
+in the channel</p>
+
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>list[Message]</code></td>
+      <td><p>The pinned messages in the channel</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\channelobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">pins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to get the pinned messages</span>
+<span class="sd">    in the channel</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list[Message]: The pinned messages in the channel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">get_pinned_messages</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">upsert_many</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.channelobject.TextChannel.typing" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">typing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Invokes an API request to trigger the typing indicator
+in the channel</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\channelobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">typing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invokes an API request to trigger the typing indicator</span>
+<span class="sd">    in the channel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">await</span> <span class="n">rest</span><span class="o">.</span><span class="n">trigger_typing_indicator</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+        <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">rest</span><span class="p">,</span>
+        <span class="n">fmt</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">channel_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../getting_started/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Getting Started
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.d351de03.min.js", "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.34eae1b6.min.js"></script>
+      
+    
+  </body>
+</html>
