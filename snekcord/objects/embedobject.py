@@ -147,7 +147,7 @@ Attributes:
 
     value str: The field's value
 
-    inline bool: Whather or not the field is inline
+    inline bool: Whether or not the field is inline
 """
 
 
