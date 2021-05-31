@@ -1,7 +1,7 @@
-# Snekcord
+# snekcord
 
 A work-in-progress Discord API wrapper written in Python.
 
-## Discord Server
+## Join the Discord Server
 
-[Join our Discord](https://discord.com/invite/kAe2m4hdZ7)
+[![](https://discordapp.com/api/v8/guilds/834890063581020210/widget.png?style=banner2)](https://discord.gg/kAe2m4hdZ7)

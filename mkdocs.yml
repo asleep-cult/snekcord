@@ -1,4 +1,4 @@
-site_name: Snekcord
+site_name: snekcord
 site_description: A work-in-progress Discord API wrapper written in Python.
 site_author: asleep-cult
 theme:
@@ -10,10 +10,13 @@ repo_url: https://github.com/asleep-cult/snekcord
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
+  - Objects: objects.md
 
 plugins:
   - search
+  - mkdocstrings
 
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
+  - admonition
