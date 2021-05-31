@@ -116,7 +116,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         return self.state.manager.channels.get(self.parent_id)
 
     async def modify(self, **kwargs):
-        """Invokes an API request to modify the channe
+        """Invokes an API request to modify the channel
 
         **Arguments:**
 
