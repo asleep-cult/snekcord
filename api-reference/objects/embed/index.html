@@ -1,0 +1,2959 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A work-in-progress Discord API wrapper written in Python.">
+      
+      
+      
+        <meta name="author" content="asleep-cult">
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.6">
+    
+    
+      
+        <title>Embed - snekcord</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.875de78c.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.f1a3b89f.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#snekcord.objects.embedobject" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="snekcord" class="md-header__button md-logo" aria-label="snekcord" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            snekcord
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Embed
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/asleep-cult/snekcord/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    asleep-cult/snekcord
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="snekcord" class="md-nav__button md-logo" aria-label="snekcord" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    snekcord
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/asleep-cult/snekcord/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    asleep-cult/snekcord
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      <label class="md-nav__link" for="__nav_3">
+        API Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_1" type="checkbox" id="__nav_3_1" checked>
+      
+      <label class="md-nav__link" for="__nav_3_1">
+        Objects
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Objects" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          Objects
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../base/" class="md-nav__link">
+        Base
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../channels/" class="md-nav__link">
+        Channels
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Embed
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Embed
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject" class="md-nav__link">
+    snekcord.objects.embedobject
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedAuthor" class="md-nav__link">
+    EmbedAuthor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedField" class="md-nav__link">
+    EmbedField
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedFooter" class="md-nav__link">
+    EmbedFooter
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedImage" class="md-nav__link">
+    EmbedImage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedProvider" class="md-nav__link">
+    EmbedProvider
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedThumbnail" class="md-nav__link">
+    EmbedThumbnail
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedVideo" class="md-nav__link">
+    EmbedVideo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.Embed" class="md-nav__link">
+    Embed
+  </a>
+  
+    <nav class="md-nav" aria-label="Embed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.Embed.to_builder" class="md-nav__link">
+    to_builder()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder" class="md-nav__link">
+    EmbedBuilder
+  </a>
+  
+    <nav class="md-nav" aria-label="EmbedBuilder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.add_field" class="md-nav__link">
+    add_field()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_author" class="md-nav__link">
+    clear_author()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_color" class="md-nav__link">
+    clear_color()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_description" class="md-nav__link">
+    clear_description()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_fields" class="md-nav__link">
+    clear_fields()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_footer" class="md-nav__link">
+    clear_footer()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_image" class="md-nav__link">
+    clear_image()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_provider" class="md-nav__link">
+    clear_provider()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_thumbnail" class="md-nav__link">
+    clear_thumbnail()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_timestamp" class="md-nav__link">
+    clear_timestamp()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_title" class="md-nav__link">
+    clear_title()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_type" class="md-nav__link">
+    clear_type()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_url" class="md-nav__link">
+    clear_url()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_video" class="md-nav__link">
+    clear_video()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.extend_fields" class="md-nav__link">
+    extend_fields()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.insert_field" class="md-nav__link">
+    insert_field()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.send_to" class="md-nav__link">
+    send_to()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_author" class="md-nav__link">
+    set_author()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_color" class="md-nav__link">
+    set_color()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_description" class="md-nav__link">
+    set_description()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_footer" class="md-nav__link">
+    set_footer()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_image" class="md-nav__link">
+    set_image()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_provider" class="md-nav__link">
+    set_provider()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_thumbnail" class="md-nav__link">
+    set_thumbnail()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_timestamp" class="md-nav__link">
+    set_timestamp()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_title" class="md-nav__link">
+    set_title()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_type" class="md-nav__link">
+    set_type()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_url" class="md-nav__link">
+    set_url()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_video" class="md-nav__link">
+    set_video()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedType" class="md-nav__link">
+    EmbedType
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject" class="md-nav__link">
+    snekcord.objects.embedobject
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedAuthor" class="md-nav__link">
+    EmbedAuthor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedField" class="md-nav__link">
+    EmbedField
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedFooter" class="md-nav__link">
+    EmbedFooter
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedImage" class="md-nav__link">
+    EmbedImage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedProvider" class="md-nav__link">
+    EmbedProvider
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedThumbnail" class="md-nav__link">
+    EmbedThumbnail
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedVideo" class="md-nav__link">
+    EmbedVideo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.Embed" class="md-nav__link">
+    Embed
+  </a>
+  
+    <nav class="md-nav" aria-label="Embed">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.Embed.to_builder" class="md-nav__link">
+    to_builder()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder" class="md-nav__link">
+    EmbedBuilder
+  </a>
+  
+    <nav class="md-nav" aria-label="EmbedBuilder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.add_field" class="md-nav__link">
+    add_field()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_author" class="md-nav__link">
+    clear_author()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_color" class="md-nav__link">
+    clear_color()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_description" class="md-nav__link">
+    clear_description()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_fields" class="md-nav__link">
+    clear_fields()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_footer" class="md-nav__link">
+    clear_footer()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_image" class="md-nav__link">
+    clear_image()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_provider" class="md-nav__link">
+    clear_provider()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_thumbnail" class="md-nav__link">
+    clear_thumbnail()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_timestamp" class="md-nav__link">
+    clear_timestamp()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_title" class="md-nav__link">
+    clear_title()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_type" class="md-nav__link">
+    clear_type()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_url" class="md-nav__link">
+    clear_url()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.clear_video" class="md-nav__link">
+    clear_video()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.extend_fields" class="md-nav__link">
+    extend_fields()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.insert_field" class="md-nav__link">
+    insert_field()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.send_to" class="md-nav__link">
+    send_to()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_author" class="md-nav__link">
+    set_author()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_color" class="md-nav__link">
+    set_color()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_description" class="md-nav__link">
+    set_description()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_footer" class="md-nav__link">
+    set_footer()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_image" class="md-nav__link">
+    set_image()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_provider" class="md-nav__link">
+    set_provider()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_thumbnail" class="md-nav__link">
+    set_thumbnail()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_timestamp" class="md-nav__link">
+    set_timestamp()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_title" class="md-nav__link">
+    set_title()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_type" class="md-nav__link">
+    set_type()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_url" class="md-nav__link">
+    set_url()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedBuilder.set_video" class="md-nav__link">
+    set_video()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#snekcord.objects.embedobject.EmbedType" class="md-nav__link">
+    EmbedType
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/asleep-cult/snekcord/edit/master/docs/api-reference/objects/embed.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>Embed</h1>
+                
+                <div class="doc doc-object doc-module">
+
+<a id="snekcord.objects.embedobject"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedAuthor" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedAuthor</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed author</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the author</p></td>
+      </tr>
+      <tr>
+        <td><code>icon_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The icon url of the author</p></td>
+      </tr>
+      <tr>
+        <td><code>proxy_icon_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The proxy icon url of the author</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedField" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedField</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed field</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the field</p></td>
+      </tr>
+      <tr>
+        <td><code>value</code></td>
+        <td><code>str</code></td>
+        <td><p>The value of the field</p></td>
+      </tr>
+      <tr>
+        <td><code>inline</code></td>
+        <td><code>bool</code></td>
+        <td><p>Whather or not the field is inline</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedFooter" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedFooter</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed footer</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>text</code></td>
+        <td><code>str</code></td>
+        <td><p>The text of the footer</p></td>
+      </tr>
+      <tr>
+        <td><code>icon_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The icon url of the footer</p></td>
+      </tr>
+      <tr>
+        <td><code>proxy_icon_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The proxy icon url of the footer</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedImage" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedImage</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed image</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>url</code></td>
+        <td><code>str</code></td>
+        <td><p>The url of the image</p></td>
+      </tr>
+      <tr>
+        <td><code>proxy_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The proxy url of the image</p></td>
+      </tr>
+      <tr>
+        <td><code>height</code></td>
+        <td><code>int</code></td>
+        <td><p>The height of the image</p></td>
+      </tr>
+      <tr>
+        <td><code>width</code></td>
+        <td><code>int</code></td>
+        <td><p>The width of the image</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedProvider" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedProvider</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed provider</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>name</code></td>
+        <td><code>str</code></td>
+        <td><p>The name of the provider</p></td>
+      </tr>
+      <tr>
+        <td><code>url</code></td>
+        <td><code>str</code></td>
+        <td><p>The url of the provider</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedThumbnail" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedThumbnail</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed thumbnail</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>url</code></td>
+        <td><code>str</code></td>
+        <td><p>The url of the thumbnail</p></td>
+      </tr>
+      <tr>
+        <td><code>proxy_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The proxy url of the thumbnail</p></td>
+      </tr>
+      <tr>
+        <td><code>height</code></td>
+        <td><code>int</code></td>
+        <td><p>The height of the thumbnail</p></td>
+      </tr>
+      <tr>
+        <td><code>width</code></td>
+        <td><code>int</code></td>
+        <td><p>The width of the thumbnail</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedVideo" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">EmbedVideo</span></code>
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An embed video</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>url</code></td>
+        <td><code>str</code></td>
+        <td><p>The url of the video</p></td>
+      </tr>
+      <tr>
+        <td><code>proxy_url</code></td>
+        <td><code>str</code></td>
+        <td><p>The proxy url of the video</p></td>
+      </tr>
+      <tr>
+        <td><code>height</code></td>
+        <td><code>int</code></td>
+        <td><p>The height of the video</p></td>
+      </tr>
+      <tr>
+        <td><code>width</code></td>
+        <td><code>int</code></td>
+        <td><p>The width of the video</p></td>
+      </tr>
+  </tbody>
+</table>    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.embedobject.Embed" class="doc doc-heading">
+        <code>Embed</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>Represents embedded rich content in a <code>Message</code></p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>title</code></td>
+        <td><code>str</code></td>
+        <td><p>The title of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>type</code></td>
+        <td><code>EmbedType</code></td>
+        <td><p>The type of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>description</code></td>
+        <td><code>str</code></td>
+        <td><p>The description of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>url</code></td>
+        <td><code>str</code></td>
+        <td><p>The url of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>timestamp</code></td>
+        <td><code>datetime</code></td>
+        <td><p>The timestamp of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>color</code></td>
+        <td><code>int</code></td>
+        <td><p>The color of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>footer</code></td>
+        <td><code>EmbedFooter</code></td>
+        <td><p>The footer of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>image</code></td>
+        <td><code>EmbedImage</code></td>
+        <td><p>The image of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>thumbnail</code></td>
+        <td><code>EmbedThumbnail</code></td>
+        <td><p>The thumbnail of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>video</code></td>
+        <td><code>EmbedVideo</code></td>
+        <td><p>The video of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>provider</code></td>
+        <td><code>EmbedProvider</code></td>
+        <td><p>The provider of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>author</code></td>
+        <td><code>EmbedAuthor</code></td>
+        <td><p>The author of the embed</p></td>
+      </tr>
+      <tr>
+        <td><code>fields</code></td>
+        <td><code>list[EmbedField]</code></td>
+        <td><p>The fields of the embed</p></td>
+      </tr>
+  </tbody>
+</table>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.Embed.to_builder" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Equivalent to <code>EmbedBuilder.from_embed(self)</code></p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">to_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Equivalent to `EmbedBuilder.from_embed(self)`&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">EmbedBuilder</span><span class="o">.</span><span class="n">from_embed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedBuilder" class="doc doc-heading">
+        <code>EmbedBuilder</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>A class that helps with building <code>Embed</code>s</p>
+
+<p><strong>Attributes:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>embed</code></td>
+        <td><code>Embed</code></td>
+        <td><p>The underlying embed object</p></td>
+      </tr>
+  </tbody>
+</table>      <div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All methods in this class return the builder</p>
+</div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Accepts <code>title</code>, <code>type</code>, <code>description</code>, <code>url</code>, <code>timestamp</code> and <code>color</code>
+keyword arguments, see the corresponding <code>set_*</code> methods for more
+information</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accepts `title`, `type`, `description`, `url`, `timestamp` and `color`</span>
+<span class="sd">    keyword arguments, see the corresponding `set_*` methods for more</span>
+<span class="sd">    information</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span> <span class="o">=</span> <span class="n">Embed</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">({</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">[]})</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_type</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_url</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;url&#39;</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_timestamp</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;timestamp&#39;</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">))</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.add_field" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds a field to the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">add_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds a field to the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">inline</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_author" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_author</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the author of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_author</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the author of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_color" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_color</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the color of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the color of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_description" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_description</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the description of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the description of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_fields" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the fields of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the fields of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_footer" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_footer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the footer of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_footer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the footer of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">footer</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_image" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_image</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the image of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the image of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_provider" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the provider of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the provider of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_thumbnail" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_thumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the thumbnail of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_thumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the thumbnail of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_timestamp" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the timestamp of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the timestamp of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_title" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_title</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the title of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the title of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the type of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the type of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_url" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the url of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the url of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.clear_video" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">clear_video</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Clears the video of the embed</p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_video</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clears the video of the embed&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">video</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.extend_fields" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">extend_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Adds multiple fields of <code>(name, value, inline=None)</code> to the embed</p>
+
+<p><strong>Examples:</strong></p>
+    <div class="highlight"><pre><span></span><code><span class="n">builder</span> <span class="o">=</span> <span class="n">snekcord</span><span class="o">.</span><span class="n">EmbedBuilder</span><span class="p">()</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">add_fields</span><span class="p">(</span>
+    <span class="p">(</span><span class="s1">&#39;Hello&#39;</span><span class="p">,</span> <span class="s1">&#39;World&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;Goodbye&#39;</span><span class="p">,</span> <span class="s1">&#39;World&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">extend_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adds multiple fields of `(name, value, inline=None)` to the embed</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        ```py</span>
+<span class="sd">        builder = snekcord.EmbedBuilder()</span>
+<span class="sd">        builder.add_fields(</span>
+<span class="sd">            (&#39;Hello&#39;, &#39;World&#39;),</span>
+<span class="sd">            (&#39;Goodbye&#39;, &#39;World&#39;, False),</span>
+<span class="sd">        )</span>
+<span class="sd">        ```</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="o">*</span><span class="n">field</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.insert_field" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">insert_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Inserts a field into the embed at <code>index</code></p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">insert_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">inline</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inserts a field into the embed at `index`</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">inline</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.send_to" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">send_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sends the embed to <code>channel</code> with <code>**kwargs</code>, equivalent to
+<code>await channel.messages.create(embed=self.embed)</code></p>
+
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">send_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sends the embed to `channel` with `**kwargs`, equivalent to</span>
+<span class="sd">    `await channel.messages.create(embed=self.embed)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;embed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="n">channel</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_author" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_author</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the author of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_author</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the author of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;name should be a str, got </span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">icon_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">icon_url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;icon_url should be a str or None, got &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">icon_url</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">proxy_icon_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">proxy_icon_url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;proxy_icon_url should be a str or None, got &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">proxy_icon_url</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">EmbedAuthor</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">({</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;icon_url&#39;</span><span class="p">:</span> <span class="n">icon_url</span><span class="p">,</span>
+        <span class="s1">&#39;proxy_icon_url&#39;</span><span class="p">:</span> <span class="n">proxy_icon_url</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_color" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the color of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the color of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;color should be an int, got </span><span class="si">{</span><span class="n">color</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_description" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the description of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the description of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;description should be a str or None, got &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">description</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_footer" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_footer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the footer of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_footer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_icon_url</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the footer of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;text should be a str, got </span><span class="si">{</span><span class="n">text</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">icon_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">icon_url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;icon_url should be a str or None, got &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">icon_url</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">proxy_icon_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">proxy_icon_url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;proxy_icon_url should be a str or None, got &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">proxy_icon_url</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">footer</span> <span class="o">=</span> <span class="n">EmbedFooter</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">({</span>
+        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+        <span class="s1">&#39;icon_url&#39;</span><span class="p">:</span> <span class="n">icon_url</span><span class="p">,</span>
+        <span class="s1">&#39;proxy_icon_url&#39;</span><span class="p">:</span> <span class="n">proxy_icon_url</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_image" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the image of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the image of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">EmbedImage</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attachment</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">proxy_url</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_provider" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the provider of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_provider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the provider of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;name should be a str or None, got </span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;url should be a str or None, got </span><span class="si">{</span><span class="n">url</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="n">EmbedProvider</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">({</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">url</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_thumbnail" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_thumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the thumbnail of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_thumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the thumbnail of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">EmbedThumbnail</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attachment</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">proxy_url</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_timestamp" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the timestamp of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_timestamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the timestamp of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;timestamp should be a str, int, float, datetime or None, &#39;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;got </span><span class="si">{</span><span class="n">timestamp</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">=</span> <span class="n">timestamp</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_title" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the title of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the title of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;title should be a str or None, got&#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">title</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the type of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the type of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">EmbedType</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_url" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the url of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the url of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;url should be a str or None, got &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">url</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span>
+
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="snekcord.objects.embedobject.EmbedBuilder.set_video" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Sets the video of the embed</p>
+
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>TypeError</code></td>
+        <td><p>Raised when an invalid argument type is provided</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>snekcord\objects\embedobject.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">proxy_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sets the video of the embed</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: Raised when an invalid argument type is provided</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="o">.</span><span class="n">video</span> <span class="o">=</span> <span class="n">EmbedImage</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attachment</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">proxy_url</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">self</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-class">
+
+
+
+<h2 id="snekcord.objects.embedobject.EmbedType" class="doc doc-heading">
+        <code>EmbedType</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents ">
+
+      <p>An enumeration of Discord's embed types</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RICH</code></td>
+<td>Generic embed rendered from attributes</td>
+</tr>
+<tr>
+<td><code>IMAGE</code></td>
+<td>Image embed</td>
+</tr>
+<tr>
+<td><code>VIDEO</code></td>
+<td>Video embed</td>
+</tr>
+<tr>
+<td><code>GIFV</code></td>
+<td>Animated gif image embed rendered as a video embed</td>
+</tr>
+<tr>
+<td><code>ARTICLE</code></td>
+<td>Article embed</td>
+</tr>
+<tr>
+<td><code>LINK</code></td>
+<td>Link embed</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is not used by Discord and should be considered deprecated</p>
+</div>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../channels/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Channels
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../../assets/javascripts/workers/search.d351de03.min.js", "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.34eae1b6.min.js"></script>
+      
+    
+  </body>
+</html>
