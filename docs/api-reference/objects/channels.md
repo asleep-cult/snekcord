@@ -1,2 +1,1 @@
-
 ::: snekcord.objects.channelobject
