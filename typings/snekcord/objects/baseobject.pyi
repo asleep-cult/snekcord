@@ -9,17 +9,17 @@ from ..utils import JsonObject, JsonTemplate, Snowflake
 
 BaseTemplate: JsonTemplate = ...
 
-T = TypeVar('T')
+_T = TypeVar('_T')
 
 
-class BaseObject(JsonObject, Generic[T], template=BaseTemplate):
-    id: Optional[T]
-    state: BaseState[T]
+class BaseObject(JsonObject, Generic[_T], template=BaseTemplate):
+    id: Optional[_T]
+    state: BaseState[_T]
     cached: bool
     deleted: bool
     deleted_at: Optional[datetime]
 
-    def __init__(self, *, state: BaseState[T]) -> None: ...
+    def __init__(self, *, state: BaseState[_T]) -> None: ...
 
     def __hash__(self) -> int: ...
 
@@ -31,7 +31,7 @@ class BaseObject(JsonObject, Generic[T], template=BaseTemplate):
 
     def uncache(self) -> None: ...
 
-    async def fetch(self: BaseObject[T]) -> BaseObject[T]: ...
+    async def fetch(self: BaseObject[_T]) -> BaseObject[_T]: ...
 
 
 BaseSnowflakeObject = BaseObject[Snowflake]

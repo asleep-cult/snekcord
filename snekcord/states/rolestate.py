@@ -43,7 +43,7 @@ class RoleState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        return self.upsert_many(data)
+        return self.upsert(data)
 
     async def modify_many(self, positions):
         required_keys = ('id',)

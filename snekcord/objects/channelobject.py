@@ -243,6 +243,15 @@ VoiceChannelTemplate = JsonTemplate(
 class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
     pass
 
+class CategoryChannel(GuildChannel):
+    def children(self):
+        """Get the channels that belong to the category.
+
+        Yields:
+            GuildChannel
+        """
+        return (channel for channel in self.state if channel.parent_id == self.id)
+
 
 DMChannelTemplate = JsonTemplate(
     last_message_id=JsonField('last_message_id', Snowflake, str),
