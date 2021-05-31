@@ -233,6 +233,15 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         return self.messages.upsert_many(data)
 
 
+class CategoryChannel(GuildChannel):
+    """Represents the `GUILD_CATEGORY` channel type"""
+    def children(self):
+        """Yields all of the `GuildChannels` that belong to this category"""
+        for channel in self.state:
+            if channel.parent_id == self.id:
+                yield channel
+
+
 VoiceChannelTemplate = JsonTemplate(
     bitrate=JsonField('bitrate'),
     user_limit=JsonField('user_limit'),
@@ -241,16 +250,14 @@ VoiceChannelTemplate = JsonTemplate(
 
 
 class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
-    pass
+    """Represents the `GUILD_VOICE` channel type
 
-class CategoryChannel(GuildChannel):
-    def children(self):
-        """Get the channels that belong to the category.
+    Attributes:
+        bitrate int: The channel's bitrate
 
-        Yields:
-            GuildChannel
-        """
-        return (channel for channel in self.state if channel.parent_id == self.id)
+        user_limit int: The maximum amount of people who can be in this
+            channel at once
+    """
 
 
 DMChannelTemplate = JsonTemplate(

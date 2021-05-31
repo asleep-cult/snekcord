@@ -553,7 +553,7 @@ class EmbedBuilder:
     def extend_fields(self, *fields):
         """Adds multiple fields of `(name, value, inline=None)` to the embed
 
-        Example:
+        Examples:
             ```py
             builder = snekcord.EmbedBuilder()
             builder.add_fields(

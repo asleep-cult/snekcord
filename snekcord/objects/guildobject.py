@@ -60,7 +60,7 @@ GuildTemplate = JsonTemplate(
 
 
 class Guild(BaseObject, template=GuildTemplate):
-    """Represend a Guild from Discord
+    """Represents a Guild from Discord
 
     Attributes:
         widget GuildWidget: The guild's widget interface
@@ -270,17 +270,42 @@ WelcomeScreenChannelTemplate = JsonTemplate(
 
 
 class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
+    """Represents a channel in a `WelcomeScreen`
+
+    Attributes:
+        channel_id Snowflake: The id of the channel that this welcome channel
+            refers to
+
+        description str: The welcome channel's description
+
+        emoji_id Snowflake: The id of the welcome channel's emoji
+
+        emoji_name str: The name of the welcome channel's emoji
+
+        welcome_screen WelcomeScreen: The welcome screen associated with the
+            channel
+    """
     __slots__ = ('guild',)
 
-    def __init__(self, *, guild):
-        self.guild = guild
+    def __init__(self, *, welcome_screen):
+        self.welcome_screen = welcome_screen
 
     @property
     def channel(self):
-        return self.state.manager.channels.get(self.id)
+        """The actual channel that this welcome channel refers to
+
+        warning:
+            This property relies on the channel cache so it could return None
+        """
+        return self.welcome_screen.guild.channels.get(self.id)
 
     @property
     def emoji(self):
+        """The welcome channel's emoji
+
+        warning:
+            This property relies on the emoji cache to it could return None
+        """
         return self.guild.emojis.get(self.emoji_id)
 
 
@@ -290,6 +315,15 @@ WelcomeScreenTemplate = JsonTemplate(
 
 
 class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
+    """Represents a `Guild`'s welcome screen
+
+    Attributes:
+        description str: The welcome screen's description
+
+        guild Guild: The guild associated with the welcome screen
+
+        welcome_channels list[WelcomeChannel]: The welcome screen's channels
+    """
     __slots__ = ('guild', 'welcome_channels')
 
     def __init__(self, *, guild):
@@ -297,6 +331,11 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
         self.welcome_channels = []
 
     async def fetch(self):
+        """Invokes an API request to get the welcome screen
+
+        Returns:
+            WelcomeScreen: The updated welcome screen
+        """
         data = await rest.get_guild_welcome_screen.request(
             session=self.guild.manager.rest,
             fmt=dict(guild_id=self.guild.id))
@@ -306,6 +345,66 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
         return self
 
     async def modify(self, **kwargs):
+        """Invokes an API request to modify the welcome screen
+
+        **Parameters:**
+
+        | Name             | Type | Description                                   |
+        | ---------------- | ---- | --------------------------------------------- |
+        | enabled          | bool | Whether or not the welcome screen is enabled  |
+        | welcome_channels | dict | The new welcome channels `{channel: options}` |
+        | description      | str  | The welcome screen's new description          |
+
+        **Welcome Channel Options:**
+
+        | Name        | Description                       |
+        | ----------- | --------------------------------- |
+        | description | The welcome channel's description |
+        | emoji       | The welcome channel's emoji       |
+
+        Returns:
+            WelcomeScreen: The modified welcome screen
+
+        Examples:
+            ```py
+            await guild.welcome_screen.modify(
+                description='Welcome to this fantastic guild',
+                enabled=True,
+                welcome_channels={
+                    8235356323523452: {
+                        'description': 'Get roles here',
+                        'emoji': some_emoji
+                    },
+                    7583857293758372: {
+                        'description': 'Use bot commands here',
+                        emoji: another_emoji
+                    }
+                }
+            )
+            ```
+        """  # noqa: E501
+        welcome_channel_keys = WelcomeScreenChannelTemplate.fields
+
+        try:
+            welcome_channels = []
+
+            for key, value in kwargs['welcome_channels'].items():
+                value['channel_id'] = Snowflake.try_snowflake(key)
+
+                try:
+                    emoji = value['emoji']
+                    value['emoji_id'] = emoji.id
+                    value['emoji_name'] = emoji.name
+                except KeyError:
+                    pass
+
+                _validate_keys(f'welcome_channels[{key}]',
+                               value, (), welcome_channel_keys)
+
+                welcome_channels.append(value)
+        except KeyError:
+            pass
+
         keys = rest.modify_guild_welcome_screen.json
 
         _validate_keys(f'{self.__class__.__name__}.modify',
