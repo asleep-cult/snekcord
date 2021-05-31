@@ -77,7 +77,7 @@ class BaseObject(JsonObject, template=BaseTemplate):
         """Removes the object from the state's cache
 
         Arguments:
-            recycle bool: Wether or not to put the object in the
+            recycle bool: Whether or not to put the object in the
                 state's recycle bin
         """
         self.cached = False
