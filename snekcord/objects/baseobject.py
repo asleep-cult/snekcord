@@ -15,17 +15,17 @@ class BaseObject(JsonObject, template=BaseTemplate):
     """The base class for all cachable Discord entities
 
     Attributes:
-        state BaseState: The state that this object belongs to
+        state BaseState: The state that the object belongs to
 
         id Optional[Snowflake|str]: The object's unique identifier
-            provided by Discord's API, this will be the object's `code`
+            provided by Discord's API, the will be the object's `code`
             for `GuildTemplate` and `Invite` objects
 
-        cached bool: Whether or not this object is stored in its state's cache
+        cached bool: Whether or not the object is stored in its state's cache
 
-        deleted bool: Whether or not this object is deleted
+        deleted bool: Whether or not the object is deleted
 
-        deleted_at Optional[datetime]: The time at which this object was
+        deleted_at Optional[datetime]: The time at which the object was
             marked as deleted
 
     warning:
@@ -37,7 +37,7 @@ class BaseObject(JsonObject, template=BaseTemplate):
     def __init__(self, *, state):
         """
         Arguments:
-            state BaseState: The state that this object belongs to
+            state BaseState: The state that the object belongs to
         """
         self.state = state
         self.id = None
