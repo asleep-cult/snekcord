@@ -169,7 +169,7 @@ class Shard(BaseWebSocket):
                         'GUILD_RECEIVE', self, response.data)
                 except KeyError:
                     self.worker.manager.dispatch(
-                        'GUILD_CREATE', self, response.data)
+                        'GUILD_JOIN', self, response.data)
             else:
                 self.worker.manager.dispatch(
                     response.name, self, response.data)
