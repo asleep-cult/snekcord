@@ -153,7 +153,7 @@ class Shard(BaseWebSocket):
             elif response.name == 'GUILD_DELETE':
                 if data['unavailable']:
                     try:
-                        self.available_guilds.remove(data['id'])
+                        self.unavailable_guilds.remove(data['id'])
                     except KeyError:
                         pass
 
