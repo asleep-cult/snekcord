@@ -36,7 +36,7 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
     async def fetch(self):
         data = await rest.get_template.request(
-            session=self.manager.rest,
+            session=self.state.manager.rest,
             fmt=dict(code=self.code))
 
         self.update(data)

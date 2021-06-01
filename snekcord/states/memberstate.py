@@ -15,7 +15,7 @@ class GuildMemberState(BaseState):
         self.guild = guild
 
     def upsert(self, data):
-        member = self.get(data['id'])
+        member = self.get(data['user']['id'])
         if member is not None:
             member.update(data)
         else:

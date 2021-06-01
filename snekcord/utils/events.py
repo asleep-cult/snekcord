@@ -94,6 +94,7 @@ class EventDispatcher:
             waiters.remove(waiter)
 
     def run_callbacks(self, name, *args):
+        name = name.lower()
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
 

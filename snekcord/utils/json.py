@@ -137,9 +137,7 @@ class JsonObject(metaclass=JsonObjectMeta):
 
         self = cls.__new__(cls)
         cls.__init__(self, *args, **kwargs)
-
-        if data is not None:
-            self.update(data, set_defaults=True)
+        self.update(data or {}, set_defaults=True)
 
         return self
 

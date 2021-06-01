@@ -88,5 +88,6 @@ class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        invite = self.guild.state.manager.invites.upsert(data)
-        invite.guild = self.guild
+        if 'code' in data:
+            invite = self.guild.state.manager.invites.upsert(data)
+            invite.guild = self.guild

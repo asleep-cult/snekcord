@@ -2,9 +2,9 @@ import enum
 import json
 import platform
 
-from wsaio import WebSocketClient, taskify
+from wsaio import taskify
 
-from .basews import WebSocketResponse
+from .basews import BaseWebSocket, WebSocketResponse
 from ..utils import Snowflake
 
 
@@ -40,11 +40,12 @@ class ShardCloseCode(enum.IntEnum):
     DISALLOWED_INTENTS = 4014
 
 
-class Shard(WebSocketClient):
-    def __init__(self, sharder, shard_id):
-        super().__init__(loop=sharder.loop)
-        self.sharder = sharder
+class Shard(BaseWebSocket):
+    def __init__(self, worker, shard_id=None, intents=None):
+        super().__init__(loop=worker.loop)
+        self.worker = worker
         self.id = shard_id
+        self.intents = intents
 
         self.v = None
         self.user = None
@@ -53,15 +54,15 @@ class Shard(WebSocketClient):
         self.session_id = None
         self.info = None
 
-        self.sequence = None
+        self.sequence = -1
         self._chunk_nonce = -1
 
     async def identify(self):
         payload = {
             'op': ShardOpcode.IDENTIFY,
             'd': {
-                'token': self.manager.token,
-                'intents': self.manager.intents,
+                'token': self.worker.manager.token,
+                # 'intents': self.intents,
                 'properties': {
                     '$os': platform.system(),
                     '$browser': 'snekcord',
@@ -83,6 +84,7 @@ class Shard(WebSocketClient):
         await self.send_str(json.dumps(payload))
 
     async def send_heartbeat(self):
+        print('sent heartbeat')
         payload = {
             'op': ShardOpcode.HEARTBEAT,
             'd': None
@@ -135,19 +137,21 @@ class Shard(WebSocketClient):
             self.sequence = response.sequence
 
         if opcode is ShardOpcode.DISPATCH:
+            print(response.name)
+
             if response.name == 'READY':
-                data = response.data
+                self.v = response.data['v']
+                self.user = self.worker.manager.users.upsert(
+                    response.data['user'])
+                self.session_id = response.data['session_id']
+                self.info = response.data.get('shard')
 
-                self.v = data['v']
-                self.user = self.sharder.manager.users.upsert(data['user'])
-                self.session_id = data['session_id']
-                self.info = data['shard']
-
-                for guild in data['guilds']:
+                for guild in response.data['guilds']:
                     (self.unavailable_guilds if guild['unavailable']
                      else self.available_guilds).add(guild['id'])
             else:
-                self.sharder.dispatch(response.name, self, response.data)
+                self.worker.manager.dispatch(
+                    response.name, self, response.data)
         elif opcode is ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
         elif opcode is ShardOpcode.RECONNECT:
@@ -155,6 +159,8 @@ class Shard(WebSocketClient):
         elif opcode is ShardOpcode.INVALID_SESSION:
             return
         elif opcode is ShardOpcode.HELLO:
+            self.heartbeat_interval = response.data['heartbeat_interval']
             await self.identify()
+            self._hello_received.set()
         elif opcode is ShardOpcode.HEARTBEAT_ACK:
-            return
+            self.worker.ack(self)

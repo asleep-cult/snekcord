@@ -337,7 +337,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             WelcomeScreen: The updated welcome screen
         """
         data = await rest.get_guild_welcome_screen.request(
-            session=self.guild.manager.rest,
+            session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
         self.update(data)
@@ -411,7 +411,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                        kwargs, (), keys)
 
         data = await rest.modify_guild_welcome_screen.request(
-            session=self.guild.manager.rest,
+            session=self.guild.state.manager.rest,
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 

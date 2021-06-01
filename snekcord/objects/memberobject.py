@@ -17,7 +17,7 @@ GuildMemberTemplate = JsonTemplate(
 
 
 class GuildMember(BaseObject, template=GuildMemberTemplate):
-    __slots__ = ('guild', 'roles')
+    __slots__ = ('guild', 'roles', 'user')
 
     def __init__(self, *, state, guild):
         super().__init__(state=state)
