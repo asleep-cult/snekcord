@@ -26,3 +26,5 @@ client.run_forever()
 ## Discord Server
 [![](https://discordapp.com/api/v8/guilds/834890063581020210/widget.png?style=banner1)](https://discord.gg/kAe2m4hdZ7)
 
+## Documentation
+Read our documentation [here](https://asleep-cult.github.io/snekcord/).
