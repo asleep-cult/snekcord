@@ -81,7 +81,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     Attributes:
         name str: The channel's name
 
-        guild_id Snowflake: The id of the guild that the channel is in
+        guild_id Snowflake: The id of the guild that the channel belongs to
 
         position int: The channel's position
 
