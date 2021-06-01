@@ -123,11 +123,17 @@ class BaseSubState(_StateCommon):
 
     def __iter__(self):
         for key in self._keys:
-            yield self.superstate[key]
+            try:
+                yield self.superstate[key]
+            except KeyError:
+                continue
 
     def __reversed__(self):
         for key in reversed(self._keys):
-            yield self.superstate[key]
+            try:
+                yield self.superstate[key]
+            except KeyError:
+                continue
 
     def __contains__(self, key):
         return self.superstate.transform_key(key) in self._keys
@@ -138,8 +144,8 @@ class BaseSubState(_StateCommon):
         return self.superstate[key]
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(length={len(self)},'
-                f' superstate={self.superstate!r})')
+        return (f'{self.__class__.__name__}(length={len(self)}, '
+                f'superstate={self.superstate!r})')
 
     def set_keys(self, keys):
         self._keys = {self.superstate.transform_key(key) for key in keys}

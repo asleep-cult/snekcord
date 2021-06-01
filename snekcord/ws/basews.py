@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from wsaio import WebSocketClient
 
@@ -21,20 +22,20 @@ class WebSocketWorker:
             try:
                 await asyncio.wait_for(
                     ws.connect(*args, **kwargs), self.timeout)
-                await asyncio.wait_for(ws._hello_received.wait(), self.timeout)
+                await asyncio.wait_for(ws.ready.wait(), self.timeout)
             except asyncio.TimeoutError:
                 continue
             else:
                 break
         else:
-            raise ConnectionError(f'{cls.__name__} timed out while '
-                                  'connecting after 5 attempts')
-
-        self.notifier.register(ws, ws.heartbeat_interval / 1000)
+            raise ConnectionError(
+                f'{cls.__name__} took too long to become '
+                'ready after 5 attempts')
 
         return ws
 
     def ack(self, ws):
+        ws.heartbeat_last_acked = time.perf_counter()
         handle = self.timeout_handles.pop(ws, None)
         if handle is not None:
             handle.cancel()
@@ -69,10 +70,10 @@ class BaseWebSocket(WebSocketClient):
         self.heartbeat_last_sent = float('inf')
         self.heartbeat_last_acked = float('inf')
 
-        self._hello_received = asyncio.Event()
+        self.ready = asyncio.Event()
 
     @property
-    def ping(self):
+    def latency(self):
         return self.heartbeat_last_acked - self.heartbeat_last_sent
 
     async def send_heartbeat(self):

@@ -35,7 +35,8 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
 
     @property
     def roles(self):
-        return [self.guild.roles.get(role_id) for role_id in self.role_ids]
+        for role_id in self.role_ids:
+            yield self.guild.roles.get(role_id)
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild_emoji.json

@@ -1,6 +1,7 @@
 import enum
 import json
 import platform
+import time
 
 from wsaio import taskify
 
@@ -84,12 +85,12 @@ class Shard(BaseWebSocket):
         await self.send_str(json.dumps(payload))
 
     async def send_heartbeat(self):
-        print('sent heartbeat')
         payload = {
             'op': ShardOpcode.HEARTBEAT,
             'd': None
         }
         await self.send_str(json.dumps(payload))
+        self.heartbeat_last_sent = time.perf_counter()
 
     async def request_guild_members(self, guild, presences=None, limit=None,
                                     users=None, query=None):
@@ -137,8 +138,6 @@ class Shard(BaseWebSocket):
             self.sequence = response.sequence
 
         if opcode is ShardOpcode.DISPATCH:
-            print(response.name)
-
             if response.name == 'READY':
                 self.v = response.data['v']
                 self.user = self.worker.manager.users.upsert(
@@ -149,6 +148,28 @@ class Shard(BaseWebSocket):
                 for guild in response.data['guilds']:
                     (self.unavailable_guilds if guild['unavailable']
                      else self.available_guilds).add(guild['id'])
+
+                self.ready.set()
+            elif response.name == 'GUILD_DELETE':
+                if data['unavailable']:
+                    try:
+                        self.available_guilds.remove(data['id'])
+                    except KeyError:
+                        pass
+
+                    self.worker.manager.dispatch(
+                        'GUILD_UNAVAILABLE', self, response.data)
+                else:
+                    self.worker.manager.dispatch(
+                        'GUILD_DELETE', self, response.data)
+            elif response.name == 'GUILD_CREATE':
+                try:
+                    self.available_guilds.remove(data['id'])
+                    self.worker.manager.dispatch(
+                        'GUILD_RECEIVE', self, response.data)
+                except KeyError:
+                    self.worker.manager.dispatch(
+                        'GUILD_CREATE', self, response.data)
             else:
                 self.worker.manager.dispatch(
                     response.name, self, response.data)
@@ -159,8 +180,9 @@ class Shard(BaseWebSocket):
         elif opcode is ShardOpcode.INVALID_SESSION:
             return
         elif opcode is ShardOpcode.HELLO:
-            self.heartbeat_interval = response.data['heartbeat_interval']
+            self.heartbeat_interval = (
+                response.data['heartbeat_interval'] / 1000)
+            self.worker.notifier.register(self, self.heartbeat_interval)
             await self.identify()
-            self._hello_received.set()
         elif opcode is ShardOpcode.HEARTBEAT_ACK:
             self.worker.ack(self)
