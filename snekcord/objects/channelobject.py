@@ -135,6 +135,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
         note:
             Discord only supports conversion between `GUILD_TEXT` and `GUILD_NEWS`
+            channel types
 
         Returns:
             GuildChannel: The modified channel
@@ -181,7 +182,7 @@ TextChannelTemplate = JsonTemplate(
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):
-    """Represens the `GUILD_TEXT` channel type
+    """Represents the `GUILD_TEXT` channel type
 
     Attributes:
         messages MessageState: The channel's message state

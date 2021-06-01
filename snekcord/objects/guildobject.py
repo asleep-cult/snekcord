@@ -283,7 +283,7 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
         emoji_name str: The name of the welcome channel's emoji
 
         welcome_screen WelcomeScreen: The welcome screen associated with the
-            channel
+            welcome channel
     """
     __slots__ = ('guild',)
 
@@ -292,7 +292,7 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
 
     @property
     def channel(self):
-        """The actual channel that this welcome channel refers to
+        """The channel that this welcome channel refers to
 
         warning:
             This property relies on the channel cache so it could return None
