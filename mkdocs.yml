@@ -4,7 +4,14 @@ site_author: asleep-cult
 theme:
   name: "material"
   palette:
-    scheme: slate
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
 
 repo_name: asleep-cult/snekcord
 repo_url: https://github.com/asleep-cult/snekcord
