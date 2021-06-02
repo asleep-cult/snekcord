@@ -152,26 +152,48 @@ class Shard(BaseWebSocket):
                 self.ready.set()
 
             elif response.name == 'GUILD_DELETE':
+                guild_id = data['id']
+
                 if data['unavailable']:
+                    try:
+                        self.available_guilds.remove(guild_id)
+                    except KeyError:
+                        pass
+
+                    self.unavailable_guilds.add(guild_id)
+
                     self.worker.manager.dispatch(
                         'GUILD_UNAVAILABLE', self, response.data)
                 else:
+                    try:
+                        self.available_guilds.remove(guild_id)
+                    except KeyError:
+                        pass
+
+                    try:
+                        self.unavailable_guilds.remove(guild_id)
+                    except KeyError:
+                        pass
+
                     self.worker.manager.dispatch(
                         'GUILD_DELETE', self, response.data)
 
             elif response.name == 'GUILD_CREATE':
-                try:
-                    self.available_guilds.remove(data['id'])
+                guild_id = data['id']
+
+                if guild_id in self.available_guilds:
                     self.worker.manager.dispatch(
                         'GUILD_RECEIVE', self, response.data)
-                except KeyError:
-                    try:
-                        self.unavailable_guilds.remove(data['id'])
-                        self.worker.manager.dispatch(
-                            'GUILD_AVAILABLE', self, response.data)
-                    except KeyError:
-                        self.worker.manager.dispatch(
-                            'GUILD_JOIN', self, response.data)
+
+                elif guild_id in self.unavailable_guilds:
+                    self.unavailable_guilds.remove(guild_id)
+                    self.available_guilds.add(guild_id)
+                    self.worker.manager.dispatch(
+                        'GUILD_AVAILABLE', self, response.data)
+
+                else:
+                    self.worker.manager.dispatch(
+                        'GUILD_JOIN', self, response.data)
 
             else:
                 self.worker.manager.dispatch(
