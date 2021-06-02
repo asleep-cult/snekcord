@@ -32,7 +32,8 @@ class BaseObject(JsonObject, template=BaseTemplate):
         The `deleted` and `deleted_at` attributes will only be accurate
         for objects maintained by a Discord WebSocket connection
     """
-    __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at')
+    __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at',
+                 '__weakref__')
 
     def __init__(self, *, state):
         self.state = state

@@ -79,5 +79,5 @@ class MessageState(BaseState):
 
         await rest.bulk_delete_messages.request(
             session=self.manager.rest,
-            fmt=dict(channel_id=self.id),
+            fmt=dict(channel_id=self.channel.id),
             json=dict(messages=message_ids))
