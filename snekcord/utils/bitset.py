@@ -37,4 +37,4 @@ class Bitset:
         self.value |= (1 << self._noamalize_indice(position))
 
     def __delitem__(self, position):
-        return self.value & ~(self._noamalize_indice(position))
+        self.value &= ~(self._noamalize_indice(position))
