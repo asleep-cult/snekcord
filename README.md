@@ -9,7 +9,7 @@ import snekcord
 
 TOKEN = ''
 
-client = snekcord.UserClient(TOKEN)
+client = snekcord.WebSocketClient(TOKEN)
 
 
 @client.on()
