@@ -17,7 +17,7 @@ async def message_create(evt):
     message = evt.message
     channel = evt.channel
     if message.content == '.ping':
-        await channel.messages.create('Pong!')
+        await channel.messages.create(content='Pong!')
 
 
 client.run_forever()
