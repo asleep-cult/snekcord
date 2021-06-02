@@ -1,0 +1,3 @@
+from .basestate import BaseState
+
+class ChannelState(BaseState): ...
