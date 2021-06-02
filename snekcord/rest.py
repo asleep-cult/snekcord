@@ -136,7 +136,7 @@ delete_message = HTTPEndpoint(
 )
 
 bulk_delete_messages = HTTPEndpoint(
-    'DELETE',
+    'POST',
     BASE_API_URL + 'channels/%(channel_id)s/messages/bulk-delete',
     json=('messages',),
 )
