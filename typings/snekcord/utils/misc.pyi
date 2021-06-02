@@ -50,3 +50,9 @@ async def amin(obj: AsyncIterable[T], key: Optional[Callable[[T], Any]],
 
 async def amax(obj: AsyncIterable[T], key: Optional[Callable[[T], Any]],
                default: DT = ...) -> Union[T, DT]: ...
+
+
+async def aall(obj: AsyncIterable[T]) -> bool: ...
+
+
+async def aany(obj: AsyncIterable[T]) -> bool: ...
