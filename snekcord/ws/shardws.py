@@ -50,6 +50,7 @@ class Shard(BaseWebSocket):
 
         self.v = None
         self.user = None
+        self.startup_guilds = set()
         self.available_guilds = set()
         self.unavailable_guilds = set()
         self.session_id = None
@@ -57,6 +58,11 @@ class Shard(BaseWebSocket):
 
         self.sequence = -1
         self._chunk_nonce = -1
+
+    def _dispatch_ready(self):
+        if self.ready.is_set():
+            if not self.startup_guilds:
+                self.worker.manager.dispatch('SHARD_READY', self)
 
     async def identify(self):
         payload = {
@@ -146,13 +152,21 @@ class Shard(BaseWebSocket):
                 self.info = response.data.get('shard')
 
                 for guild in response.data['guilds']:
+                    guild_id = guild['id']
+                    self.startup_guilds.add(guild_id)
                     (self.unavailable_guilds if guild['unavailable']
-                     else self.available_guilds).add(guild['id'])
+                     else self.available_guilds).add(guild_id)
 
                 self.ready.set()
 
             elif response.name == 'GUILD_DELETE':
-                guild_id = data['id']
+                guild_id = response.data['id']
+
+                try:
+                    self.startup_guilds.remove(guild_id)
+                    self._dispatch_ready()
+                except KeyError:
+                    pass
 
                 if data['unavailable']:
                     try:
@@ -179,7 +193,13 @@ class Shard(BaseWebSocket):
                         'GUILD_DELETE', self, response.data)
 
             elif response.name == 'GUILD_CREATE':
-                guild_id = data['id']
+                guild_id = response.data['id']
+
+                try:
+                    self.startup_guilds.remove(guild_id)
+                    self._dispatch_ready()
+                except KeyError:
+                    pass
 
                 if guild_id in self.available_guilds:
                     self.worker.manager.dispatch(
