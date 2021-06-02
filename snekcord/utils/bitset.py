@@ -36,7 +36,7 @@ class Bitset:
             return NotImplemented
         return self.value > other.value
 
-    def __gte__(self, other):
+    def __ge__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value >= other.value
@@ -46,7 +46,7 @@ class Bitset:
             return NotImplemented
         return self.value < other.value
 
-    def __lte__(self, other):
+    def __le__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.value <= other.value
