@@ -25,3 +25,22 @@ class User(BaseObject, template=UserTemplate):
     @property
     def mention(self):
         return f'<@{self.id}>'
+    
+    @property
+    def username(self):
+        return self.username
+    
+    @property
+    def discriminator(self):
+        return self.discriminator
+    
+    @property
+    def id(self):
+        return self.id
+    
+    @property
+    def bot(self):
+        return self.bot
+    
+
+
