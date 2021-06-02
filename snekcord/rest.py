@@ -326,7 +326,7 @@ add_guild_member_role = HTTPEndpoint(
 )
 
 remove_guild_member_role = HTTPEndpoint(
-    'DELTE',
+    'DELETE',
     BASE_API_URL + 'guilds/%(guild_id)s/members/%(user_id)s/roles/%(role_id)s',
 )
 
@@ -708,7 +708,8 @@ class RestSession(AsyncClient):
         data = response.content
 
         content_type = response.headers.get('content-type')
-        if content_type.lower() == 'application/json':
+        if (content_type is not None
+                and content_type.lower() == 'application/json'):
             data = json.loads(data)
 
         if response.status_code >= 400:
