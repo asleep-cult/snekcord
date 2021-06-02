@@ -13,7 +13,7 @@ class Manager(EventDispatcher):
     __handled_signals__: List[int]
 
     def __init__(
-        self, token: str, *, loop: Optional[asyncio.AbstractEventLoop] = None, api_version: str = '9'
+        self, token: str, *, loop: Optional[asyncio.AbstractEventLoop] = ..., api_version: str = ...
     ) -> None: ...
 
     @classmethod
