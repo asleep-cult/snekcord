@@ -69,7 +69,7 @@ GuildChannelTemplate = JsonTemplate(
     _permission_overwrites=JsonArray('permission_overwrites'),
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
-    parent_id=JsonField('parent_id'),
+    parent_id=JsonField('parent_id', Snowflake, str),
     type=JsonField('type'),
     __extends__=(BaseTemplate,)
 )
@@ -176,7 +176,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 TextChannelTemplate = JsonTemplate(
     topic=JsonField('topic'),
     slowmode=JsonField('rate_limit_per_user'),
-    last_message_id=JsonField('last_message_id'),
+    last_message_id=JsonField('last_message_id', Snowflake, str),
     __extends__=(GuildChannelTemplate,)
 )
 

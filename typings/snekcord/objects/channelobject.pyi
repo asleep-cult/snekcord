@@ -1,5 +1,5 @@
 import enum
-from typing import Literal
+from typing import Any, Literal
 
 from .baseobject import BaseObject
 
@@ -22,6 +22,14 @@ class ChannelType(enum.IntEnum):
 GuildChannelTemplate: JsonTemplate = ...
 
 class GuildChannel(BaseObject[Snowflake]):
+    name: str
+    guild_id: Snowflake
+    _permission_overwrites: dict[str, Any]
+    position: int
+    nsfw: bool
+    parent_id: Snowflake
+    type: int
+
     @property
     def mention(self) -> str:
         ...
@@ -29,3 +37,20 @@ class GuildChannel(BaseObject[Snowflake]):
     @property
     def guild(self) -> str:
         ...
+
+TextChannelTemplate: JsonTemplate = ...
+
+class TextChannel(GuildChannel):
+    topic: str
+    slowmode: int
+    last_message_id: Snowflake
+
+VoiceChannelTemplate: JsonTemplate = ...
+
+class VoiceChannel(GuildChannel):
+    bitrate: int
+
+DMChannelTemplate: JsonTemplate = ...
+
+class DMChannel(BaseObject[Snowflake]):
+    async def close(self) -> None: ...
