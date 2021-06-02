@@ -6,8 +6,8 @@ from wsaio import WebSocketClient
 from ..utils import JsonField, JsonTemplate, Notifier
 
 
-class BaseWebSocketWorker:
-    def __init__(self, manager, timeout):
+class WebSocketWorker:
+    def __init__(self, *, manager, timeout):
         self.manager = manager
         self.loop = manager.loop
 

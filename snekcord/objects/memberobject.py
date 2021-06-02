@@ -26,6 +26,12 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
             superstate=self.guild.roles, member=self)
 
     @property
+    def mention(self):
+        if self.nick is not None:
+            return f'<@!{self.id}>'
+        return self.user.mention
+
+    @property
     def removed(self):
         return self.deleted
 
@@ -54,7 +60,8 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         data = await rest.modify_guild_member.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.guild.id,
-                     user_id=self.id))
+                     user_id=self.id),
+            json=kwargs)
 
         return self.state.upsert(data)
 

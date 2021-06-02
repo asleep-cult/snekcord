@@ -5,6 +5,15 @@ class Client:
     def __init__(self, token, **kwargs):
         self.manager = Manager(token, **kwargs)
 
+    def on(self, *args, **kwargs):
+        return self.manager.on(*args, **kwargs)
+
+    def once(self, *args, **kwargs):
+        return self.manager.once(*args, **kwargs)
+
+    def wait(self, *args, **kwargs):
+        return self.manager.wait(*args, **kwargs)
+
     @property
     def rest(self):
         return self.manager.rest

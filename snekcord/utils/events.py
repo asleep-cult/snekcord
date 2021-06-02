@@ -113,7 +113,7 @@ class EventDispatcher:
         if self.__events__ is not None:
             event = self.__events__.get(name.lower())
             if event is not None:
-                args = (event(self, *args),)
+                args = (event(*args),)
 
         self.run_callbacks(name, *args)
 

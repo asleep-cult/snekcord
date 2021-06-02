@@ -159,8 +159,7 @@ class Shard(BaseWebSocket):
                 for guild in response.data['guilds']:
                     guild_id = guild['id']
                     self.startup_guilds.add(guild_id)
-                    (self.unavailable_guilds if guild['unavailable']
-                     else self.available_guilds).add(guild_id)
+                    self.available_guilds.add(guild_id)
 
                 self.ready.set()
 

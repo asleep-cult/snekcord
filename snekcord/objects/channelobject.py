@@ -195,10 +195,12 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         last_message_id Snowflake: The id of the last message sent in the
             channel
     """
-    __slots__ = ('messages',)
+    __slots__ = ('messages', 'last_pin_timestamp')
 
     def __init__(self, *, state):
         super().__init__(state=state)
+
+        self.last_pin_timestamp = None
 
         self.messages = self.state.manager.get_class('MessageState')(
             manager=self.state.manager, channel=self)
