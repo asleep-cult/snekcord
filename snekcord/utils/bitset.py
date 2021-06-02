@@ -14,9 +14,12 @@ class Bitset:
                             f'integers, got {indice.__class__.__name__}')
 
         bit_length = self.value.bit_length()
-        indice = bit_length * (indice < 0) - indice - 1
+        if indice < 0:
+            indice = -indice - 1
+        else:
+            indice = bit_length - indice
 
-        if 0 > indice or indice >= bit_length:
+        if 0 > indice or indice > bit_length:
             raise IndexError(f'{self.__class__.__name__} index out of range')
 
         return indice
@@ -55,7 +58,7 @@ class Bitset:
         return self.value
 
     def __len__(self):
-        return self.value.bit_length()
+        return self.value.bit_length() + 1
 
     def __getitem__(self, position):
         return (self.value >> self._noamalize_indice(position)) & 1
