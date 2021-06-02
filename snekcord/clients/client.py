@@ -52,3 +52,8 @@ class Client:
     def roles(self):
         for guild in self.guilds:
             yield from guild.roles
+
+    @property
+    def emojis(self):
+        for guild in self.guilds:
+            yield from guild.emojis
