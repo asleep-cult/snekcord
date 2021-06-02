@@ -184,16 +184,17 @@ class Shard(BaseWebSocket):
                 if guild_id in self.available_guilds:
                     self.worker.manager.dispatch(
                         'GUILD_RECEIVE', self, response.data)
-
-                elif guild_id in self.unavailable_guilds:
-                    self.unavailable_guilds.remove(guild_id)
-                    self.available_guilds.add(guild_id)
-                    self.worker.manager.dispatch(
-                        'GUILD_AVAILABLE', self, response.data)
-
                 else:
-                    self.worker.manager.dispatch(
-                        'GUILD_JOIN', self, response.data)
+                    self.available_guilds.add(guild_id)
+
+                    if guild_id in self.unavailable_guilds:
+                        self.unavailable_guilds.remove(guild_id)
+                        self.worker.manager.dispatch(
+                            'GUILD_AVAILABLE', self, response.data)
+
+                    else:
+                        self.worker.manager.dispatch(
+                            'GUILD_JOIN', self, response.data)
 
             else:
                 self.worker.manager.dispatch(
