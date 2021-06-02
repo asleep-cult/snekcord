@@ -14,10 +14,10 @@ from .states.stagestage import StageState
 from .states.userstate import UserState
 from .utils import EventDispatcher
 
-__all__ = ('BaseManager',)
+__all__ = ('Manager',)
 
 
-class BaseManager(EventDispatcher):
+class Manager(EventDispatcher):
     DEFAULT_CLASSES = {
         'ChannelState': ChannelState,
         'GuildChannelState': GuildChannelState,
