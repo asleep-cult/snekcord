@@ -150,39 +150,47 @@ class Shard(BaseWebSocket):
                      else self.available_guilds).add(guild['id'])
 
                 self.ready.set()
+
             elif response.name == 'GUILD_DELETE':
                 if data['unavailable']:
-                    try:
-                        self.unavailable_guilds.remove(data['id'])
-                    except KeyError:
-                        pass
-
                     self.worker.manager.dispatch(
                         'GUILD_UNAVAILABLE', self, response.data)
                 else:
                     self.worker.manager.dispatch(
                         'GUILD_DELETE', self, response.data)
+
             elif response.name == 'GUILD_CREATE':
                 try:
                     self.available_guilds.remove(data['id'])
                     self.worker.manager.dispatch(
                         'GUILD_RECEIVE', self, response.data)
                 except KeyError:
-                    self.worker.manager.dispatch(
-                        'GUILD_JOIN', self, response.data)
+                    try:
+                        self.unavailable_guilds.remove(data['id'])
+                        self.worker.manager.dispatch(
+                            'GUILD_AVAILABLE', self, response.data)
+                    except KeyError:
+                        self.worker.manager.dispatch(
+                            'GUILD_JOIN', self, response.data)
+
             else:
                 self.worker.manager.dispatch(
                     response.name, self, response.data)
+
         elif opcode is ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
+
         elif opcode is ShardOpcode.RECONNECT:
             return
+
         elif opcode is ShardOpcode.INVALID_SESSION:
             return
+
         elif opcode is ShardOpcode.HELLO:
             self.heartbeat_interval = (
                 response.data['heartbeat_interval'] / 1000)
             self.worker.notifier.register(self, self.heartbeat_interval)
             await self.identify()
+
         elif opcode is ShardOpcode.HEARTBEAT_ACK:
             self.worker.ack(self)
