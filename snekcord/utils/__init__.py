@@ -1,3 +1,4 @@
+from .bitset import *
 from .events import *
 from .json import *
 from .misc import *
