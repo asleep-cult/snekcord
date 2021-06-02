@@ -14,10 +14,7 @@ class Bitset:
                             f'integers, got {indice.__class__.__name__}')
 
         bit_length = self.value.bit_length()
-        if indice < 0:
-            indice = -indice - 1
-        else:
-            indice = bit_length - indice - 1
+        indice = bit_length * (indice < 0) - indice - 1
 
         if 0 > indice or indice >= bit_length:
             raise IndexError(f'{self.__class__.__name__} index out of range')
