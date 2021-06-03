@@ -29,22 +29,13 @@ class WebSocketClient(Client):
     def __init__(self, *args, **kwargs):
         self.is_user = kwargs.pop('user', False)
         self.intents = kwargs.pop('intents', None)
-        self.events = kwargs.pop('events', EVENTS).copy()
         self.timeouts = kwargs.pop('timeouts', {})
         self.ws_version = kwargs.pop('ws_version', '9')
+        self.__events__ = kwargs.pop('events', EVENTS).copy()
 
         super().__init__(*args, **kwargs)
-        self.manager.__events__ = self.events
 
-        self.sharder = Sharder(manager=self.manager, timeout=30)
-
-    @property
-    def token(self):
-        return self.manager.token
-
-    @property
-    def api_version(self):
-        return self.manager.api_version
+        self.sharder = Sharder(manager=self, timeout=30)
 
     @property
     def shards(self):
@@ -77,5 +68,5 @@ class WebSocketClient(Client):
         await self.sharder.work()
 
     def run_forever(self, *args, **kwargs):
-        self.manager.loop.create_task(self.connect(*args, **kwargs))
-        self.manager.run_forever()
+        self.loop.create_task(self.connect(*args, **kwargs))
+        super().run_forever()
