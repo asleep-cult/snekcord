@@ -2,8 +2,30 @@ from collections import namedtuple
 
 from .client import Client
 from .. import rest
+from ..utils.bitset import Flag, NamedBitset
 from ..ws.basews import WebSocketWorker
 from ..ws.shardws import Shard
+
+__all__ = ('Intents', 'WebSocketClient')
+
+
+class Intents(NamedBitset):
+    guilds = Flag(0)
+    guild_members = Flag(1)
+    guild_bans = Flag(2)
+    guild_emojis = Flag(3)
+    guild_integrations = Flag(4)
+    guild_webhooks = Flag(5)
+    guild_invites = Flag(6)
+    guild_voice_states = Flag(7)
+    guild_presences = Flag(8)
+    guild_messages = Flag(9)
+    guild_message_reactions = Flag(10)
+    guild_message_typing = Flag(11)
+    direct_messages = Flag(12)
+    direct_message_reactions = Flag(13)
+    direct_message_typing = Flag(14)
+
 
 _base_fields = ('shard', 'payload')
 
