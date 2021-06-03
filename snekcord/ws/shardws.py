@@ -52,7 +52,7 @@ class Sharder(BaseWebSocketWorker):
         self.notifier.register(shard, shard.heartbeat_interval)
 
     async def _op_dispatch(self, shard, name, data):
-        self.manager.dispatch(name, shard, data)
+        await self.manager.dispatch(name, shard, data)
 
     async def _op_heartbeat_ack(self, shard):
         self.ack(shard)
@@ -61,14 +61,14 @@ class Sharder(BaseWebSocketWorker):
         self.user = self.manager.users.upsert(data['user'])
 
     async def _event_guilds_received(self, shard):
-        self.manager.dispatch('SHARD_READY', shard)
+        await self.manager.dispatch('SHARD_READY', shard)
 
     async def create_connection(self, shard_id, *args, **kwargs):
         callbacks = {
             'HELLO': self._op_hello,
-            'READY': self._event_ready,
             'DISPATCH': self._op_dispatch,
             'HEARTBEAT_ACK': self._op_heartbeat_ack,
+            'READY': self._event_ready,
             'GUILDS_RECEIVED': self._event_guilds_received
         }
         shard = ShardWebSocket(shard_id, loop=self.loop,

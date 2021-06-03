@@ -109,11 +109,11 @@ class EventDispatcher:
         for subscriber in self._subscribers:
             subscriber.run_callbacks(name, *args)
 
-    def dispatch(self, name, *args):
+    async def dispatch(self, name, *args):
         if self.__events__ is not None:
             event = self.__events__.get(name.lower())
             if event is not None:
-                args = (event(*args),)
+                args = (await event(self, *args),)
 
         self.run_callbacks(name, *args)
 
