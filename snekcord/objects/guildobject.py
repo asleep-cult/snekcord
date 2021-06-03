@@ -9,31 +9,23 @@ from ..utils import (Enum, Flag, JsonArray, JsonField,
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 
-class MessageNotificationsLevel(Enum):
-    __enum_type__ = int
-
+class MessageNotificationsLevel(Enum, type=int):
     ALL_MESSAGES = 0
     ONLY_MENTIONS = 1
 
 
-class ExplicitContentFilterLevel(Enum):
-    __enum_type__ = int
-
+class ExplicitContentFilterLevel(Enum, type=int):
     DISABLED = 0
     MEMBERS_WITHOUT_ROLES = 1
     ALL_MEMBERS = 2
 
 
-class MFALevel(Enum):
-    __enum_type__ = int
-
+class MFALevel(Enum, type=int):
     NONE = 0
     ELEVATED = 1
 
 
-class VerificationLevel(Enum):
-    __enum_type__ = int
-
+class VerificationLevel(Enum, type=int):
     NONE = 0
     LOW = 1
     MEDIUM = 2
@@ -41,18 +33,14 @@ class VerificationLevel(Enum):
     VERY_HIGH = 4
 
 
-class GuildNSFWLevel(Enum):
-    __enum_type__ = int
-
+class GuildNSFWLevel(Enum, type=int):
     DEFAULT = 0
     EXPLICIT = 1
     SAFE = 2
     AGE_RESTRICTED = 3
 
 
-class PremiumTier(Enum):
-    __enum_type__ = int
-
+class PremiumTier(Enum, type=int):
     NONE = 0
     TIER_1 = 1
     TIER_2 = 2
@@ -65,9 +53,7 @@ class SystemChannelFlags(NamedBitset):
     SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
 
 
-class GuildFeature(Enum):
-    __enum_type__ = str
-
+class GuildFeature(Enum, type=str):
     ANIMATED_ICON = 'ANIMATED_ICON'
     BANNER = 'BANNER'
     COMMERCE = 'COMMERCE'

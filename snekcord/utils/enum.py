@@ -1,9 +1,13 @@
 __all__ = ('Enum',)
 
 
-class Enum:
-    __enum_type__ = object
+class EnumMeta(type):
+    def __new__(mcs, name, bases, attrs, *, type):
+        attrs['__enum_type__'] = type
+        return super().__new__(mcs, name, bases, attrs)
 
+
+class Enum(metaclass=EnumMeta, type=object):
     def __init__(self, name, value):
         self.name = name
         self.value = value

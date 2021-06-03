@@ -9,7 +9,7 @@ __all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'Embed', 'EmbedBuilder')
 
 
-class EmbedType(Enum):
+class EmbedType(Enum, type=int):
     """An enumeration of Discord's embed types
 
     | Name      | Description                                        |
@@ -24,8 +24,6 @@ class EmbedType(Enum):
     warning:
         This is not used by Discord and should be considered deprecated
     """
-    __enum_type__ = str
-
     RICH = 'rich'
     IMAGE = 'image'
     VIDEO = 'video'
