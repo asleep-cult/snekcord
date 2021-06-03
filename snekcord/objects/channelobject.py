@@ -205,6 +205,9 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         self.messages = self.state.manager.get_class('MessageState')(
             manager=self.state.manager, channel=self)
 
+    def __str__(self):
+        return f'#{self.name}'
+
     @property
     def last_message(self):
         """The last message sent in the channel
@@ -238,6 +241,9 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
 
 class CategoryChannel(GuildChannel):
     """Represents the `GUILD_CATEGORY` channel type"""
+    def __str__(self):
+        return f'#{self.name}'
+
     def children(self):
         """Yields all of the `GuildChannels` that belong to this category"""
         for channel in self.state:
@@ -261,6 +267,8 @@ class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
         user_limit int: The maximum amount of people who can be in this
             channel at once
     """
+    def __str__(self):
+        return f'#!{self.name}'
 
 
 DMChannelTemplate = JsonTemplate(

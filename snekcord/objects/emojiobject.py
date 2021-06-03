@@ -33,6 +33,11 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
         self.guild = guild
         self.user = None
 
+    def __str__(self):
+        if self.animated:
+            return f'<a:{self.name}:{self.id}>'
+        return f'<:{self.name}:{self.id}>'
+
     @property
     def roles(self):
         for role_id in self.role_ids:

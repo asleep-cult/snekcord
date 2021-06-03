@@ -27,32 +27,32 @@ class Bitset:
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.value == other.value
+        return self.length == other.length and self.value == other.value
 
     def __ne__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.value != other.value
+        return self.length != other.length or self.value != other.value
 
     def __gt__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.value > other.value
+        return self.length == other.length and self.value > other.value
 
     def __ge__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.value >= other.value
+        return self.length == other.length and self.value >= other.value
 
     def __lt__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.value < other.value
+        return self.length == other.length and self.value < other.value
 
     def __le__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.value <= other.value
+        return self.length == other.length and self.value <= other.value
 
     def __index__(self):
         return self.value

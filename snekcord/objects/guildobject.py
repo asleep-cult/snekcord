@@ -104,6 +104,9 @@ class Guild(BaseObject, template=GuildTemplate):
             manager=self.state.manager,
             guild=self)
 
+    def __str__(self):
+        return self.name
+
     async def modify(self, **kwargs):
         keys = rest.modify_guild.keys
 

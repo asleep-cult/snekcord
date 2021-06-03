@@ -22,6 +22,13 @@ UserTemplate = JsonTemplate(
 
 
 class User(BaseObject, template=UserTemplate):
+    def __str__(self):
+        return f'@{self.name}'
+
+    @property
+    def tag(self):
+        return f'{self.name}#{self.id}'
+
     @property
     def mention(self):
         return f'<@{self.id}>'

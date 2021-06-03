@@ -13,7 +13,7 @@ RoleTags = JsonTemplate(
 
 
 RoleTemplate = JsonTemplate(
-    name=JsonField('name'),
+    raw_name=JsonField('name'),
     color=JsonField('color'),
     hoist=JsonField('hoist'),
     position=JsonField('position'),
@@ -31,6 +31,26 @@ class Role(BaseObject, template=RoleTemplate):
     def __init__(self, *, state, guild):
         super().__init__(state=state)
         self.guild = guild
+
+    # For some reason '@everyone' pings everyone and the everyone role
+    # is named '@everyone', this is escaped to prevent accidental pings
+
+    def __str__(self):
+        if self.id == self.guild.id:
+            return f'@\u200beveryone'
+        return f'@{self.raw_name}'
+
+    @property
+    def name(self):
+        if self.id == self.guild.id:
+            return '@\u200beveryone'
+        return self.raw_name
+
+    @property
+    def mention(self):
+        if self.id == self.guild.id:
+            return '@everyone'
+        return f'<@&{self.id}>'
 
     async def modify(self, **kwargs):
         keys = rest.modify_guild_role_positions.json
