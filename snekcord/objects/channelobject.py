@@ -1,15 +1,13 @@
-import enum
-
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (JsonArray, JsonEnum, JsonField, JsonTemplate, Snowflake,
+from ..utils import (Enum, JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
 __all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'VoiceChannel',
            'DMChannel')
 
 
-class ChannelType(enum.Enum):
+class ChannelType(Enum):
     """An enumeration of Discord's channel types
 
     | Name                   | Description                             |
@@ -26,6 +24,8 @@ class ChannelType(enum.Enum):
     | `GUILD_PRIVATE_THREAD` | A private thread channel in a `Guild`   |
     | `GUILD_STAGE_VOICE`    | A stage channel in a `Guild`            |
     """
+    __enum_type__ = int
+
     GUILD_TEXT = 0
     DM = 1
     GUILD_VOICE = 2
@@ -70,7 +70,7 @@ GuildChannelTemplate = JsonTemplate(
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
     parent_id=JsonField('parent_id', Snowflake, str),
-    type=JsonEnum('type', enum=ChannelType),
+    type=JsonField('type', ChannelType.try_enum, ChannelType.valuegetter),
     __extends__=(BaseTemplate,)
 )
 

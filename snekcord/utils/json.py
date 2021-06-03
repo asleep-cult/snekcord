@@ -1,8 +1,6 @@
 import json
-from datetime import datetime
 
-__all__ = ('JsonTemplate', 'JsonField', 'JsonEnum', 'JsonTimestamp',
-           'JsonBitset', 'JsonArray', 'JsonObject')
+__all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
 
 class JsonTemplate:
@@ -80,51 +78,6 @@ class JsonField:
         if callable(self._default):
             return self._default()
         return self._default
-
-
-class JsonEnum(JsonField):
-    def __init__(self, *args, **kwargs):
-        self.enum = kwargs.pop('enum')
-        super().__init__(*args, **kwargs)
-
-    def unmarshal(self, value):
-        try:
-            return self.enum(value)
-        except ValueError:
-            return value
-
-    def marshal(self, value):
-        if isinstance(value, self.enum):
-            return value.value
-        return value
-
-
-class JsonTimestamp(JsonField):
-    def unmarshal(self, value):
-        if isinstance(value, str):
-            return datetime.fromisoformat(value)
-        return value
-
-    def marshal(self, value):
-        if isinstance(value, datetime):
-            return value.isoformat()
-        return value
-
-
-class JsonBitset(JsonField):
-    def __init__(self, *args, **kwargs):
-        self.bitset = kwargs.pop('bitset')
-        super().__init__(*args, **kwargs)
-
-    def unmarshal(self, value):
-        if isinstance(value, int):
-            return self.bitset.from_value(value)
-        return value
-
-    def marshal(self, value):
-        if isinstance(value, self.bitset):
-            return value.value
-        return value
 
 
 class JsonArray(JsonField):

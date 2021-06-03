@@ -1,16 +1,15 @@
 import copy
-import enum
 from datetime import datetime
 
-from ..utils import (JsonArray, JsonEnum, JsonField, JsonObject,
-                     JsonTemplate, JsonTimestamp)
+from ..utils import (Enum, JsonArray, JsonField, JsonObject,
+                     JsonTemplate)
 
 __all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
            'Embed', 'EmbedBuilder')
 
 
-class EmbedType(enum.Enum):
+class EmbedType(Enum):
     """An enumeration of Discord's embed types
 
     | Name      | Description                                        |
@@ -25,6 +24,8 @@ class EmbedType(enum.Enum):
     warning:
         This is not used by Discord and should be considered deprecated
     """
+    __enum_type__ = str
+
     RICH = 'rich'
     IMAGE = 'image'
     VIDEO = 'video'
@@ -153,10 +154,15 @@ Attributes:
 
 EmbedTemplate = JsonTemplate(
     title=JsonField('title'),
-    type=JsonEnum('type', enum=EmbedType, default=EmbedType.RICH),
+    type=JsonField(
+        'type', EmbedType.try_enum, EmbedType.valuegetter,
+        default=EmbedType.RICH
+    ),
     description=JsonField('description'),
     url=JsonField('url'),
-    timestamp=JsonTimestamp('timestamp'),
+    timestamp=JsonField(
+        'timestamp', datetime.fromisoformat, datetime.isoformat
+    ),
     color=JsonField('color'),
     footer=JsonField('footer', object=EmbedFooter),
     image=JsonField('image', object=EmbedImage),

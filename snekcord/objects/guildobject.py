@@ -1,33 +1,39 @@
-import enum
-
 from .baseobject import BaseObject, BaseTemplate
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
-from ..utils import (Flag, JsonArray, JsonBitset, JsonEnum, JsonField,
+from ..utils import (Enum, Flag, JsonArray, JsonField,
                      JsonObject, JsonTemplate, NamedBitset, Snowflake,
                      _validate_keys)
 
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 
-class MessageNotificationsLevel(enum.Enum):
+class MessageNotificationsLevel(Enum):
+    __enum_type__ = int
+
     ALL_MESSAGES = 0
     ONLY_MENTIONS = 1
 
 
-class ExplicitContentFilterLevel(enum.Enum):
+class ExplicitContentFilterLevel(Enum):
+    __enum_type__ = int
+
     DISABLED = 0
     MEMBERS_WITHOUT_ROLES = 1
     ALL_MEMBERS = 2
 
 
-class MFALevel:
+class MFALevel(Enum):
+    __enum_type__ = int
+
     NONE = 0
     ELEVATED = 1
 
 
-class VerificationLevel(enum.Enum):
+class VerificationLevel(Enum):
+    __enum_type__ = int
+
     NONE = 0
     LOW = 1
     MEDIUM = 2
@@ -35,14 +41,18 @@ class VerificationLevel(enum.Enum):
     VERY_HIGH = 4
 
 
-class GuildNSFWLevel(enum.Enum):
+class GuildNSFWLevel(Enum):
+    __enum_type__ = int
+
     DEFAULT = 0
     EXPLICIT = 1
     SAFE = 2
     AGE_RESTRICTED = 3
 
 
-class PermiumTier(enum.Enum):
+class PremiumTier(Enum):
+    __enum_type__ = int
+
     NONE = 0
     TIER_1 = 1
     TIER_2 = 2
@@ -55,7 +65,9 @@ class SystemChannelFlags(NamedBitset):
     SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
 
 
-class GuildFeatures(enum.Enum):
+class GuildFeatures(Enum):
+    __enum_type__ = str
+
     ANIMATED_ICON = 'ANIMATED_ICON'
     BANNER = 'BANNER'
     COMMERCE = 'COMMERCE'
@@ -94,21 +106,32 @@ GuildTemplate = JsonTemplate(
     region=JsonField('region'),
     afk_channel_id=JsonField('afk_channel_id', Snowflake, str),
     afk_timeout=JsonField('afk_timeout'),
-    verification_level=JsonEnum('verification_level', enum=VerificationLevel),
-    default_message_notifications=JsonEnum(
+    verification_level=JsonField(
+        'verification_level',
+        VerificationLevel.try_enum,
+        VerificationLevel.valuegetter
+    ),
+    default_message_notifications=JsonField(
         'default_message_notifications',
-        enum=MessageNotificationsLevel
+        MessageNotificationsLevel.try_enum,
+        MessageNotificationsLevel.valuegetter
     ),
-    explicit_content_filter=JsonEnum(
+    explicit_content_filter=JsonField(
         'explicit_content_filter',
-        enum=ExplicitContentFilterLevel
+        ExplicitContentFilterLevel.try_enum,
+        ExplicitContentFilterLevel.valuegetter
     ),
-    mfa_level=JsonEnum('mfa_level', enum=MFALevel),
+    mfa_level=JsonField(
+        'mfa_level',
+        MFALevel.try_enum,
+        MFALevel.valuegetter
+    ),
     application_id=JsonField('application_id', Snowflake, str),
     system_channel_id=JsonField('system_channel_id', Snowflake, str),
-    system_channel_flags=JsonBitset(
+    system_channel_flags=JsonField(
         'system_channel_flags',
-        bitset=SystemChannelFlags
+        SystemChannelFlags.from_value,
+        SystemChannelFlags.valuegetter
     ),
     rules_channel_id=JsonField('rules_channel_id', Snowflake, str),
     joined_at=JsonField('joined_at'),
@@ -121,14 +144,22 @@ GuildTemplate = JsonTemplate(
     max_presences=JsonField('max_presences'),
     max_members=JsonField('max_members'),
     banner=JsonField('banner'),
-    premium_tier=JsonEnum('permium_tier', enum=PermiumTier),
+    premium_tier=JsonField(
+        'permium_tier',
+        PremiumTier.try_enum,
+        PremiumTier.valuegetter,
+    ),
     premium_subscription_count=JsonField('premium_subscription_count'),
     preferred_locale=JsonField('preferred_locale'),
     public_updates_channel_id=JsonField(
         'public_updates_channel_id', Snowflake, str
     ),
     max_video_channel_users=JsonField('max_video_channel_users'),
-    nsfw_level=JsonEnum('nsfw', enum=GuildNSFWLevel),
+    nsfw_level=JsonField(
+        'nsfw',
+        GuildNSFWLevel.try_enum,
+        GuildNSFWLevel.valuegetter
+    ),
     __extends__=(GuildPreviewTemplate,)
 )
 

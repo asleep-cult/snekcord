@@ -1,4 +1,3 @@
-import enum
 import json
 import platform
 import random
@@ -7,10 +6,12 @@ import time
 from wsaio import taskify
 
 from .basews import BaseWebSocket, BaseWebSocketWorker, WebSocketResponse
-from ..utils import Snowflake
+from ..utils import Enum, Snowflake
 
 
-class ShardOpcode(enum.IntEnum):
+class ShardOpcode(Enum):
+    __enum_type__ = int
+
     DISPATCH = 0  # Discord -> Shard
     HEARTBEAT = 1  # Discord <-> Shard
     IDENTIFY = 2  # Discord <- Shard
@@ -25,7 +26,9 @@ class ShardOpcode(enum.IntEnum):
     HEARTBEAT_ACK = 11  # Discord -> Shard
 
 
-class ShardCloseCode(enum.IntEnum):
+class ShardCloseCode(Enum):
+    __enum_type__ = int
+
     UNKNOWN_ERROR = 4000
     UNKNOWN_OPCODE = 4001
     DECODE_ERROR = 4002
@@ -206,17 +209,13 @@ class ShardWebSocket(BaseWebSocket):
     @taskify
     async def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
-
-        try:
-            opcode = ShardOpcode(response.opcode)
-        except ValueError:
-            return
+        opcode = ShardOpcode.try_enum(response.opcode)
 
         if (response.sequence is not None
                 and response.sequence > self.sequence):
             self.sequence = response.sequence
 
-        if opcode is ShardOpcode.DISPATCH:
+        if opcode == ShardOpcode.DISPATCH:
             name = response.name
 
             if name == 'READY':
@@ -273,19 +272,19 @@ class ShardWebSocket(BaseWebSocket):
 
             await self.callbacks['DISPATCH'](self, name, response.data)
 
-        elif opcode is ShardOpcode.HEARTBEAT:
+        elif opcode == ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
 
-        elif opcode is ShardOpcode.RECONNECT:
+        elif opcode == ShardOpcode.RECONNECT:
             return
 
-        elif opcode is ShardOpcode.INVALID_SESSION:
+        elif opcode == ShardOpcode.INVALID_SESSION:
             return
 
-        elif opcode is ShardOpcode.HELLO:
+        elif opcode == ShardOpcode.HELLO:
             self.heartbeat_interval = response.data['heartbeat_interval']
             await self.callbacks['HELLO'](self)
             await self.identify()
 
-        elif opcode is ShardOpcode.HEARTBEAT_ACK:
+        elif opcode == ShardOpcode.HEARTBEAT_ACK:
             await self.callbacks['HEARTBEAT_ACK'](self)
