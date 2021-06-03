@@ -38,7 +38,6 @@ class ChannelType(Enum, type=int):
 
 
 def _guild_channel_creation_keys(channel_type):
-    channel_type = ChannelType(channel_type)
     keys = ('name', 'position', 'permission_overwrites')
 
     if channel_type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
@@ -52,7 +51,6 @@ def _guild_channel_creation_keys(channel_type):
 
 
 def _guild_channel_modification_keys(channel_type):
-    channel_type = ChannelType(channel_type)
     keys = _guild_channel_creation_keys(channel_type)
 
     if channel_type is ChannelType.GUILD_VOICE:
@@ -237,11 +235,12 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         return self.messages.upsert_many(data)
 
 
-class CategoryChannel(GuildChannel):
+class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
     """Represents the `GUILD_CATEGORY` channel type"""
     def __str__(self):
         return f'#{self.name}'
 
+    @property
     def children(self):
         """Yields all of the `GuildChannels` that belong to this category"""
         for channel in self.state:

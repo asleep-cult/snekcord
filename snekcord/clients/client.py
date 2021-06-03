@@ -4,8 +4,8 @@ __all__ = ('Client',)
 
 
 class Client:
-    def __init__(self, token, **kwargs):
-        self.manager = Manager(token, **kwargs)
+    def __init__(self, *args, **kwargs):
+        self.manager = Manager(*args, **kwargs)
 
     def on(self, *args, **kwargs):
         return self.manager.on(*args, **kwargs)

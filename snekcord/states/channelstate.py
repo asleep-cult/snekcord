@@ -2,8 +2,8 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..objects.baseobject import BaseObject
 from ..objects.channelobject import (
-    ChannelType, DMChannel, TextChannel, VoiceChannel,
-    _guild_channel_creation_keys)
+    CategoryChannel, ChannelType, DMChannel, TextChannel,
+    VoiceChannel, _guild_channel_creation_keys)
 from ..utils import Snowflake, _validate_keys
 
 __all__ = ('ChannelState',)
@@ -14,7 +14,8 @@ class ChannelState(BaseState):
     __channel_classes__ = {
         ChannelType.GUILD_TEXT: TextChannel,
         ChannelType.GUILD_VOICE: VoiceChannel,
-        ChannelType.DM: DMChannel
+        ChannelType.GUILD_CATEGORY: CategoryChannel,
+        ChannelType.DM: DMChannel,
     }
     __default_class__ = BaseObject
 

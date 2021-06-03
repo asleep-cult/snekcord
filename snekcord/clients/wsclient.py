@@ -27,9 +27,24 @@ class WebSocketIntents(NamedBitset):
 
 class WebSocketClient(Client):
     def __init__(self, *args, **kwargs):
+        self.is_user = kwargs.pop('user', False)
+        self.intents = kwargs.pop('intents', None)
+        self.events = kwargs.pop('events', EVENTS).copy()
+        self.timeouts = kwargs.pop('timeouts', {})
+        self.ws_version = kwargs.pop('ws_version', '9')
+
         super().__init__(*args, **kwargs)
-        self.manager.__events__ = EVENTS
+        self.manager.__events__ = self.events
+
         self.sharder = Sharder(manager=self.manager, timeout=30)
+
+    @property
+    def token(self):
+        return self.manager.token
+
+    @property
+    def api_version(self):
+        return self.manager.api_version
 
     @property
     def shards(self):
@@ -40,20 +55,27 @@ class WebSocketClient(Client):
         return self.sharder.user
 
     async def fetch_gateway(self):
-        data = await rest.get_gateway.request(session=self.manager.rest)
+        data = await rest.get_gateway.request(session=self.rest)
+        return data
+
+    async def fetch_gateway_bot(self):
+        data = await rest.get_gateway_bot.request(session=self.rest)
         return data
 
     async def connect(self, *args, **kwargs):
-        gateway = await self.fetch_gateway()
+        if self.is_user or True:
+            shard_id = 0
+            gateway = await self.fetch_gateway()
+            gateway_url = gateway['url'] + f'?v={self.ws_version}'
 
-        shard = await self.sharder.create_connection(
-            0, gateway['url'], intents=None,
-            token=self.manager.token)
+            shard = await self.sharder.create_connection(
+                shard_id, gateway_url, intents=self.intents,
+                token=self.token, *args, **kwargs)
 
-        self.shards[0] = shard
+            self.shards[shard.id] = shard
 
         await self.sharder.work()
 
-    def run_forever(self):
-        self.manager.loop.create_task(self.connect())
+    def run_forever(self, *args, **kwargs):
+        self.manager.loop.create_task(self.connect(*args, **kwargs))
         self.manager.run_forever()
