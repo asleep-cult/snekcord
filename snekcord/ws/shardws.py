@@ -118,7 +118,7 @@ class ShardWebSocket(BaseWebSocket):
         await self.callbacks['CLOSING'](exc)
 
     @taskify
-    async def ws_close_received(self, code, data) -> None:
+    async def ws_close_received(self, code, data):
         super().ws_close_received(code, data)
         await self.callbacks['CLOSED'](code, data)
 
