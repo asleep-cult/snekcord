@@ -16,8 +16,7 @@ class BaseEvent:
             setattr(self, field, kwargs[field])
 
     def __init_subclass__(cls) -> None:
-        if cls.__fields__ != __class__.__fields__:
-            cls.__fields__ = __class__.__fields__ + cls.__fields__
+        cls.__fields__ += BaseEvent.__fields__
 
     def __repr__(self):
         attrs = [
@@ -336,7 +335,7 @@ class IntegrationDeleteEvent(BaseEvent):
 @register
 class InviteCreateEvent(BaseEvent):
     __event_name__ = 'INVITE_CREATE'
-    __fields__ = ('invite')
+    __fields__ = ('invite',)
 
     @classmethod
     async def execute(cls, manager, shard, payload):
@@ -347,7 +346,7 @@ class InviteCreateEvent(BaseEvent):
 @register
 class InviteDeleteEvent(BaseEvent):
     __event_name__ = 'INVITE_DELETE'
-    __fields__ = ('invite')
+    __fields__ = ('invite',)
 
     @classmethod
     async def execute(cls, manager, shard, payload):
