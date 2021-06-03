@@ -50,19 +50,19 @@ class Message(BaseObject, template=MessageTemplate):
     @property
     def guild(self):
         return (self.state.manager.guilds.get(self.guild_id)
-                or getattr(self.state.channel, 'guild', None))
+                or getattr(self.channel, 'guild', None))
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
             session=self.state.manager.rest,
-            fmt=dict(channel_id=self.state.channel.id, message_id=self.id))
+            fmt=dict(channel_id=self.channel.id, message_id=self.id))
 
         return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_message.request(
             session=self.state.manager.rest,
-            fmt=dict(channel_id=self.state.channel.id, message_id=self.id)
+            fmt=dict(channel_id=self.channel.id, message_id=self.id)
         )
         self._delete()
 
