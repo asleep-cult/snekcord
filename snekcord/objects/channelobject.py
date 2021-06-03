@@ -10,7 +10,7 @@ __all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'VoiceChannel',
 
 
 class ChannelType(enum.Enum):
-    """An enumaration of Discord's channel types
+    """An enumeration of Discord's channel types
 
     | Name                   | Description                             |
     | ---------------------- | --------------------------------------- |
