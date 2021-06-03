@@ -2,24 +2,24 @@ __all__ = ('Bitset',)
 
 
 class Bitset:
-    def __init__(self, value=None):
+    def __init__(self, length, value=None):
         if value is not None:
             self.value = value
         else:
             self.value = 0
+        self.length = length
 
     def _noamalize_indice(self, indice):
         if not isinstance(indice, int):
             raise TypeError(f'{self.__class__.__name__} indices must be '
                             f'integers, got {indice.__class__.__name__}')
 
-        bit_length = self.value.bit_length()
         if indice < 0:
             indice = -indice - 1
         else:
-            indice = bit_length - indice
+            indice = self.length - indice
 
-        if 0 > indice or indice > bit_length:
+        if 0 > indice or indice > self.length:
             raise IndexError(f'{self.__class__.__name__} index out of range')
 
         return indice
@@ -58,13 +58,16 @@ class Bitset:
         return self.value
 
     def __len__(self):
-        return self.value.bit_length() + 1
+        return self.length
 
     def __getitem__(self, position):
         return (self.value >> self._noamalize_indice(position)) & 1
 
-    def __setitem__(self, position):
-        self.value |= (1 << self._noamalize_indice(position))
+    def __setitem__(self, position, value):
+        if value:
+            self.value |= (1 << self._noamalize_indice(position))
+        else:
+            del self[position]
 
     def __delitem__(self, position):
-        self.value &= ~(self._noamalize_indice(position))
+        self.value &= ~(1 << self._noamalize_indice(position))
