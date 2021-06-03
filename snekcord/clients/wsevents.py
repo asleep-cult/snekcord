@@ -415,7 +415,7 @@ class MessageDeleteEvent(BaseEvent):
 @register
 class StageInstanceCreateEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_CREATE'
-    __fields__ = ('stage')
+    __fields__ = ('stage',)
 
     @classmethod
     async def execute(cls, manager, shard, payload):
@@ -426,7 +426,7 @@ class StageInstanceCreateEvent(BaseEvent):
 @register
 class StageInstanceUpdateEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_UPDATE'
-    __fields__ = ('stage')
+    __fields__ = ('stage',)
 
     @classmethod
     async def execute(cls, manager, shard, payload):
@@ -437,7 +437,7 @@ class StageInstanceUpdateEvent(BaseEvent):
 @register
 class StageInstanceDeleteEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_DELETE'
-    __fields__ = ('stage')
+    __fields__ = ('stage',)
 
     @classmethod
     async def execute(cls, manager, shard, payload):
