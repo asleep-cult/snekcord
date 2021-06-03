@@ -1,6 +1,6 @@
 from .client import Client
+from .wsevents import EVENTS
 from .. import rest
-from ..events import EVENTS
 from ..utils.bitset import Flag, NamedBitset
 from ..ws.shardws import Sharder
 
@@ -28,9 +28,7 @@ class WebSocketIntents(NamedBitset):
 class WebSocketClient(Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.manager.__events__ = EVENTS
-
         self.sharder = Sharder(manager=self.manager, timeout=30)
 
     @property

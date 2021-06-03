@@ -1,2 +1,2 @@
 from .client import *
-from .websocketclient import *
+from .wsclient import *

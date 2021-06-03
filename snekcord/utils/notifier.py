@@ -14,7 +14,6 @@ class Notifier:
         self.queue = asyncio.Queue()
 
     def register(self, obj, interval=0):
-        print('register')
         self._put(obj, interval)
 
     def unregister(self, obj):
