@@ -59,6 +59,13 @@ class Message(BaseObject, template=MessageTemplate):
 
         return self.state.upsert(data)
 
+    async def delete(self):
+        await rest.delete_message.request(
+            session=self.state.manager.rest,
+            fmt=dict(channel_id=self.state.channel.id, message_id=self.id)
+        )
+        self._delete()
+
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
