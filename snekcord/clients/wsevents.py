@@ -410,7 +410,7 @@ class MessageDeleteEvent(BaseEvent):
 
 @register
 class StageInstanceCreateEvent(BaseEvent):
-    __event_name__ = 'STAGE_INSTANGE_CREATE'
+    __event_name__ = 'STAGE_INSTANCE_CREATE'
     __fields__ = (*BaseEvent.__fields__, 'stage')
 
     @classmethod
@@ -421,7 +421,7 @@ class StageInstanceCreateEvent(BaseEvent):
 
 @register
 class StageInstanceUpdateEvent(BaseEvent):
-    __event_name__ = 'STAGE_INSTANGE_UPDATE'
+    __event_name__ = 'STAGE_INSTANCE_UPDATE'
     __fields__ = (*BaseEvent.__fields__, 'stage')
 
     @classmethod
@@ -432,7 +432,7 @@ class StageInstanceUpdateEvent(BaseEvent):
 
 @register
 class StageInstanceDeleteEvent(BaseEvent):
-    __event_name__ = 'STAGE_INSTANGE_DELETE'
+    __event_name__ = 'STAGE_INSTANCE_DELETE'
     __fields__ = (*BaseEvent.__fields__, 'stage')
 
     @classmethod
