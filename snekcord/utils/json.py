@@ -96,7 +96,7 @@ def _flatten_slots(cls, slots=None):
     if slots is None:
         slots = set()
 
-    slots.update(getattr(cls, '__slos__', ()))
+    slots.update(getattr(cls, '__slots__', ()))
 
     for base in cls.__bases__:
         _flatten_slots(base, slots)
