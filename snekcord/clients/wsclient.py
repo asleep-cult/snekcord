@@ -46,10 +46,8 @@ class WebSocketClient(Client):
     async def connect(self, *args, **kwargs):
         gateway = await self.fetch_gateway()
 
-        intents = WebSocketIntents(guilds=True, guild_messages=True)
-
         shard = await self.sharder.create_connection(
-            0, gateway['url'], intents=intents,
+            0, gateway['url'], intents=None,
             token=self.manager.token)
 
         self.shards[0] = shard

@@ -113,7 +113,7 @@ class NamedBitset:
     def value(self):
         return self.bitset.value
 
-    def valuegetter(self):
+    def get_value(self):
         return self.value
 
     def to_dict(self):

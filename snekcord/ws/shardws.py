@@ -80,7 +80,7 @@ class Sharder(BaseWebSocketWorker):
         }
         shard = ShardWebSocket(shard_id, loop=self.loop,
                                token=kwargs.pop('token'),
-                               intents=int(kwargs.pop('intents')),
+                               intents=kwargs.pop('intents'),
                                callbacks=callbacks)
 
         await shard.connect(*args, **kwargs)
@@ -145,7 +145,6 @@ class ShardWebSocket(BaseWebSocket):
             'op': ShardOpcode.IDENTIFY,
             'd': {
                 'token': self.token,
-                'intents': self.intents,
                 'properties': {
                     '$os': platform.system(),
                     '$browser': 'snekcord',
@@ -153,6 +152,10 @@ class ShardWebSocket(BaseWebSocket):
                 }
             }
         }
+
+        if self.intents is not None:
+            payload['intents'] = int(self.intents)
+
         await self.send_str(json.dumps(payload))
 
     async def resume(self):
@@ -177,6 +180,7 @@ class ShardWebSocket(BaseWebSocket):
     async def request_guild_members(self, guild, presences=None, limit=None,
                                     users=None, query=None):
         payload = {
+            'op': ShardOpcode.REQUEST_GUILD_MEMBERS,
             'guild_id': Snowflake.try_snowflake(guild)
         }
 
@@ -209,7 +213,7 @@ class ShardWebSocket(BaseWebSocket):
     @taskify
     async def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
-        opcode = ShardOpcode.try_enum(response.opcode)
+        opcode = ShardOpcode.get_enum(response.opcode)
 
         if (response.sequence is not None
                 and response.sequence > self.sequence):

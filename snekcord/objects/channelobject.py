@@ -70,7 +70,7 @@ GuildChannelTemplate = JsonTemplate(
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
     parent_id=JsonField('parent_id', Snowflake, str),
-    type=JsonField('type', ChannelType.try_enum, ChannelType.valuegetter),
+    type=JsonField('type', ChannelType.get_enum, ChannelType.get_value),
     __extends__=(BaseTemplate,)
 )
 

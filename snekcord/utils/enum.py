@@ -24,21 +24,29 @@ class Enum:
                 f'value={self.value!r})')
 
     def __eq__(self, value):
-        if not isinstance(value, self.__class__):
+        if isinstance(value, self.__class__):
+            value = value.value
+
+        if not isinstance(value, self.__enum_type__):
             return NotImplemented
-        return self.value == value.value
+
+        return self.value == value
 
     def __ne__(self, value):
-        if not isinstance(value, self.__class__):
+        if isinstance(value, self.__class__):
+            value = value.value
+
+        if not isinstance(value, self.__enum_type__):
             return NotImplemented
-        return self.value != value.value
+
+        return self.value != value
 
     @classmethod
-    def try_enum(cls, value):
+    def get_enum(cls, value):
         try:
             return cls.__enum_values__[value]
         except KeyError:
             return cls('undefined', value)
 
-    def valuegetter(self):
+    def get_value(self):
         return self.value

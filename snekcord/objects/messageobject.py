@@ -49,7 +49,7 @@ class Message(BaseObject, template=MessageTemplate):
 
     @property
     def guild(self):
-        return getattr(self.channel, 'guild')
+        return getattr(self.channel, 'guild', None)
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(

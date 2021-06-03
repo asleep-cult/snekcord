@@ -217,7 +217,7 @@ class GuildMemberAddEvent(BaseEvent):
         if guild is not None:
             member = guild.members.upsert(payload)
 
-        return cls(shard=shard, payload=payload, member=member)
+        return cls(shard=shard, payload=payload, guild=guild, member=member)
 
 
 @register
@@ -233,7 +233,7 @@ class GuildMemberUpdateEvent(BaseEvent):
         if guild is not None:
             member = guild.members.upsert(payload)
 
-        return cls(shard=shard, payload=payload, member=member)
+        return cls(shard=shard, payload=payload, guild=guild, member=member)
 
 
 @register

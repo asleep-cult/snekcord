@@ -65,7 +65,7 @@ class SystemChannelFlags(NamedBitset):
     SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
 
 
-class GuildFeatures(Enum):
+class GuildFeature(Enum):
     __enum_type__ = str
 
     ANIMATED_ICON = 'ANIMATED_ICON'
@@ -90,7 +90,11 @@ GuildPreviewTemplate = JsonTemplate(
     icon=JsonField('icon'),
     splash=JsonField('splash'),
     discovery_splash=JsonField('discovery_splash'),
-    features=JsonArray('features'),
+    features=JsonArray(
+        'features',
+        GuildFeature.get_enum,
+        GuildFeature.get_value
+    ),
     member_count=JsonField('approximate_member_count'),
     presence_count=JsonField('approximate_presence_count'),
     description=JsonField('description'),
@@ -108,30 +112,30 @@ GuildTemplate = JsonTemplate(
     afk_timeout=JsonField('afk_timeout'),
     verification_level=JsonField(
         'verification_level',
-        VerificationLevel.try_enum,
-        VerificationLevel.valuegetter
+        VerificationLevel.get_enum,
+        VerificationLevel.get_value
     ),
     default_message_notifications=JsonField(
         'default_message_notifications',
-        MessageNotificationsLevel.try_enum,
-        MessageNotificationsLevel.valuegetter
+        MessageNotificationsLevel.get_enum,
+        MessageNotificationsLevel.get_value
     ),
     explicit_content_filter=JsonField(
         'explicit_content_filter',
-        ExplicitContentFilterLevel.try_enum,
-        ExplicitContentFilterLevel.valuegetter
+        ExplicitContentFilterLevel.get_enum,
+        ExplicitContentFilterLevel.get_value
     ),
     mfa_level=JsonField(
         'mfa_level',
-        MFALevel.try_enum,
-        MFALevel.valuegetter
+        MFALevel.get_enum,
+        MFALevel.get_value
     ),
     application_id=JsonField('application_id', Snowflake, str),
     system_channel_id=JsonField('system_channel_id', Snowflake, str),
     system_channel_flags=JsonField(
         'system_channel_flags',
         SystemChannelFlags.from_value,
-        SystemChannelFlags.valuegetter
+        SystemChannelFlags.get_value
     ),
     rules_channel_id=JsonField('rules_channel_id', Snowflake, str),
     joined_at=JsonField('joined_at'),
@@ -146,8 +150,8 @@ GuildTemplate = JsonTemplate(
     banner=JsonField('banner'),
     premium_tier=JsonField(
         'permium_tier',
-        PremiumTier.try_enum,
-        PremiumTier.valuegetter,
+        PremiumTier.get_enum,
+        PremiumTier.get_value,
     ),
     premium_subscription_count=JsonField('premium_subscription_count'),
     preferred_locale=JsonField('preferred_locale'),
@@ -157,8 +161,8 @@ GuildTemplate = JsonTemplate(
     max_video_channel_users=JsonField('max_video_channel_users'),
     nsfw_level=JsonField(
         'nsfw',
-        GuildNSFWLevel.try_enum,
-        GuildNSFWLevel.valuegetter
+        GuildNSFWLevel.get_enum,
+        GuildNSFWLevel.get_value
     ),
     __extends__=(GuildPreviewTemplate,)
 )
@@ -334,6 +338,7 @@ class Guild(BaseObject, template=GuildTemplate):
         channels = data.get('channels')
         if channels is not None:
             for channel in channels:
+                channel['guild_id'] = self.id
                 channel = self.state.manager.channels.upsert(channel)
                 self.channels.add_key(channel.id)
 

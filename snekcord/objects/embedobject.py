@@ -155,7 +155,7 @@ Attributes:
 EmbedTemplate = JsonTemplate(
     title=JsonField('title'),
     type=JsonField(
-        'type', EmbedType.try_enum, EmbedType.valuegetter,
+        'type', EmbedType.get_enum, EmbedType.get_value,
         default=EmbedType.RICH
     ),
     description=JsonField('description'),
