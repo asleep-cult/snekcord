@@ -6,7 +6,7 @@ from wsaio import WebSocketClient
 from ..utils import JsonField, JsonTemplate, Notifier
 
 
-class WebSocketWorker:
+class BaseWebSocketWorker:
     def __init__(self, *, manager, timeout):
         self.manager = manager
         self.loop = manager.loop
@@ -16,23 +16,8 @@ class WebSocketWorker:
 
         self.notifier = Notifier(loop=self.loop)
 
-    async def create_connection(self, cls, *args, **kwargs):
-        for _ in range(5):
-            ws = cls(worker=self)
-            try:
-                await asyncio.wait_for(
-                    ws.connect(*args, **kwargs), self.timeout)
-                await asyncio.wait_for(ws.ready.wait(), self.timeout)
-            except asyncio.TimeoutError:
-                continue
-            else:
-                break
-        else:
-            raise ConnectionError(
-                f'{cls.__name__} took too long to become '
-                'ready after 5 attempts')
-
-        return ws
+    async def create_connection(self, *args, **kwargs):
+        raise NotImplementedError
 
     def ack(self, ws):
         ws.heartbeat_last_acked = time.perf_counter()

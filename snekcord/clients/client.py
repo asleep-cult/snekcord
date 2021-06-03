@@ -1,5 +1,7 @@
 from ..manager import Manager
 
+__all__ = ('Client',)
+
 
 class Client:
     def __init__(self, token, **kwargs):

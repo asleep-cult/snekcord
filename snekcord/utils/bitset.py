@@ -97,6 +97,9 @@ class NamedBitset:
                     cls.__length__ = value.position
                 cls.__bitset_flags__[name] = value
 
+    def __int__(self):
+        return int(self.bitset)
+
     def __iter__(self):
         return iter(self.bitset)
 

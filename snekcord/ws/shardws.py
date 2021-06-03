@@ -5,7 +5,7 @@ import time
 
 from wsaio import taskify
 
-from .basews import BaseWebSocket, WebSocketResponse
+from .basews import BaseWebSocket, BaseWebSocketWorker, WebSocketResponse
 from ..utils import Snowflake
 
 
@@ -41,15 +41,64 @@ class ShardCloseCode(enum.IntEnum):
     DISALLOWED_INTENTS = 4014
 
 
-class Shard(BaseWebSocket):
-    def __init__(self, worker, shard_id=None, intents=None):
-        super().__init__(loop=worker.loop)
-        self.worker = worker
+class Sharder(BaseWebSocketWorker):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.user = None
+        self.shards = {}
+
+    async def _op_hello(self, shard):
+        self.notifier.register(shard, shard.heartbeat_interval)
+
+    async def _op_dispatch(self, shard, name, data):
+        self.manager.dispatch(name, shard, data)
+
+    async def _op_heartbeat_ack(self, shard):
+        self.ack(shard)
+
+    async def _event_ready(self, shard, data):
+        self.user = self.manager.users.upsert(data['user'])
+
+    async def _event_guilds_received(self, shard):
+        self.manager.dispatch('SHARD_READY', shard)
+
+    async def create_connection(self, shard_id, *args, **kwargs):
+        callbacks = {
+            'HELLO': self._op_hello,
+            'READY': self._event_ready,
+            'DISPATCH': self._op_dispatch,
+            'HEARTBEAT_ACK': self._op_heartbeat_ack,
+            'GUILDS_RECEIVED': self._event_guilds_received
+        }
+        shard = ShardWebSocket(shard_id, loop=self.loop,
+                               token=kwargs.pop('token'),
+                               intents=int(kwargs.pop('intents')),
+                               callbacks=callbacks)
+
+        await shard.connect(*args, **kwargs)
+
+        return shard
+
+
+class ShardWebSocket(BaseWebSocket):
+    def __init__(self, shard_id, *, loop, token, intents, callbacks):
+        super().__init__(loop=loop)
         self.id = shard_id
+        self.token = token
         self.intents = intents
+        self.callbacks = callbacks
+        # HELLO: We received opcode HELLO from Discord
+        # (start sending heartbeats)
+        # READY: We received READY from Discord
+        # DISPATCH: We received opcode DISPATCH from Discord
+        # HEARTBEAT_ACK: We received opcode HEARTBEAT_ACK from Discord
+        # GUILDS_RECEIVED: We received all the guilds we needed to
+        # CLOSED: We received a close frame from Discord
+        # CLOSING: We sent a close frame to Discord
+        # CONNECTION_LOST: The connection was lost, we're officially dead
 
         self.v = None
-        self.user = None
         self.startup_guilds = set()
         self.available_guilds = set()
         self.unavailable_guilds = set()
@@ -59,7 +108,22 @@ class Shard(BaseWebSocket):
         self.sequence = -1
         self._chunk_nonce = -1
 
-    def _remove_startup_guild(self, guild_id):
+    @taskify
+    async def closing_connection(self, exc):
+        super().closing_connection(exc)
+        await self.callbacks['CLOSING'](exc)
+
+    @taskify
+    async def ws_close_received(self, code, data) -> None:
+        super().ws_close_received(code, data)
+        await self.callbacks['CLOSED'](code, data)
+
+    @taskify
+    async def connection_lost(self, exc):
+        super().connection_lost(exc)
+        await self.callbacks['CONNECTION_LOST'](self, exc)
+
+    async def _remove_startup_guild(self, guild_id):
         try:
             self.startup_guilds.remove(guild_id)
         except KeyError:
@@ -67,14 +131,14 @@ class Shard(BaseWebSocket):
 
         if self.ready.is_set():
             if not self.startup_guilds:
-                self.worker.manager.dispatch('SHARD_READY', self)
+                await self.callbacks['GUILDS_RECEIVED'](self)
 
     async def identify(self):
         payload = {
             'op': ShardOpcode.IDENTIFY,
             'd': {
-                'token': self.worker.manager.token,
-                # 'intents': self.intents,
+                'token': self.token,
+                'intents': self.intents,
                 'properties': {
                     '$os': platform.system(),
                     '$browser': 'snekcord',
@@ -88,7 +152,7 @@ class Shard(BaseWebSocket):
         payload = {
             'op': ShardOpcode.RESUME,
             'd': {
-                'token': self.manager.token,
+                'token': self.token,
                 'session_id': self.session_id,
                 'seq': self.sequence
             }
@@ -149,10 +213,10 @@ class Shard(BaseWebSocket):
             self.sequence = response.sequence
 
         if opcode is ShardOpcode.DISPATCH:
-            if response.name == 'READY':
+            name = response.name
+
+            if name == 'READY':
                 self.v = response.data['v']
-                self.user = self.worker.manager.users.upsert(
-                    response.data['user'])
                 self.session_id = response.data['session_id']
                 self.info = response.data.get('shard')
 
@@ -161,12 +225,12 @@ class Shard(BaseWebSocket):
                     self.startup_guilds.add(guild_id)
                     self.available_guilds.add(guild_id)
 
-                self.ready.set()
-
-            elif response.name == 'GUILD_DELETE':
+                await self.callbacks['READY'](self, response.data)
+                return
+            elif name == 'GUILD_DELETE':
                 guild_id = response.data['id']
 
-                self._remove_startup_guild(guild_id)
+                await self._remove_startup_guild(guild_id)
 
                 if data['unavailable']:
                     try:
@@ -176,8 +240,7 @@ class Shard(BaseWebSocket):
 
                     self.unavailable_guilds.add(guild_id)
 
-                    self.worker.manager.dispatch(
-                        'GUILD_UNAVAILABLE', self, response.data)
+                    name = 'GUILD_UNAVAILABLE'
                 else:
                     try:
                         self.available_guilds.remove(guild_id)
@@ -188,33 +251,23 @@ class Shard(BaseWebSocket):
                         self.unavailable_guilds.remove(guild_id)
                     except KeyError:
                         pass
-
-                    self.worker.manager.dispatch(
-                        'GUILD_DELETE', self, response.data)
-
-            elif response.name == 'GUILD_CREATE':
+            elif name == 'GUILD_CREATE':
                 guild_id = response.data['id']
 
-                self._remove_startup_guild(guild_id)
+                await self._remove_startup_guild(guild_id)
 
                 if guild_id in self.available_guilds:
-                    self.worker.manager.dispatch(
-                        'GUILD_RECEIVE', self, response.data)
+                    name = 'GUILD_RECEIVE'
                 else:
                     self.available_guilds.add(guild_id)
 
                     if guild_id in self.unavailable_guilds:
                         self.unavailable_guilds.remove(guild_id)
-                        self.worker.manager.dispatch(
-                            'GUILD_AVAILABLE', self, response.data)
-
+                        name = 'GUILD_AVAILABLE'
                     else:
-                        self.worker.manager.dispatch(
-                            'GUILD_JOIN', self, response.data)
+                        name = 'GUILD_JOIN'
 
-            else:
-                self.worker.manager.dispatch(
-                    response.name, self, response.data)
+            await self.callbacks['DISPATCH'](self, name, response.data)
 
         elif opcode is ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
@@ -228,8 +281,8 @@ class Shard(BaseWebSocket):
         elif opcode is ShardOpcode.HELLO:
             self.heartbeat_interval = (
                 response.data['heartbeat_interval'] / 1000)
-            self.worker.notifier.register(self, self.heartbeat_interval)
+            await self.callbacks['HELLO'](self)
             await self.identify()
 
         elif opcode is ShardOpcode.HEARTBEAT_ACK:
-            self.worker.ack(self)
+            await self.callbacks['HEARTBEAT_ACK'](self)
