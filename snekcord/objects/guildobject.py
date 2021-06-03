@@ -1,11 +1,76 @@
+import enum
+
 from .baseobject import BaseObject, BaseTemplate
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
-from ..utils import (JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake,
+from ..utils import (Flag, JsonArray, JsonBitset, JsonEnum, JsonField,
+                     JsonObject, JsonTemplate, NamedBitset, Snowflake,
                      _validate_keys)
 
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
+
+
+class MessageNotificationsLevel(enum.Enum):
+    ALL_MESSAGES = 0
+    ONLY_MENTIONS = 1
+
+
+class ExplicitContentFilterLevel(enum.Enum):
+    DISABLED = 0
+    MEMBERS_WITHOUT_ROLES = 1
+    ALL_MEMBERS = 2
+
+
+class MFALevel:
+    NONE = 0
+    ELEVATED = 1
+
+
+class VerificationLevel(enum.Enum):
+    NONE = 0
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    VERY_HIGH = 4
+
+
+class GuildNSFWLevel(enum.Enum):
+    DEFAULT = 0
+    EXPLICIT = 1
+    SAFE = 2
+    AGE_RESTRICTED = 3
+
+
+class PermiumTier(enum.Enum):
+    NONE = 0
+    TIER_1 = 1
+    TIER_2 = 2
+    TIER_3 = 3
+
+
+class SystemChannelFlags(NamedBitset):
+    SUPPRESS_JOIN_NOTIFICATIONS = Flag(0)
+    SUPPRESS_PREMIUM_SUBSCRIPTIONS = Flag(1)
+    SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
+
+
+class GuildFeatures(enum.Enum):
+    ANIMATED_ICON = 'ANIMATED_ICON'
+    BANNER = 'BANNER'
+    COMMERCE = 'COMMERCE'
+    COMMUNITY = 'COMMUNITY'
+    DISCOVERABLE = 'DISCOVERABLE'
+    FEATURABLE = 'FEATURABLE'
+    INVITE_SPLASH = 'INVITE_SPLASH'
+    MEMBER_VERIFIVATION_GATE_ENABLED = 'MEMBER_VEFIFICATION_GATE_ENNABLED'
+    NEWS = 'NEWS'
+    PARTNERED = 'PARTNERED'
+    PREVIEW_ENABLED = 'PREVIEW_ENABLED'
+    VANITY_URL = 'VANITY_URL'
+    VERIFIED = 'VERIFIED'
+    VIP_REGIONS = 'VIP_REGIONS'
+    WELCOME_SCEEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
 
 
 GuildPreviewTemplate = JsonTemplate(
@@ -29,13 +94,22 @@ GuildTemplate = JsonTemplate(
     region=JsonField('region'),
     afk_channel_id=JsonField('afk_channel_id', Snowflake, str),
     afk_timeout=JsonField('afk_timeout'),
-    verification_level=JsonField('verification_level'),
-    default_message_notifications=JsonField('default_message_notifications'),
-    explicit_content_filter=JsonField('explicit_content_filter'),
-    mfa_level=JsonField('mfa_level'),
+    verification_level=JsonEnum('verification_level', enum=VerificationLevel),
+    default_message_notifications=JsonEnum(
+        'default_message_notifications',
+        enum=MessageNotificationsLevel
+    ),
+    explicit_content_filter=JsonEnum(
+        'explicit_content_filter',
+        enum=ExplicitContentFilterLevel
+    ),
+    mfa_level=JsonEnum('mfa_level', enum=MFALevel),
     application_id=JsonField('application_id', Snowflake, str),
     system_channel_id=JsonField('system_channel_id', Snowflake, str),
-    system_channel_flags=JsonField('system_channel_flags'),
+    system_channel_flags=JsonBitset(
+        'system_channel_flags',
+        bitset=SystemChannelFlags
+    ),
     rules_channel_id=JsonField('rules_channel_id', Snowflake, str),
     joined_at=JsonField('joined_at'),
     large=JsonField('large'),
@@ -47,14 +121,14 @@ GuildTemplate = JsonTemplate(
     max_presences=JsonField('max_presences'),
     max_members=JsonField('max_members'),
     banner=JsonField('banner'),
-    premium_tier=JsonField('permium_tier'),
+    premium_tier=JsonEnum('permium_tier', enum=PermiumTier),
     premium_subscription_count=JsonField('premium_subscription_count'),
     preferred_locale=JsonField('preferred_locale'),
     public_updates_channel_id=JsonField(
         'public_updates_channel_id', Snowflake, str
     ),
     max_video_channel_users=JsonField('max_video_channel_users'),
-    nsfw=JsonField('nsfw'),
+    nsfw_level=JsonEnum('nsfw', enum=GuildNSFWLevel),
     __extends__=(GuildPreviewTemplate,)
 )
 

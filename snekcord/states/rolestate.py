@@ -14,6 +14,10 @@ class RoleState(BaseState):
         super().__init__(manager=manager)
         self.guild = guild
 
+    @property
+    def everyone(self):
+        return self.get(self.guild.id)
+
     def upsert(self, data):
         role = self.get(data['id'])
         if role is not None:

@@ -1,9 +1,9 @@
 import copy
 import enum
-import operator
 from datetime import datetime
 
-from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils import (JsonArray, JsonEnum, JsonField, JsonObject,
+                     JsonTemplate, JsonTimestamp)
 
 __all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
@@ -153,15 +153,10 @@ Attributes:
 
 EmbedTemplate = JsonTemplate(
     title=JsonField('title'),
-    type=JsonField(
-        'type', EmbedType, operator.attrgetter('value'),
-        default=EmbedType.RICH
-    ),
+    type=JsonEnum('type', enum=EmbedType, default=EmbedType.RICH),
     description=JsonField('description'),
     url=JsonField('url'),
-    timestamp=JsonField(
-        'timestamp', datetime.fromisoformat, datetime.isoformat
-    ),
+    timestamp=JsonTimestamp('timestamp'),
     color=JsonField('color'),
     footer=JsonField('footer', object=EmbedFooter),
     image=JsonField('image', object=EmbedImage),

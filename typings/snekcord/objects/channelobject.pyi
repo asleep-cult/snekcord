@@ -6,7 +6,7 @@ from .baseobject import BaseObject
 from ..utils import JsonTemplate, Snowflake
 
 
-class ChannelType(enum.IntEnum):
+class ChannelType(enum.Enum):
     GUILD_TEXT: Literal[0]
     DM: Literal[1]
     GUILD_VOICE: Literal[2]
