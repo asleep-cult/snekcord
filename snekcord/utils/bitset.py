@@ -3,15 +3,15 @@ __all__ = ('Bitset', 'Flag', 'NamedBitset')
 
 class Bitset:
     def __init__(self, length, value=0):
-        self.value = value
         self.length = length
+        self.value = value
 
     def _noamalize_indice(self, indice):
         if not isinstance(indice, int):
             raise TypeError(f'{self.__class__.__name__} indices must be '
                             f'integers, got {indice.__class__.__name__}')
 
-        if 0 > indice or indice > self.length:
+        if 0 > indice or indice >= self.length:
             raise IndexError(f'{self.__class__.__name__} index out of range')
 
         return indice
@@ -72,32 +72,43 @@ class Flag:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance[self.position]
+        return instance.bitset[self.position]
 
     def __set__(self, instance, value):
-        instance[self.position] = value
+        instance.bitset[self.position] = value
 
     def __delete__(self, instance):
-        del instance[self.position]
+        del instance.bitset[self.position]
 
 
-class NamedBitset(Bitset):
-    __bitset_flags__ = None
-
+class NamedBitset:
     def __init__(self, **kwargs):
-        super().__init__(len(self.__bitset_flags__))
+        self.bitset = Bitset(self.__length__)
 
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __init_subclass__(cls):
+        cls.__length__ = 0
         cls.__bitset_flags__ = {}
         for name, value in cls.__dict__.items():
             if isinstance(value, Flag):
+                if value.position > cls.__length__:
+                    cls.__length__ = value.position
                 cls.__bitset_flags__[name] = value
+
+    def __iter__(self):
+        return iter(self.bitset)
+
+    @property
+    def value(self):
+        return self.bitset.value
+
+    def to_dict(self):
+        return dict(zip(self.__bitset_flags__, self.bitset))
 
     @classmethod
     def from_value(cls, value):
         self = cls.__new__(cls)
-        Bitset.__init__(self, len(self.__bitset_flags__), value)
+        self.bitset = Bitset(self.__length__, value)
         return self
