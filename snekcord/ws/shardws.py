@@ -1,6 +1,7 @@
 import enum
 import json
 import platform
+import random
 import time
 
 from wsaio import taskify
@@ -49,7 +50,10 @@ class Sharder(BaseWebSocketWorker):
         self.shards = {}
 
     async def _op_hello(self, shard):
-        self.notifier.register(shard, shard.heartbeat_interval)
+        delay = (random.random() * shard.heartbeat_interval) / 1000
+        # https://discord.com/developers/docs/topics/gateway#heartbeating
+        self.loop.call_later(delay, self.notifier.register,
+                             shard, shard.heartbeat_interval / 1000)
 
     async def _op_dispatch(self, shard, name, data):
         await self.manager.dispatch(name, shard, data)
@@ -279,8 +283,7 @@ class ShardWebSocket(BaseWebSocket):
             return
 
         elif opcode is ShardOpcode.HELLO:
-            self.heartbeat_interval = (
-                response.data['heartbeat_interval'] / 1000)
+            self.heartbeat_interval = response.data['heartbeat_interval']
             await self.callbacks['HELLO'](self)
             await self.identify()
 

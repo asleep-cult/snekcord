@@ -1,6 +1,6 @@
 from .client import Client
-from ..events import EVENTS
 from .. import rest
+from ..events import EVENTS
 from ..utils.bitset import Flag, NamedBitset
 from ..ws.shardws import Sharder
 
