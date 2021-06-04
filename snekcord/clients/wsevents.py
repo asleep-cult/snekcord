@@ -87,7 +87,7 @@ class GuildReceiveEvent(BaseEvent):
     @classmethod
     async def execute(cls, manager, shard, payload):
         guild = manager.guilds.upsert(payload)
-        await guild.sync(initial=True)
+        await guild.sync_helper(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
 
@@ -99,7 +99,7 @@ class GuildAvailableEvent(BaseEvent):
     @classmethod
     async def execute(cls, manager, shard, payload):
         guild = manager.guilds.upsert(payload)
-        await guild.sync(initial=True)
+        await guild.sync_helper(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
 
