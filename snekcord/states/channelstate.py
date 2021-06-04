@@ -13,9 +13,10 @@ class ChannelState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __channel_classes__ = {
         ChannelType.GUILD_TEXT: TextChannel,
+        ChannelType.DM: DMChannel,
         ChannelType.GUILD_VOICE: VoiceChannel,
         ChannelType.GUILD_CATEGORY: CategoryChannel,
-        ChannelType.DM: DMChannel,
+        ChannelType.GUILD_NEWS: TextChannel,
     }
     __default_class__ = BaseObject
 
