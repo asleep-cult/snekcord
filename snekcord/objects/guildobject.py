@@ -180,7 +180,7 @@ class Guild(BaseObject, template=GuildTemplate):
     def __init__(self, *, state):
         super().__init__(state=state)
 
-        self.synced = False
+        self.unsynced = True
 
         self.widget = GuildWidget.unmarshal(guild=self)
         self.vanity_url = GuildVanityURL.unmarshal(guild=self)
@@ -219,30 +219,25 @@ class Guild(BaseObject, template=GuildTemplate):
             if stage.guild_id == self.id:
                 yield stage
 
-    async def sync(self, payload, **kwargs):
-        bans = kwargs.pop('bans', not self.synced)
-        integrations = kwargs.pop('integrations', not self.synced)
-        invites = kwargs.pop('invites', not self.synced)
-        widget = kwargs.pop('widget', 'widget_enabled' not in payload)
-
+    async def sync(self, payload):
         cache_flags = self.state.manager.cache_flags
 
         if cache_flags is None:
             return
 
-        if bans and cache_flags.guild_bans:
+        if self.unsynced and cache_flags.guild_bans:
             await self.bans.fetch_all()
 
-        if integrations and cache_flags.guild_integrations:
+        if self.unsynced and cache_flags.guild_integrations:
             await self.integrations.fetch_all()
 
-        if invites and cache_flags.guild_invites:
+        if self.unsynced and cache_flags.guild_invites:
             await self.invites()
 
-        if widget and cache_flags.guild_widget:
+        if 'widget_enabled' not in payload and cache_flags.guild_widget:
             await self.widget.fetch()
 
-        self.synced = True
+        self.unsynced = False
 
     async def modify(self, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.modify',
