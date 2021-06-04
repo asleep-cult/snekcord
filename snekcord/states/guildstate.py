@@ -44,7 +44,7 @@ class GuildState(BaseState):
         guild = self.upsert(data)
 
         if sync:
-            await guild.sync_helper(data)
+            await guild.sync(data)
 
         return guild
 
