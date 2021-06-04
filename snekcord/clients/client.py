@@ -5,6 +5,7 @@ from ..rest import RestSession
 from ..states.channelstate import ChannelState, GuildChannelState
 from ..states.emojistate import GuildEmojiState
 from ..states.guildstate import GuildBanState, GuildState
+from ..states.integrationstate import IntegrationState
 from ..states.invitestate import InviteState
 from ..states.memberstate import GuildMemberState
 from ..states.messagestate import MessageState
@@ -23,6 +24,7 @@ class Client(EventDispatcher):
         'GuildChannelState': GuildChannelState,
         'GuildEmojiState': GuildEmojiState,
         'GuildState': GuildState,
+        'IntegrationState': IntegrationState,
         'GuildBanState': GuildBanState,
         'InviteState': InviteState,
         'RoleState': RoleState,

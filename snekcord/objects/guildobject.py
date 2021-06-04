@@ -174,7 +174,7 @@ class Guild(BaseObject, template=GuildTemplate):
     """
     # TODO(asleep-cult): Do it
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
-                 'emojis', 'roles', 'members', 'bans')
+                 'emojis', 'roles', 'members', 'bans', 'integrations')
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -203,8 +203,18 @@ class Guild(BaseObject, template=GuildTemplate):
             manager=self.state.manager,
             guild=self)
 
+        self.integrations = self.state.manager.get_class('IntegrationState')(
+            manager=self.state.manager,
+            guild=self)
+
     def __str__(self):
         return self.name
+
+    @property
+    def stages(self):
+        for stage in self.state.manager.stages:
+            if stage.guild_id == self.id:
+                yield stage
 
     async def modify(self, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.modify',
@@ -341,6 +351,12 @@ class Guild(BaseObject, template=GuildTemplate):
         welcome_screen = data.get('welcome_screen')
         if welcome_screen is not None:
             self.welcome_screen.update(data)
+
+        stage_instances = data.get('stage_instances')
+        if stage_instances is not None:
+            for stage in stage_instances:
+                stage['guild_id'] = self.id
+                self.state.manager.stages.upsert(stage)
 
 
 GuildBanTemplate = JsonTemplate(

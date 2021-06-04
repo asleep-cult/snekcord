@@ -412,9 +412,9 @@ get_guild_integrations = HTTPEndpoint(
     BASE_API_URL + 'guilds/%(guild_id)s/integrations',
 )
 
-get_guild_integration = HTTPEndpoint(
-    'GET',
-    BASE_API_URL + 'guilds/%(guild_id)s/integrations/%(integration_id)s',
+delete_guild_integration = HTTPEndpoint(
+    'DELETE',
+    BASE_API_URL + 'guilds/%(guild_id)s/integrations/%(integration_id)s'
 )
 
 get_guild_widget_settings = HTTPEndpoint(
