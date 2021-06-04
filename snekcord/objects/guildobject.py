@@ -68,7 +68,7 @@ class GuildFeature(Enum, type=str):
     VANITY_URL = 'VANITY_URL'
     VERIFIED = 'VERIFIED'
     VIP_REGIONS = 'VIP_REGIONS'
-    WELCOME_SCEEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
+    WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
 
 
 GuildPreviewTemplate = JsonTemplate(
@@ -216,6 +216,28 @@ class Guild(BaseObject, template=GuildTemplate):
             if stage.guild_id == self.id:
                 yield stage
 
+    async def sync_helper(self, payload):
+        await self.sync(widget='widget_channel_id' not in payload
+                               or 'widget_enabled' not in payload)
+
+    async def sync(self, *, widget=True):
+        cache_flags = self.state.manager.cache_flags
+
+        if cache_flags is None:
+            return
+
+        if cache_flags.guild_bans:
+            await self.bans.fetch_all()
+
+        if cache_flags.guild_integrations:
+            await self.integrations.fetch_all()
+
+        if widget and cache_flags.guild_widget:
+            await self.widget.fetch()
+
+        if cache_flags.guild_invites:
+            await self.invites()
+
     async def modify(self, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.modify_guild.json)
@@ -324,7 +346,7 @@ class Guild(BaseObject, template=GuildTemplate):
             widget_data['enabled'] = widget_enabled
 
         if widget_data:
-            self.widget.update(data)
+            self.widget.update(widget_data)
 
         vanity_url_code = data.get('vanity_url_code')
         if vanity_url_code is None:
@@ -383,7 +405,7 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
 WelcomeScreenChannelTemplate = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),
     description=JsonField('description'),
-    enoji_id=JsonField('emoji', Snowflake, str),
+    emoji_id=JsonField('emoji', Snowflake, str),
     emoji_name=JsonField('emoji_name'),
 )
 
@@ -404,7 +426,7 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
         welcome_screen WelcomeScreen: The welcome screen associated with the
             welcome channel
     """
-    __slots__ = ('guild',)
+    __slots__ = ('welcome_screen',)
 
     def __init__(self, *, welcome_screen):
         self.welcome_screen = welcome_screen
@@ -425,11 +447,11 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
         warning:
             This property relies on the emoji cache to it could return None
         """
-        return self.guild.emojis.get(self.emoji_id)
+        return self.welcome_screen.guild.emojis.get(self.emoji_id)
 
 
 WelcomeScreenTemplate = JsonTemplate(
-    description=JsonField('description'),
+    channel_id=JsonField('channel_id', Snowflake, str),
 )
 
 
@@ -509,7 +531,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                 value['channel_id'] = Snowflake.try_snowflake(key)
 
                 try:
-                    emoji = value['emoji']
+                    emoji = value.pop('emoji')
                     value['emoji_id'] = emoji.id
                     value['emoji_name'] = emoji.name
                 except KeyError:
@@ -520,6 +542,8 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                                WelcomeScreenChannelTemplate.fields)
 
                 welcome_channels.append(value)
+
+            kwargs['welcome_channels'] = welcome_channels
         except KeyError:
             pass
 
@@ -544,5 +568,5 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
 
             for channel in welcome_channels:
                 channel = WelcomeScreenChannel.unmarshal(
-                    channel, guild=self.guild)
+                    channel, welcome_screen=self)
                 self.welcome_channels.append(channel)

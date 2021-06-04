@@ -13,9 +13,16 @@ from ..states.reactionsstate import ReactionsState
 from ..states.rolestate import GuildMemberRoleState, RoleState
 from ..states.stagestage import StageState
 from ..states.userstate import UserState
-from ..utils import EventDispatcher
+from ..utils import EventDispatcher, Flag, NamedBitset
 
-__all__ = ('Client',)
+__all__ = ('CacheFlags', 'Client')
+
+
+class CacheFlags(NamedBitset):
+    guild_bans = Flag(0)
+    guild_integrations = Flag(1)
+    guild_widget = Flag(2)
+    guild_invites = Flag(3)
 
 
 class Client(EventDispatcher):
@@ -40,10 +47,11 @@ class Client(EventDispatcher):
     __classes__ = DEFAULT_CLASSES.copy()
     __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
 
-    def __init__(self, token, *, loop=None, api_version='9'):
+    def __init__(self, token, *, loop=None, cache_flags=None, api_version='9'):
         super().__init__(loop=loop)
 
         self.token = token
+        self.cache_flags = cache_flags
         self.api_version = f'v{api_version}'
 
         self.rest = self.get_class('RestSession')(manager=self)

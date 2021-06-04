@@ -28,7 +28,7 @@ class GuildState(BaseState):
     def new_template_many(self, values):
         return [self.new_template(value) for value in values]
 
-    async def fetch(self, guild, with_counts=None):
+    async def fetch(self, guild, with_counts=None, sync=True):
         params = {}
 
         if with_counts is not None:
@@ -41,7 +41,12 @@ class GuildState(BaseState):
             fmt=dict(guild_id=guild_id),
             params=params)
 
-        return self.upsert(data)
+        guild = self.upsert(data)
+
+        if sync:
+            await guild.sync_helper(data)
+
+        return guild
 
     async def fetch_many(self, *, before=None, after=None, limit=None):
         params = {}

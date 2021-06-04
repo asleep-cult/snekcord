@@ -85,3 +85,6 @@ class BaseObject(JsonObject, template=BaseTemplate):
     async def fetch(self):
         """Equivalent to `self.state.fetch(self.id)`"""
         return await self.state.fetch(self.id)
+
+    async def sync(self, *args, **kwargs):
+        raise NotImplementedError
