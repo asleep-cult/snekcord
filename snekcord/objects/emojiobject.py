@@ -44,8 +44,6 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
             yield self.guild.roles.get(role_id)
 
     async def modify(self, **kwargs):
-        keys = rest.modify_guild_emoji.json
-
         try:
             roles = Snowflake.try_snowflake_set(kwargs['roles'])
             kwargs['roles'] = tuple(roles)
@@ -53,7 +51,7 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
             pass
 
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), rest.modify_guild_emoji.json)
 
         data = await rest.modify_guild_emoji.request(
             session=self.state.manager.rest,

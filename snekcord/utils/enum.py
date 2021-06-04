@@ -52,5 +52,11 @@ class Enum(metaclass=EnumMeta, type=object):
         except KeyError:
             return cls('undefined', value)
 
-    def get_value(self):
-        return self.value
+    @classmethod
+    def get_value(cls, enum):
+        if isinstance(enum, cls):
+            return enum.value
+        elif isinstance(enum, cls.__enum_class__):
+            return enum
+        raise ValueError(
+            f'{enum!r} is not a valid {cls.__name__}')

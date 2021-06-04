@@ -78,11 +78,8 @@ class GuildState(BaseState):
         return self.new_template(data)
 
     async def create(self, **kwargs):
-        required_keys = ('name',)
-        keys = rest.create_guild.json
-
         _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, required_keys, keys)
+                       kwargs, ('name',), rest.create_guild.json)
 
         data = await rest.create_guild.request(
             session=self.manager.rest, json=kwargs)

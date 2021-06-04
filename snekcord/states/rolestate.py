@@ -37,10 +37,8 @@ class RoleState(BaseState):
         return self.upsert_many(data)
 
     async def create(self, **kwargs):
-        keys = rest.create_guild_role.json
-
         _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, (), keys)
+                       kwargs, (), rest.create_guild_role.json)
 
         data = await rest.create_guild_role.request(
             session=self.manager.rest,
@@ -50,16 +48,14 @@ class RoleState(BaseState):
         return self.upsert(data)
 
     async def modify_many(self, positions):
-        required_keys = ('id',)
-        keys = rest.modify_guild_role_positions.json
-
         json = []
 
         for key, value in positions.items():
             value['id'] = Snowflake.try_snowflake(key)
 
             _validate_keys(f'positions[{key}]',
-                           value, required_keys, keys)
+                           value, ('id',),
+                           rest.modify_guild_role_positions.json)
 
             json.append(value)
 

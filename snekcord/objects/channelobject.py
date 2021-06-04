@@ -136,8 +136,6 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         Returns:
             GuildChannel: The modified channel
         """  # noqa: E501
-        keys = _guild_channel_modification_keys(self.type)
-
         if self.type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS,
                          ChannelType.GUILD_STORE):
             try:
@@ -153,7 +151,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
                 pass
 
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), _guild_channel_modification_keys(self.type))
 
         data = await rest.modify_channel.request(
             session=self.state.manager.rest,

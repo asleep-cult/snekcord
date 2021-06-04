@@ -44,11 +44,9 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
         return self
 
     async def create_guild(self, **kwargs):
-        required_keys = ('name',)
-        keys = rest.create_guild_from_template.json
-
         _validate_keys(f'{self.__class__.__name__}.create_guild',
-                       kwargs, required_keys, keys)
+                       kwargs, ('name',),
+                       rest.create_guild_from_template.json)
 
         data = await rest.create_guild_from_template.request(
             session=self.state.manager.rest,
@@ -68,10 +66,8 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
         return self
 
     async def modify(self, **kwargs):
-        keys = rest.modify_guild_template.json
-
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), rest.modify_guild_template.json)
 
         data = await rest.modify_guild_template.request(
             sesison=self.state.manager.rest,

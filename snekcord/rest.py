@@ -481,7 +481,7 @@ delete_invite = HTTPEndpoint(
 create_stage_instance = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'stage-instances',
-    json=('channel_id', 'topic'),
+    json=('channel_id', 'topic', 'privacy_level'),
 )
 
 get_stage_instance = HTTPEndpoint(
@@ -492,7 +492,7 @@ get_stage_instance = HTTPEndpoint(
 modify_stage_instance = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'stage-instances/%(channel_id)s',
-    json=('topic',),
+    json=('topic', 'privacy_level'),
 )
 
 delete_stage_instance = HTTPEndpoint(

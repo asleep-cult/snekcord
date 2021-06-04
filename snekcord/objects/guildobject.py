@@ -203,10 +203,8 @@ class Guild(BaseObject, template=GuildTemplate):
         return self.name
 
     async def modify(self, **kwargs):
-        keys = rest.modify_guild.keys
-
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), rest.modify_guild.json)
 
         data = await rest.modify_guild.request(
             session=self.state.manager.rest,
@@ -223,11 +221,6 @@ class Guild(BaseObject, template=GuildTemplate):
     async def prune(self, **kwargs):
         remove = kwargs.pop('remove', True)
 
-        if remove:
-            keys = rest.begin_guild_prune.json
-        else:
-            keys = rest.get_guild_prune_count.params
-
         try:
             roles = Snowflake.try_snowflake_set(kwargs['roles'])
 
@@ -237,6 +230,11 @@ class Guild(BaseObject, template=GuildTemplate):
                 kwargs['include_roles'] = ','.join(map(str, roles))
         except KeyError:
             pass
+
+        if remove:
+            keys = rest.begin_guild_prune.json
+        else:
+            keys = rest.get_guild_prune_count.params
 
         _validate_keys(f'{self.__class__.__name__}.prune',
                        kwargs, (), keys)
