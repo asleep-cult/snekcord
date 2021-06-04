@@ -21,8 +21,8 @@ __all__ = ('CacheFlags', 'Client')
 class CacheFlags(NamedBitset):
     guild_bans = Flag(0)
     guild_integrations = Flag(1)
-    guild_widget = Flag(2)
-    guild_invites = Flag(3)
+    guild_invites = Flag(2)
+    guild_widget = Flag(3)
 
 
 class Client(EventDispatcher):
