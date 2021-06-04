@@ -68,11 +68,8 @@ class GuildMemberState(BaseState):
         return self.upsert_many(data)
 
     async def add(self, user, **kwargs):
-        required_keys = ('access_token',)
-        keys = rest.add_guild_member.keys
-
         _validate_keys(f'{self.__class__.__name__}.add',
-                       kwargs, required_keys, keys)
+                       kwargs, ('access_token',), rest.add_guild_member.keys)
 
         user_id = Snowflake.try_snowflake(user)
 

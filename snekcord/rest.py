@@ -346,7 +346,7 @@ get_guild_ban = HTTPEndpoint(
 )
 
 create_guild_ban = HTTPEndpoint(
-    'POST',
+    'PUT',
     BASE_API_URL + 'guilds/%(guild_id)s/bans/%(user_id)s',
     json=('delete_message_days', 'reason'),
 )

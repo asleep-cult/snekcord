@@ -115,9 +115,6 @@ class GuildChannelState(BaseSubState):
         return channel
 
     async def modify_many(self, positions):
-        required_keys = ('id',)
-        keys = rest.modify_guild_channel_positions.json
-
         json = []
 
         for key, value in positions.items():
@@ -129,7 +126,8 @@ class GuildChannelState(BaseSubState):
             except KeyError:
                 pass
 
-            _validate_keys(f'positions[{key}]', value, required_keys, keys)
+            _validate_keys(f'positions[{key}]', value, ('id',),
+                           rest.modify_guild_channel_positions.json)
 
             json.append(value)
 

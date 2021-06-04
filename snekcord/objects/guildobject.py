@@ -281,11 +281,8 @@ class Guild(BaseObject, template=GuildTemplate):
         return self.state.new_template_many(data)
 
     async def create_template(self, **kwargs):
-        required_keys = ('name',)
-        keys = rest.create_guild_template.json
-
         _validate_keys(f'{self.__class__.__name__}.create_template',
-                       kwargs, required_keys, keys)
+                       kwargs, ('name',), rest.create_guild_template.json)
 
         data = await rest.create_guild_template.request(
             session=self.state.manager.rest,
@@ -489,8 +486,6 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             )
             ```
         """  # noqa: E501
-        welcome_channel_keys = WelcomeScreenChannelTemplate.fields
-
         try:
             welcome_channels = []
 
@@ -505,16 +500,15 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                     pass
 
                 _validate_keys(f'welcome_channels[{key}]',
-                               value, (), welcome_channel_keys)
+                               value, (),
+                               WelcomeScreenChannelTemplate.fields)
 
                 welcome_channels.append(value)
         except KeyError:
             pass
 
-        keys = rest.modify_guild_welcome_screen.json
-
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), rest.modify_guild_welcome_screen.json)
 
         data = await rest.modify_guild_welcome_screen.request(
             session=self.guild.state.manager.rest,

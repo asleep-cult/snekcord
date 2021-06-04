@@ -96,11 +96,13 @@ class GuildBanState(BaseState):
         self.guild = guild
 
     def upsert(self, data):
+        print(data)
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban.update(data)
         else:
-            ban = self.__ban_class__.unmarshal(data, state=self)
+            ban = self.__ban_class__.unmarshal(
+                data, state=self, guild=self.guild)
             ban.cache()
 
         return ban
@@ -122,19 +124,15 @@ class GuildBanState(BaseState):
         return self.upsert_many(data)
 
     async def add(self, user, **kwargs):
-        keys = rest.create_guild_ban.json
-
-        _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, (), keys)
+        _validate_keys(f'{self.__class__.__name__}.add',
+                       kwargs, (), rest.create_guild_ban.json)
 
         user_id = Snowflake.try_snowflake(user)
 
-        data = await rest.create_guild_ban.request(
+        await rest.create_guild_ban.request(
             session=self.manager.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
-
-        return self.upsert(data)
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
