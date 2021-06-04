@@ -15,6 +15,11 @@ StageTemplate = JsonTemplate(
     guild_id=JsonField('guild_id', Snowflake, str),
     channel_id=JsonField('channel_id', Snowflake, str),
     topic=JsonField('topic'),
+    privacy_level=JsonField(
+        'privacy_level',
+        StagePrivacyLevel.get_enum,
+        StagePrivacyLevel.get_value
+    ),
     discoverable_disabled=JsonField('discoverable_disabled'),
     __extends__=(BaseTemplate,)
 )
@@ -29,8 +34,8 @@ class Stage(BaseObject, template=StageTemplate):
     def channel(self):
         return self.state.manager.channels.get(self.channel_id)
 
-    async def create(self, **kwargs):
-        pass
+    async def fetch(self):
+        return await self.state.fetch(self.channel_id)
 
     async def modify(self, **kwargs):
         try:

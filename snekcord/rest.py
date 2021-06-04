@@ -699,6 +699,7 @@ class RestSession(AsyncClient):
             'version': self.api_version
         })
 
+        kwargs['timeout'] = None
         super().__init__(*args, **kwargs)
 
     async def request(self, method, url, *args, **kwargs):
