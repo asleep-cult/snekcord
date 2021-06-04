@@ -42,9 +42,9 @@ def _guild_channel_creation_keys(channel_type):
 
     if channel_type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
         keys += ('type', 'topic', 'nsfw')
-    elif channel_type is ChannelType.GUILD_VOICE:
+    elif channel_type == ChannelType.GUILD_VOICE:
         keys += ('bitrate', 'userlimit')
-    elif channel_type is channel_type.GUILD_STORE:
+    elif channel_type == channel_type.GUILD_STORE:
         keys += ('nsfw',)
 
     return keys
@@ -53,7 +53,7 @@ def _guild_channel_creation_keys(channel_type):
 def _guild_channel_modification_keys(channel_type):
     keys = _guild_channel_creation_keys(channel_type)
 
-    if channel_type is ChannelType.GUILD_VOICE:
+    if channel_type == ChannelType.GUILD_VOICE:
         keys += ('rtc_region', 'video_quality_mode')
 
     return keys
