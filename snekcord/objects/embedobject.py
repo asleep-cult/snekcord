@@ -241,7 +241,7 @@ class EmbedBuilder:
                 f'title should be a str or None, got'
                 f'{title.__class__.__name__!r}')
 
-        self.embed.title = title
+        self.embed.update({'title': title})
 
         return self
 
@@ -256,7 +256,8 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.type = EmbedType(type) if type is not None else None
+        type = EmbedType(type) if type is not None else None
+        self.embed.update({'type': type})
         return self
 
     def clear_type(self):
@@ -275,7 +276,7 @@ class EmbedBuilder:
                 f'description should be a str or None, got '
                 f'{description.__class__.__name__!r}')
 
-        self.embed.description = description
+        self.embed.update({'description': description})
 
         return self
 
@@ -295,7 +296,7 @@ class EmbedBuilder:
                 f'url should be a str or None, got '
                 f'{url.__class__.__name__!r}')
 
-        self.embed.url = url
+        self.embed.update({'url': url})
 
         return self
 
@@ -320,7 +321,7 @@ class EmbedBuilder:
                 f'timestamp should be a str, int, float, datetime or None, ',
                 f'got {timestamp.__class__.__name__!r}')
 
-        self.embed.timestamp = timestamp
+        self.embed.update({'timestamp': timestamp})
 
         return self
 
@@ -339,7 +340,7 @@ class EmbedBuilder:
             raise TypeError(
                 f'color should be an int, got {color.__class__.__name__!r}')
 
-        self.embed.color = color
+        self.embed.update({'color': color})
 
         return self
 
@@ -368,10 +369,12 @@ class EmbedBuilder:
                 f'proxy_icon_url should be a str or None, got '
                 f'{proxy_icon_url.__class__.__name__!r}')
 
-        self.embed.footer = EmbedFooter.unmarshal({
-            'text': text,
-            'icon_url': icon_url,
-            'proxy_icon_url': proxy_icon_url
+        self.embed.update({
+            'footer': {
+                'text': text,
+                'icon_url': icon_url,
+                'proxy_icon_url': proxy_icon_url
+            }
         })
 
         return self
@@ -414,8 +417,9 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.image = EmbedImage.unmarshal(
-            self._attachment(url, proxy_url, height, width))
+        self.embed.update({
+            'image': self._attachment(url, proxy_url, height, width)
+        })
         return self
 
     def clear_image(self):
@@ -428,8 +432,9 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.thumbnail = EmbedThumbnail.unmarshal(
-            self._attachment(url, proxy_url, height, width))
+        self.embed.update({
+            'timestamp': self._attachment(url, proxy_url, height, width)
+        })
         return self
 
     def clear_thumbnail(self):
@@ -443,8 +448,9 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.video = EmbedImage.unmarshal(
-            self._attachment(url, proxy_url, height, width))
+        self.embed.update({
+            'video': self._attachment(url, proxy_url, height, width)
+        })
         return self
 
     def clear_video(self):
@@ -466,9 +472,11 @@ class EmbedBuilder:
             raise TypeError(
                 f'url should be a str or None, got {url.__class__.__name__}')
 
-        self.embed.provider = EmbedProvider.unmarshal({
-            'name': name,
-            'url': url
+        self.embed.update({
+            'provider': {
+                'name': name,
+                'url': url
+            }
         })
 
         return self
@@ -498,10 +506,12 @@ class EmbedBuilder:
                 f'proxy_icon_url should be a str or None, got '
                 f'{proxy_icon_url.__class__.__name__!r}')
 
-        self.embed.author = EmbedAuthor.unmarshal({
-            'name': name,
-            'icon_url': icon_url,
-            'proxy_icon_url': proxy_icon_url
+        self.embed.update({
+            'author': {
+                'name': name,
+                'icon_url': icon_url,
+                'proxy_icon_url': proxy_icon_url
+            }
         })
 
         return self
