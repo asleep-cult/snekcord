@@ -174,7 +174,7 @@ class Guild(BaseObject, template=GuildTemplate):
     """
     # TODO(asleep-cult): Do it
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
-                 'emojis', 'roles', 'members')
+                 'emojis', 'roles', 'members', 'bans')
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -196,6 +196,10 @@ class Guild(BaseObject, template=GuildTemplate):
             guild=self)
 
         self.members = self.state.manager.get_class('GuildMemberState')(
+            manager=self.state.manager,
+            guild=self)
+
+        self.bans = self.state.manager.get_class('GuildBanState')(
             manager=self.state.manager,
             guild=self)
 
@@ -324,7 +328,6 @@ class Guild(BaseObject, template=GuildTemplate):
             for channel in channels:
                 channel['guild_id'] = self.id
                 channel = self.state.manager.channels.upsert(channel)
-                self.channels.add_key(channel.id)
 
         emojis = data.get('emojis')
         if emojis is not None:

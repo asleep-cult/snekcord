@@ -166,6 +166,13 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             session=self.state.manager.rest,
             fmt=dict(channel_id=self.id))
 
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+
+        guild = self.guild
+        if guild is not None:
+            guild.channels.add_key(self.id)
+
 
 TextChannelTemplate = JsonTemplate(
     topic=JsonField('topic'),

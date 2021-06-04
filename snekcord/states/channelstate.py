@@ -78,7 +78,6 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id))
 
         channels = self.superstate.upsert_many(data)
-        self.extend_keys(channel.id for channel in channels)
 
         return channels
 

@@ -1,8 +1,19 @@
-from .baseobject import BaseTemplate
-from ..utils import JsonField, JsonTemplate, Snowflake
+from .baseobject import BaseObject, BaseTemplate
+from ..utils import Enum, JsonField, JsonObject, JsonTemplate, Snowflake
 
 __all__ = ('IntegrationAccount', 'IntegrationApplicationTemplate',
            'IntegrationTemplate')
+
+
+class IntegartionType(Enum, type=str):
+    TWITCH = 'twitch'
+    YOUTUBE = 'youtube'
+    DISCORD = 'discord'
+
+
+class IntegrationExpireBehavior(Enum, type=int):
+    REMOVE_ROLE = 0
+    KICK = 1
 
 
 IntegrationAccount = JsonTemplate(
@@ -20,14 +31,37 @@ IntegrationApplicationTemplate = JsonTemplate(
     __extends__=(BaseTemplate,)
 )
 
+
+class IntegrationApplication(JsonObject,
+                             template=IntegrationApplicationTemplate):
+    def __init__(self, *, integration):
+        self.integartion = integration
+        self.bot = None
+
+    def update(self, data, *args, **kwargs):
+        super().update(*args, **kwargs)
+
+        bot = data.get('bot')
+        if bot is not None:
+            self.bot = self.integartion.state.manager.users.upsert(bot)
+
+
 IntegrationTemplate = JsonTemplate(
     name=JsonField('name'),
-    type=JsonField('type'),
+    type=JsonField(
+        'type',
+        IntegartionType.get_enum,
+        IntegartionType.get_value
+    ),
     enabled=JsonField('enabled'),
     syncing=JsonField('syncing'),
     role_id=JsonField('role_id', Snowflake, str),
     enable_emoticons=JsonField('emoticons'),
-    expire_behavior=JsonField('expire_behavior'),
+    expire_behavior=JsonField(
+        'expire_behavior',
+        IntegrationExpireBehavior.get_enum,
+        IntegrationExpireBehavior.get_value
+    ),
     expire_grace_period=JsonField('expire_grace_period'),
     _user=JsonField('user'),
     account=JsonField('account', object=IntegrationAccount),
@@ -37,3 +71,26 @@ IntegrationTemplate = JsonTemplate(
     _application=JsonField('application'),
     __extends__=(BaseTemplate,)
 )
+
+
+class Integration(BaseObject, template=IntegrationTemplate):
+    def __init__(self, state, *, guild):
+        super().__init__(state=state)
+        self.guild = guild
+        self.user = None
+        self.application = IntegrationApplication.unmarshal(integration=self)
+
+    @property
+    def role(self):
+        return self.guild.roles.get(self.role_id)
+
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
+
+        user = data.get('user')
+        if user is not None:
+            self.user = self.state.manager.users.upsert(user)
+
+        application = data.get('application')
+        if application is not None:
+            self.application.update(application)
