@@ -223,8 +223,7 @@ class Guild(BaseObject, template=GuildTemplate):
         bans = kwargs.pop('bans', not self.synced)
         integrations = kwargs.pop('integrations', not self.synced)
         invites = kwargs.pop('invites', not self.synced)
-        widget = kwargs.pop('widget', 'widget_channel_id' not in payload
-                                      or 'widget_enabled' not in payload)
+        widget = kwargs.pop('widget', 'widget_enabled' not in payload)
 
         cache_flags = self.state.manager.cache_flags
 
