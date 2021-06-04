@@ -175,7 +175,7 @@ class Guild(BaseObject, template=GuildTemplate):
     # TODO(asleep-cult): Do it
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
                  'emojis', 'roles', 'members', 'bans', 'integrations',
-                 'synced')
+                 'unsynced')
 
     def __init__(self, *, state):
         super().__init__(state=state)
