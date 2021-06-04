@@ -96,7 +96,6 @@ class GuildBanState(BaseState):
         self.guild = guild
 
     def upsert(self, data):
-        print(data)
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban.update(data)
