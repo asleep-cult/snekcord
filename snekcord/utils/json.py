@@ -15,26 +15,27 @@ class JsonTemplate:
         for name, field in self.fields.items():
             try:
                 value = field.unmarshal(data[field.key])
+                obj.__fields__.add(field.key)
                 setattr(obj, name, value)
             except Exception:
                 if set_defaults:
-                    setattr(obj, name, field.default())
+                    default = field.default()
+                    if default is not None:
+                        obj.__fields__.add(field.key)
+                    setattr(obj, name, default)
 
     def to_dict(self, obj):
         data = {}
 
         for name, field in self.fields.items():
-            value = getattr(obj, name, field.default())
-
-            if value is None and field.omitempty:
+            if field.key not in obj.__fields__:
                 continue
+
+            value = getattr(obj, name, field.default())
 
             try:
                 value = field.marshal(value)
             except Exception:
-                continue
-
-            if value is None and field.omitempty:
                 continue
 
             data[field.key] = value
@@ -51,10 +52,9 @@ class JsonTemplate:
 
 class JsonField:
     def __init__(self, key, unmarshal=None, marshal=None, object=None,
-                 default=None, omitempty=False):
+                 default=None):
         self.key = key
         self.object = object
-        self.omitempty = omitempty
         self._default = default
 
         if self.object is not None:
@@ -124,6 +124,8 @@ class JsonObjectMeta(type):
 
 
 class JsonObject(metaclass=JsonObjectMeta):
+    __slots__ = ('__fields__',)
+
     def __init__(self, *args, **kwargs):
         pass
 
@@ -136,6 +138,7 @@ class JsonObject(metaclass=JsonObjectMeta):
             data = json.loads(data)
 
         self = cls.__new__(cls)
+        self.__fields__ = set()
         cls.__init__(self, *args, **kwargs)
         self.update(data or {}, set_defaults=True)
 
