@@ -52,9 +52,7 @@ class Stage(BaseObject, template=StageTemplate):
             fmt=dict(channel_id=self.channel_id),
             json=kwargs)
 
-        self.update(data)
-
-        return self
+        return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_stage_instance.request(
