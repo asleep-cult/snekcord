@@ -1,15 +1,13 @@
-import enum
-
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (JsonArray, JsonEnum, JsonField, JsonTemplate, Snowflake,
+from ..utils import (Enum, JsonArray, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
 __all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'VoiceChannel',
            'DMChannel')
 
 
-class ChannelType(enum.Enum):
+class ChannelType(Enum, type=int):
     """An enumeration of Discord's channel types
 
     | Name                   | Description                             |
@@ -40,24 +38,22 @@ class ChannelType(enum.Enum):
 
 
 def _guild_channel_creation_keys(channel_type):
-    channel_type = ChannelType(channel_type)
     keys = ('name', 'position', 'permission_overwrites')
 
     if channel_type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
         keys += ('type', 'topic', 'nsfw')
-    elif channel_type is ChannelType.GUILD_VOICE:
+    elif channel_type == ChannelType.GUILD_VOICE:
         keys += ('bitrate', 'userlimit')
-    elif channel_type is channel_type.GUILD_STORE:
+    elif channel_type == channel_type.GUILD_STORE:
         keys += ('nsfw',)
 
     return keys
 
 
 def _guild_channel_modification_keys(channel_type):
-    channel_type = ChannelType(channel_type)
     keys = _guild_channel_creation_keys(channel_type)
 
-    if channel_type is ChannelType.GUILD_VOICE:
+    if channel_type == ChannelType.GUILD_VOICE:
         keys += ('rtc_region', 'video_quality_mode')
 
     return keys
@@ -70,7 +66,7 @@ GuildChannelTemplate = JsonTemplate(
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
     parent_id=JsonField('parent_id', Snowflake, str),
-    type=JsonEnum('type', enum=ChannelType),
+    type=JsonField('type', ChannelType.get_enum, ChannelType.get_value),
     __extends__=(BaseTemplate,)
 )
 
@@ -140,8 +136,6 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         Returns:
             GuildChannel: The modified channel
         """  # noqa: E501
-        keys = _guild_channel_modification_keys(self.type)
-
         if self.type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS,
                          ChannelType.GUILD_STORE):
             try:
@@ -157,7 +151,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
                 pass
 
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), _guild_channel_modification_keys(self.type))
 
         data = await rest.modify_channel.request(
             session=self.state.manager.rest,
@@ -239,11 +233,12 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         return self.messages.upsert_many(data)
 
 
-class CategoryChannel(GuildChannel):
+class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
     """Represents the `GUILD_CATEGORY` channel type"""
     def __str__(self):
         return f'#{self.name}'
 
+    @property
     def children(self):
         """Yields all of the `GuildChannels` that belong to this category"""
         for channel in self.state:

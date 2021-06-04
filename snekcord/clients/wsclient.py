@@ -27,9 +27,15 @@ class WebSocketIntents(NamedBitset):
 
 class WebSocketClient(Client):
     def __init__(self, *args, **kwargs):
+        self.is_user = kwargs.pop('user', False)
+        self.intents = kwargs.pop('intents', None)
+        self.timeouts = kwargs.pop('timeouts', {})
+        self.ws_version = kwargs.pop('ws_version', '9')
+        self.__events__ = kwargs.pop('events', EVENTS).copy()
+
         super().__init__(*args, **kwargs)
-        self.manager.__events__ = EVENTS
-        self.sharder = Sharder(manager=self.manager, timeout=30)
+
+        self.sharder = Sharder(manager=self, timeout=30)
 
     @property
     def shards(self):
@@ -40,22 +46,27 @@ class WebSocketClient(Client):
         return self.sharder.user
 
     async def fetch_gateway(self):
-        data = await rest.get_gateway.request(session=self.manager.rest)
+        data = await rest.get_gateway.request(session=self.rest)
+        return data
+
+    async def fetch_gateway_bot(self):
+        data = await rest.get_gateway_bot.request(session=self.rest)
         return data
 
     async def connect(self, *args, **kwargs):
-        gateway = await self.fetch_gateway()
+        if self.is_user or True:
+            shard_id = 0
+            gateway = await self.fetch_gateway()
+            gateway_url = gateway['url'] + f'?v={self.ws_version}'
 
-        intents = WebSocketIntents(guilds=True, guild_messages=True)
+            shard = await self.sharder.create_connection(
+                shard_id, gateway_url, intents=self.intents,
+                token=self.token, *args, **kwargs)
 
-        shard = await self.sharder.create_connection(
-            0, gateway['url'], intents=intents,
-            token=self.manager.token)
-
-        self.shards[0] = shard
+            self.shards[shard.id] = shard
 
         await self.sharder.work()
 
-    def run_forever(self):
-        self.manager.loop.create_task(self.connect())
-        self.manager.run_forever()
+    def run_forever(self, *args, **kwargs):
+        self.loop.create_task(self.connect(*args, **kwargs))
+        super().run_forever()

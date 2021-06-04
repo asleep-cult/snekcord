@@ -1,8 +1,6 @@
 import json
-from datetime import datetime
 
-__all__ = ('JsonTemplate', 'JsonField', 'JsonEnum', 'JsonTimestamp',
-           'JsonBitset', 'JsonArray', 'JsonObject')
+__all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
 
 class JsonTemplate:
@@ -17,26 +15,27 @@ class JsonTemplate:
         for name, field in self.fields.items():
             try:
                 value = field.unmarshal(data[field.key])
+                obj.__fields__.add(field.key)
                 setattr(obj, name, value)
             except Exception:
                 if set_defaults:
-                    setattr(obj, name, field.default())
+                    default = field.default()
+                    if default is not None:
+                        obj.__fields__.add(field.key)
+                    setattr(obj, name, default)
 
     def to_dict(self, obj):
         data = {}
 
         for name, field in self.fields.items():
-            value = getattr(obj, name, field.default())
-
-            if value is None and field.omitempty:
+            if field.key not in obj.__fields__:
                 continue
+
+            value = getattr(obj, name, field.default())
 
             try:
                 value = field.marshal(value)
             except Exception:
-                continue
-
-            if value is None and field.omitempty:
                 continue
 
             data[field.key] = value
@@ -53,10 +52,9 @@ class JsonTemplate:
 
 class JsonField:
     def __init__(self, key, unmarshal=None, marshal=None, object=None,
-                 default=None, omitempty=False):
+                 default=None):
         self.key = key
         self.object = object
-        self.omitempty = omitempty
         self._default = default
 
         if self.object is not None:
@@ -82,51 +80,6 @@ class JsonField:
         return self._default
 
 
-class JsonEnum(JsonField):
-    def __init__(self, *args, **kwargs):
-        self.enum = kwargs.pop('enum')
-        super().__init__(*args, **kwargs)
-
-    def unmarshal(self, value):
-        try:
-            return self.enum(value)
-        except ValueError:
-            return value
-
-    def marshal(self, value):
-        if isinstance(value, self.enum):
-            return value.value
-        return value
-
-
-class JsonTimestamp(JsonField):
-    def unmarshal(self, value):
-        if isinstance(value, str):
-            return datetime.fromisoformat(value)
-        return value
-
-    def marshal(self, value):
-        if isinstance(value, datetime):
-            return value.isoformat()
-        return value
-
-
-class JsonBitset(JsonField):
-    def __init__(self, *args, **kwargs):
-        self.bitset = kwargs.pop('bitset')
-        super().__init__(*args, **kwargs)
-
-    def unmarshal(self, value):
-        if isinstance(value, int):
-            return self.bitset.from_value(value)
-        return value
-
-    def marshal(self, value):
-        if isinstance(value, self.bitset):
-            return value.value
-        return value
-
-
 class JsonArray(JsonField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('default', list)
@@ -143,7 +96,7 @@ def _flatten_slots(cls, slots=None):
     if slots is None:
         slots = set()
 
-    slots.update(getattr(cls, '__slos__', ()))
+    slots.update(getattr(cls, '__slots__', ()))
 
     for base in cls.__bases__:
         _flatten_slots(base, slots)
@@ -171,6 +124,8 @@ class JsonObjectMeta(type):
 
 
 class JsonObject(metaclass=JsonObjectMeta):
+    __slots__ = ('__fields__',)
+
     def __init__(self, *args, **kwargs):
         pass
 
@@ -183,6 +138,7 @@ class JsonObject(metaclass=JsonObjectMeta):
             data = json.loads(data)
 
         self = cls.__new__(cls)
+        self.__fields__ = set()
         cls.__init__(self, *args, **kwargs)
         self.update(data or {}, set_defaults=True)
 

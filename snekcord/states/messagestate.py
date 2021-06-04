@@ -57,15 +57,13 @@ class MessageState(BaseState):
         return self.upsert_many(data)
 
     async def create(self, **kwargs):
-        keys = rest.create_channel_message.json
-
         try:
             kwargs['embed'] = kwargs['embed'].to_dict()
         except KeyError:
             pass
 
         _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, (), keys)
+                       kwargs, (), rest.create_channel_message.json)
 
         data = await rest.create_channel_message.request(
             session=self.manager.rest,

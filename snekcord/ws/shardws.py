@@ -1,4 +1,3 @@
-import enum
 import json
 import platform
 import random
@@ -7,10 +6,10 @@ import time
 from wsaio import taskify
 
 from .basews import BaseWebSocket, BaseWebSocketWorker, WebSocketResponse
-from ..utils import Snowflake
+from ..utils import Enum, Snowflake
 
 
-class ShardOpcode(enum.IntEnum):
+class ShardOpcode(Enum, type=int):
     DISPATCH = 0  # Discord -> Shard
     HEARTBEAT = 1  # Discord <-> Shard
     IDENTIFY = 2  # Discord <- Shard
@@ -25,7 +24,7 @@ class ShardOpcode(enum.IntEnum):
     HEARTBEAT_ACK = 11  # Discord -> Shard
 
 
-class ShardCloseCode(enum.IntEnum):
+class ShardCloseCode(Enum, type=int):
     UNKNOWN_ERROR = 4000
     UNKNOWN_OPCODE = 4001
     DECODE_ERROR = 4002
@@ -77,7 +76,7 @@ class Sharder(BaseWebSocketWorker):
         }
         shard = ShardWebSocket(shard_id, loop=self.loop,
                                token=kwargs.pop('token'),
-                               intents=int(kwargs.pop('intents')),
+                               intents=kwargs.pop('intents'),
                                callbacks=callbacks)
 
         await shard.connect(*args, **kwargs)
@@ -119,6 +118,7 @@ class ShardWebSocket(BaseWebSocket):
 
     @taskify
     async def ws_close_received(self, code, data):
+        print(code, data)
         super().ws_close_received(code, data)
         await self.callbacks['CLOSED'](code, data)
 
@@ -142,7 +142,6 @@ class ShardWebSocket(BaseWebSocket):
             'op': ShardOpcode.IDENTIFY,
             'd': {
                 'token': self.token,
-                'intents': self.intents,
                 'properties': {
                     '$os': platform.system(),
                     '$browser': 'snekcord',
@@ -150,6 +149,10 @@ class ShardWebSocket(BaseWebSocket):
                 }
             }
         }
+
+        if self.intents is not None:
+            payload['intents'] = int(self.intents)
+
         await self.send_str(json.dumps(payload))
 
     async def resume(self):
@@ -174,6 +177,7 @@ class ShardWebSocket(BaseWebSocket):
     async def request_guild_members(self, guild, presences=None, limit=None,
                                     users=None, query=None):
         payload = {
+            'op': ShardOpcode.REQUEST_GUILD_MEMBERS,
             'guild_id': Snowflake.try_snowflake(guild)
         }
 
@@ -206,17 +210,13 @@ class ShardWebSocket(BaseWebSocket):
     @taskify
     async def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
-
-        try:
-            opcode = ShardOpcode(response.opcode)
-        except ValueError:
-            return
+        opcode = ShardOpcode.get_enum(response.opcode)
 
         if (response.sequence is not None
                 and response.sequence > self.sequence):
             self.sequence = response.sequence
 
-        if opcode is ShardOpcode.DISPATCH:
+        if opcode == ShardOpcode.DISPATCH:
             name = response.name
 
             if name == 'READY':
@@ -273,19 +273,19 @@ class ShardWebSocket(BaseWebSocket):
 
             await self.callbacks['DISPATCH'](self, name, response.data)
 
-        elif opcode is ShardOpcode.HEARTBEAT:
+        elif opcode == ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
 
-        elif opcode is ShardOpcode.RECONNECT:
+        elif opcode == ShardOpcode.RECONNECT:
             return
 
-        elif opcode is ShardOpcode.INVALID_SESSION:
+        elif opcode == ShardOpcode.INVALID_SESSION:
             return
 
-        elif opcode is ShardOpcode.HELLO:
+        elif opcode == ShardOpcode.HELLO:
             self.heartbeat_interval = response.data['heartbeat_interval']
             await self.callbacks['HELLO'](self)
             await self.identify()
 
-        elif opcode is ShardOpcode.HEARTBEAT_ACK:
+        elif opcode == ShardOpcode.HEARTBEAT_ACK:
             await self.callbacks['HEARTBEAT_ACK'](self)

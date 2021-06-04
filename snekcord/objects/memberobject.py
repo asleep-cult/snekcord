@@ -40,8 +40,6 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         return self.deleted_at
 
     async def modify(self, **kwargs):
-        keys = rest.modify_guild_member.json
-
         try:
             kwargs['channel_id'] = Snowflake.try_snowflake(
                 kwargs.pop('voice_channel'))
@@ -55,7 +53,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
             pass
 
         _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), keys)
+                       kwargs, (), rest.modify_guild_member.json)
 
         data = await rest.modify_guild_member.request(
             session=self.state.manager.rest,

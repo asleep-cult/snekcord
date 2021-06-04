@@ -103,15 +103,18 @@ class NamedBitset:
     def __iter__(self):
         return iter(self.bitset)
 
-    @property
-    def value(self):
-        return self.bitset.value
-
-    def to_dict(self):
-        return dict(zip(self.__bitset_flags__, self.bitset))
-
     @classmethod
     def from_value(cls, value):
         self = cls.__new__(cls)
         self.bitset = Bitset(self.__length__, value)
         return self
+
+    @property
+    def value(self):
+        return self.bitset.value
+
+    def get_value(self):
+        return self.value
+
+    def to_dict(self):
+        return dict(zip(self.__bitset_flags__, self.bitset))
