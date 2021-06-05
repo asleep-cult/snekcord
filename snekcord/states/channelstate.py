@@ -1,17 +1,23 @@
+from __future__ import annotations
+
+from typing import Any, Dict, TYPE_CHECKING, Type, Union
+
 from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..objects.baseobject import BaseObject
 from ..objects.channelobject import (
-    CategoryChannel, ChannelType, DMChannel, TextChannel,
+    GuildChannel, CategoryChannel, ChannelType, DMChannel, TextChannel,
     VoiceChannel, _guild_channel_creation_keys)
 from ..utils import Snowflake, _validate_keys
 
 __all__ = ('ChannelState',)
 
 
-class ChannelState(BaseState):
+_Channel = Union[DMChannel, GuildChannel]
+
+class ChannelState(BaseState[Snowflake, _Channel]):
     __key_transformer__ = Snowflake.try_snowflake
-    __channel_classes__ = {
+    __channel_classes__: Dict[ChannelType, _Channel] = {
         ChannelType.GUILD_TEXT: TextChannel,
         ChannelType.DM: DMChannel,
         ChannelType.GUILD_VOICE: VoiceChannel,
@@ -20,10 +26,10 @@ class ChannelState(BaseState):
     }
     __default_class__ = BaseObject
 
-    def get_class(self, type):
+    def get_class(self, type: int) -> Type[_Channel]:
         return self.__channel_classes__.get(type, self.__default_class__)
 
-    def upsert(self, data):
+    def upsert(self, data: Dict[str, Any]) -> _Channel:
         channel = self.get(data['id'])
         if channel is not None:
             channel.update(data)
