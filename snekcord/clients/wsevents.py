@@ -15,8 +15,9 @@ class BaseEvent:
         for field in self.__fields__:
             setattr(self, field, kwargs[field])
 
-    def __init_subclass__(cls) -> None:
-        cls.__fields__ += BaseEvent.__fields__
+    def __init_subclass__(cls):
+        for base in cls.__bases__:
+            cls.__fields__ += getattr(base, '__fields__', ())
 
     def __repr__(self):
         attrs = [
@@ -193,7 +194,7 @@ class GuildEmojisUpdateEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            guild._update_emojis(payload['emojis'])
+            guild.emojis.upsert_replace(payload['emojis'])
 
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -271,7 +272,7 @@ class GuildRoleCreateEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            role = guild.roles.upsert(payload)
+            role = guild.roles.upsert(payload['role'])
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
@@ -287,7 +288,7 @@ class GuildRoleUpdateEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            role = guild.roles.upsert(payload)
+            role = guild.roles.upsert(payload['role'])
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
@@ -303,8 +304,9 @@ class GuildRoleDeleteEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            role = guild.roles.upsert(payload)
-            role._delete()
+            role = guild.roles.get(payload['role_id'])
+            if role is not None:
+                role._delete()
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
@@ -343,7 +345,7 @@ class InviteCreateEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, manager, shard, payload):
-        invite = manager.invites.get(payload['code'])
+        invite = manager.invites.upsert(payload)
         return cls(shard=shard, payload=payload, invite=invite)
 
 

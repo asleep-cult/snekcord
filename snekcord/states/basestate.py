@@ -11,13 +11,13 @@ __all__ = ('BaseState', 'BaseSubState')
 
 if TYPE_CHECKING:
     from ..clients import Client
-    from ..utils import JsonObject
+    from ..objects.baseobject import BaseObject
 
 
 KT = TypeVar('KT')
 VT = TypeVar('VT')
 DT = TypeVar('DT')
-OT = TypeVar('OT', bound='JsonObject')
+OT = TypeVar('OT', bound='BaseObject')
 
 class _StateCommon(Generic[KT, VT]):
     def first(self, func: Optional[Callable[[VT], Any]] = None) -> Optional[VT]:
@@ -138,7 +138,16 @@ class BaseState(_StateCommon[KT, OT]):
         raise NotImplementedError
 
     def upsert_many(self, values: Iterable[Any], *args: Any, **kwargs: Any) -> List[OT]:
-        return [self.upsert(value, *args, **kwargs) for value in values]
+        return {self.upsert(value, *args, **kwargs) for value in values}
+
+    def upsert_replace(self, *args: Any, **kwargs: Any):
+        values = self.upsert_many(*args, **kwargs)
+
+        for value in set(self):
+            if value not in values:
+                value._delete()
+
+        return values
 
     def recycle(self, key: KT, value: OT) -> None:
         if self.__recycle_enabled__:

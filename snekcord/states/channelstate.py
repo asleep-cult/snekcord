@@ -83,9 +83,7 @@ class GuildChannelState(BaseSubState):
             session=self.superstate.manager.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        channels = self.superstate.upsert_many(data)
-
-        return channels
+        return self.superstate.upsert_many(data)
 
     async def create(self, **kwargs):
         required_keys = ('name',)
@@ -115,10 +113,7 @@ class GuildChannelState(BaseSubState):
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
-        channel = self.superstate.upsert(data)
-        self.add_key(channel.id)
-
-        return channel
+        return self.superstate.upsert(data)
 
     async def modify_many(self, positions):
         json = []

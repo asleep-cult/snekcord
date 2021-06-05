@@ -2,7 +2,7 @@ from .client import Client
 from .wsevents import EVENTS
 from .. import rest
 from ..utils.bitset import Flag, NamedBitset
-from ..ws.shardws import Sharder
+from ..ws.shardws import Shard
 
 __all__ = ('WebSocketIntents', 'WebSocketClient')
 
@@ -35,15 +35,13 @@ class WebSocketClient(Client):
 
         super().__init__(*args, **kwargs)
 
-        self.sharder = Sharder(manager=self, timeout=30)
-
-    @property
-    def shards(self):
-        return self.sharder.shards
+        self.shards = {}
 
     @property
     def user(self):
-        return self.sharder.user
+        if self.shards:
+            return next(iter(self.shards.values())).user
+        return None
 
     async def fetch_gateway(self):
         data = await rest.get_gateway.request(session=self.rest)
@@ -56,16 +54,15 @@ class WebSocketClient(Client):
     async def connect(self, *args, **kwargs):
         if self.is_user or True:
             shard_id = 0
+            self.shard_count = 0
+
             gateway = await self.fetch_gateway()
             gateway_url = gateway['url'] + f'?v={self.ws_version}'
 
-            shard = await self.sharder.create_connection(
-                shard_id, gateway_url, intents=self.intents,
-                token=self.token, *args, **kwargs)
+            shard = Shard(manager=self, shard_id=shard_id)
+            await shard.connect(gateway_url, *args, **kwargs)
 
             self.shards[shard.id] = shard
-
-        await self.sharder.work()
 
     def run_forever(self, *args, **kwargs):
         self.loop.create_task(self.connect(*args, **kwargs))

@@ -77,13 +77,16 @@ IntegrationTemplate = JsonTemplate(
 
 
 class Integration(BaseObject, template=IntegrationTemplate):
-    __slots__ = ('guild', 'user', 'application')
+    __slots__ = ('user', 'application')
 
-    def __init__(self, state, *, guild):
+    def __init__(self, *, state):
         super().__init__(state=state)
-        self.guild = guild
         self.user = None
         self.application = IntegrationApplication.unmarshal(integration=self)
+
+    @property
+    def guild(self):
+        return self.state.guild
 
     @property
     def role(self):

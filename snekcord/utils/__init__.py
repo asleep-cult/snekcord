@@ -3,7 +3,7 @@ from .enum import *
 from .events import *
 from .json import *
 from .misc import *
-from .notifier import *
+from .permissions import *
 from .snowflake import *
 from .token import *
 from .undefined import *

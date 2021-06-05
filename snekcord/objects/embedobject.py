@@ -433,7 +433,7 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         self.embed.update({
-            'timestamp': self._attachment(url, proxy_url, height, width)
+            'thumbnail': self._attachment(url, proxy_url, height, width)
         })
         return self
 

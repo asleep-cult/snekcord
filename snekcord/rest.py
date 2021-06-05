@@ -141,10 +141,15 @@ bulk_delete_messages = HTTPEndpoint(
     json=('messages',),
 )
 
-edit_channel_permissions = HTTPEndpoint(
-    'PATCH',
+create_channel_permission = HTTPEndpoint(
+    'PUT',
     BASE_API_URL + 'channels/%(channel_id)s/permissions/%(overwrite_id)s',
     json=('allow', 'deny', 'type'),
+)
+
+delete_channel_permission = HTTPEndpoint(
+    'DELETE',
+    BASE_API_URL + 'channels/%(channel_id)s/permissions/%(overwrite_id)s',
 )
 
 get_channel_invites = HTTPEndpoint(
@@ -157,11 +162,6 @@ create_channel_invite = HTTPEndpoint(
     BASE_API_URL + 'channels/%(channel_id)s/invites',
     json=('max_age', 'max_uses', 'temporary', 'unique', 'target_type',
           'target_user_id', 'target_application_id'),
-)
-
-delete_channel_permission = HTTPEndpoint(
-    'DELETE',
-    BASE_API_URL + 'channels/%(channel_id)s/invites/%(overwrite_id)s',
 )
 
 follow_news_channel = HTTPEndpoint(

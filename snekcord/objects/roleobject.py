@@ -1,6 +1,7 @@
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
+from ..utils import (JsonField, JsonTemplate, Permissions, Snowflake,
+                     _validate_keys)
 
 __all__ = ('RoleTags', 'Role')
 
@@ -17,7 +18,11 @@ RoleTemplate = JsonTemplate(
     color=JsonField('color'),
     hoist=JsonField('hoist'),
     position=JsonField('position'),
-    permissions=JsonField('permissions'),
+    permissions=JsonField(
+        'permissions',
+        Permissions.from_value,
+        Permissions.get_value
+    ),
     managed=JsonField('managed'),
     mentionable=JsonField('mentionable'),
     tags=JsonField('tags', object=RoleTags),
@@ -26,11 +31,9 @@ RoleTemplate = JsonTemplate(
 
 
 class Role(BaseObject, template=RoleTemplate):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, state, guild):
-        super().__init__(state=state)
-        self.guild = guild
+    @property
+    def guild(self):
+        return self.state.guild
 
     # For some reason '@everyone' pings everyone and the everyone role
     # is named '@everyone', this is escaped to prevent accidental pings

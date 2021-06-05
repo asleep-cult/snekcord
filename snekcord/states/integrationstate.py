@@ -18,7 +18,7 @@ class IntegrationState(BaseState):
             integration.update(data)
         else:
             integration = self.__integration_class__.unmarshal(
-                data, state=self, guild=self.guild)
+                data, state=self)
             integration.cache()
 
         return integration

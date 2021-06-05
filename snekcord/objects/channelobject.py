@@ -62,7 +62,6 @@ def _guild_channel_modification_keys(channel_type):
 GuildChannelTemplate = JsonTemplate(
     name=JsonField('name'),
     guild_id=JsonField('guild_id', Snowflake, str),
-    _permission_overwrites=JsonArray('permission_overwrites'),
     position=JsonField('position'),
     nsfw=JsonField('nsfw'),
     parent_id=JsonField('parent_id', Snowflake, str),
@@ -88,6 +87,14 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
 
         type ChannelType: The channel's type
     """
+    __slots__ = ('permissions',)
+
+    def __init__(self, *, state):
+        super().__init__(state=state)
+
+        cls = self.state.manager.get_class('PermissionOverwriteState')
+        self.permissions = cls(manager=self.state.manager, channel=self)
+
     @property
     def mention(self):
         """The channel in mention format, equivalent to `f'<#{self.id}>'`"""
@@ -144,7 +151,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             except KeyError:
                 pass
 
-        if self.type is ChannelType.GUILD_TEXT:
+        if self.type == ChannelType.GUILD_TEXT:
             try:
                 kwargs['rate_limit_per_user'] = kwargs.pop('slowmode')
             except KeyError:
@@ -166,12 +173,16 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             session=self.state.manager.rest,
             fmt=dict(channel_id=self.id))
 
-    def update(self, *args, **kwargs):
-        super().update(*args, **kwargs)
+    def update(self, data, *args, **kwargs):
+        super().update(data, *args, **kwargs)
 
         guild = self.guild
         if guild is not None:
             guild.channels.add_key(self.id)
+
+        permission_overwrites = data.get('permission_overwrites')
+        if permission_overwrites is not None:
+            self.permissions.upsert_replace(permission_overwrites)
 
 
 TextChannelTemplate = JsonTemplate(

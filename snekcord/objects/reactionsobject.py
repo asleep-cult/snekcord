@@ -20,6 +20,10 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
         BaseObject.__init__(self, state=state)
         self.emoji = None
 
+    @property
+    def message(self):
+        return self.state.message
+
     async def fetch_many(self, after=None, limit=None):
         params = {}
 
