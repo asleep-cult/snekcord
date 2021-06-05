@@ -18,7 +18,7 @@ class InviteState(BaseState):
 
         return invite
 
-    async def fetch(self, code, with_counts=None, with_expiration=None):
+    async def fetch(self, code, *, with_counts=None, with_expiration=None):
         params = {}
 
         if with_counts is not None:
