@@ -42,6 +42,87 @@ class ShardCloseCode(Enum, type=int):
     DISALLOWED_INTENTS = 4014
 
 
+class Shard:
+    def __init__(self, *, manager, shard_id):
+        self.manager = manager
+
+        self.id = shard_id
+        self.count = self.manager.shard_count
+
+        self.loop = self.manager.loop
+        self.token = self.manager.token
+        self.intents = self.manager.intents
+
+        self.callbacks = {
+            'HELLO': self.on_hello,
+            'READY': self.on_ready,
+            'DISPATCH': self.on_dispatch,
+            'GUILDS_RECEIVED': self.on_guilds_received,
+            'CLOSED': self.on_closed,
+            'CLOSING': self.on_closing,
+            'CONNECTION_LOST': self.on_connection_lost
+        }
+
+        self.create_ws(reconnect=False)
+
+    def create_ws(self, *, reconnect=True):
+        if not reconnect:
+            self.session_id = None
+            self.available_guilds = set()
+            self.unavailable_guilds = set()
+            self.sequence = -1
+        else:
+            self.session_id = self.ws.session_id
+            self.sequence = self.ws.sequence
+
+        self.ws = ShardWebSocket(self.id, self.count, loop=self.loop,
+                                 token=self.token, intents=self.intents,
+                                 callbacks=self.callbacks,
+                                 session_id=self.session_id,
+                                 available_guilds=self.available_guilds,
+                                 unavailable_guilds=self.unavailable_guilds,
+                                 sequence=self.sequence)
+
+        self.heartbeater_task = None
+
+    @property
+    def latency(self):
+        return self.ws.latency
+
+    async def on_hello(self):
+        self.heartbeater_task = self.loop.create_task(self.beater())
+
+    async def on_ready(self, data):
+        self.user = self.manager.users.upsert(data['user'])
+
+    async def on_dispatch(self, name, data):
+        await self.manager.dispatch(name, self, data)
+
+    async def on_guilds_received(self):
+        await self.manager.dispatch('SHARD_READY', self)
+
+    async def on_closed(self, code, data):
+        print(f'SHARD {self.id} DIED. {code}, {data}')
+
+    async def on_closing(self, exc):
+        print(f'SHARD {self.id} DIED. {exc}')
+
+    async def on_connection_lost(self, exc):
+        print(f'SHARD {self.id} LOST CONNECTION. {exc}')
+
+    async def heartbeater(self):
+        delay = (random.random() * self.ws.heartbeat_interval) / 1000
+        await asyncio.sleep(delay)
+
+        heartbeat_interval = self.ws.heartbeat_interval / 1000
+        while True:
+            await self.ws.send_heartbeat()
+            await asyncio.sleep(heartbeat_interval)
+
+    async def connect(self, *args, **kwargs):
+        await self.ws.connect(*args, **kwargs)
+
+
 class ShardWebSocket(BaseWebSocket):
     def __init__(self, shard_id, shard_count, *, loop, token, intents,
                  callbacks, session_id=None, available_guilds=None,
@@ -253,89 +334,8 @@ class ShardWebSocket(BaseWebSocket):
 
         elif opcode == ShardOpcode.HELLO:
             self.heartbeat_interval = response.data['heartbeat_interval']
-            await self.callbacks['HELLO'](self)
+            await self.callbacks['HELLO']()
             await self.identify()
 
         elif opcode == ShardOpcode.HEARTBEAT_ACK:
             self.heartbeat_last_acked = time.perf_counter()
-
-
-class Shard:
-    def __init__(self, *, manager, shard_id):
-        self.manager = manager
-
-        self.id = shard_id
-        self.count = self.manager.shard_count
-
-        self.loop = self.manager.loop
-        self.token = self.manager.token
-        self.intents = self.manager.intents
-
-        self.callbacks = {
-            'HELLO': self.on_hello,
-            'READY': self.on_ready,
-            'DISPATCH': self.on_dispatch,
-            'GUILDS_RECEIVED': self.on_guilds_received,
-            'CLOSED': self.on_closed,
-            'CLOSING': self.on_closing,
-            'CONNECTION_LOST': self.on_connection_lost
-        }
-
-        self.create_ws(reconnect=False)
-
-    def create_ws(self, *, reconnect=True):
-        if not reconnect:
-            self.session_id = None
-            self.available_guilds = set()
-            self.unavailable_guilds = set()
-            self.sequence = -1
-        else:
-            self.session_id = self.ws.session_id
-            self.sequence = self.ws.sequence
-
-        self.ws = ShardWebSocket(self.id, self.count, loop=self.loop,
-                                 token=self.token, intents=self.intents,
-                                 callbacks=self.callbacks,
-                                 session_id=self.session_id,
-                                 available_guilds=self.available_guilds,
-                                 unavailable_guilds=self.unavailable_guilds,
-                                 sequence=self.sequence)
-
-        self.beater_task = None
-
-    @property
-    def latency(self):
-        return self.ws.latency
-
-    async def on_hello(self, data):
-        self.beater_task = self.loop.create_task(self.beater())
-
-    async def on_ready(self, data):
-        self.user = self.manager.users.upsert(data['user'])
-
-    async def on_dispatch(self, name, data):
-        await self.manager.dispatch(name, self, data)
-
-    async def on_guilds_received(self):
-        await self.manager.dispatch('SHARD_READY', self)
-
-    async def on_closed(self, code, data):
-        print(f'SHARD {self.id} DIED. {code}, {data}')
-
-    async def on_closing(self, exc):
-        print(f'SHARD {self.id} DIED. {exc}')
-
-    async def on_connection_lost(self, exc):
-        print(f'SHARD {self.id} LOST CONNECTION. {exc}')
-
-    async def beater(self):
-        delay = (random.random() * self.ws.heartbeat_interval) / 1000
-        await asyncio.sleep(delay)
-
-        heartbeat_interval = self.ws.heartbeat_interval / 1000
-        while True:
-            await self.ws.send_heartbeat()
-            await asyncio.sleep(heartbeat_interval)
-
-    async def connect(self, *args, **kwargs):
-        await self.ws.connect(*args, **kwargs)
