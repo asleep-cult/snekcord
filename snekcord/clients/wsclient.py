@@ -51,9 +51,9 @@ class WebSocketClient(Client):
 
     async def connect(self, *args, **kwargs):
         if self.is_user or True:
+            shard_id = 0
             self.shard_count = 0
 
-            shard_id = 0
             gateway = await self.fetch_gateway()
             gateway_url = gateway['url'] + f'?v={self.ws_version}'
 
