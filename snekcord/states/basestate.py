@@ -100,7 +100,16 @@ class BaseState(_StateCommon):
         raise NotImplementedError
 
     def upsert_many(self, values, *args, **kwargs):
-        return [self.upsert(value, *args, **kwargs) for value in values]
+        return {self.upsert(value, *args, **kwargs) for value in values}
+
+    def upsert_replace(self, *args, **kwargs):
+        values = self.upsert_many(*args, **kwargs)
+
+        for value in set(self):
+            if value not in values:
+                value._delete()
+
+        return values
 
     def recycle(self, key, value):
         if self.__recycle_enabled__:

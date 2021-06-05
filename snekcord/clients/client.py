@@ -113,7 +113,11 @@ class Client(EventDispatcher):
         self._sigpending.append((signo, frame))
 
         if self.finalizing:
-            exit()  # give up
+            try:
+                self._repropagate()
+                self.loop.close()
+            except BaseException:
+                return
 
         self.finalizing = True
 

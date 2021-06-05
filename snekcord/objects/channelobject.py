@@ -144,7 +144,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             except KeyError:
                 pass
 
-        if self.type is ChannelType.GUILD_TEXT:
+        if self.type == ChannelType.GUILD_TEXT:
             try:
                 kwargs['rate_limit_per_user'] = kwargs.pop('slowmode')
             except KeyError:

@@ -327,12 +327,6 @@ class Guild(BaseObject, template=GuildTemplate):
     def to_preview_dict(self):
         return GuildPreviewTemplate.to_dict(self)
 
-    def _update_emojis(self, emojis):
-        emojis = self.emojis.upsert_many(emojis)
-        for emoji in set(self.emojis):
-            if emoji not in emojis:
-                self.emojis.pop(emoji.id)
-
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
@@ -361,7 +355,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
         emojis = data.get('emojis')
         if emojis is not None:
-            self._update_emojis(emojis)
+            self.emojis.upsert_replace(emojis)
 
         roles = data.get('roles')
         if roles is not None:
