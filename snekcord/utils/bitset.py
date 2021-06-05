@@ -2,17 +2,13 @@ __all__ = ('Bitset', 'Flag', 'NamedBitset')
 
 
 class Bitset:
-    def __init__(self, length, value=0):
-        self.length = length
+    def __init__(self, value=0):
         self.value = value
 
     def _noamalize_indice(self, indice):
         if not isinstance(indice, int):
             raise TypeError(f'{self.__class__.__name__} indices must be '
                             f'integers, got {indice.__class__.__name__}')
-
-        if 0 > indice or indice >= self.length:
-            raise IndexError(f'{self.__class__.__name__} index out of range')
 
         return indice
 
@@ -72,18 +68,18 @@ class Flag:
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance.bitset[self.position]
+        return instance[self.position]
 
     def __set__(self, instance, value):
-        instance.bitset[self.position] = value
+        instance[self.position] = value
 
     def __delete__(self, instance):
-        del instance.bitset[self.position]
+        del instance[self.position]
 
 
-class NamedBitset:
+class NamedBitset(Bitset):
     def __init__(self, **kwargs):
-        self.bitset = Bitset(self.__length__)
+        super().__init__()
 
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -99,24 +95,22 @@ class NamedBitset:
 
         cls.__length__ += 1
 
-    def __index__(self):
-        return int(self.bitset)
+    @classmethod
+    def all(cls):
+        return cls.from_value((1 << cls.__length__) - 1)
 
-    def __iter__(self):
-        return iter(self.bitset)
+    @classmethod
+    def none(cls):
+        return cls.from_value(0)
 
     @classmethod
     def from_value(cls, value):
         self = cls.__new__(cls)
-        self.bitset = Bitset(self.__length__, value)
+        Bitset.__init__(self, int(value))
         return self
-
-    @property
-    def value(self):
-        return self.bitset.value
 
     def get_value(self):
         return self.value
 
     def to_dict(self):
-        return dict(zip(self.__bitset_flags__, self.bitset))
+        return dict(zip(self.__bitset_flags__, self))

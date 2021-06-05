@@ -1,6 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
-from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
+from ..utils import (JsonField, JsonTemplate, Snowflake, Permissions,
+                     _validate_keys)
 
 __all__ = ('GuildMember',)
 
@@ -12,7 +13,11 @@ GuildMemberTemplate = JsonTemplate(
     deaf=JsonField('deaf'),
     mute=JsonField('mute'),
     pending=JsonField('pending'),
-    _permissions=JsonField('permissions'),
+    _permissions=JsonField(
+        'permissions',
+        Permissions.from_value,
+        Permissions.get_value
+    ),
 )
 
 
@@ -24,6 +29,28 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         self.guild = guild
         self.roles = self.state.manager.get_class('GuildMemberRoleState')(
             superstate=self.guild.roles, member=self)
+
+    @property
+    def permissions(self):
+        if self._permissions is not None:
+            return self._permissions
+
+        guild = self.guild
+
+        if guild.owner_id == self.id:
+            return Permissions.all()
+
+        value = guild.roles.everyone.permissions.value
+
+        for role in self.roles:
+            value |= role.permissions.value
+
+        permissions = Permissions.from_value(value)
+
+        if permissions.administrator:
+            return Permissions.all()
+
+        return permissions
 
     @property
     def mention(self):

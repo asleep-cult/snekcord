@@ -272,7 +272,7 @@ class GuildRoleCreateEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            role = guild.roles.upsert(payload)
+            role = guild.roles.upsert(payload['role'])
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
@@ -288,7 +288,7 @@ class GuildRoleUpdateEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            role = guild.roles.upsert(payload)
+            role = guild.roles.upsert(payload['role'])
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
@@ -304,8 +304,9 @@ class GuildRoleDeleteEvent(BaseEvent):
         guild = manager.guilds.get(payload['guild_id'])
 
         if guild is not None:
-            role = guild.roles.upsert(payload)
-            role._delete()
+            role = guild.roles.get(payload['role_id'])
+            if role is not None:
+                role._delete()
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 

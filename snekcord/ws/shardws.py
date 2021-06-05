@@ -90,7 +90,7 @@ class Shard:
         return self.ws.latency
 
     async def on_hello(self):
-        self.heartbeater_task = self.loop.create_task(self.beater())
+        self.heartbeater_task = self.loop.create_task(self.heartbeater())
 
     async def on_ready(self, data):
         self.user = self.manager.users.upsert(data['user'])

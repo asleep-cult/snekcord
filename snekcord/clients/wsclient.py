@@ -39,7 +39,9 @@ class WebSocketClient(Client):
 
     @property
     def user(self):
-        return self.sharder.user
+        if self.shards:
+            return next(iter(self.shards.values())).user
+        return None
 
     async def fetch_gateway(self):
         data = await rest.get_gateway.request(session=self.rest)
