@@ -26,6 +26,50 @@ class PermissionOverwriteState(BaseState):
 
         return overwrite
 
+    @property
+    def everyone(self):
+        return self.get(self.channel.guild_id)
+
+    def apply_to(self, member):
+        if not isinstance(member, GuildMember):
+            guild = self.channel.guild
+            if guild is None:
+                return None
+
+            member = guild.members.get(member)
+            if member is None:
+                return None
+
+        permissions = member.permissions
+
+        if permissions.administrator:
+            return permissions
+
+        value = permissions.value
+
+        overwrite = self.everyone
+        if overwrite is not None:
+            value &= ~overwrite.deny.value
+            value |= overwrite.allow.value
+
+        allow = 0
+        deny = 0
+        for role_id in member.roles.keys():
+            overwrite = self.get(role_id)
+            if overwrite is not None:
+                allow |= overwrite.allow.value
+                deny |= overwrite.deny.value
+
+        value &= ~deny
+        value |= allow
+
+        overwrite = self.get(member)
+        if overwrite is not None:
+            value &= ~overwrite.deny.value
+            value |= overwrite.allow.value
+
+        return Permissions.from_value(value)
+
     async def create(self, obj, **kwargs):
         if isinstance(obj, GuildMember):
             obj_id = obj.id

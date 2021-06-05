@@ -345,7 +345,7 @@ class InviteCreateEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, manager, shard, payload):
-        invite = manager.invites.get(payload['code'])
+        invite = manager.invites.upsert(payload)
         return cls(shard=shard, payload=payload, invite=invite)
 
 
