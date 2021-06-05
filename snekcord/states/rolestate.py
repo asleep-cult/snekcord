@@ -24,7 +24,7 @@ class RoleState(BaseState):
             role.update(data)
         else:
             role = self.__role_class__.unmarshal(
-                data, state=self, guild=self.guild)
+                data, state=self)
             role.cache()
 
         return role

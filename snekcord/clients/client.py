@@ -9,6 +9,7 @@ from ..states.integrationstate import IntegrationState
 from ..states.invitestate import InviteState
 from ..states.memberstate import GuildMemberState
 from ..states.messagestate import MessageState
+from ..states.overwritestate import PermissionOverwriteState
 from ..states.reactionsstate import ReactionsState
 from ..states.rolestate import GuildMemberRoleState, RoleState
 from ..states.stagestage import StageState
@@ -37,6 +38,7 @@ class Client(EventDispatcher):
         'RoleState': RoleState,
         'GuildMemberState': GuildMemberState,
         'MessageState': MessageState,
+        'PermissionOverwriteState': PermissionOverwriteState,
         'ReactionsState': ReactionsState,
         'GuildMemberRoleState': GuildMemberRoleState,
         'UserState': UserState,

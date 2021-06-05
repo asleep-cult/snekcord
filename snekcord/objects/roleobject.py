@@ -31,11 +31,9 @@ RoleTemplate = JsonTemplate(
 
 
 class Role(BaseObject, template=RoleTemplate):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, state, guild):
-        super().__init__(state=state)
-        self.guild = guild
+    @property
+    def guild(self):
+        return self.state.guild
 
     # For some reason '@everyone' pings everyone and the everyone role
     # is named '@everyone', this is escaped to prevent accidental pings

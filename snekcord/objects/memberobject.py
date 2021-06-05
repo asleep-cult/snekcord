@@ -1,6 +1,6 @@
 from .baseobject import BaseObject
 from .. import rest
-from ..utils import (JsonField, JsonTemplate, Snowflake, Permissions,
+from ..utils import (JsonField, JsonTemplate, Permissions, Snowflake,
                      _validate_keys)
 
 __all__ = ('GuildMember',)
@@ -22,13 +22,16 @@ GuildMemberTemplate = JsonTemplate(
 
 
 class GuildMember(BaseObject, template=GuildMemberTemplate):
-    __slots__ = ('guild', 'roles', 'user')
+    __slots__ = ('roles', 'user')
 
-    def __init__(self, *, state, guild):
+    def __init__(self, *, state):
         super().__init__(state=state)
-        self.guild = guild
         self.roles = self.state.manager.get_class('GuildMemberRoleState')(
             superstate=self.guild.roles, member=self)
+
+    @property
+    def guild(self):
+        return self.state.guild
 
     @property
     def permissions(self):

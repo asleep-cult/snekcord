@@ -20,7 +20,7 @@ class GuildMemberState(BaseState):
             member.update(data)
         else:
             member = self.__guild_member_class__.unmarshal(
-                data, state=self, guild=self.guild)
+                data, state=self)
             member.cache()
 
         return member

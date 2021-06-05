@@ -69,6 +69,9 @@ class GuildFeature(Enum, type=str):
     VERIFIED = 'VERIFIED'
     VIP_REGIONS = 'VIP_REGIONS'
     WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
+    TICKETED_EVENTS_ENABLED = 'TICKETED_EVENTS_ENABLED'
+    MONETIZATION_ENABLED = 'MONETIZATION_ENABLED'
+    MORE_STICKERS = 'MORE_STICKERS'
 
 
 GuildPreviewTemplate = JsonTemplate(
@@ -187,28 +190,22 @@ class Guild(BaseObject, template=GuildTemplate):
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
         self.channels = self.state.manager.get_class('GuildChannelState')(
-            superstate=self.state.manager.channels,
-            guild=self)
+            superstate=self.state.manager.channels, guild=self)
 
         self.emojis = self.state.manager.get_class('GuildEmojiState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self)
 
         self.roles = self.state.manager.get_class('RoleState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self)
 
         self.members = self.state.manager.get_class('GuildMemberState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self)
 
         self.bans = self.state.manager.get_class('GuildBanState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self)
 
         self.integrations = self.state.manager.get_class('IntegrationState')(
-            manager=self.state.manager,
-            guild=self)
+            manager=self.state.manager, guild=self)
 
     def __str__(self):
         return self.name
