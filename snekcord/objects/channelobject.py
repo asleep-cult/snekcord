@@ -7,7 +7,7 @@ __all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'VoiceChannel',
            'DMChannel')
 
 
-class ChannelType(Enum, type=int):
+class ChannelType(Enum[int]):
     """An enumeration of Discord's channel types
 
     | Name                   | Description                             |

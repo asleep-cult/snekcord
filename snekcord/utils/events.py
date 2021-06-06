@@ -2,23 +2,31 @@ from __future__ import annotations
 
 import asyncio
 import functools
-from typing import Any, Callable, Optional, Tuple
+import typing as t
 from weakref import WeakSet
+
+from ..typing import AnyCallable
 
 __all__ = ('EventWaiter', 'EventDispatcher',)
 
 
 class EventWaiter:
-    def __init__(self, name: str, *, dispatcher: EventDispatcher, timeout: Optional[float] = None,
-                 filterer: Optional[Callable[..., Any]] = None
-    ) -> None:
+    name: str
+    dispatcher: EventDispatcher
+    timeout: float | None
+    filterer: AnyCallable | None
+    _queue: asyncio.Queue[t.Any]
+
+    def __init__(self, name: str, *, dispatcher: EventDispatcher,
+                 timeout: float | None = None,
+                 filterer: t.Callable[..., t.Any] | None = None) -> None:
         self.name = name.lower()
         self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
         self._queue = asyncio.Queue()
 
-    def _put(self, value: Tuple[Any, ...]) -> None:
+    def _put(self, value: tuple[t.Any, ...]) -> None:
         if self.filterer is not None:
             if not self.filterer(*value):
                 return
@@ -56,16 +64,21 @@ class EventWaiter:
     __del__ = close
 
 
-def ensure_future(coro):
+def ensure_future(coro: t.Awaitable[t.Any]) -> asyncio.Future[t.Any] | None:
     if hasattr(coro.__class__, '__await__'):
         return asyncio.ensure_future(coro)
     return None
 
 
 class EventDispatcher:
-    __events__ = None
+    loop: asyncio.AbstractEventLoop
+    _listeners: dict[str, list[AnyCallable]]
+    _waiters: dict[str, WeakSet[EventWaiter]]
+    _subscribers: list[EventDispatcher]
+    __events__: dict[str, type] | None = None
 
-    def __init__(self, *, loop=None):
+    def __init__(self, *,
+                 loop: asyncio.AbstractEventLoop | None = None) -> None:
         if loop is not None:
             self.loop = loop
         else:
@@ -75,29 +88,30 @@ class EventDispatcher:
         self._waiters = {}
         self._subscribers = []
 
-    def register_listener(self, name, callback):
+    def register_listener(self, name: str, callback: AnyCallable) -> None:
         listeners = self._listeners.setdefault(name.lower(), [])
         listeners.append(callback)
 
-    def remove_listener(self, name, callback):
+    def remove_listener(self, name: str, callback: AnyCallable):
         listeners = self._listeners.get(name.lower())
         if listeners is not None:
             listeners.remove(callback)
 
-    def register_waiter(self, *args, **kwargs):
-        waiter = EventWaiter(*args, dispatcher=self, **kwargs)
+    def register_waiter(self, *args: t.Any, **kwargs: t.Any):
+        kwargs['dispatcher'] = self
+        waiter = EventWaiter(*args, **kwargs)
         waiters = self._waiters.setdefault(waiter.name, WeakSet())
         waiters.add(waiter)
         return waiter
 
     wait = register_waiter
 
-    def remove_waiter(self, waiter):
+    def remove_waiter(self, waiter: EventWaiter):
         waiters = self._waiters.get(waiter.name.lower())
         if waiters is not None:
             waiters.remove(waiter)
 
-    def run_callbacks(self, name, *args):
+    def run_callbacks(self, name: str, *args: t.Any):
         name = name.lower()
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
@@ -108,12 +122,12 @@ class EventDispatcher:
 
         if waiters is not None:
             for waiter in waiters:
-                waiter._put(args)
+                waiter._put(args)  # type: ignore
 
         for subscriber in self._subscribers:
             subscriber.run_callbacks(name, *args)
 
-    async def dispatch(self, name, *args):
+    async def dispatch(self, name: str, *args: t.Any):
         if self.__events__ is not None:
             event = self.__events__.get(name.lower())
             if event is not None:
@@ -121,29 +135,28 @@ class EventDispatcher:
 
         self.run_callbacks(name, *args)
 
-    def subscribe(self, dispatcher):
-        dispatcher._subscribers.append(self)
+    def subscribe(self, dispatcher: EventWaiter) -> None:
+        dispatcher._subscribers.append(self)  # type: ignore
 
-    def unsubscribe(self, dispatcher):
-        dispatcher._subscribers.remove(self)
+    def unsubscribe(self, dispatcher: EventWaiter) -> None:
+        dispatcher._subscribers.remove(self)  # type: ignore
 
-    def on(self, name=None):
-        def wrapped(func):
+    def on(self, name: str | None = None):
+        def wrapped(func: AnyCallable):
             self.register_listener(name or func.__name__, func)
             return func
         return wrapped
 
-    def once(self, name=None):
-        def wrapped(func):
-            nonlocal name
-            name = (name or func.__name__).lower()
+    def once(self, name: str | None = None):
+        def wrapped(func: AnyCallable):
+            event_name = (name or func.__name__).lower()
 
             @functools.wraps(func)
-            def callback(*args):
-                ensure_future(func, *args)
-                self.remove_listener(name, callback)
+            def callback(*args: t.Any):
+                ensure_future(func(), *args)
+                self.remove_listener(event_name, callback)
 
-            self.remove_listener(name, callback)
+            self.remove_listener(event_name, callback)
 
             return func
         return wrapped

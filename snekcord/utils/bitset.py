@@ -1,72 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Dict, Optional, Type, TypeVar, Union, overload
+import typing as t
 
-__all__ = ('Bitset', 'Flag', 'NamedBitset')
+__all__ = ('Flag', 'Bitset')
 
-FT = TypeVar('FT', bound='Flag')
-BT = TypeVar('BT', bound='Bitset')
-
-class Bitset:
-    length: int
-
-    def __init__(self, value: int = 0):
-        self.value = value
-
-    def _noamalize_indice(self, indice: Any) -> int:
-        if not isinstance(indice, int):
-            raise TypeError(f'{self.__class__.__name__} indices must be '
-                            f'integers, got {indice.__class__.__name__}')
-
-        return indice
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.length == other.length and self.value == other.value
-
-    def __ne__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.length != other.length or self.value != other.value
-
-    def __gt__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.length == other.length and self.value > other.value
-
-    def __ge__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.length == other.length and self.value >= other.value
-
-    def __lt__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.length == other.length and self.value < other.value
-
-    def __le__(self, other: Any) -> bool:
-        if not isinstance(other, self.__class__):
-            return NotImplemented
-        return self.length == other.length and self.value <= other.value
-
-    def __index__(self) -> int:
-        return self.value
-
-    def __len__(self) -> int:
-        return self.length
-
-    def __getitem__(self, position: int) -> int:
-        return (self.value >> self._noamalize_indice(position)) & 1
-
-    def __setitem__(self, position: int, value: int) -> None:
-        if value:
-            self.value |= (1 << self._noamalize_indice(position))
-        else:
-            del self[position]
-
-    def __delitem__(self, position: int) -> None:
-        self.value &= ~(1 << self._noamalize_indice(position))
+BT = t.TypeVar('BT', bound='Bitset')
 
 
 class Flag:
@@ -75,39 +13,40 @@ class Flag:
     def __init__(self, position: int) -> None:
         self.position = position
 
-    @overload
-    def __get__(self: FT, instance: None, owner: Type[Bitset]) -> FT:
+    @t.overload
+    def __get__(self, instance: None, owner: type[Bitset]) -> Flag:
         ...
 
-    @overload
-    def __get__(self, instance: BT, owner: Type[BT]) -> int:
+    @t.overload
+    def __get__(self, instance: Bitset, owner: type[Bitset]) -> bool:
         ...
 
-    def __get__(self, instance: Optional[BT], owner: Type[BT]) -> Union[Flag, int]:
+    def __get__(self, instance: Bitset | None,
+                owner: type[Bitset]) -> Flag | bool:
         if instance is None:
             return self
-        return instance[self.position]
+        return bool((instance.value >> self.position) & 1)
 
-    def __set__(self, instance: Bitset, value: bool) -> None:
-        instance[self.position] = value
+    def __set__(self, instance: Bitset, value: t.SupportsInt) -> None:
+        instance.value |= (1 << self.position)
 
     def __delete__(self, instance: Bitset) -> None:
-        del instance[self.position]
+        instance.value &= ~(1 << self.position)
 
 
-class NamedBitset(Bitset):
-    __length__: ClassVar[int]
-    __bitset_flags__: ClassVar[Dict[str, Flag]]
+class Bitset:
+    __length__: t.ClassVar[int]
+    __bitset_flags__: t.ClassVar[dict[str, Flag]]
 
     def __init__(self, **kwargs: bool):
-        super().__init__()
-
+        self.value = 0
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __init_subclass__(cls):
         cls.__length__ = 0
         cls.__bitset_flags__ = {}
+
         for name, value in cls.__dict__.items():
             if isinstance(value, Flag):
                 if value.position > cls.__length__:
@@ -116,22 +55,26 @@ class NamedBitset(Bitset):
 
         cls.__length__ += 1
 
+    def __iter__(self) -> t.Generator[bool, None, None]:
+        for flag in self.__bitset_flags__:
+            yield getattr(self, flag)
+
     @classmethod
-    def all(cls) -> NamedBitset:
+    def all(cls: type[BT]) -> BT:
         return cls.from_value((1 << cls.__length__) - 1)
 
     @classmethod
-    def none(cls) -> NamedBitset:
+    def none(cls: type[BT]) -> BT:
         return cls.from_value(0)
 
     @classmethod
-    def from_value(cls, value: int) -> NamedBitset:
+    def from_value(cls: type[BT], value: int) -> BT:
         self = cls.__new__(cls)
-        Bitset.__init__(self, int(value))
+        self.value = value
         return self
 
     def get_value(self) -> int:
         return self.value
 
-    def to_dict(self) -> Dict[str, NamedBitset]:
-        return dict(zip(self.__bitset_flags__, self))  # type: ignore
+    def to_dict(self) -> dict[str, bool]:
+        return dict(zip(self.__bitset_flags__, self))

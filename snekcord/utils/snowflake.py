@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import typing as t
 from datetime import datetime
-from typing import Iterable, Set, SupportsInt, TYPE_CHECKING, TypeVar, Union, overload
 
-if TYPE_CHECKING:
+from ..typing import IntConvertable
+
+if t.TYPE_CHECKING:
     from ..objects.baseobject import BaseObject
 
-    T = TypeVar('T')
-    ConvertableToInt = Union[SupportsInt, str]
-    SnowflakeType = Union[ConvertableToInt, BaseObject]
+SnowflakeLike = t.Union[IntConvertable, BaseObject]
 
 __all__ = ('Snowflake',)
 
@@ -27,10 +27,9 @@ class Snowflake(int):
     INCREMENT_MASK = 0xFFF
 
     @classmethod
-    def build(
-        cls, timestamp: Union[datetime, int, None] = None, worker_id: int = 0,
-        process_id: int = 0, increment: int = 0
-    ) -> Snowflake:
+    def build(cls, timestamp: datetime | float | None = None,
+              worker_id: int = 0, process_id: int = 0,
+              increment: int = 0) -> Snowflake:
         if timestamp is None:
             timestamp = datetime.now().timestamp()
         elif isinstance(timestamp, datetime):
@@ -43,43 +42,28 @@ class Snowflake(int):
                    | (process_id << cls.PROCESS_ID_SHIFT)
                    | increment)
 
-    @overload
     @classmethod
-    def try_snowflake(cls, obj: ConvertableToInt) -> Snowflake:
-        ...
-
-    @overload
-    @classmethod
-    def try_snowflake(cls, obj: T) -> T:
-        ...
-
-    def try_snowflake(cls, obj: Union[ConvertableToInt, T]) -> Union[Snowflake, T]:
+    def try_snowflake(cls, obj: SnowflakeLike) -> Snowflake:
         from ..objects.baseobject import BaseObject
 
         if isinstance(obj, BaseObject):
-            return obj.id
+            if isinstance(obj.id, cls):
+                return obj.id
+            else:
+                raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
         try:
             return cls(obj)
         except Exception:
-            return obj
-
-    @overload
-    @classmethod
-    def try_snowflake(cls, objs: Iterable[ConvertableToInt]) -> Set[Snowflake]:
-        ...
-
-    @overload
-    @classmethod
-    def try_snowflake(cls, objs: Iterable[T]) -> T:
-        ...
+            raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
     @classmethod
-    def try_snowflake_set(cls, objs: Union[ConvertableToInt, T]) -> Union[ConvertableToInt, T]:
+    def try_snowflake_set(cls,
+                          objs: t.Iterable[SnowflakeLike]) -> t.Set[Snowflake]:
         return {cls.try_snowflake(obj) for obj in objs}
 
     @property
-    def timestamp(self) -> int:
+    def timestamp(self) -> float:
         return ((self >> self.TIMESTAMP_SHIFT) + self.SNOWFLAKE_EPOCH) / 1000
 
     @property

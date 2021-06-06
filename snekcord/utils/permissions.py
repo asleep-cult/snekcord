@@ -1,9 +1,9 @@
-from .bitset import Flag, NamedBitset
+from .bitset import Bitset, Flag
 
 __all__ = ('Permissions',)
 
 
-class Permissions(NamedBitset):
+class Permissions(Bitset):
     create_instant_invite = Flag(0)
     kick_members = Flag(1)
     ban_members = Flag(2)

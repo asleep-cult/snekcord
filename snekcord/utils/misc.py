@@ -52,6 +52,7 @@ if anext is None:
     @overload
     async def anext(obj: AsyncIterator[T]) -> T:
         ...
+
     @overload
     async def anext(obj: AsyncIterator[T], default: DT) -> Union[T, DT]:
         ...
