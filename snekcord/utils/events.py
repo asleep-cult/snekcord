@@ -71,11 +71,11 @@ def ensure_future(coro: t.Awaitable[t.Any]) -> asyncio.Future[t.Any] | None:
 
 
 class EventDispatcher:
+    __events__: t.ClassVar[dict[str, type] | None] = None
     loop: asyncio.AbstractEventLoop
     _listeners: dict[str, list[AnyCallable]]
     _waiters: dict[str, WeakSet[EventWaiter]]
     _subscribers: list[EventDispatcher]
-    __events__: dict[str, type] | None = None
 
     def __init__(self, *,
                  loop: asyncio.AbstractEventLoop | None = None) -> None:
