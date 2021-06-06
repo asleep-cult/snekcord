@@ -27,8 +27,11 @@ class Flag:
             return self
         return bool((instance.value >> self.position) & 1)
 
-    def __set__(self, instance: Bitset, value: t.SupportsInt) -> None:
-        instance.value |= (1 << self.position)
+    def __set__(self, instance: Bitset, value: t.Any) -> None:
+        if value:
+            instance.value |= (1 << self.position)
+        else:
+            instance.value &= ~(1 << self.position)
 
     def __delete__(self, instance: Bitset) -> None:
         instance.value &= ~(1 << self.position)
