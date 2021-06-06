@@ -19,7 +19,7 @@ class BaseMapping(Generic[KT, VT]):
 
     @classmethod
     def for_type(cls, klass: type[MutableMapping[KT, VT]]
-                 ) -> type[BaseMapping[KT, VT]]: ... 
+                 ) -> type[BaseMapping[KT, VT]]: ...
 
 
 class BaseSnowflakeMapping(BaseMapping[Snowflake, VT]):

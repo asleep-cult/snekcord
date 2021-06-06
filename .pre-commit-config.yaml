@@ -6,7 +6,7 @@ repos:
         description: Runs flake8 to lint the files.
         language: system
         types: [python]
-        entry: poetry run flake8
+        entry: flake8
         require_serial: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
