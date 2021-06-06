@@ -4,7 +4,6 @@ from typing import Any, ClassVar, Dict, Optional, Type, TypeVar, Union, overload
 
 __all__ = ('Bitset', 'Flag', 'NamedBitset')
 
-FT = TypeVar('FT', bound='Flag')
 BT = TypeVar('BT', bound='Bitset')
 
 class Bitset:
@@ -76,7 +75,7 @@ class Flag:
         self.position = position
 
     @overload
-    def __get__(self: FT, instance: None, owner: Type[Bitset]) -> FT:
+    def __get__(self: Flag, instance: None, owner: Type[Bitset]) -> Flag:
         ...
 
     @overload
