@@ -1,20 +1,24 @@
+from __future__ import annotations
+
 import asyncio
 import functools
+from typing import Any, Callable, Optional, Tuple
 from weakref import WeakSet
 
 __all__ = ('EventWaiter', 'EventDispatcher',)
 
 
 class EventWaiter:
-    def __init__(self, name, *, dispatcher, timeout=None,
-                 filterer=None):
+    def __init__(self, name: str, *, dispatcher: EventDispatcher, timeout: Optional[float] = None,
+                 filterer: Optional[Callable[..., Any]] = None
+    ) -> None:
         self.name = name.lower()
         self.dispatcher = dispatcher
         self.timeout = timeout
         self.filterer = filterer
         self._queue = asyncio.Queue()
 
-    def _put(self, value):
+    def _put(self, value: Tuple[Any, ...]) -> None:
         if self.filterer is not None:
             if not self.filterer(*value):
                 return

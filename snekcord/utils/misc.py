@@ -1,13 +1,21 @@
 import builtins
+from typing import (
+    Any, AsyncIterable, AsyncIterator, Callable, Generator, Hashable, Iterable,
+    List, Optional, Set, Tuple, TypeVar, Union, overload)
 
-from . import undefined
+from .undefined import undefined
 
 __all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
            'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
            'aany', 'aall')
 
+T = TypeVar('T')
+DT = TypeVar('DT')
+HT = TypeVar('HT', bound=Hashable)
+RT = TypeVar('RT')
 
-def _validate_keys(name, source, required, keys):
+
+def _validate_keys(name: str, source: Iterable[str], required: Iterable[str], keys: Iterable[str]):
     for key in required:
         if key not in source:
             raise ValueError(f'{name} is missing required key {key!r}')
@@ -17,29 +25,38 @@ def _validate_keys(name, source, required, keys):
             raise ValueError(f'{name} received an unexpected key {key!r}')
 
 
-async def alist(obj):
-    values = []
+async def alist(obj: AsyncIterable[T]) -> List[T]:
+    values: List[T] = []
     async for value in obj:
         values.append(value)
     return values
 
 
-async def aset(obj):
-    values = set()
+async def aset(obj: AsyncIterable[HT]) -> Set[HT]:
+    values: Set[HT] = set()
     async for value in obj:
         values.add(value)
     return values
 
 
-aiter = getattr(builtins, 'aiter', None)
+aiter: Callable[[AsyncIterable[T]], AsyncIterable[T]] = getattr(builtins, 'aiter', None)  # type: ignore
+
 if aiter is None:
-    def aiter(obj):
+    def aiter(obj: AsyncIterable[T]) -> AsyncIterable[T]:
         return type(obj).__aiter__(obj)
 
 
-anext = getattr(builtins, 'anext', None)
+anext: Callable[[AsyncIterator[T]], T] = getattr(builtins, 'anext', None)  # type: ignore
+
 if anext is None:
-    async def anext(obj, default=undefined):
+    @overload
+    async def anext(obj: AsyncIterator[T]) -> T:
+        ...
+    @overload
+    async def anext(obj: AsyncIterator[T], default: DT) -> Union[T, DT]:
+        ...
+
+    async def anext(obj: AsyncIterator[Any], default: Any = undefined) -> Any:
         try:
             return await type(obj).__anext__(obj)
         except StopAsyncIteration:
@@ -48,25 +65,28 @@ if anext is None:
             raise
 
 
-async def aenumerate(obj, start=0):
+async def aenumerate(obj: AsyncIterable[T], start: int = 0
+) -> Generator[Tuple[int, T], None, None]:
     i = start
     async for value in obj:
         yield i, value
         i += 1
 
 
-async def afilter(func, obj):
+async def afilter(func: Optional[Callable[[T], Any]], obj: T
+) -> Generator[T, None, None]:
     async for value in obj:
-        if func is None and value or func(value):
+        if value or func is not None and func(value):
             yield value
 
 
-async def amap(func, obj):
+async def amap(func: Callable[[T], RT], obj: T
+) -> Generator[RT, None, None]:
     async for value in obj:
         yield func(value)
 
 
-async def azip(*objs):
+async def azip(*objs: T) -> Generator[Tuple[T, ...], None, None]:
     iterators = tuple(aiter(obj) for obj in objs)
     while True:
         values = []
@@ -78,18 +98,29 @@ async def azip(*objs):
         yield tuple(values)
 
 
-async def asum(obj, start=0):
+async def asum(obj: AsyncIterable[T], start: T = 0) -> T:
     i = start
     async for value in obj:
         i += value
     return i
 
 
-async def asorted(obj, *args, **kwargs):
-    return sorted(await alist(obj), *args, **kwargs)
+async def asorted(
+    obj, *, key: Optional[Callable[[T], Any]], reverse: bool = False
+) -> List[T]:
+    return sorted(await alist(obj), key=key, reverse=reverse)
 
 
-async def amin(obj, key=None, default=undefined):
+@overload
+async def amin(obj: AsyncIterable[T], key: Callable[[T], Any] = ...) -> T:
+    ...
+
+@overload
+async def amin(obj: AsyncIterable[T], key: Optional[Callable[[T], Any]], default: DT
+) -> Union[T, DT]: ...
+
+async def amin(obj: AsyncIterable[T], key: Optional[Callable[[T], Any]] = None, default: DT = undefined
+) -> Union[T, DT]:
     minimun = default
     async for value in obj:
         if key is not None:
@@ -104,7 +135,16 @@ async def amin(obj, key=None, default=undefined):
     return minimun
 
 
-async def amax(obj, key=None, default=undefined):
+@overload
+async def amax(obj: AsyncIterable[T], *, key: Callable[[T], Any] = ...) -> T:
+    ...
+
+@overload
+async def amax(obj: AsyncIterable[T], *, key: Optional[Callable[[T], Any]] = ..., default: DT,
+) -> Union[T, DT]: ...
+
+async def amax(obj: AsyncIterable[T], key: Optional[Callable[[T], Any]] = None, default: DT = undefined
+) -> Union[T, DT]:
     minimun = default
     async for value in obj:
         if key is not None:
@@ -119,14 +159,14 @@ async def amax(obj, key=None, default=undefined):
     return minimun
 
 
-async def aall(obj):
+async def aall(obj: AsyncIterable[Any]) -> bool:
     async for value in obj:
         if not value:
             return False
     return True
 
 
-async def aany(obj):
+async def aany(obj: AsyncIterable[Any]) -> bool:
     async for value in obj:
         if value:
             return True

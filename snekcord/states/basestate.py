@@ -137,7 +137,7 @@ class BaseState(_StateCommon[KT, OT]):
     def upsert(self, *args: Any, **kwargs: Any) -> OT:
         raise NotImplementedError
 
-    def upsert_many(self, values: Iterable[Any], *args: Any, **kwargs: Any) -> List[OT]:
+    def upsert_many(self, values: Iterable[Any], *args: Any, **kwargs: Any) -> Set[OT]:
         return {self.upsert(value, *args, **kwargs) for value in values}
 
     def upsert_replace(self, *args: Any, **kwargs: Any):
@@ -145,7 +145,7 @@ class BaseState(_StateCommon[KT, OT]):
 
         for value in set(self):
             if value not in values:
-                value._delete()
+                value._delete()  # type: ignore # I don't know why pylance doesn't like this
 
         return values
 

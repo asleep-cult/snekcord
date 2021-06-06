@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Type, Union
 
 from .basestate import BaseState, BaseSubState
 from .. import rest

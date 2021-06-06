@@ -1,18 +1,30 @@
+from __future__ import annotations
+
+from typing import Any, ClassVar, Dict, Generic, Tuple, Type, TypeVar, Union
+
 __all__ = ('Enum',)
 
 
+TT = TypeVar('TT', bound=type)
+
 class EnumMeta(type):
-    def __new__(mcs, name, bases, attrs, *, type):
+    def __new__(
+        cls: Type[EnumMeta], name: str, bases: Tuple[type, ...], attrs: Dict[str, Any], *, type: type
+    ) -> Type[EnumMeta]:
         attrs['__enum_type__'] = type
-        return super().__new__(mcs, name, bases, attrs)
+        return super().__new__(cls, name, bases, attrs)
 
 
-class Enum(metaclass=EnumMeta, type=object):
-    def __init__(self, name, value):
+class Enum(Generic[TT], metaclass=EnumMeta, type=object):
+    __enum_type__: ClassVar[TT]
+    __enum_names__: ClassVar[Dict[str, Enum[TT]]]
+    __enum_values__: ClassVar[Dict[TT, Enum[TT]]]
+
+    def __init__(self, name: str, value: TT) -> None:
         self.name = name
         self.value = value
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         cls.__enum_names__ = {}
         cls.__enum_values__ = {}
 
@@ -27,7 +39,7 @@ class Enum(metaclass=EnumMeta, type=object):
         return (f'{self.__class__.__name__}(name={self.name}, '
                 f'value={self.value!r})')
 
-    def __eq__(self, value):
+    def __eq__(self, value: Any) -> bool:
         if isinstance(value, self.__class__):
             value = value.value
 
@@ -36,7 +48,7 @@ class Enum(metaclass=EnumMeta, type=object):
 
         return self.value == value
 
-    def __ne__(self, value):
+    def __ne__(self, value: Any) -> bool:
         if isinstance(value, self.__class__):
             value = value.value
 
@@ -46,17 +58,17 @@ class Enum(metaclass=EnumMeta, type=object):
         return self.value != value
 
     @classmethod
-    def get_enum(cls, value):
+    def get_enum(cls, value: TT) -> Enum[TT]:
         try:
             return cls.__enum_values__[value]
         except KeyError:
             return cls('undefined', value)
 
     @classmethod
-    def get_value(cls, enum):
+    def get_value(cls, enum: Union[TT, Enum[TT]]) -> TT:
         if isinstance(enum, cls):
             return enum.value
-        elif isinstance(enum, cls.__enum_class__):
-            return enum
+        elif isinstance(enum, cls.__enum_type__):
+            return enum  # type: ignore
         raise ValueError(
             f'{enum!r} is not a valid {cls.__name__}')
