@@ -1,13 +1,13 @@
 from .client import Client
 from .wsevents import EVENTS
 from .. import rest
-from ..utils.bitset import Flag, NamedBitset
+from ..utils.bitset import Bitset, Flag
 from ..ws.shardws import Shard
 
 __all__ = ('WebSocketIntents', 'WebSocketClient')
 
 
-class WebSocketIntents(NamedBitset):
+class WebSocketIntents(Bitset):
     guilds = Flag(0)
     guild_members = Flag(1)
     guild_bans = Flag(2)
@@ -26,12 +26,13 @@ class WebSocketIntents(NamedBitset):
 
 
 class WebSocketClient(Client):
+    __events__ = EVENTS
+
     def __init__(self, *args, **kwargs):
         self.is_user = kwargs.pop('user', False)
         self.intents = kwargs.pop('intents', None)
         self.timeouts = kwargs.pop('timeouts', {})
         self.ws_version = kwargs.pop('ws_version', '9')
-        self.__events__ = kwargs.pop('events', EVENTS).copy()
 
         super().__init__(*args, **kwargs)
 
@@ -54,7 +55,7 @@ class WebSocketClient(Client):
     async def connect(self, *args, **kwargs):
         if self.is_user or True:
             shard_id = 0
-            self.shard_count = 0
+            self.shard_count = 1
 
             gateway = await self.fetch_gateway()
             gateway_url = gateway['url'] + f'?v={self.ws_version}'
