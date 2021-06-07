@@ -23,7 +23,7 @@ class UserFlags(Bitset):
     discord_certified_moderator = Flag(18)
 
 
-class PermiumType(Enum, type=int):
+class PermiumType(Enum[int]):
     NONE = 0
     NITRO_CLASSIC = 1
     NITRO = 2

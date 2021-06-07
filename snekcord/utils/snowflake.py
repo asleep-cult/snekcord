@@ -8,7 +8,7 @@ from ..typing import IntConvertable
 if t.TYPE_CHECKING:
     from ..objects.baseobject import BaseObject
 
-SnowflakeLike = t.Union[IntConvertable, BaseObject]
+    SnowflakeLike = t.Union[IntConvertable, BaseObject]
 
 __all__ = ('Snowflake',)
 

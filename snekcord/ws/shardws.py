@@ -10,7 +10,7 @@ from .basews import BaseWebSocket, WebSocketResponse
 from ..utils import Enum, Snowflake
 
 
-class ShardOpcode(Enum, type=int):
+class ShardOpcode(Enum[int]):
     DISPATCH = 0  # Discord -> Shard
     HEARTBEAT = 1  # Discord <-> Shard
     IDENTIFY = 2  # Discord <- Shard
@@ -25,7 +25,7 @@ class ShardOpcode(Enum, type=int):
     HEARTBEAT_ACK = 11  # Discord -> Shard
 
 
-class ShardCloseCode(Enum, type=int):
+class ShardCloseCode(Enum[int]):
     UNKNOWN_ERROR = 4000
     UNKNOWN_OPCODE = 4001
     DECODE_ERROR = 4002

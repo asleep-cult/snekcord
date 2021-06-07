@@ -6,13 +6,13 @@ __all__ = ('IntegrationAccount', 'IntegrationApplicationTemplate',
            'IntegrationTemplate')
 
 
-class IntegrationType(Enum, type=str):
+class IntegrationType(Enum[str]):
     TWITCH = 'twitch'
     YOUTUBE = 'youtube'
     DISCORD = 'discord'
 
 
-class IntegrationExpireBehavior(Enum, type=int):
+class IntegrationExpireBehavior(Enum[int]):
     REMOVE_ROLE = 0
     KICK = 1
 

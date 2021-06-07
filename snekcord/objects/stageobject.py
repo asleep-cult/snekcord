@@ -6,7 +6,7 @@ from ..utils import (Enum, JsonField, JsonTemplate, Snowflake,
 __all__ = ('StagePrivacyLevel', 'Stage',)
 
 
-class StagePrivacyLevel(Enum, type=int):
+class StagePrivacyLevel(Enum[int]):
     PUBLIC = 1
     GUILD_ONLY = 2
 

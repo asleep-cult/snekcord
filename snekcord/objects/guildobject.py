@@ -9,23 +9,23 @@ from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField,
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 
-class MessageNotificationsLevel(Enum, type=int):
+class MessageNotificationsLevel(Enum[int]):
     ALL_MESSAGES = 0
     ONLY_MENTIONS = 1
 
 
-class ExplicitContentFilterLevel(Enum, type=int):
+class ExplicitContentFilterLevel(Enum[int]):
     DISABLED = 0
     MEMBERS_WITHOUT_ROLES = 1
     ALL_MEMBERS = 2
 
 
-class MFALevel(Enum, type=int):
+class MFALevel(Enum[int]):
     NONE = 0
     ELEVATED = 1
 
 
-class VerificationLevel(Enum, type=int):
+class VerificationLevel(Enum[int]):
     NONE = 0
     LOW = 1
     MEDIUM = 2
@@ -33,14 +33,14 @@ class VerificationLevel(Enum, type=int):
     VERY_HIGH = 4
 
 
-class GuildNSFWLevel(Enum, type=int):
+class GuildNSFWLevel(Enum[int]):
     DEFAULT = 0
     EXPLICIT = 1
     SAFE = 2
     AGE_RESTRICTED = 3
 
 
-class PremiumTier(Enum, type=int):
+class PremiumTier(Enum[int]):
     NONE = 0
     TIER_1 = 1
     TIER_2 = 2
@@ -53,7 +53,7 @@ class SystemChannelFlags(Bitset):
     SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
 
 
-class GuildFeature(Enum, type=str):
+class GuildFeature(Enum[str]):
     ANIMATED_ICON = 'ANIMATED_ICON'
     BANNER = 'BANNER'
     COMMERCE = 'COMMERCE'

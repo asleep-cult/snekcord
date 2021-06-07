@@ -4,7 +4,7 @@ from ..utils import (Enum, JsonField, JsonTemplate, Permissions,
                      _validate_keys)
 
 
-class PermissionOverwriteType(Enum, type=int):
+class PermissionOverwriteType(Enum[int]):
     ROLE = 0
     MEMBER = 1
 

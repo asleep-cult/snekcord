@@ -7,7 +7,7 @@ from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField, JsonTemplate,
 __all__ = ('Message',)
 
 
-class MessageType(Enum, type=int):
+class MessageType(Enum[int]):
     DEFAULT = 0
     RECIPIENT_ADD = 1
     RECIPIENT_REMOVE = 2
