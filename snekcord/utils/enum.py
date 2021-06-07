@@ -56,7 +56,7 @@ class Enum(metaclass=EnumMeta, type=object):
     def get_value(cls, enum):
         if isinstance(enum, cls):
             return enum.value
-        elif isinstance(enum, cls.__enum_class__):
+        elif isinstance(enum, cls.__enum_type__):
             return enum
         raise ValueError(
             f'{enum!r} is not a valid {cls.__name__}')

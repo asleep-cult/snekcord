@@ -4,22 +4,42 @@ from http import HTTPStatus
 from httpx import AsyncClient
 
 
+class HTTPError(Exception):
+    def __init__(self, msg, response):
+        super().__init__(msg)
+        self.response = response
+
+
 class HTTPEndpoint:
-    def __init__(self, method, url, *, params=(), json=()):
+    def __init__(self, method, url, *, params=(), json=(), array=False):
         self.method = method
         self.url = url
         self.params = params
         self.json = json
+        self.array = array
 
-    def request(self, *, session, params=None, json=None, **kwargs):
+    def request(self, *, session, params=None, json=None, fast=False,
+                **kwargs):
+        if not fast:
+            if params is not None:
+                params = {k: v for k, v in params.items() if k in self.params}
+
+            if json is not None:
+                if self.array:
+                    json = [{k: v for k, v in i.items() if k in self.json}
+                            for i in json]
+                else:
+                    json = {k: v for k, v in json.items() if k in self.json}
+
         headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
         fmt = kwargs.pop('fmt', {})
         fmt.update(session.global_fmt)
 
-        return session.request(self.method, self.url % fmt, params=params,
-                               json=json, **kwargs)
+        url = self.url % fmt
+        return session.request(self.method, url, params=params, json=json,
+                               **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -262,6 +282,7 @@ modify_guild_channel_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/channels',
     json=('id', 'position', 'lock_permissions', 'parent_id'),
+    array=True
 )
 
 get_guild_member = HTTPEndpoint(
@@ -350,6 +371,7 @@ modify_guild_role_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/roles',
     json=('id', 'position',),
+    array=True,
 )
 
 modify_guild_role = HTTPEndpoint(
@@ -659,12 +681,6 @@ get_gateway_bot = HTTPEndpoint(
 )
 
 
-class HTTPError(Exception):
-    def __init__(self, msg, response):
-        super().__init__(msg)
-        self.response = response
-
-
 class RestSession(AsyncClient):
     def __init__(self, manager, *args, **kwargs):
         self.loop = manager.loop
@@ -689,10 +705,6 @@ class RestSession(AsyncClient):
     async def request(self, method, url, *args, **kwargs):
         response = await super().request(method, url, *args, **kwargs)
         await response.aclose()
-
-        print(method, url, {k: v for k, v in
-                            response.headers.items()
-                            if k.startswith('x-ratelimit')})
 
         data = response.content
 

@@ -2,19 +2,9 @@ import builtins
 
 from . import undefined
 
-__all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
-           'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
+__all__ = ('alist', 'aset', 'aiter', 'anext', 'aenumerate', 'afilter',
+           'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
            'aany', 'aall')
-
-
-def _validate_keys(name, source, required, keys):
-    for key in required:
-        if key not in source:
-            raise ValueError(f'{name} is missing required key {key!r}')
-
-    for key in source:
-        if key not in keys:
-            raise ValueError(f'{name} received an unexpected key {key!r}')
 
 
 async def alist(obj):
@@ -57,8 +47,13 @@ async def aenumerate(obj, start=0):
 
 async def afilter(func, obj):
     async for value in obj:
-        if func is None and value or func(value):
-            yield value
+        if func is not None:
+            if not func(value):
+                continue
+        elif not value:
+            continue
+
+        yield value
 
 
 async def amap(func, obj):
