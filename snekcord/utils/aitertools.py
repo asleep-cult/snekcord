@@ -43,13 +43,12 @@ async def anext(obj: t.AsyncIterator[T]) -> T:
 
 
 @t.overload
-async def anext(obj: t.AsyncIterator[T],
-                default: DT | Undefined = undefined) -> T | DT | Undefined:
+async def anext(obj: t.AsyncIterator[T], default: DT) -> T | DT:
     ...
 
 
 async def anext(obj: t.AsyncIterator[T],
-                default: DT | Undefined = undefined) -> T | DT | Undefined:
+                default: DT | Undefined = undefined) -> T | DT:
     try:
         return await type(obj).__anext__(obj)
     except StopAsyncIteration:
