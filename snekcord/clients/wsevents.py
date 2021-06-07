@@ -13,8 +13,10 @@ if t.TYPE_CHECKING:
     from ..ws.shardws import Shard
     from .wsclient import WebSocketClient
 
+    BT = t.TypeVar('BT', bound=t.Type['BaseEvent'])
 
-def register(cls: t.Type[BaseEvent]):
+
+def register(cls: BT) -> BT:
     EVENTS[cls.__event_name__.lower()] = cls.execute
     return cls
 
