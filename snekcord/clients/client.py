@@ -14,12 +14,12 @@ from ..states.reactionsstate import ReactionsState
 from ..states.rolestate import GuildMemberRoleState, RoleState
 from ..states.stagestage import StageState
 from ..states.userstate import UserState
-from ..utils import EventDispatcher, Flag, NamedBitset
+from ..utils import Bitset, EventDispatcher, Flag
 
 __all__ = ('CacheFlags', 'Client')
 
 
-class CacheFlags(NamedBitset):
+class CacheFlags(Bitset):
     guild_bans = Flag(0)
     guild_integrations = Flag(1)
     guild_invites = Flag(2)

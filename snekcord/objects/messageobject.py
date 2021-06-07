@@ -1,8 +1,8 @@
 from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
 from .. import rest
-from ..utils import (Enum, Flag, JsonArray, JsonField, JsonTemplate,
-                     NamedBitset, Snowflake)
+from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField, JsonTemplate,
+                     Snowflake)
 
 __all__ = ('Message',)
 
@@ -32,7 +32,7 @@ class MessageType(Enum, type=int):
     GUILD_INVITE_REMINDER = 22
 
 
-class MessageFlags(NamedBitset):
+class MessageFlags(Bitset):
     CROSSPOSTED = Flag(0)
     IS_CROSSPOST = Flag(1)
     SUPPRESS_EMBEDS = Flag(2)

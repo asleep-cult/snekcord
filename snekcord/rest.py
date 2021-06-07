@@ -1,4 +1,6 @@
 import json
+from collections import deque
+from datetime import datetime
 from http import HTTPStatus
 
 from httpx import AsyncClient
@@ -16,7 +18,7 @@ class HTTPEndpoint:
         headers.update(session.global_headers)
 
         fmt = kwargs.pop('fmt', {})
-        fmt.update(session.global_fmt)
+        fmt['version'] = session.api_version
 
         return session.request(self.method, self.url % fmt, params=params,
                                json=json, **kwargs)
@@ -39,7 +41,7 @@ modify_channel = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'channels/%(channel_id)s',
     json=('name', 'type', 'position', 'topic', 'nsfw',
-          'ratelimit_per_user', 'bitrrate', 'user_limit',
+          'rate_limit_per_user', 'bitrrate', 'user_limit',
           'permission_overwrites', 'parent_id'),
 )
 
@@ -659,6 +661,42 @@ get_gateway_bot = HTTPEndpoint(
 )
 
 
+class RateLimitBucket:
+    def __init__(self, bucket):
+        self.bucket = bucket
+
+        self.limit = None
+        self.remaining = None
+        self.reset_after = None
+
+        self.count = 0
+        self.queue = deque()
+
+    def update(self, headers):
+        limit = headers.get('X-RateLimit-Limit')
+        if limit is not None:
+            self.limit = int(limit)
+
+        remaining = headers.get('X-RateLimit-Remaining')
+        if remaining is not None:
+            self.remaining = int(remaining)
+
+        reset_after = headers.get('X-RateLimit-Reset-After')
+        if reset_after is not None:
+            reset_after = float(reset_after)
+
+        reset = headers.get('X-RateLimit-Reset')
+        if reset is not None:
+            delta = datetime.utcfromtimestamp(float(reset)) - datetime.utcnow()
+
+            total_seconds = delta.total_seconds()
+            if reset_after is None or total_seconds < reset_after:
+                reset_after = total_seconds
+
+        if reset_after is not None:
+            self.reset_after = reset_after
+
+
 class HTTPError(Exception):
     def __init__(self, msg, response):
         super().__init__(msg)
@@ -676,11 +714,6 @@ class RestSession(AsyncClient):
         self.global_headers = kwargs.pop('global_headers', {})
         self.global_headers.update({
             'Authorization': self.authorization,
-        })
-
-        self.global_fmt = kwargs.pop('global_fmt', {})
-        self.global_fmt.update({
-            'version': self.api_version
         })
 
         kwargs['timeout'] = None

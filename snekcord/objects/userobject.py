@@ -1,10 +1,10 @@
 from .baseobject import BaseObject, BaseTemplate
-from ..utils import Enum, Flag, JsonField, JsonTemplate, NamedBitset
+from ..utils import Bitset, Enum, Flag, JsonField, JsonTemplate
 
 __all__ = ('User',)
 
 
-class UserFlags(NamedBitset):
+class UserFlags(Bitset):
     discord_employee = Flag(0)
     partnered_server_owner = Flag(1)
     hypesquad_events = Flag(2)

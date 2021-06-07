@@ -194,7 +194,7 @@ TextChannelTemplate = JsonTemplate(
 
 
 class TextChannel(GuildChannel, template=TextChannelTemplate):
-    """Represents the `GUILD_TEXT` channel type
+    """Represents the `GUILD_TEXT` and `GUILD_NEWS` channel types
 
     Attributes:
         messages MessageState: The channel's message state
