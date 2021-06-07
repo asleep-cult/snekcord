@@ -1,9 +1,20 @@
+from __future__ import annotations
+
 from collections import namedtuple
+import typing as t
 
 EVENTS = {}
 
+if t.TYPE_CHECKING:
+    from ..objects import (DMChannel, Guild, GuildBan, GuildChannel,
+                           GuildMember, Invite, Message, Role, Stage,
+                           TextChannel, User)
+    from ..typing import Json
+    from ..ws.shardws import Shard
+    from .wsclient import WebSocketClient
 
-def register(cls):
+
+def register(cls: t.Type[BaseEvent]):
     EVENTS[cls.__event_name__.lower()] = cls.execute
     return cls
 
@@ -11,15 +22,22 @@ def register(cls):
 class BaseEvent:
     __fields__ = ('shard', 'payload')
 
-    def __init__(self, **kwargs):
+    if t.TYPE_CHECKING:
+        shard: Shard
+        payload: Json
+        __event_name__: t.ClassVar[str]
+        __fields__: t.ClassVar[t.Tuple[str, ...]]
+
+    def __init__(self, **kwargs: t.Any) -> None:
         for field in self.__fields__:
             setattr(self, field, kwargs[field])
 
-    def __init_subclass__(cls):
+    def __init_subclass__(cls) -> None:
         for base in cls.__bases__:
-            cls.__fields__ += getattr(base, '__fields__', ())
+            if issubclass(base, BaseEvent):
+                cls.__fields__ += base.__fields__
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         attrs = [
             (field, getattr(self, field))
             for field in self.__fields__
@@ -29,7 +47,9 @@ class BaseEvent:
         return f'{self.__class__.__name__}({formatted})'
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> t.Any:
         raise NotImplementedError
 
 
@@ -37,9 +57,13 @@ class BaseEvent:
 class ChannelCreateEvent(BaseEvent):
     __event_name__ = 'CHANNEL_CREATE'
     __fields__ = ('channel',)
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel]
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> ChannelCreateEvent:
         channel = client.channels.upsert(payload)
         return cls(shard=shard, payload=payload, channel=channel)
 
@@ -49,8 +73,13 @@ class ChannelUpdateEvent(BaseEvent):
     __event_name__ = 'CHANNEL_UPDATE'
     __fields__ = ('channel',)
 
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> ChannelUpdateEvent:
         channel = client.channels.upsert(payload)
         return cls(shard=shard, payload=payload, channel=channel)
 
@@ -60,8 +89,13 @@ class ChannelDeleteEvent(BaseEvent):
     __event_name__ = 'CHANNEL_DELETE'
     __fields__ = ('channel',)
 
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> ChannelDeleteEvent:
         channel = client.channels.upsert(payload)
         channel._delete()
         return cls(shard=shard, payload=payload, channel=channel)
@@ -72,9 +106,16 @@ class ChannelPinsUpdateEvent(BaseEvent):
     __event_name__ = 'CHANNEL_PINS_UPDATE'
     __fields__ = ('channel',)
 
+    if t.TYPE_CHECKING:
+        channel: t.Optional[TextChannel]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
-        channel = client.channels.get(payload['channel_id'])
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> ChannelPinsUpdateEvent:
+        channel: t.Optional[TextChannel] = client.channels.get(
+            payload['channel_id'])
+
         if channel is not None:
             channel.last_pin_timestamp = payload['last_pin_timestamp']
         return cls(shard=shard, payload=payload, channel=channel)
@@ -85,8 +126,13 @@ class GuildReceiveEvent(BaseEvent):
     __event_name__ = 'GUILD_RECEIVE'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildReceiveEvent:
         guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
@@ -97,8 +143,13 @@ class GuildAvailableEvent(BaseEvent):
     __event_name__ = 'GUILD_AVAILABLE'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildAvailableEvent:
         guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
@@ -109,8 +160,13 @@ class GuildJoinEvent(BaseEvent):
     __event_name__ = 'GUILD_JOIN'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildJoinEvent:
         guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
@@ -121,8 +177,13 @@ class GuildUpdateEvent(BaseEvent):
     __event_name__ = 'GUILD_UPDATE'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildUpdateEvent:
         guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
@@ -133,8 +194,13 @@ class GuildUnavailableEvent(BaseEvent):
     __event_name__ = 'GUILD_UNAVAILABLE'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildUnavailableEvent:
         guild = client.guilds.upsert(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -144,8 +210,13 @@ class GuildDeleteEvent(BaseEvent):
     __event_name__ = 'GUILD_DELETE'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildDeleteEvent:
         guild = client.guilds.upsert(payload)
         guild._delete()
         return cls(shard=shard, payload=payload, guild=guild)
@@ -157,7 +228,9 @@ class GuildBanAddEvent(BaseEvent):
     __fields__ = ('guild', 'ban')
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildBanAddEvent:
         ban = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -172,8 +245,14 @@ class GuildBanRemoveEvent(BaseEvent):
     __event_name__ = 'GUILD_BAN_REMOVE'
     __fields__ = ('guild', 'ban')
 
+    if t.TYPE_CHECKING:
+        ban: t.Optional[GuildBan]
+        guild: t.Optional[Guild]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildBanRemoveEvent:
         ban = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -189,8 +268,13 @@ class GuildEmojisUpdateEvent(BaseEvent):
     __event_name__ = 'GUILD_EMOJIS_UPDATE'
     __fields__ = ('guild',)
 
+    if t.TYPE_CHECKING:
+        guild: Guild
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildEmojisUpdateEvent:
         guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
@@ -205,7 +289,9 @@ class GuildIntegrationsUpdateEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildIntegrationsUpdateEvent:
         pass
 
 
@@ -214,8 +300,14 @@ class GuildMemberAddEvent(BaseEvent):
     __event_name__ = 'GUILD_MEMBER_ADD'
     __fields__ = ('guild', 'member')
 
+    if t.TYPE_CHECKING:
+        guild: t.Optional[Guild]
+        member: t.Optional[GuildMember]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildMemberAddEvent:
         member = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -230,8 +322,14 @@ class GuildMemberUpdateEvent(BaseEvent):
     __event_name__ = 'GUILD_MEMBER_UPDATE'
     __fields__ = ('guild', 'member')
 
+    if t.TYPE_CHECKING:
+        guild: t.Optional[Guild]
+        member: t.Optional[GuildMember]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildMemberUpdateEvent:
         member = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -246,8 +344,15 @@ class GuildMemberRemoveEvent(BaseEvent):
     __event_name__ = 'GUILD_MEMBER_REMOVE'
     __fields__ = ('user', 'guild', 'member')
 
+    if t.TYPE_CHECKING:
+        guild: t.Optional[Guild]
+        member: t.Optional[GuildMember]
+        user: User
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildMemberRemoveEvent:
         member = None
         user = client.users.upsert(payload['user'])
         guild = client.guilds.get(payload['guild_id'])
@@ -266,8 +371,14 @@ class GuildRoleCreateEvent(BaseEvent):
     __event_name__ = 'GUILD_ROLE_CREATE'
     __fields__ = ('guild', 'role')
 
+    if t.TYPE_CHECKING:
+        guild: t.Optional[Guild]
+        role: t.Optional[Role]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildRoleCreateEvent:
         role = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -282,8 +393,14 @@ class GuildRoleUpdateEvent(BaseEvent):
     __event_name__ = 'GUILD_ROLE_UPDATE'
     __fields__ = ('guild', 'role')
 
+    if t.TYPE_CHECKING:
+        guild: t.Optional[Guild]
+        role: t.Optional[Role]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildRoleUpdateEvent:
         role = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -298,8 +415,14 @@ class GuildRoleDeleteEvent(BaseEvent):
     __event_name__ = 'GUILD_ROLE_DELETE'
     __fields__ = ('guild', 'role')
 
+    if t.TYPE_CHECKING:
+        guild: t.Optional[Guild]
+        role: t.Optional[Role]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> GuildRoleDeleteEvent:
         role = None
         guild = client.guilds.get(payload['guild_id'])
 
@@ -316,7 +439,9 @@ class IntegrationCreateEvent(BaseEvent):
     __event_name__ = 'INTEGRATION_CREATE'
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> IntegrationCreateEvent:
         pass
 
 
@@ -325,7 +450,9 @@ class IntegrationUpdateEvent(BaseEvent):
     __event_name__ = 'INTEGRATION_UPDATE'
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> IntegrationUpdateEvent:
         pass
 
 
@@ -334,7 +461,9 @@ class IntegrationDeleteEvent(BaseEvent):
     __event_name__ = 'INTEGRATION_DELETE'
 
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> IntegrationDeleteEvent:
         pass
 
 
@@ -343,8 +472,13 @@ class InviteCreateEvent(BaseEvent):
     __event_name__ = 'INVITE_CREATE'
     __fields__ = ('invite',)
 
+    if t.TYPE_CHECKING:
+        invite: Invite
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> InviteCreateEvent:
         invite = client.invites.upsert(payload)
         return cls(shard=shard, payload=payload, invite=invite)
 
@@ -354,8 +488,13 @@ class InviteDeleteEvent(BaseEvent):
     __event_name__ = 'INVITE_DELETE'
     __fields__ = ('invite',)
 
+    if t.TYPE_CHECKING:
+        invite: t.Optional[Invite]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> InviteDeleteEvent:
         invite = client.invites.get(payload['code'])
 
         if invite is not None:
@@ -369,8 +508,14 @@ class MessageCreateEvent(BaseEvent):
     __event_name__ = 'MESSAGE_CREATE'
     __fields__ = ('channel', 'message')
 
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel, None]
+        message: t.Optional[Message]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> MessageCreateEvent:
         message = None
         channel = client.channels.get(payload['channel_id'])
 
@@ -386,8 +531,14 @@ class MessageUpdateEvent(BaseEvent):
     __event_name__ = 'MESSAGE_UPDATE'
     __fields__ = ('channel', 'message')
 
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel, None]
+        message: t.Optional[Message]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> MessageUpdateEvent:
         message = None
         channel = client.channels.get(payload['channel_id'])
 
@@ -403,8 +554,14 @@ class MessageDeleteEvent(BaseEvent):
     __event_name__ = 'MESSAGE_DELETE'
     __fields__ = ('channel', 'message')
 
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel, None]
+        message: t.Optional[Message]
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> MessageDeleteEvent:
         message = None
         channel = client.channels.get(payload['channel_id'])
 
@@ -418,12 +575,43 @@ class MessageDeleteEvent(BaseEvent):
 
 
 @register
+class MessageDeleteBulkEvent(BaseEvent):
+    __event_name__ = 'MESSAGE_DELETE_BULK'
+    __fields__ = ('channel', 'messages')
+
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel, None]
+        messages: t.List[Message]
+
+    @classmethod
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> MessageDeleteBulkEvent:
+        messages = []
+        channel = client.channels.get(payload['channel_id'])
+
+        if channel is not None:
+            for message in payload['id']:
+                message = channel.messages.get(message)
+                if message is not None:
+                    messages.append(message)
+
+        return cls(shard=shard, payload=payload, channel=channel,
+                   messages=messages)
+
+
+@register
 class StageInstanceCreateEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_CREATE'
     __fields__ = ('stage',)
 
+    if t.TYPE_CHECKING:
+        stage: Stage
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> StageInstanceCreateEvent:
         stage = client.stages.upsert(payload)
         return cls(shard=shard, payload=payload, stage=stage)
 
@@ -433,8 +621,13 @@ class StageInstanceUpdateEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_UPDATE'
     __fields__ = ('stage',)
 
+    if t.TYPE_CHECKING:
+        stage: Stage
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> StageInstanceUpdateEvent:
         stage = client.stages.upsert(payload)
         return cls(shard=shard, payload=payload, stage=stage)
 
@@ -444,17 +637,19 @@ class StageInstanceDeleteEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_DELETE'
     __fields__ = ('stage',)
 
+    if t.TYPE_CHECKING:
+        stage: Stage
+
     @classmethod
-    async def execute(cls, client, shard, payload):
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> StageInstanceDeleteEvent:
         stage = client.stages.upsert(payload)
         stage._delete()
         return cls(shard=shard, payload=payload, stage=stage)
 
 
 _base_fields = ('shard', 'payload')
-
-MessageDeleteBulkEvent = namedtuple(
-    'MessageDeleteBulkEvent', _base_fields + ('channel', 'messages'))
 
 MessageReactionAddEvent = namedtuple(
     'MessageReactionAddEvent',

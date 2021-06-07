@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import weakref
-from typing import (Any, Callable, Generic, Iterator,
+from typing import (Any, Callable, ClassVar, Generic, Iterator,
                     Iterable, List, MutableMapping, Optional,
                     Set, TYPE_CHECKING, Tuple, Type, TypeVar, Union, overload)
 
@@ -19,8 +19,11 @@ VT = TypeVar('VT')
 DT = TypeVar('DT')
 OT = TypeVar('OT', bound='BaseObject')
 
+
 class _StateCommon(Generic[KT, VT]):
-    def first(self, func: Optional[Callable[[VT], Any]] = None) -> Optional[VT]:
+    def first(
+        self, func: Optional[Callable[[VT], Any]] = None
+    ) -> Optional[VT]:
         for value in self:
             if func is None or func(value):
                 return value
@@ -34,7 +37,8 @@ class BaseState(_StateCommon[KT, OT]):
     __key_transformer__: Optional[Callable[[KT], Any]] = None
     __mapping__: Type[MutableMapping[KT, OT]] = dict
     __recycle_enabled__: bool = True
-    __recycled_mapping__: Type[weakref.WeakValueDictionary[KT, OT]] = weakref.WeakValueDictionary
+    __recycled_mapping__: ClassVar[Type[weakref.WeakValueDictionary[KT, OT]]]
+    __recycled_mapping__ = weakref.WeakValueDictionary
 
     client: Client
     mapping: weakref.WeakValueDictionary[KT, OT]
@@ -96,6 +100,14 @@ class BaseState(_StateCommon[KT, OT]):
     def items(self) -> Iterable[Tuple[KT, OT]]:
         return self.__mapping__.items(self.mapping)
 
+    @overload
+    def get(self, key: KT) -> Optional[OT]:
+        ...
+
+    @overload
+    def get(self, key: KT, default: DT) -> Union[OT, DT]:
+        ...
+
     def get(self, key: KT, default: DT = None) -> Union[DT, OT]:
         key = self.transform_key(key)
         value = self.mapping.get(key)
@@ -137,7 +149,9 @@ class BaseState(_StateCommon[KT, OT]):
     def upsert(self, *args: Any, **kwargs: Any) -> OT:
         raise NotImplementedError
 
-    def upsert_many(self, values: Iterable[Any], *args: Any, **kwargs: Any) -> Set[OT]:
+    def upsert_many(
+        self, values: Iterable[Any], *args: Any, **kwargs: Any
+    ) -> Set[OT]:
         return {self.upsert(value, *args, **kwargs) for value in values}
 
     def upsert_replace(self, *args: Any, **kwargs: Any):
@@ -145,19 +159,21 @@ class BaseState(_StateCommon[KT, OT]):
 
         for value in set(self):
             if value not in values:
-                value._delete()  # type: ignore # I don't know why pylance doesn't like this
+                value._delete()  # type: ignore
 
         return values
 
     def recycle(self, key: KT, value: OT) -> None:
         if self.__recycle_enabled__:
             return self.__recycled_mapping__.__setitem__(
-                self.recycle_bin, self.transform_key(key), value)  # type: ignore
+                self.recycle_bin, self.transform_key(key),
+                value)  # type: ignore
 
     def unrecycle(self, key: KT, *args: Any, **kwargs: Any) -> None:
         if self.__recycle_enabled__:
             return self.__recycled_mapping__.pop(
-                self.recycle_bin, self.transform_key(key), *args, **kwargs)  # type: ignore
+                self.recycle_bin, self.transform_key(key),
+                *args, **kwargs)  # type: ignore
 
 
 class BaseSubState(_StateCommon[KT, OT]):

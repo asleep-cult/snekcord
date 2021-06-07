@@ -1,7 +1,12 @@
+from __future__ import annotations
+
 import asyncio
 import signal
+from types import FrameType
+import typing as t
 
 from ..rest import RestSession
+from ..states.basestate import BaseState
 from ..states.channelstate import ChannelState, GuildChannelState
 from ..states.emojistate import GuildEmojiState
 from ..states.guildstate import GuildBanState, GuildState
@@ -18,6 +23,9 @@ from ..utils import Bitset, EventDispatcher, Flag
 
 __all__ = ('CacheFlags', 'Client')
 
+if t.TYPE_CHECKING:
+    from ..objects import GuildMember, GuildEmoji, Message, Role
+
 
 class CacheFlags(Bitset):
     guild_bans = Flag(0)
@@ -27,7 +35,7 @@ class CacheFlags(Bitset):
 
 
 class Client(EventDispatcher):
-    DEFAULT_CLASSES = {
+    DEFAULT_CLASSES: t.Dict[str, t.Type[t.Union[BaseState, RestSession]]] = {
         'ChannelState': ChannelState,
         'GuildChannelState': GuildChannelState,
         'GuildEmojiState': GuildEmojiState,
@@ -46,10 +54,23 @@ class Client(EventDispatcher):
         'RestSession': RestSession,
     }
 
+    if t.TYPE_CHECKING:
+        rest: RestSession
+        channels: ChannelState
+        guilds: GuildState
+        invites: InviteState
+        stages: StageState
+        users: UserState
+        finalizing: bool
+
     __classes__ = DEFAULT_CLASSES.copy()
     __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
 
-    def __init__(self, token, *, loop=None, cache_flags=None, api_version='9'):
+    def __init__(self, token: str, *,
+                 loop: t.Optional[asyncio.AbstractEventLoop] = None,
+                 cache_flags: t.Optional[CacheFlags] = None,
+                 api_version: str = '9'
+                 ) -> None:
         super().__init__(loop=loop)
 
         self.token = token
@@ -69,40 +90,40 @@ class Client(EventDispatcher):
         self._sighandlers = {}
 
     @classmethod
-    def set_class(cls, name, klass):
+    def set_class(cls, name: str, klass: type) -> None:
         default = cls.DEFAULT_CLASSES[name]
         assert issubclass(klass, default)
         cls.__classes__[name] = klass
 
     @classmethod
-    def get_class(cls, name):
+    def get_class(cls, name: str) -> t.Type[t.Union[BaseState, RestSession]]:
         return cls.__classes__[name]
 
     @classmethod
-    def add_handled_signal(cls, signo):
+    def add_handled_signal(cls, signo: int) -> None:
         cls.__handled_signals__.append(signo)
 
     @property
-    def members(self):
+    def members(self) -> t.Generator[GuildMember, None, None]:
         for guild in self.guilds:
             yield from guild.members
 
     @property
-    def messages(self):
+    def messages(self) -> t.Generator[Message, None, None]:
         for channel in self.channels:
             yield from channel.messages
 
     @property
-    def roles(self):
+    def roles(self) -> t.Generator[Role, None, None]:
         for guild in self.guilds:
             yield from guild.roles
 
     @property
-    def emojis(self):
+    def emojis(self) -> t.Generator[GuildEmoji, None, None]:
         for guild in self.guilds:
             yield from guild.emojis
 
-    def _repropagate(self):
+    def _repropagate(self) -> None:
         for signo, frame in self._sigpending:
             self._sighandlers[signo](signo, frame)
 
@@ -111,7 +132,7 @@ class Client(EventDispatcher):
         for signo in self.__handled_signals__:
             signal.signal(signo, self._sighandlers[signo])
 
-    def _sighandle(self, signo, frame):
+    def _sighandle(self, signo: int, frame: FrameType) -> None:
         self._sigpending.append((signo, frame))
 
         if self.finalizing:
@@ -125,10 +146,10 @@ class Client(EventDispatcher):
 
         asyncio.run_coroutine_threadsafe(self.finalize(), loop=self.loop)
 
-    async def close(self):
+    async def close(self) -> None:
         await self.rest.aclose()
 
-    async def finalize(self):
+    async def finalize(self) -> None:
         await self.close()
 
         tasks = asyncio.all_tasks(loop=self.loop)
@@ -139,7 +160,7 @@ class Client(EventDispatcher):
         self.loop.call_soon_threadsafe(self._repropagate)
         self.loop.call_soon_threadsafe(self.loop.close)
 
-    def run_forever(self):
+    def run_forever(self) -> None:
         for signo in self.__handled_signals__:
             try:
                 self._sighandlers[signo] = signal.getsignal(signo)

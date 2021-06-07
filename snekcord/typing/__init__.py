@@ -5,6 +5,8 @@ import typing as t
 
 if t.TYPE_CHECKING:
     from typing_extensions import ParamSpec
+
+    from ..objects.baseobject import BaseObject
 else:
     class ParamSpec:
         __origin__ = 'typing.ParamSpec'
@@ -25,6 +27,7 @@ AnyCallable = t.Callable[..., t.Any]
 Json = dict[str, t.Any]
 IntConvertable = t.Union[str, bytes, t.SupportsInt, t.SupportsIndex,
                          SupportsTrunc]
+SnowflakeType = t.Union[IntConvertable, 'BaseObject']
 
 T = t.TypeVar('T')
 T_contra = t.TypeVar('T_contra', contravariant=True)
