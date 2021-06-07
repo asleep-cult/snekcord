@@ -1,9 +1,7 @@
-import typing as t
-
-__all__ = ('undefined',)
+__all__ = ('Undefined', 'undefined')
 
 
-class _Undefined:
+class Undefined:
     def __bool__(self) -> bool:
         return False
 
@@ -11,7 +9,4 @@ class _Undefined:
         return '<undefined>'
 
 
-if t.TYPE_CHECKING:
-    undefined = t.NewType('undefined', _Undefined)
-else:
-    undefined = _Undefined()
+undefined = Undefined()

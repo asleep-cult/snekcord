@@ -27,6 +27,7 @@ IntConvertable = t.Union[str, bytes, t.SupportsInt, t.SupportsIndex,
                          SupportsTrunc]
 
 T = t.TypeVar('T')
+T_contra = t.TypeVar('T_contra', contravariant=True)
 P = ParamSpec('P')
 
 Coroutine = t.Coroutine[t.Optional[asyncio.Future[t.Any]], None, T]

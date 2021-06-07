@@ -3,9 +3,9 @@ from __future__ import annotations
 import builtins
 import typing as t
 
-from .undefined import undefined
+from .undefined import Undefined, undefined
 
-__all__ = ('_validate_keys', 'alist', 'aset', 'aiter', 'anext', 'aenumerate',
+__all__ = ('alist', 'aset', 'aiter', 'anext', 'aenumerate',
            'afilter', 'amap', 'azip', 'asum', 'asorted', 'amin', 'amax',
            'aany', 'aall')
 
@@ -13,17 +13,6 @@ T = t.TypeVar('T')
 DT = t.TypeVar('DT')
 HT = t.TypeVar('HT', bound=t.Hashable)
 RT = t.TypeVar('RT')
-
-
-def _validate_keys(name: str, source: t.Iterable[str],
-                   required: t.Iterable[str], keys: t.Iterable[str]) -> None:
-    for key in required:
-        if key not in source:
-            raise ValueError(f'{name} is missing required key {key!r}')
-
-    for key in source:
-        if key not in keys:
-            raise ValueError(f'{name} received an unexpected key {key!r}')
 
 
 async def alist(obj: t.AsyncIterable[T]) -> list[T]:
@@ -59,7 +48,7 @@ async def anext(obj: t.AsyncIterator[T], default: DT) -> T | DT:
 
 
 async def anext(obj: t.AsyncIterator[T],
-                default: T | undefined = undefined) -> t.Any:
+                default: T | Undefined = undefined) -> t.Any:
     try:
         return await type(obj).__anext__(obj)
     except StopAsyncIteration:
@@ -122,19 +111,9 @@ async def asorted(obj: t.AsyncIterable[T], *, key: t.Callable[[T], int],
     return sorted(await alist(obj), key=key, reverse=reverse)
 
 
-@t.overload
-async def amin(obj: t.AsyncIterable[T], key: t.Callable[[T], t.Any] = ...) -> T:
-    ...
-
-
-@t.overload
-async def amin(obj: t.AsyncIterable[T], key: t.Optional[t.Callable[[T], t.Any]],
-               default: DT) -> T | DT: ...
-
-
-async def amin(obj: t.AsyncIterable[T],
-               key: t.Callable[[T], t.Any] | None = None,
-               default: DT | undefined = undefined) -> T | DT:
+async def amin(obj: t.AsyncIterable[t.Any],
+               key: t.Callable[[t.Any], t.Any] | None = None,
+               default: t.Any = undefined) -> t.Any:
     minimun = default
     async for value in obj:
         if key is not None:
@@ -149,20 +128,9 @@ async def amin(obj: t.AsyncIterable[T],
     return minimun
 
 
-@t.overload
-async def amax(obj: t.AsyncIterable[T], *, key: t.Callable[[T], t.Any]) -> T:
-    ...
-
-
-@t.overload
-async def amax(obj: t.AsyncIterable[T], *,
-               key: t.Callable[[T], t.Any] | None = ...,
-               default: DT) -> T | DT: ...
-
-
-async def amax(obj: t.AsyncIterable[T],
-               key: t.Callable[[T], t.Any] | None = None,
-               default: DT | undefined = undefined) -> T | DT:
+async def amax(obj: t.AsyncIterable[t.Any],
+               key: t.Callable[[t.Any], t.Any] | None = None,
+               default: t.Any = undefined) -> t.Any:
     minimun = default
     async for value in obj:
         if key is not None:
