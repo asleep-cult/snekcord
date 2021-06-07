@@ -5,7 +5,7 @@ from .userobject import User
 from ..states.emojistate import GuildEmojiState
 from ..utils import JsonTemplate, Snowflake
 
-_Emoji = tuple[bytes, tuple[str], float, '_Emoji'] 
+_Emoji = tuple[bytes, tuple[str], float, '_Emoji']
 
 ALL_CATEGORIES: dict[str, _Emoji]
 

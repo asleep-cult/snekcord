@@ -1,45 +1,27 @@
 import json
+from collections import deque
+from datetime import datetime
 from http import HTTPStatus
 
 from httpx import AsyncClient
 
 
-class HTTPError(Exception):
-    def __init__(self, msg, response):
-        super().__init__(msg)
-        self.response = response
-
-
 class HTTPEndpoint:
-    def __init__(self, method, url, *, params=(), json=(), array=False):
+    def __init__(self, method, url, *, params=(), json=()):
         self.method = method
         self.url = url
         self.params = params
         self.json = json
-        self.array = array
 
-    def request(self, *, session, params=None, json=None, fast=False,
-                **kwargs):
-        if not fast:
-            if params is not None:
-                params = {k: v for k, v in params.items() if k in self.params}
-
-            if json is not None:
-                if self.array:
-                    json = [{k: v for k, v in i.items() if k in self.json}
-                            for i in json]
-                else:
-                    json = {k: v for k, v in json.items() if k in self.json}
-
+    def request(self, *, session, params=None, json=None, **kwargs):
         headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
         fmt = kwargs.pop('fmt', {})
-        fmt.update(session.global_fmt)
+        fmt['version'] = session.api_version
 
-        url = self.url % fmt
-        return session.request(self.method, url, params=params, json=json,
-                               **kwargs)
+        return session.request(self.method, self.url % fmt, params=params,
+                               json=json, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -59,7 +41,7 @@ modify_channel = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'channels/%(channel_id)s',
     json=('name', 'type', 'position', 'topic', 'nsfw',
-          'ratelimit_per_user', 'bitrrate', 'user_limit',
+          'rate_limit_per_user', 'bitrrate', 'user_limit',
           'permission_overwrites', 'parent_id'),
 )
 
@@ -282,7 +264,6 @@ modify_guild_channel_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/channels',
     json=('id', 'position', 'lock_permissions', 'parent_id'),
-    array=True
 )
 
 get_guild_member = HTTPEndpoint(
@@ -371,7 +352,6 @@ modify_guild_role_positions = HTTPEndpoint(
     'PATCH',
     BASE_API_URL + 'guilds/%(guild_id)s/roles',
     json=('id', 'position',),
-    array=True,
 )
 
 modify_guild_role = HTTPEndpoint(
@@ -681,6 +661,48 @@ get_gateway_bot = HTTPEndpoint(
 )
 
 
+class RateLimitBucket:
+    def __init__(self, bucket):
+        self.bucket = bucket
+
+        self.limit = None
+        self.remaining = None
+        self.reset_after = None
+
+        self.count = 0
+        self.queue = deque()
+
+    def update(self, headers):
+        limit = headers.get('X-RateLimit-Limit')
+        if limit is not None:
+            self.limit = int(limit)
+
+        remaining = headers.get('X-RateLimit-Remaining')
+        if remaining is not None:
+            self.remaining = int(remaining)
+
+        reset_after = headers.get('X-RateLimit-Reset-After')
+        if reset_after is not None:
+            reset_after = float(reset_after)
+
+        reset = headers.get('X-RateLimit-Reset')
+        if reset is not None:
+            delta = datetime.utcfromtimestamp(float(reset)) - datetime.utcnow()
+
+            total_seconds = delta.total_seconds()
+            if reset_after is None or total_seconds < reset_after:
+                reset_after = total_seconds
+
+        if reset_after is not None:
+            self.reset_after = reset_after
+
+
+class HTTPError(Exception):
+    def __init__(self, msg, response):
+        super().__init__(msg)
+        self.response = response
+
+
 class RestSession(AsyncClient):
     def __init__(self, manager, *args, **kwargs):
         self.loop = manager.loop
@@ -694,17 +716,16 @@ class RestSession(AsyncClient):
             'Authorization': self.authorization,
         })
 
-        self.global_fmt = kwargs.pop('global_fmt', {})
-        self.global_fmt.update({
-            'version': self.api_version
-        })
-
         kwargs['timeout'] = None
         super().__init__(*args, **kwargs)
 
     async def request(self, method, url, *args, **kwargs):
         response = await super().request(method, url, *args, **kwargs)
         await response.aclose()
+
+        print(method, url, {k: v for k, v in
+                            response.headers.items()
+                            if k.startswith('x-ratelimit')})
 
         data = response.content
 

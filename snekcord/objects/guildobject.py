@@ -2,8 +2,8 @@ from .baseobject import BaseObject, BaseTemplate
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
-from ..utils import (Enum, Flag, JsonArray, JsonField,
-                     JsonObject, JsonTemplate, NamedBitset, Snowflake,
+from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField,
+                     JsonObject, JsonTemplate, Snowflake,
                      _validate_keys)
 
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
@@ -47,7 +47,7 @@ class PremiumTier(Enum, type=int):
     TIER_3 = 3
 
 
-class SystemChannelFlags(NamedBitset):
+class SystemChannelFlags(Bitset):
     SUPPRESS_JOIN_NOTIFICATIONS = Flag(0)
     SUPPRESS_PREMIUM_SUBSCRIPTIONS = Flag(1)
     SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
