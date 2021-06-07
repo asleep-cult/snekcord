@@ -43,8 +43,8 @@ async def anext(obj: t.AsyncIterator[T]) -> T:
 
 
 @t.overload
-async def anext(obj: t.AsyncIterator[T], default: DT | Undefined = undefined
-                ) -> T | DT | Undefined:
+async def anext(obj: t.AsyncIterator[T],
+                default: DT | Undefined = undefined) -> T | DT | Undefined:
     ...
 
 
@@ -61,8 +61,8 @@ if not t.TYPE_CHECKING and hasattr(builtins, 'anext'):
     anext = builtins.anext
 
 
-async def aenumerate(obj: t.AsyncIterable[T], start: int = 0
-                     ) -> t.AsyncGenerator[tuple[int, T], None]:
+async def aenumerate(obj: t.AsyncIterable[T],
+                     start: int = 0) -> t.AsyncGenerator[tuple[int, T], None]:
     i = start
     async for value in obj:
         yield i, value
