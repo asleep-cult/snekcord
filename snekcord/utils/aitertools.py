@@ -99,8 +99,7 @@ async def azip(*objs: t.AsyncIterable[t.Any]) -> t.AsyncGenerator[t.Any, None]:
         yield tuple(values)
 
 
-async def asum(obj: t.AsyncIterable[int],
-               start: int = 0) -> int:
+async def asum(obj: t.AsyncIterable[int], start: int = 0) -> int:
     i = start
     async for value in obj:
         i += value
