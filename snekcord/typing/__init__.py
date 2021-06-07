@@ -1,6 +1,19 @@
 from __future__ import annotations
 
+import asyncio
 import typing as t
+
+if t.TYPE_CHECKING:
+    from typing_extensions import ParamSpec
+else:
+    class ParamSpec:
+        __origin__ = 'typing.ParamSpec'
+
+        args = 'args'
+        kwargs = 'kwargs'
+
+        def __init__(self, *args):
+            self.__args__ = args
 
 
 class SupportsTrunc(t.Protocol):
@@ -14,6 +27,11 @@ IntConvertable = t.Union[str, bytes, t.SupportsInt, t.SupportsIndex,
                          SupportsTrunc]
 
 T = t.TypeVar('T')
+P = ParamSpec('P')
+
+Coroutine = t.Coroutine[t.Optional[asyncio.Future[t.Any]], None, T]
+CoroCallable = t.Callable[P, Coroutine[T]]
+AnyCoroCallable = t.Callable[..., Coroutine[t.Any]]
 
 
 class Generic(t.Generic[T]):

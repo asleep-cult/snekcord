@@ -1,3 +1,5 @@
+import typing as t
+
 __all__ = ('undefined',)
 
 
@@ -9,4 +11,7 @@ class _Undefined:
         return '<undefined>'
 
 
-undefined = _Undefined()
+if t.TYPE_CHECKING:
+    undefined = t.NewType('undefined', _Undefined)
+else:
+    undefined = _Undefined()

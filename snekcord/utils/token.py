@@ -1,6 +1,5 @@
 from base64 import b64decode
 from datetime import datetime
-from typing import List
 
 from .snowflake import Snowflake
 
@@ -25,7 +24,7 @@ def strip_token_type(token: str) -> str:
     return ' '.join(token.strip().split()[1:])
 
 
-def split_token(token: str) -> List[str]:
+def split_token(token: str) -> list[str]:
     parts = strip_token_type(token).split('.', 2)
     if len(parts) != 3:
         raise ValueError('Invalid Token')

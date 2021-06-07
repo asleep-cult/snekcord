@@ -7,7 +7,6 @@ from ..typing import AnyCallable, Json
 
 __all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
-T = t.TypeVar('T')
 OT = t.TypeVar('OT', bound='JsonObject')
 
 

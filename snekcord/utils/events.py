@@ -5,9 +5,11 @@ import functools
 import typing as t
 from weakref import WeakSet
 
-from ..typing import AnyCallable
+from ..typing import AnyCallable, AnyCoroCallable
 
 __all__ = ('EventWaiter', 'EventDispatcher',)
+
+T = t.TypeVar('T')
 
 
 class EventWaiter:
@@ -64,14 +66,14 @@ class EventWaiter:
     __del__ = close
 
 
-def ensure_future(coro: t.Awaitable[t.Any]) -> asyncio.Future[t.Any] | None:
+def ensure_future(coro: t.Any) -> asyncio.Future[t.Any] | None:
     if hasattr(coro.__class__, '__await__'):
         return asyncio.ensure_future(coro)
     return None
 
 
 class EventDispatcher:
-    __events__: t.ClassVar[dict[str, type] | None] = None
+    __events__: t.ClassVar[dict[str, AnyCoroCallable] | None] = None
     loop: asyncio.AbstractEventLoop
     _listeners: dict[str, list[AnyCallable]]
     _waiters: dict[str, WeakSet[EventWaiter]]
@@ -117,11 +119,11 @@ class EventDispatcher:
         waiters = self._waiters.get(name)
 
         if listeners is not None:
-            for listener in listeners:
+            for listener in tuple(listeners):
                 ensure_future(listener(*args))
 
         if waiters is not None:
-            for waiter in waiters:
+            for waiter in tuple(waiters):
                 waiter._put(args)  # type: ignore
 
         for subscriber in self._subscribers:
