@@ -38,7 +38,7 @@ class Invite(BaseObject, template=InviteTemplate):
 
     async def delete(self):
         await rest.delete_invite.request(
-                session=self.state.manager.rest,
+                session=self.state.client.rest,
                 fmt=dict(code=self.code))
 
     def update(self, data, *args, **kwargs):
@@ -46,19 +46,19 @@ class Invite(BaseObject, template=InviteTemplate):
 
         guild = data.get('guild')
         if guild is not None:
-            self.guild = self.state.manager.guilds.upsert(guild)
+            self.guild = self.state.client.guilds.upsert(guild)
 
         channel = data.get('channel')
         if channel is not None:
-            self.channel = self.state.manager.channels.upsert(channel)
+            self.channel = self.state.client.channels.upsert(channel)
 
         inviter = data.get('inviter')
         if inviter is not None:
-            self.inviter = self.state.manager.users.upsert(inviter)
+            self.inviter = self.state.client.users.upsert(inviter)
 
         target_user = data.get('target_user')
         if target_user is not None:
-            self.target_user = self.state.manager.users.upsert(target_user)
+            self.target_user = self.state.client.users.upsert(target_user)
 
 
 GuildVanityURLTemplate = JsonTemplate(
@@ -74,11 +74,11 @@ class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
 
     @property
     def invite(self):
-        return self.guild.state.manager.invites.get(self.code)
+        return self.guild.state.client.invites.get(self.code)
 
     async def fetch(self):
         data = await rest.get_guild_vanity_url.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         self.update(data)
@@ -89,5 +89,5 @@ class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
         super().update(data, *args, **kwargs)
 
         if 'code' in data:
-            invite = self.guild.state.manager.invites.upsert(data)
+            invite = self.guild.state.client.invites.upsert(data)
             invite.guild = self.guild

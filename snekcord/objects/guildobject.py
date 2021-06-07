@@ -189,35 +189,35 @@ class Guild(BaseObject, template=GuildTemplate):
         self.vanity_url = GuildVanityURL.unmarshal(guild=self)
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
-        self.channels = self.state.manager.get_class('GuildChannelState')(
-            superstate=self.state.manager.channels, guild=self)
+        self.channels = self.state.client.get_class('GuildChannelState')(
+            superstate=self.state.client.channels, guild=self)
 
-        self.emojis = self.state.manager.get_class('GuildEmojiState')(
-            manager=self.state.manager, guild=self)
+        self.emojis = self.state.client.get_class('GuildEmojiState')(
+            client=self.state.client, guild=self)
 
-        self.roles = self.state.manager.get_class('RoleState')(
-            manager=self.state.manager, guild=self)
+        self.roles = self.state.client.get_class('RoleState')(
+            client=self.state.client, guild=self)
 
-        self.members = self.state.manager.get_class('GuildMemberState')(
-            manager=self.state.manager, guild=self)
+        self.members = self.state.client.get_class('GuildMemberState')(
+            client=self.state.client, guild=self)
 
-        self.bans = self.state.manager.get_class('GuildBanState')(
-            manager=self.state.manager, guild=self)
+        self.bans = self.state.client.get_class('GuildBanState')(
+            client=self.state.client, guild=self)
 
-        self.integrations = self.state.manager.get_class('IntegrationState')(
-            manager=self.state.manager, guild=self)
+        self.integrations = self.state.client.get_class('IntegrationState')(
+            client=self.state.client, guild=self)
 
     def __str__(self):
         return self.name
 
     @property
     def stages(self):
-        for stage in self.state.manager.stages:
+        for stage in self.state.client.stages:
             if stage.guild_id == self.id:
                 yield stage
 
     async def sync(self, payload):
-        cache_flags = self.state.manager.cache_flags
+        cache_flags = self.state.client.cache_flags
 
         if cache_flags is None:
             return
@@ -241,7 +241,7 @@ class Guild(BaseObject, template=GuildTemplate):
                        kwargs, (), rest.modify_guild.json)
 
         data = await rest.modify_guild.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.id),
             json=kwargs)
 
@@ -249,7 +249,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
     async def delete(self):
         await rest.delete_guild.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
     async def prune(self, **kwargs):
@@ -275,12 +275,12 @@ class Guild(BaseObject, template=GuildTemplate):
 
         if remove:
             data = await rest.begin_guild_prune.request(
-                session=self.state.manager.rest,
+                session=self.state.client.rest,
                 fmt=dict(guild_id=self.id),
                 json=kwargs)
         else:
             data = await rest.get_guild_prune_count.request(
-                session=self.state.manager.rest,
+                session=self.state.client.rest,
                 fmt=dict(guild_id=self.id),
                 params=kwargs)
 
@@ -291,21 +291,21 @@ class Guild(BaseObject, template=GuildTemplate):
 
     async def voice_regions(self):
         data = await rest.get_guild_voice_regions.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
         return data
 
     async def invites(self):
         data = await rest.get_guild_invites.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
-        return self.state.manager.upsert_many(data)
+        return self.state.client.upsert_many(data)
 
     async def templates(self):
         data = await rest.get_guild_templates.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
         return self.state.new_template_many(data)
@@ -315,7 +315,7 @@ class Guild(BaseObject, template=GuildTemplate):
                        kwargs, ('name',), rest.create_guild_template.json)
 
         data = await rest.create_guild_template.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.id),
             json=kwargs)
 
@@ -348,7 +348,7 @@ class Guild(BaseObject, template=GuildTemplate):
         if channels is not None:
             for channel in channels:
                 channel['guild_id'] = self.id
-                channel = self.state.manager.channels.upsert(channel)
+                channel = self.state.client.channels.upsert(channel)
 
         emojis = data.get('emojis')
         if emojis is not None:
@@ -370,7 +370,7 @@ class Guild(BaseObject, template=GuildTemplate):
         if stage_instances is not None:
             for stage in stage_instances:
                 stage['guild_id'] = self.id
-                self.state.manager.stages.upsert(stage)
+                self.state.client.stages.upsert(stage)
 
 
 GuildBanTemplate = JsonTemplate(
@@ -390,7 +390,7 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.upsert(user)
+            self.user = self.state.client.users.upsert(user)
             self.id = self.user.id
 
 
@@ -470,7 +470,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             WelcomeScreen: The updated welcome screen
         """
         data = await rest.get_guild_welcome_screen.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         self.update(data)
@@ -543,7 +543,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                        kwargs, (), rest.modify_guild_welcome_screen.json)
 
         data = await rest.modify_guild_welcome_screen.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 

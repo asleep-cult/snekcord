@@ -28,11 +28,11 @@ StageTemplate = JsonTemplate(
 class Stage(BaseObject, template=StageTemplate):
     @property
     def guild(self):
-        return self.state.manager.guilds.get(self.guild_id)
+        return self.state.client.guilds.get(self.guild_id)
 
     @property
     def channel(self):
-        return self.state.manager.channels.get(self.channel_id)
+        return self.state.client.channels.get(self.channel_id)
 
     async def fetch(self):
         return await self.state.fetch(self.channel_id)
@@ -48,7 +48,7 @@ class Stage(BaseObject, template=StageTemplate):
                        kwargs, (), rest.modify_stage_instance.keys)
 
         data = await rest.modify_stage_instance.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.channel_id),
             json=kwargs)
 
@@ -56,5 +56,5 @@ class Stage(BaseObject, template=StageTemplate):
 
     async def delete(self):
         await rest.delete_stage_instance.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.channel_id))

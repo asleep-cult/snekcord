@@ -1,3 +1,3 @@
 from .clients import *
-from .manager import *
+from .client import *
 from .objects import *

@@ -85,8 +85,8 @@ class Message(BaseObject, template=MessageTemplate):
         super().__init__(state=state)
         self.author = None
         self.member = None
-        self.reactions = self.state.manager.get_class('ReactionsState')(
-            manager=self.state.manager, message=self)
+        self.reactions = self.state.client.get_class('ReactionsState')(
+            client=self.state.client, message=self)
 
     @property
     def channel(self):
@@ -98,14 +98,14 @@ class Message(BaseObject, template=MessageTemplate):
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, message_id=self.id))
 
         return self.state.upsert(data)
 
     async def delete(self):
         await rest.delete_message.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, message_id=self.id))
 
     def update(self, data, *args, **kwargs):
@@ -113,7 +113,7 @@ class Message(BaseObject, template=MessageTemplate):
 
         author = data.get('author')
         if author is not None:
-            self.author = self.state.manager.users.upsert(author)
+            self.author = self.state.client.users.upsert(author)
 
             guild = self.guild
             member = data.get('member')

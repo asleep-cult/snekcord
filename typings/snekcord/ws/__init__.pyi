@@ -1,12 +1,12 @@
 import asyncio
 from typing import Any, Type, TypeVar
 
-from ..manager import Manager
+from ..client import client
 
 _T = TypeVar('_T')
 
 class WebSocketWorker:
     loop: asyncio.AbstractEventLoop
-    manager: Manager
-    def __init__(self, *, manager: Manager, timeout: float) -> None: ...
+    client: client
+    def __init__(self, *, client: client, timeout: float) -> None: ...
     async def create_connection(self, cls: Type[_T], *args: Any, **kwargs: Any) -> _T: ...

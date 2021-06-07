@@ -54,7 +54,7 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
                        kwargs, (), rest.modify_guild_emoji.json)
 
         data = await rest.modify_guild_emoji.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=self.id),
             json=kwargs)
 
@@ -64,7 +64,7 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
 
     async def delete(self):
         await rest.delete_guild_emoji.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=self.id))
 
     def to_reaction(self):
@@ -75,7 +75,7 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.upsert(user)
+            self.user = self.state.client.users.upsert(user)
 
 
 class BuiltinEmoji:

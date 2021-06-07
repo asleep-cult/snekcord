@@ -92,8 +92,8 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     def __init__(self, *, state):
         super().__init__(state=state)
 
-        cls = self.state.manager.get_class('PermissionOverwriteState')
-        self.permissions = cls(manager=self.state.manager, channel=self)
+        cls = self.state.client.get_class('PermissionOverwriteState')
+        self.permissions = cls(client=self.state.client, channel=self)
 
     @property
     def mention(self):
@@ -107,7 +107,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         warning:
             This propery relies on the guild cache so it could return None
         """
-        return self.state.manager.guilds.get(self.guild_id)
+        return self.state.client.guilds.get(self.guild_id)
 
     @property
     def parent(self):
@@ -116,7 +116,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         warning:
             This propery relies on the channel cache so it could return None
         """
-        return self.state.manager.channels.get(self.parent_id)
+        return self.state.client.channels.get(self.parent_id)
 
     async def modify(self, **kwargs):
         """Invokes an API request to modify the channel
@@ -161,7 +161,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
                        kwargs, (), _guild_channel_modification_keys(self.type))
 
         data = await rest.modify_channel.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.id),
             json=kwargs)
 
@@ -170,7 +170,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     async def delete(self):
         """Invokes an API request to delete the channel"""
         await rest.delete_channel.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
     def update(self, data, *args, **kwargs):
@@ -214,8 +214,8 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
 
         self.last_pin_timestamp = None
 
-        self.messages = self.state.manager.get_class('MessageState')(
-            manager=self.state.manager, channel=self)
+        self.messages = self.state.client.get_class('MessageState')(
+            client=self.state.client, channel=self)
 
     def __str__(self):
         return f'#{self.name}'
@@ -234,7 +234,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         in the channel
         """
         await rest.trigger_typing_indicator.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
     async def pins(self):
@@ -245,7 +245,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
             list[Message]: The pinned messages in the channel
         """
         data = await rest.get_pinned_messages.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
         return self.messages.upsert_many(data)
@@ -296,5 +296,5 @@ class DMChannel(BaseObject, template=DMChannelTemplate):
     async def close(self):
         """Invokes an API request to close the channel"""
         await rest.delete_channel.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.id))

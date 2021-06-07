@@ -12,8 +12,8 @@ from ..utils import Snowflake, _validate_keys
 
 __all__ = ('ChannelState',)
 
-
 _Channel = Union[DMChannel, GuildChannel]
+
 
 class ChannelState(BaseState[Snowflake, _Channel]):
     __key_transformer__ = Snowflake.try_snowflake
@@ -43,7 +43,7 @@ class ChannelState(BaseState[Snowflake, _Channel]):
         channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.get_channel.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=channel_id))
 
         return self.upsert(data)
@@ -80,7 +80,7 @@ class GuildChannelState(BaseSubState):
 
     async def fetch_all(self):
         data = await rest.get_guild_channels.request(
-            session=self.superstate.manager.rest,
+            session=self.superstate.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return self.superstate.upsert_many(data)
@@ -109,7 +109,7 @@ class GuildChannelState(BaseSubState):
                        kwargs, required_keys, keys)
 
         data = await rest.create_guild_channel.request(
-            session=self.superstate.manager.rest,
+            session=self.superstate.client.rest,
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
@@ -133,6 +133,6 @@ class GuildChannelState(BaseSubState):
             json.append(value)
 
         await rest.modify_guild_channel_positions.request(
-            session=self.superstate.manager.rest,
+            session=self.superstate.client.rest,
             fmt=dict(guild_id=self.guild.id),
             json=json)

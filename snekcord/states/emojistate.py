@@ -10,8 +10,8 @@ class GuildEmojiState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __guild_emoji_class__ = GuildEmoji
 
-    def __init__(self, *, manager, guild):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def upsert(self, data):
@@ -34,14 +34,14 @@ class GuildEmojiState(BaseState):
         emoji_id = Snowflake.try_snowflake(emoji)
 
         data = await rest.get_guild_emoji.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=emoji_id))
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return self.upsert_many(data)

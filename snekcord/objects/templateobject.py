@@ -28,15 +28,15 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
     @property
     def creator(self):
-        return self.state.manager.users.get(self.creator_id)
+        return self.state.client.users.get(self.creator_id)
 
     @property
     def source_guild(self):
-        return self.state.manager.guilds.get(self.source_guild_id)
+        return self.state.client.guilds.get(self.source_guild_id)
 
     async def fetch(self):
         data = await rest.get_template.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(code=self.code))
 
         self.update(data)
@@ -49,15 +49,15 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
                        rest.create_guild_from_template.json)
 
         data = await rest.create_guild_from_template.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(template_code=self.code),
             json=kwargs)
 
-        return self.state.manager.guilds.upsert(data)
+        return self.state.client.guilds.upsert(data)
 
     async def sync(self):
         data = await rest.sync_guild_template.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.source_guild_id,
                      template_code=self.code))
 
@@ -70,7 +70,7 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
                        kwargs, (), rest.modify_guild_template.json)
 
         data = await rest.modify_guild_template.request(
-            sesison=self.state.manager.rest,
+            sesison=self.state.client.rest,
             fmt=dict(guild_id=self.source_guild_id,
                      template_code=self.code),
             json=kwargs)
@@ -81,7 +81,7 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
     async def delete(self):
         await rest.delete_guild_template.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.source_guild_id,
                      template_code=self.code))
 
@@ -90,4 +90,4 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
         creator = data.get('creator')
         if creator is not None:
-            self.state.manager.users.upsert(creator)
+            self.state.client.users.upsert(creator)

@@ -46,7 +46,7 @@ class IntegrationApplication(JsonObject,
 
         bot = data.get('bot')
         if bot is not None:
-            self.bot = self.integration.state.manager.users.upsert(bot)
+            self.bot = self.integration.state.client.users.upsert(bot)
 
 
 IntegrationTemplate = JsonTemplate(
@@ -94,7 +94,7 @@ class Integration(BaseObject, template=IntegrationTemplate):
 
     async def delete(self):
         await rest.delete_guild_integration.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id, integration_id=self.id))
 
     def update(self, data, *args, **kwargs):
@@ -102,7 +102,7 @@ class Integration(BaseObject, template=IntegrationTemplate):
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.upsert(user)
+            self.user = self.state.client.users.upsert(user)
 
         application = data.get('application')
         if application is not None:

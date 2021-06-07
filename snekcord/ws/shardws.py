@@ -43,15 +43,15 @@ class ShardCloseCode(Enum[int]):
 
 
 class Shard:
-    def __init__(self, *, manager, shard_id):
-        self.manager = manager
+    def __init__(self, *, client, shard_id):
+        self.client = client
 
         self.id = shard_id
-        self.count = self.manager.shard_count
+        self.count = self.client.shard_count
 
-        self.loop = self.manager.loop
-        self.token = self.manager.token
-        self.intents = self.manager.intents
+        self.loop = self.client.loop
+        self.token = self.client.token
+        self.intents = self.client.intents
 
         self.callbacks = {
             'HELLO': self.on_hello,
@@ -93,13 +93,13 @@ class Shard:
         self.heartbeater_task = self.loop.create_task(self.heartbeater())
 
     async def on_ready(self, data):
-        self.user = self.manager.users.upsert(data['user'])
+        self.user = self.client.users.upsert(data['user'])
 
     async def on_dispatch(self, name, data):
-        await self.manager.dispatch(name, self, data)
+        await self.client.dispatch(name, self, data)
 
     async def on_guilds_received(self):
-        await self.manager.dispatch('SHARD_READY', self)
+        await self.client.dispatch('SHARD_READY', self)
 
     async def on_closed(self, code, data):
         print(f'SHARD {self.id} DIED. {code}, {data}')

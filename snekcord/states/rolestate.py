@@ -10,8 +10,8 @@ class RoleState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __role_class__ = Role
 
-    def __init__(self, *, manager, guild):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     @property
@@ -31,7 +31,7 @@ class RoleState(BaseState):
 
     async def fetch_all(self):
         data = await rest.get_guild_roles.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return self.upsert_many(data)
@@ -41,7 +41,7 @@ class RoleState(BaseState):
                        kwargs, (), rest.create_guild_role.json)
 
         data = await rest.create_guild_role.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id),
             json=kwargs)
 
@@ -60,7 +60,7 @@ class RoleState(BaseState):
             json.append(value)
 
         await rest.modify_guild_role_positions.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id),
             json=json)
 
@@ -74,7 +74,7 @@ class GuildMemberRoleState(BaseSubState):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.add_guild_member_role.request(
-            session=self.superstate.manager.rest,
+            session=self.superstate.client.rest,
             fmt=dict(guild_id=self.member.guild.id,
                      user_id=self.member.user.id,
                      role_id=role_id))
@@ -83,7 +83,7 @@ class GuildMemberRoleState(BaseSubState):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.remove_guild_member_role.request(
-            session=self.superstate.manager.rest,
+            session=self.superstate.client.rest,
             fmt=dict(guild_id=self.member.guild.id,
                      user_id=self.member.user.id,
                      role_id=role_id))

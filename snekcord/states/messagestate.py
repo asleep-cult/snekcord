@@ -10,8 +10,8 @@ class MessageState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __message_class__ = Message
 
-    def __init__(self, *, manager, channel):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, channel):
+        super().__init__(client=client)
         self.channel = channel
 
     def upsert(self, data):
@@ -28,7 +28,7 @@ class MessageState(BaseState):
         message_id = Snowflake.try_snowflake(message)
 
         data = await rest.get_channel_message.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.channel.id, message_id=message_id))
 
         return self.upsert(data)
@@ -50,7 +50,7 @@ class MessageState(BaseState):
             params['limit'] = limit
 
         data = await rest.get_channel_messages.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.channel.id),
             params=params)
 
@@ -66,7 +66,7 @@ class MessageState(BaseState):
                        kwargs, (), rest.create_channel_message.json)
 
         data = await rest.create_channel_message.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.channel.id),
             json=kwargs)
 
@@ -76,6 +76,6 @@ class MessageState(BaseState):
         message_ids = tuple(Snowflake.try_snowflake_set(messages))
 
         await rest.bulk_delete_messages.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.channel.id),
             json=dict(messages=message_ids))

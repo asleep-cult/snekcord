@@ -37,7 +37,7 @@ class GuildState(BaseState):
         guild_id = Snowflake.try_snowflake(guild)
 
         data = await rest.get_guild.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=guild_id),
             params=params)
 
@@ -61,7 +61,7 @@ class GuildState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.get_user_client_guilds.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             params=params)
 
         return self.upsert_many(data)
@@ -70,14 +70,14 @@ class GuildState(BaseState):
         guild_id = Snowflake.try_snowflake(guild)
 
         data = await rest.get_guild_preview.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=guild_id))
 
         return self.upsert(data)
 
     async def fetch_template(self, code):
         data = await rest.get_template.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(code=code))
 
         return self.new_template(data)
@@ -87,7 +87,7 @@ class GuildState(BaseState):
                        kwargs, ('name',), rest.create_guild.json)
 
         data = await rest.create_guild.request(
-            session=self.manager.rest, json=kwargs)
+            session=self.client.rest, json=kwargs)
 
         return self.upsert(data)
 
@@ -96,8 +96,8 @@ class GuildBanState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __ban_class__ = GuildBan
 
-    def __init__(self, *, manager, guild):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def upsert(self, data):
@@ -115,14 +115,14 @@ class GuildBanState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_ban.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id))
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_bans.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return self.upsert_many(data)
@@ -134,7 +134,7 @@ class GuildBanState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.create_guild_ban.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
@@ -142,5 +142,5 @@ class GuildBanState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_ban.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id))

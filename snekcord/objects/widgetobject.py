@@ -51,7 +51,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
 
     async def fetch(self):
         data = await rest.get_guild_widget_settings.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         self.update(data)
@@ -68,7 +68,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
             json['channel_id'] = Snowflake.try_snowflake(channel)
 
         data = await rest.modify_guild_widget_settings.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id),
             json=json)
 
@@ -78,14 +78,14 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
 
     async def fetch_json(self):
         data = await rest.get_guild_widget.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return GuildWidgetJson.unmarshal(data)
 
     async def fetch_shield(self):
         data = await rest.get_guild_widget_image.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return data
@@ -94,7 +94,7 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
         style = f'banner{style}'
 
         data = await rest.get_guild_widget_image.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id),
             params=dict(style=style))
 

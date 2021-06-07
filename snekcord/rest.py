@@ -704,12 +704,12 @@ class HTTPError(Exception):
 
 
 class RestSession(AsyncClient):
-    def __init__(self, manager, *args, **kwargs):
-        self.loop = manager.loop
-        self.manager = manager
+    def __init__(self, client, *args, **kwargs):
+        self.loop = client.loop
+        self.client = client
 
-        self.authorization = self.manager.token
-        self.api_version = self.manager.api_version
+        self.authorization = self.client.token
+        self.api_version = self.client.api_version
 
         self.global_headers = kwargs.pop('global_headers', {})
         self.global_headers.update({

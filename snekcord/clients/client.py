@@ -56,12 +56,12 @@ class Client(EventDispatcher):
         self.cache_flags = cache_flags
         self.api_version = f'v{api_version}'
 
-        self.rest = self.get_class('RestSession')(manager=self)
-        self.channels = self.get_class('ChannelState')(manager=self)
-        self.guilds = self.get_class('GuildState')(manager=self)
-        self.invites = self.get_class('InviteState')(manager=self)
-        self.stages = self.get_class('StageState')(manager=self)
-        self.users = self.get_class('UserState')(manager=self)
+        self.rest = self.get_class('RestSession')(client=self)
+        self.channels = self.get_class('ChannelState')(client=self)
+        self.guilds = self.get_class('GuildState')(client=self)
+        self.invites = self.get_class('InviteState')(client=self)
+        self.stages = self.get_class('StageState')(client=self)
+        self.users = self.get_class('UserState')(client=self)
 
         self.finalizing = False
 

@@ -26,7 +26,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
     def __init__(self, *, state):
         super().__init__(state=state)
-        self.roles = self.state.manager.get_class('GuildMemberRoleState')(
+        self.roles = self.state.client.get_class('GuildMemberRoleState')(
             superstate=self.guild.roles, member=self)
 
     @property
@@ -86,7 +86,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
                        kwargs, (), rest.modify_guild_member.json)
 
         data = await rest.modify_guild_member.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id,
                      user_id=self.id),
             json=kwargs)
@@ -98,7 +98,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
         user = data.get('user')
         if user is not None:
-            self.user = self.state.manager.users.upsert(user)
+            self.user = self.state.client.users.upsert(user)
             self.id = self.user.id
 
         roles = data.get('roles')

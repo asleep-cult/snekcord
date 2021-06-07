@@ -51,11 +51,11 @@ class PermissionOverwrite(BaseObject, template=PermissionOverwriteTemplate):
                        kwargs, (), rest.create_channel_permission.json)
 
         await rest.create_channel_permission.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, overwrite_id=self.id),
             json=kwargs)
 
     async def delete(self):
         await rest.delete_channel_permission.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, overwrite_id=self.id))

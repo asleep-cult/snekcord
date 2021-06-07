@@ -7,7 +7,7 @@ from .utils import EventDispatcher
 
 StateClasses = Dict[str, Type[BaseState]]
 
-class Manager(EventDispatcher):
+class client(EventDispatcher):
     DEFAULT_CLASSES: ClassVar[StateClasses]
     __classes__: ClassVar[StateClasses]
     __handled_signals__: List[int]

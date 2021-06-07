@@ -8,8 +8,8 @@ __all__ = ('ReactionsState',)
 class ReactionsState(BaseState):
     __reactions_class__ = Reactions
 
-    def __init__(self, *, manager, message):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, message):
+        super().__init__(client=client)
         self.message = message
 
     def upsert(self, data):
@@ -25,13 +25,13 @@ class ReactionsState(BaseState):
 
     async def add(self, emoji):
         await rest.create_reaction.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.message.channel_id,
                      message_id=self.message.id,
                      emoji=emoji.to_reaction()))
 
     async def remove_all(self):
         await rest.delete_all_reactions.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.message.channel_id,
                      message_id=self.message.id))

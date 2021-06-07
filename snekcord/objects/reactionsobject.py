@@ -16,7 +16,7 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
     __slots__ = ('emoji',)
 
     def __init__(self, *, state):
-        BaseSubState.__init__(self, superstate=state.manager.users)
+        BaseSubState.__init__(self, superstate=state.client.users)
         BaseObject.__init__(self, state=state)
         self.emoji = None
 

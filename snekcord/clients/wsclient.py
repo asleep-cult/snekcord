@@ -60,7 +60,7 @@ class WebSocketClient(Client):
             gateway = await self.fetch_gateway()
             gateway_url = gateway['url'] + f'?v={self.ws_version}'
 
-            shard = Shard(manager=self, shard_id=shard_id)
+            shard = Shard(client=self, shard_id=shard_id)
             await shard.connect(gateway_url, *args, **kwargs)
 
             self.shards[shard.id] = shard

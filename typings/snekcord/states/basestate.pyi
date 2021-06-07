@@ -3,7 +3,7 @@ from collections.abc import MutableMapping
 from typing import (Any, Callable, ClassVar, Generic, Iterator,
                     Iterable, Optional, overload, TypeVar)
 
-from ..manager import BaseManager
+from ..client import Baseclient
 from ..objects.baseobject import BaseObject
 from ..utils import Snowflake, SnowflakeConvertable
 
@@ -69,9 +69,9 @@ class BaseState(_StateCommon[KT]):
     __replace__: ClassVar[bool]
     _items: Mapping[KT, BaseObject[KT]]
     _recycle_bin: Mapping[KT, BaseObject[KT]]
-    manager: BaseManager
+    client: Baseclient
 
-    def __init__(self, *, manager: BaseManager) -> None: ...
+    def __init__(self, *, client: Baseclient) -> None: ...
 
     @classmethod
     def set_maxsize(cls, maxsize: int) -> None: ...

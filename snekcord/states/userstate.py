@@ -24,13 +24,13 @@ class UserState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_user.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(user_id=user_id))
 
         return self.upsert(data)
 
     async def fetch_self(self):
         data = await rest.get_user_client.request(
-            session=self.manager.rest)
+            session=self.client.rest)
 
         return self.upsert(data)

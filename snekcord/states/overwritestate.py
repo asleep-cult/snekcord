@@ -11,8 +11,8 @@ class PermissionOverwriteState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __permission_overwrite_class__ = PermissionOverwrite
 
-    def __init__(self, *, manager, channel):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, channel):
+        super().__init__(client=client)
         self.channel = channel
 
     def upsert(self, data):
@@ -93,6 +93,6 @@ class PermissionOverwriteState(BaseState):
             pass
 
         await rest.create_channel_permission.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(channel_id=self.channel.id, overwrite_id=obj_id),
             json=kwargs)

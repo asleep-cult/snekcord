@@ -60,7 +60,7 @@ class Role(BaseObject, template=RoleTemplate):
                        kwargs, (), rest.modify_guild_role_positions.json)
 
         data = await rest.modify_guild_role_positions.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id, role_id=self.id),
             json=kwargs)
 
@@ -68,5 +68,5 @@ class Role(BaseObject, template=RoleTemplate):
 
     async def delete(self):
         await rest.delete_guild_role.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id, role_id=self.id))

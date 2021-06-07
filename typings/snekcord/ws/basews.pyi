@@ -3,15 +3,15 @@ from typing import Any, Dict, NoReturn, Optional, Type, TypeVar
 
 from wsaio import WebSocketClient
 
-from ..manager import Manager
+from ..client import client
 from ..utils import JsonObject
 
 _T = TypeVar('_T')
 
 class WebSocketWorker:
     loop: asyncio.AbstractEventLoop
-    manager: Manager
-    def __init__(self, *, manager: Manager, timeout: float) -> None: ...
+    client: client
+    def __init__(self, *, client: client, timeout: float) -> None: ...
     async def create_connection(self, cls: Type[_T], *args: Any, **kwargs: Any) -> _T: ...
     def ack(self, ws: Any) -> None: ...
     async def work(self) -> None: ...

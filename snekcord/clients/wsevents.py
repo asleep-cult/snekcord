@@ -29,7 +29,7 @@ class BaseEvent:
         return f'{self.__class__.__name__}({formatted})'
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         raise NotImplementedError
 
 
@@ -39,8 +39,8 @@ class ChannelCreateEvent(BaseEvent):
     __fields__ = ('channel',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        channel = manager.channels.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        channel = client.channels.upsert(payload)
         return cls(shard=shard, payload=payload, channel=channel)
 
 
@@ -50,8 +50,8 @@ class ChannelUpdateEvent(BaseEvent):
     __fields__ = ('channel',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        channel = manager.channels.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        channel = client.channels.upsert(payload)
         return cls(shard=shard, payload=payload, channel=channel)
 
 
@@ -61,8 +61,8 @@ class ChannelDeleteEvent(BaseEvent):
     __fields__ = ('channel',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        channel = manager.channels.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        channel = client.channels.upsert(payload)
         channel._delete()
         return cls(shard=shard, payload=payload, channel=channel)
 
@@ -73,8 +73,8 @@ class ChannelPinsUpdateEvent(BaseEvent):
     __fields__ = ('channel',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        channel = manager.channels.get(payload['channel_id'])
+    async def execute(cls, client, shard, payload):
+        channel = client.channels.get(payload['channel_id'])
         if channel is not None:
             channel.last_pin_timestamp = payload['last_pin_timestamp']
         return cls(shard=shard, payload=payload, channel=channel)
@@ -86,8 +86,8 @@ class GuildReceiveEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -98,8 +98,8 @@ class GuildAvailableEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -110,8 +110,8 @@ class GuildJoinEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -122,8 +122,8 @@ class GuildUpdateEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.upsert(payload)
         await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -134,8 +134,8 @@ class GuildUnavailableEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.upsert(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
 
@@ -145,8 +145,8 @@ class GuildDeleteEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.upsert(payload)
         guild._delete()
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -157,9 +157,9 @@ class GuildBanAddEvent(BaseEvent):
     __fields__ = ('guild', 'ban')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         ban = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             ban = guild.bans.upsert(payload)
@@ -173,9 +173,9 @@ class GuildBanRemoveEvent(BaseEvent):
     __fields__ = ('guild', 'ban')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         ban = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             ban = guild.bans.upsert(payload)
@@ -190,8 +190,8 @@ class GuildEmojisUpdateEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        guild = manager.guilds.get(payload['guild_id'])
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             guild.emojis.upsert_replace(payload['emojis'])
@@ -205,7 +205,7 @@ class GuildIntegrationsUpdateEvent(BaseEvent):
     __fields__ = ('guild',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         pass
 
 
@@ -215,9 +215,9 @@ class GuildMemberAddEvent(BaseEvent):
     __fields__ = ('guild', 'member')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         member = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             member = guild.members.upsert(payload)
@@ -231,9 +231,9 @@ class GuildMemberUpdateEvent(BaseEvent):
     __fields__ = ('guild', 'member')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         member = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             member = guild.members.upsert(payload)
@@ -247,10 +247,10 @@ class GuildMemberRemoveEvent(BaseEvent):
     __fields__ = ('user', 'guild', 'member')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         member = None
-        user = manager.users.upsert(payload['user'])
-        guild = manager.guilds.get(payload['guild_id'])
+        user = client.users.upsert(payload['user'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             member = guild.members.get(user.id)
@@ -267,9 +267,9 @@ class GuildRoleCreateEvent(BaseEvent):
     __fields__ = ('guild', 'role')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         role = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             role = guild.roles.upsert(payload['role'])
@@ -283,9 +283,9 @@ class GuildRoleUpdateEvent(BaseEvent):
     __fields__ = ('guild', 'role')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         role = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             role = guild.roles.upsert(payload['role'])
@@ -299,9 +299,9 @@ class GuildRoleDeleteEvent(BaseEvent):
     __fields__ = ('guild', 'role')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         role = None
-        guild = manager.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(payload['guild_id'])
 
         if guild is not None:
             role = guild.roles.get(payload['role_id'])
@@ -316,7 +316,7 @@ class IntegrationCreateEvent(BaseEvent):
     __event_name__ = 'INTEGRATION_CREATE'
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         pass
 
 
@@ -325,7 +325,7 @@ class IntegrationUpdateEvent(BaseEvent):
     __event_name__ = 'INTEGRATION_UPDATE'
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         pass
 
 
@@ -334,7 +334,7 @@ class IntegrationDeleteEvent(BaseEvent):
     __event_name__ = 'INTEGRATION_DELETE'
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         pass
 
 
@@ -344,8 +344,8 @@ class InviteCreateEvent(BaseEvent):
     __fields__ = ('invite',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        invite = manager.invites.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        invite = client.invites.upsert(payload)
         return cls(shard=shard, payload=payload, invite=invite)
 
 
@@ -355,8 +355,8 @@ class InviteDeleteEvent(BaseEvent):
     __fields__ = ('invite',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        invite = manager.invites.get(payload['code'])
+    async def execute(cls, client, shard, payload):
+        invite = client.invites.get(payload['code'])
 
         if invite is not None:
             invite._delete()
@@ -370,9 +370,9 @@ class MessageCreateEvent(BaseEvent):
     __fields__ = ('channel', 'message')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         message = None
-        channel = manager.channels.get(payload['channel_id'])
+        channel = client.channels.get(payload['channel_id'])
 
         if channel is not None:
             message = channel.messages.upsert(payload)
@@ -387,9 +387,9 @@ class MessageUpdateEvent(BaseEvent):
     __fields__ = ('channel', 'message')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         message = None
-        channel = manager.channels.get(payload['channel_id'])
+        channel = client.channels.get(payload['channel_id'])
 
         if channel is not None:
             message = channel.messages.upsert(payload)
@@ -404,9 +404,9 @@ class MessageDeleteEvent(BaseEvent):
     __fields__ = ('channel', 'message')
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
+    async def execute(cls, client, shard, payload):
         message = None
-        channel = manager.channels.get(payload['channel_id'])
+        channel = client.channels.get(payload['channel_id'])
 
         if channel is not None:
             message = channel.messages.get(payload['id'])
@@ -423,8 +423,8 @@ class StageInstanceCreateEvent(BaseEvent):
     __fields__ = ('stage',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        stage = manager.stages.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        stage = client.stages.upsert(payload)
         return cls(shard=shard, payload=payload, stage=stage)
 
 
@@ -434,8 +434,8 @@ class StageInstanceUpdateEvent(BaseEvent):
     __fields__ = ('stage',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        stage = manager.stages.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        stage = client.stages.upsert(payload)
         return cls(shard=shard, payload=payload, stage=stage)
 
 
@@ -445,8 +445,8 @@ class StageInstanceDeleteEvent(BaseEvent):
     __fields__ = ('stage',)
 
     @classmethod
-    async def execute(cls, manager, shard, payload):
-        stage = manager.stages.upsert(payload)
+    async def execute(cls, client, shard, payload):
+        stage = client.stages.upsert(payload)
         stage._delete()
         return cls(shard=shard, payload=payload, stage=stage)
 

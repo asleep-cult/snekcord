@@ -10,8 +10,8 @@ class GuildMemberState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __guild_member_class__ = GuildMember
 
-    def __init__(self, *, manager, guild):
-        super().__init__(manager=manager)
+    def __init__(self, *, client, guild):
+        super().__init__(client=client)
         self.guild = guild
 
     def upsert(self, data):
@@ -29,7 +29,7 @@ class GuildMemberState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_member.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id,
                      user_id=user_id))
 
@@ -48,7 +48,7 @@ class GuildMemberState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.get_guild_members.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
@@ -61,7 +61,7 @@ class GuildMemberState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.search_guild_members.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
@@ -74,7 +74,7 @@ class GuildMemberState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.add_guild_member.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
@@ -84,5 +84,5 @@ class GuildMemberState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_member.request(
-            session=self.manager.rest,
+            session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, user_id=user_id))
