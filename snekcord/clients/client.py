@@ -24,7 +24,9 @@ from ..utils import Bitset, EventDispatcher, Flag
 __all__ = ('CacheFlags', 'Client')
 
 if t.TYPE_CHECKING:
-    from ..objects import GuildMember, GuildEmoji, Message, Role
+    from signal import Signals
+
+    from ..objects import BaseObject, GuildMember, GuildEmoji, Message, Role
 
 
 class CacheFlags(Bitset):
@@ -35,7 +37,9 @@ class CacheFlags(Bitset):
 
 
 class Client(EventDispatcher):
-    DEFAULT_CLASSES: t.Dict[str, t.Type[t.Union[BaseState, RestSession]]] = {
+    DEFAULT_CLASSES: t.Dict[
+        str, t.Type[t.Union[BaseState[t.Any, BaseObject], RestSession]]
+    ] = {
         'ChannelState': ChannelState,
         'GuildChannelState': GuildChannelState,
         'GuildEmojiState': GuildEmojiState,
@@ -52,7 +56,7 @@ class Client(EventDispatcher):
         'UserState': UserState,
         'StageState': StageState,
         'RestSession': RestSession,
-    }
+    }  # type: ignore
 
     if t.TYPE_CHECKING:
         rest: RestSession
@@ -92,15 +96,17 @@ class Client(EventDispatcher):
     @classmethod
     def set_class(cls, name: str, klass: type) -> None:
         default = cls.DEFAULT_CLASSES[name]
-        assert issubclass(klass, default)
+        assert issubclass(klass, default)  # type: ignore
         cls.__classes__[name] = klass
 
     @classmethod
-    def get_class(cls, name: str) -> t.Type[t.Union[BaseState, RestSession]]:
+    def get_class(
+        cls, name: str
+    ) -> t.Type[t.Union[BaseState[t.Any, BaseObject], RestSession]]:
         return cls.__classes__[name]
 
     @classmethod
-    def add_handled_signal(cls, signo: int) -> None:
+    def add_handled_signal(cls, signo: Signals) -> None:
         cls.__handled_signals__.append(signo)
 
     @property
@@ -160,10 +166,12 @@ class Client(EventDispatcher):
         self.loop.call_soon_threadsafe(self._repropagate)
         self.loop.call_soon_threadsafe(self.loop.close)
 
-    def run_forever(self) -> None:
+    def run_forever(self) -> t.Optional[BaseException]:
         for signo in self.__handled_signals__:
             try:
-                self._sighandlers[signo] = signal.getsignal(signo)
+                self._sighandlers[signo] = (  # type: ignore
+                    signal.getsignal(signo))
+
                 signal.signal(signo, self._sighandle)
             except BaseException:
                 pass

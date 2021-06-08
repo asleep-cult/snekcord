@@ -12,37 +12,40 @@ __all__ = ('BaseState', 'BaseSubState')
 if TYPE_CHECKING:
     from ..clients import Client
     from ..objects.baseobject import BaseObject
+    from ..typing import SnowflakeType
 
 
 KT = TypeVar('KT')
-VT = TypeVar('VT')
+VT_co = TypeVar('VT_co', covariant=True)
 DT = TypeVar('DT')
-OT = TypeVar('OT', bound='BaseObject')
+OT_co = TypeVar('OT_co', bound='BaseObject', covariant=True)
 
 
-class _StateCommon(Generic[KT, VT]):
+class _StateCommon(Generic[KT, VT_co]):
     def first(
-        self, func: Optional[Callable[[VT], Any]] = None
-    ) -> Optional[VT]:
+        self, func: Optional[Callable[[VT_co], Any]] = None
+    ) -> Optional[VT_co]:
         for value in self:
             if func is None or func(value):
                 return value
         return None
 
-    def __iter__(self) -> Iterator[VT]:
+    def __iter__(self) -> Iterator[VT_co]:
         raise NotImplementedError
 
 
-class BaseState(_StateCommon[KT, OT]):
+class BaseState(_StateCommon[KT, OT_co]):
     __key_transformer__: Optional[Callable[[KT], Any]] = None
-    __mapping__: Type[MutableMapping[KT, OT]] = dict
+    __mapping__: Type[MutableMapping[KT, OT_co]] = dict
     __recycle_enabled__: bool = True
-    __recycled_mapping__: ClassVar[Type[weakref.WeakValueDictionary[KT, OT]]]
+    __recycled_mapping__: ClassVar[
+        Type[weakref.WeakValueDictionary[KT, OT_co]]
+    ]
     __recycled_mapping__ = weakref.WeakValueDictionary
 
     client: Client
-    mapping: weakref.WeakValueDictionary[KT, OT]
-    recycle_bin: Optional[MutableMapping[KT, OT]]
+    mapping: weakref.WeakValueDictionary[KT, OT_co]
+    recycle_bin: Optional[MutableMapping[KT, OT_co]]
 
     def __init__(self, *, client: Client) -> None:
         self.client = client
@@ -60,21 +63,21 @@ class BaseState(_StateCommon[KT, OT]):
     def __len__(self) -> int:
         return self.__mapping__.__len__(self.mapping)
 
-    def __iter__(self) -> Iterator[OT]:
+    def __iter__(self) -> Iterator[OT_co]:
         return iter(self.values())
 
-    def __reversed__(self) -> Iterable[OT]:
+    def __reversed__(self) -> Iterable[OT_co]:
         return reversed(list(self.values()))
 
     def __contains__(self, key: KT) -> bool:
         return self.__mapping__.__contains__(
             self.mapping, self.transform_key(key))
 
-    def __getitem__(self, key: KT) -> OT:
+    def __getitem__(self, key: KT) -> OT_co:
         return self.__mapping__.__getitem__(
             self.mapping, self.transform_key(key))
 
-    def __setitem__(self, key: KT, value: OT) -> None:
+    def __setitem__(self, key: KT, value: OT_co) -> None:  # type: ignore
         return self.__mapping__.__setitem__(
             self.mapping, self.transform_key(key), value)
 
@@ -94,21 +97,21 @@ class BaseState(_StateCommon[KT, OT]):
     def keys(self) -> Iterable[KT]:
         return self.__mapping__.keys(self.mapping)
 
-    def values(self) -> Iterable[OT]:
+    def values(self) -> Iterable[OT_co]:
         return self.__mapping__.values(self.mapping)
 
-    def items(self) -> Iterable[Tuple[KT, OT]]:
+    def items(self) -> Iterable[Tuple[KT, OT_co]]:
         return self.__mapping__.items(self.mapping)
 
     @overload
-    def get(self, key: KT) -> Optional[OT]:
+    def get(self, key: KT) -> Optional[OT_co]:
         ...
 
     @overload
-    def get(self, key: KT, default: DT) -> Union[OT, DT]:
+    def get(self, key: KT, default: DT) -> Union[OT_co, DT]:
         ...
 
-    def get(self, key: KT, default: DT = None) -> Union[DT, OT]:
+    def get(self, key: KT, default: DT = None) -> Union[DT, OT_co]:
         key = self.transform_key(key)
         value = self.mapping.get(key)
         if value is None:
@@ -119,14 +122,14 @@ class BaseState(_StateCommon[KT, OT]):
         return value
 
     @overload
-    def pop(self, key: KT) -> OT:
+    def pop(self, key: KT) -> OT_co:
         ...
 
     @overload
-    def pop(self, key: KT, default: DT) -> Union[OT, DT]:
+    def pop(self, key: KT, default: DT) -> Union[OT_co, DT]:
         ...
 
-    def pop(self, key: KT, default: Any = undefined) -> Union[OT, Any]:
+    def pop(self, key: KT, default: Any = undefined) -> Union[OT_co, Any]:
         key = self.transform_key(key)
         try:
             return self.__mapping__.pop(self.mapping, key)
@@ -140,18 +143,18 @@ class BaseState(_StateCommon[KT, OT]):
                     return default
                 raise
 
-    def popitem(self) -> Tuple[KT, OT]:
+    def popitem(self) -> Tuple[KT, OT_co]:
         return self.__mapping__.popitem(self.mapping)
 
     def clear(self) -> None:
         return self.__mapping__.clear(self.mapping)
 
-    def upsert(self, *args: Any, **kwargs: Any) -> OT:
+    def upsert(self, *args: Any, **kwargs: Any) -> OT_co:
         raise NotImplementedError
 
     def upsert_many(
         self, values: Iterable[Any], *args: Any, **kwargs: Any
-    ) -> Set[OT]:
+    ) -> Set[OT_co]:
         return {self.upsert(value, *args, **kwargs) for value in values}
 
     def upsert_replace(self, *args: Any, **kwargs: Any):
@@ -163,11 +166,11 @@ class BaseState(_StateCommon[KT, OT]):
 
         return values
 
-    def recycle(self, key: KT, value: OT) -> None:
-        if self.__recycle_enabled__:
-            return self.__recycled_mapping__.__setitem__(
-                self.recycle_bin, self.transform_key(key),
-                value)  # type: ignore
+    def recycle(self, key: KT, value: OT_co) -> None:  # type: ignore
+        if self.__recycle_enabled__ and self.recycle_bin:
+            return self.recycle_bin.__setitem__(
+                self.transform_key(key),
+                value)
 
     def unrecycle(self, key: KT, *args: Any, **kwargs: Any) -> None:
         if self.__recycle_enabled__:
@@ -175,27 +178,30 @@ class BaseState(_StateCommon[KT, OT]):
                 self.recycle_bin, self.transform_key(key),
                 *args, **kwargs)  # type: ignore
 
+    async def fetch(self, obj: SnowflakeType) -> OT_co:
+        raise NotImplementedError
 
-class BaseSubState(_StateCommon[KT, OT]):
+
+class BaseSubState(_StateCommon[KT, OT_co]):
     if TYPE_CHECKING:
-        superstate: BaseState[KT, OT]
+        superstate: BaseState[KT, OT_co]
         _keys: Set[KT]
 
-    def __init__(self, *, superstate: BaseState[KT, OT]):
+    def __init__(self, *, superstate: BaseState[KT, OT_co]):
         self.superstate = superstate
         self._keys = set()
 
     def __len__(self) -> int:
         return len(self._keys)
 
-    def __iter__(self) -> Iterator[OT]:
+    def __iter__(self) -> Iterator[OT_co]:
         for key in self._keys:
             try:
                 yield self.superstate[key]
             except KeyError:
                 continue
 
-    def __reversed__(self) -> Iterator[OT]:
+    def __reversed__(self) -> Iterator[OT_co]:
         for key in reversed(list(self._keys)):
             try:
                 yield self.superstate[key]
@@ -205,7 +211,7 @@ class BaseSubState(_StateCommon[KT, OT]):
     def __contains__(self, key: KT) -> bool:
         return self.superstate.transform_key(key) in self._keys
 
-    def __getitem__(self, key: KT) -> OT:
+    def __getitem__(self, key: KT) -> OT_co:
         if self.superstate.transform_key(key) not in self._keys:
             raise KeyError(key)
         return self.superstate[key]
@@ -232,14 +238,14 @@ class BaseSubState(_StateCommon[KT, OT]):
     def keys(self) -> Set[KT]:
         return self._keys
 
-    def values(self) -> Iterator[OT]:
+    def values(self) -> Iterator[OT_co]:
         return iter(self)
 
-    def items(self) -> Iterator[Tuple[KT, OT]]:
+    def items(self) -> Iterator[Tuple[KT, OT_co]]:
         for key in self._keys:
             yield key, self.superstate[key]
 
-    def get(self, key: KT, default: DT = None) -> Union[OT, DT]:
+    def get(self, key: KT, default: DT = None) -> Union[OT_co, DT]:
         if self.superstate.transform_key(key) not in self._keys:
             return default
         return self.superstate.get(key, default)

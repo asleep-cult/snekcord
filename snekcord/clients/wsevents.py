@@ -6,9 +6,10 @@ import typing as t
 EVENTS = {}
 
 if t.TYPE_CHECKING:
-    from ..objects import (DMChannel, Guild, GuildBan, GuildChannel,
-                           GuildMember, Invite, Message, Role, Stage,
-                           TextChannel, User)
+    from ..objects import (
+        DMChannel, Guild, GuildBan, GuildChannel,
+        GuildMember, Invite, Message, Reactions, Role, Stage,
+        TextChannel, User)
     from ..typing import Json
     from ..ws.shardws import Shard
     from .wsclient import WebSocketClient
@@ -603,6 +604,35 @@ class MessageDeleteBulkEvent(BaseEvent):
 
 
 @register
+class MessageReactionAddEvent(BaseEvent):
+    __event_name__ = 'MESSAGE_REACTION_ADD'
+    __fields__ = ('channel', 'message', 'reactions', 'user')
+
+    if t.TYPE_CHECKING:
+        channel: t.Union[DMChannel, GuildChannel, None]
+        message: t.Optional[Message]
+        reactions: t.Optional[Reactions]
+        user: t.Optional[User]
+
+    @classmethod
+    async def execute(
+        cls, client: WebSocketClient, shard: Shard, payload: Json
+    ) -> MessageReactionAddEvent:
+        message = None
+        reactions = None
+        channel = client.channels.get(payload['channel_id'])
+        user = client.users.get(payload['user_id'])
+
+        if channel is not None:
+            message = channel.messages.get(payload['message_id'])
+            if message is not None:
+                reactions = message.reactions.upsert(payload)
+
+        return cls(shard=shard, payload=payload, channel=channel,
+                   message=message, reactions=reactions, user=user)
+
+
+@register
 class StageInstanceCreateEvent(BaseEvent):
     __event_name__ = 'STAGE_INSTANCE_CREATE'
     __fields__ = ('stage',)
@@ -653,9 +683,6 @@ class StageInstanceDeleteEvent(BaseEvent):
 
 _base_fields = ('shard', 'payload')
 
-MessageReactionAddEvent = namedtuple(
-    'MessageReactionAddEvent',
-    _base_fields + ('channel', 'message', 'reactions', 'user'))
 MessageReactionRemoveEvent = namedtuple(
     'MessageReactionRemoveEvent',
     _base_fields + ('channel', 'message', 'reactions', 'user'))

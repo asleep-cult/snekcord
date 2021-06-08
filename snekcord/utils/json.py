@@ -7,7 +7,7 @@ from ..typing import AnyCallable, Json
 
 __all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
 
-OT = t.TypeVar('OT', bound='JsonObject')
+O_co = t.TypeVar('O_co', bound='JsonObject')
 
 
 class JsonTemplate:
@@ -157,8 +157,8 @@ class JsonObject(metaclass=JsonObjectMeta):
         pass
 
     @classmethod
-    def unmarshal(cls: type[OT], data: Json | t.ByteString | None = None,
-                  *args: t.Any, **kwargs: t.Any) -> OT:
+    def unmarshal(cls: type[O_co], data: Json | t.ByteString | None = None,
+                  *args: t.Any, **kwargs: t.Any) -> O_co:
         if cls.__template__ is None:
             raise NotImplementedError
 

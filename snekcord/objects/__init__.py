@@ -7,6 +7,7 @@ from .integrationobject import *
 from .inviteobject import *
 from .memberobject import *
 from .messageobject import *
+from .overwriteobject import *
 from .reactionsobject import *
 from .roleobject import *
 from .stageobject import *
