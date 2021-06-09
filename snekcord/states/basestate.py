@@ -12,8 +12,6 @@ __all__ = ('BaseState', 'BaseSubState')
 if TYPE_CHECKING:
     from ..clients import Client
     from ..objects.baseobject import BaseObject
-    from ..typing import SnowflakeType
-
 
 KT = TypeVar('KT')
 VT_co = TypeVar('VT_co', covariant=True)
@@ -178,7 +176,7 @@ class BaseState(_StateCommon[KT, OT_co]):
                 self.recycle_bin, self.transform_key(key),
                 *args, **kwargs)  # type: ignore
 
-    async def fetch(self, obj: SnowflakeType) -> OT_co:
+    async def fetch(self, *args: Any, **kwargs: Any) -> OT_co:
         raise NotImplementedError
 
 

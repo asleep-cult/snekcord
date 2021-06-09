@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from datetime import datetime
+import typing as t
+
 from .baseobject import BaseObject, BaseTemplate
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
@@ -6,7 +11,23 @@ from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField,
                      JsonObject, JsonTemplate, Snowflake,
                      _validate_keys)
 
+
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
+
+if t.TYPE_CHECKING:
+    from .channelobject import GuildChannel
+    from .emojiobject import GuildEmoji
+    from .inviteobject import Invite
+    from .stageobject import Stage
+    from .templateobject import GuildTemplate as _GuildTemplate
+    from .userobject import User
+    from ..states.channelstate import GuildChannelState
+    from ..states.emojistate import GuildEmojiState
+    from ..states.guildstate import GuildBanState, GuildState
+    from ..states.integrationstate import IntegrationState
+    from ..states.memberstate import GuildMemberState
+    from ..states.rolestate import RoleState
+    from ..typing import Json
 
 
 class MessageNotificationsLevel(Enum[int]):
@@ -127,7 +148,11 @@ GuildTemplate = JsonTemplate(
         SystemChannelFlags.get_value
     ),
     rules_channel_id=JsonField('rules_channel_id', Snowflake, str),
-    joined_at=JsonField('joined_at'),
+    joined_at=JsonField(
+        'joined_at',
+        datetime.fromisoformat,
+        datetime.isoformat
+    ),
     large=JsonField('large'),
     unavailable=JsonField('unavailable'),
     member_count=JsonField('member_count'),
@@ -175,12 +200,61 @@ class Guild(BaseObject, template=GuildTemplate):
 
         members GuildMemberState: The guild's member state
     """
+
+    if t.TYPE_CHECKING:
+        name: str
+        icon: t.Optional[str]
+        icon_hash: t.Optional[str]
+        splash: t.Optional[str]
+        discovery_splash: t.Optional[str]
+        features: t.List[GuildFeature]
+        member_count: t.Optional[int]
+        presence_count: t.Optional[int]
+        description: t.Optional[str]
+        owner: t.Optional[bool]
+        owner_id: Snowflake
+        permissions: t.Optional[str]
+        region: str
+        afk_channel_id: t.Optional[Snowflake]
+        afk_timeout: int
+        verification_level: VerificationLevel
+        default_message_notifications: MessageNotificationsLevel
+        explicit_content_filter: ExplicitContentFilterLevel
+        mfa_level: MFALevel
+        application_id: t.Optional[Snowflake]
+        system_channel_id: t.Optional[Snowflake]
+        system_channel_flags: SystemChannelFlags
+        rules_channel_id: t.Optional[Snowflake]
+        joined_at: t.Optional[datetime]
+        large: t.Optional[bool]
+        unavailable: t.Optional[bool]
+        max_presences: t.Optional[int]
+        max_members: t.Optional[int]
+        banner: t.Optional[str]
+        premium_tier: PremiumTier
+        premium_subscription_count: t.Optional[int]
+        preferred_locale: str
+        public_updates_channel_id: t.Optional[Snowflake]
+        max_video_channel_users: t.Optional[int]
+        nsfw_level: GuildNSFWLevel
+        unsynced: bool
+        channels: GuildChannelState
+        emojis: GuildEmojiState
+        roles: RoleState
+        members: GuildMemberState
+        bans: GuildBanState
+        integrations: IntegrationState
+        widget: GuildWidget
+        vanity_url: GuildVanityURL
+        welcome_screen: WelcomeScreen
+        state: GuildState
+
     # TODO(asleep-cult): Do it
     __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
                  'emojis', 'roles', 'members', 'bans', 'integrations',
                  'unsynced')
 
-    def __init__(self, *, state):
+    def __init__(self, *, state: GuildState) -> None:
         super().__init__(state=state)
 
         self.unsynced = True
@@ -207,16 +281,16 @@ class Guild(BaseObject, template=GuildTemplate):
         self.integrations = self.state.client.get_class('IntegrationState')(
             client=self.state.client, guild=self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     @property
-    def stages(self):
+    def stages(self) -> t.Generator[Stage, None, None]:
         for stage in self.state.client.stages:
             if stage.guild_id == self.id:
                 yield stage
 
-    async def sync(self, payload):
+    async def sync(self, payload: Json) -> None:
         cache_flags = self.state.client.cache_flags
 
         if cache_flags is None:
@@ -236,8 +310,8 @@ class Guild(BaseObject, template=GuildTemplate):
 
         self.unsynced = False
 
-    async def modify(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.modify',
+    async def modify(self, **kwargs: t.Any) -> Guild:
+        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
                        kwargs, (), rest.modify_guild.json)
 
         data = await rest.modify_guild.request(
@@ -252,7 +326,7 @@ class Guild(BaseObject, template=GuildTemplate):
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
-    async def prune(self, **kwargs):
+    async def prune(self, **kwargs: t.Any) -> int:
         remove = kwargs.pop('remove', True)
 
         try:
@@ -270,7 +344,7 @@ class Guild(BaseObject, template=GuildTemplate):
         else:
             keys = rest.get_guild_prune_count.params
 
-        _validate_keys(f'{self.__class__.__name__}.prune',
+        _validate_keys(f'{self.__class__.__name__}.prune',  # type: ignore
                        kwargs, (), keys)
 
         if remove:
@@ -286,33 +360,34 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return data['pruned']
 
-    async def preview(self):
+    async def preview(self) -> Guild:
         return await self.state.fetch_preview(self.id)
 
-    async def voice_regions(self):
+    async def voice_regions(self) -> t.List[Json]:
         data = await rest.get_guild_voice_regions.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
         return data
 
-    async def invites(self):
+    async def invites(self) -> t.Set[Invite]:
         data = await rest.get_guild_invites.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
-        return self.state.client.upsert_many(data)
+        return self.state.client.invites.upsert_many(data)
 
-    async def templates(self):
+    async def templates(self) -> t.List[_GuildTemplate]:
         data = await rest.get_guild_templates.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
         return self.state.new_template_many(data)
 
-    async def create_template(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.create_template',
-                       kwargs, ('name',), rest.create_guild_template.json)
+    async def create_template(self, **kwargs: t.Any) -> _GuildTemplate:
+        _validate_keys(  # type: ignore
+            f'{self.__class__.__name__}.create_template',
+            kwargs, ('name',), rest.create_guild_template.json)
 
         data = await rest.create_guild_template.request(
             session=self.state.client.rest,
@@ -321,10 +396,12 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return self.state.new_template(data)
 
-    def to_preview_dict(self):
+    def to_preview_dict(self) -> Json:
         return GuildPreviewTemplate.to_dict(self)
 
-    def update(self, data, *args, **kwargs):
+    def update(  # type: ignore
+        self, data: Json, *args: t.Any, **kwargs: t.Any
+    ) -> None:
         super().update(data, *args, **kwargs)
 
         widget_data = {}
@@ -381,11 +458,17 @@ GuildBanTemplate = JsonTemplate(
 class GuildBan(BaseObject, template=GuildBanTemplate):
     __slots__ = ('guild', 'user')
 
-    def __init__(self, *, state, guild):
-        super().__init__(state)
+    if t.TYPE_CHECKING:
+        reason: t.Optional[str]
+        guild: Guild
+        state: GuildBanState
+        user: User
+
+    def __init__(self, *, state: GuildBanState, guild: Guild):
+        super().__init__(state=state)
         self.guild = guild
 
-    def update(self, data, *args, **kwargs):
+    def update(self, data: Json, *args: t.Any, **kwargs: t.Any) -> None:
         super().update(data, *args, **kwargs)
 
         user = data.get('user')
@@ -420,11 +503,18 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
     """
     __slots__ = ('welcome_screen',)
 
-    def __init__(self, *, welcome_screen):
+    if t.TYPE_CHECKING:
+        channel_id: Snowflake
+        description: str
+        emoji_id: Snowflake
+        emoji_name: str
+        welcome_screen: WelcomeScreen
+
+    def __init__(self, *, welcome_screen: WelcomeScreen) -> None:
         self.welcome_screen = welcome_screen
 
     @property
-    def channel(self):
+    def channel(self) -> t.Optional[GuildChannel]:
         """The channel that this welcome channel refers to
 
         warning:
@@ -433,11 +523,11 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
         return self.welcome_screen.guild.channels.get(self.id)
 
     @property
-    def emoji(self):
+    def emoji(self) -> t.Optional[GuildEmoji]:
         """The welcome channel's emoji
 
         warning:
-            This property relies on the emoji cache to it could return None
+            This property relies on the emoji cache so it could return None
         """
         return self.welcome_screen.guild.emojis.get(self.emoji_id)
 
@@ -459,11 +549,15 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
     """
     __slots__ = ('guild', 'welcome_channels')
 
-    def __init__(self, *, guild):
+    if t.TYPE_CHECKING:
+        guild: Guild
+        welcome_channels: t.List[WelcomeScreenChannel]
+
+    def __init__(self, *, guild: Guild) -> None:
         self.guild = guild
         self.welcome_channels = []
 
-    async def fetch(self):
+    async def fetch(self) -> WelcomeScreen:
         """Invokes an API request to get the welcome screen
 
         Returns:
@@ -477,7 +571,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
 
         return self
 
-    async def modify(self, **kwargs):
+    async def modify(self, **kwargs: t.Any) -> WelcomeScreen:
         """Invokes an API request to modify the welcome screen
 
         **Parameters:**
@@ -517,7 +611,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             ```
         """  # noqa: E501
         try:
-            welcome_channels = []
+            welcome_channels: t.List[Json] = []
 
             for key, value in kwargs['welcome_channels'].items():
                 value['channel_id'] = Snowflake.try_snowflake(key)
@@ -529,7 +623,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                 except KeyError:
                     pass
 
-                _validate_keys(f'welcome_channels[{key}]',
+                _validate_keys(f'welcome_channels[{key}]',  # type: ignore
                                value, (),
                                WelcomeScreenChannelTemplate.fields)
 
@@ -539,7 +633,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
+        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
                        kwargs, (), rest.modify_guild_welcome_screen.json)
 
         data = await rest.modify_guild_welcome_screen.request(
@@ -551,7 +645,9 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
 
         return self
 
-    def update(self, data, *args, **kwargs):
+    def update(
+        self, data: Json, *args: t.Any, **kwargs: t.Any
+    ) -> None:  # type: ignore
         super().update(data, *args, **kwargs)
 
         welcome_channels = data.get('welcome_channels')
