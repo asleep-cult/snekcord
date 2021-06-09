@@ -13,7 +13,9 @@ if TYPE_CHECKING:
     from ..clients import Client
     from ..objects.baseobject import BaseObject
 
-KT = TypeVar('KT')
+    from ..typing import SnowflakeType
+
+KT = TypeVar('KT', bound='SnowflakeType')
 VT_co = TypeVar('VT_co', covariant=True)
 DT = TypeVar('DT')
 OT_co = TypeVar('OT_co', bound='BaseObject', covariant=True)
@@ -33,7 +35,7 @@ class _StateCommon(Generic[KT, VT_co]):
 
 
 class BaseState(_StateCommon[KT, OT_co]):
-    __key_transformer__: Optional[Callable[[KT], Any]] = None
+    __key_transformer__: Optional[Callable[[Any], KT]] = None
     __mapping__: Type[MutableMapping[KT, OT_co]] = dict
     __recycle_enabled__: bool = True
     __recycled_mapping__: ClassVar[
@@ -67,19 +69,21 @@ class BaseState(_StateCommon[KT, OT_co]):
     def __reversed__(self) -> Iterable[OT_co]:
         return reversed(list(self.values()))
 
-    def __contains__(self, key: KT) -> bool:
+    def __contains__(self, key: SnowflakeType) -> bool:
         return self.__mapping__.__contains__(
             self.mapping, self.transform_key(key))
 
-    def __getitem__(self, key: KT) -> OT_co:
+    def __getitem__(self, key: SnowflakeType) -> OT_co:
         return self.__mapping__.__getitem__(
             self.mapping, self.transform_key(key))
 
-    def __setitem__(self, key: KT, value: OT_co) -> None:  # type: ignore
+    def __setitem__(
+        self, key: SnowflakeType, value: OT_co  # type: ignore
+    ) -> None:
         return self.__mapping__.__setitem__(
             self.mapping, self.transform_key(key), value)
 
-    def __delitem__(self, key: KT):
+    def __delitem__(self, key: SnowflakeType):
         return self.__mapping__.__delitem__(
             self.mapping, self.transform_key(key))
 
@@ -102,39 +106,41 @@ class BaseState(_StateCommon[KT, OT_co]):
         return self.__mapping__.items(self.mapping)
 
     @overload
-    def get(self, key: KT) -> Optional[OT_co]:
+    def get(self, key: SnowflakeType) -> Optional[OT_co]:
         ...
 
     @overload
-    def get(self, key: KT, default: DT) -> Union[OT_co, DT]:
+    def get(self, key: SnowflakeType, default: DT) -> Union[OT_co, DT]:
         ...
 
-    def get(self, key: KT, default: DT = None) -> Union[DT, OT_co]:
-        key = self.transform_key(key)
-        value = self.mapping.get(key)
+    def get(self, key: SnowflakeType, default: DT = None) -> Union[DT, OT_co]:
+        new_key = self.transform_key(key)
+        value = self.mapping.get(new_key)
         if value is None:
             if self.recycle_bin is not None:
-                value = self.recycle_bin.get(key, default)
+                value = self.recycle_bin.get(new_key, default)
             else:
                 value = default
         return value
 
     @overload
-    def pop(self, key: KT) -> OT_co:
+    def pop(self, key: SnowflakeType) -> OT_co:
         ...
 
     @overload
-    def pop(self, key: KT, default: DT) -> Union[OT_co, DT]:
+    def pop(self, key: SnowflakeType, default: DT) -> Union[OT_co, DT]:
         ...
 
-    def pop(self, key: KT, default: Any = undefined) -> Union[OT_co, Any]:
-        key = self.transform_key(key)
+    def pop(
+        self, key: SnowflakeType, default: Any = undefined
+    ) -> Union[OT_co, Any]:
+        new_key = self.transform_key(key)
         try:
-            return self.__mapping__.pop(self.mapping, key)
+            return self.__mapping__.pop(self.mapping, new_key)
         except KeyError:
             try:
                 if self.recycle_bin is not None:
-                    return self.recycle_bin.pop(key)
+                    return self.recycle_bin.pop(new_key)
                 raise
             except KeyError:
                 if default is not undefined:
@@ -164,7 +170,9 @@ class BaseState(_StateCommon[KT, OT_co]):
 
         return values
 
-    def recycle(self, key: KT, value: OT_co) -> None:  # type: ignore
+    def recycle(
+        self, key: SnowflakeType, value: OT_co  # type: ignore
+    ) -> None:
         if self.__recycle_enabled__ and self.recycle_bin:
             return self.recycle_bin.__setitem__(
                 self.transform_key(key),
@@ -195,21 +203,21 @@ class BaseSubState(_StateCommon[KT, OT_co]):
     def __iter__(self) -> Iterator[OT_co]:
         for key in self._keys:
             try:
-                yield self.superstate[key]
+                yield self.superstate[key]  # type: ignore
             except KeyError:
                 continue
 
     def __reversed__(self) -> Iterator[OT_co]:
         for key in reversed(list(self._keys)):
             try:
-                yield self.superstate[key]
+                yield self.superstate[key]  # type: ignore
             except KeyError:
                 continue
 
-    def __contains__(self, key: KT) -> bool:
+    def __contains__(self, key: SnowflakeType) -> bool:
         return self.superstate.transform_key(key) in self._keys
 
-    def __getitem__(self, key: KT) -> OT_co:
+    def __getitem__(self, key: SnowflakeType) -> OT_co:
         if self.superstate.transform_key(key) not in self._keys:
             raise KeyError(key)
         return self.superstate[key]
@@ -241,9 +249,9 @@ class BaseSubState(_StateCommon[KT, OT_co]):
 
     def items(self) -> Iterator[Tuple[KT, OT_co]]:
         for key in self._keys:
-            yield key, self.superstate[key]
+            yield key, self.superstate[key]  # type: ignore
 
-    def get(self, key: KT, default: DT = None) -> Union[OT_co, DT]:
+    def get(self, key: SnowflakeType, default: DT = None) -> Union[OT_co, DT]:
         if self.superstate.transform_key(key) not in self._keys:
             return default
         return self.superstate.get(key, default)

@@ -27,7 +27,7 @@ class HTTPEndpoint:
     async def request(
         self, *, session: RestSession,
         params: t.Optional[Json] = None,
-        json: t.Optional[Json] = None,
+        json: t.Union[Json, t.List[t.Any], None] = None,
         **kwargs: t.Any
     ) -> t.Any:
         headers = kwargs.setdefault('headers', {})

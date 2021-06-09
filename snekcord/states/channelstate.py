@@ -48,7 +48,7 @@ class ChannelState(BaseState[Snowflake, _Channel]):
 
         return channel
 
-    async def fetch(self, obj: SnowflakeType) -> _Channel:
+    async def fetch(self, obj: SnowflakeType) -> _Channel:  # type: ignore
         channel_id = Snowflake.try_snowflake(obj)
 
         data = await rest.get_channel.request(

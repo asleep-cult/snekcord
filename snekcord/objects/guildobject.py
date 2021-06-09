@@ -468,7 +468,10 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
         super().__init__(state=state)
         self.guild = guild
 
-    def update(self, data: Json, *args: t.Any, **kwargs: t.Any) -> None:
+    def update(  # type: ignore
+        self, data: Json,
+        *args: t.Any, **kwargs: t.Any
+    ) -> None:
         super().update(data, *args, **kwargs)
 
         user = data.get('user')
@@ -520,7 +523,7 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
         warning:
             This property relies on the channel cache so it could return None
         """
-        return self.welcome_screen.guild.channels.get(self.id)
+        return self.welcome_screen.guild.channels.get(self.channel_id)
 
     @property
     def emoji(self) -> t.Optional[GuildEmoji]:
@@ -645,9 +648,9 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
 
         return self
 
-    def update(
+    def update(  # type: ignore
         self, data: Json, *args: t.Any, **kwargs: t.Any
-    ) -> None:  # type: ignore
+    ) -> None:
         super().update(data, *args, **kwargs)
 
         welcome_channels = data.get('welcome_channels')

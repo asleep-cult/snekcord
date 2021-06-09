@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import signal
-from types import FrameType
 import typing as t
+from types import FrameType
 
+from ..objects.channelobject import TextChannel
 from ..rest import RestSession
 from ..states.basestate import BaseState
 from ..states.channelstate import ChannelState, GuildChannelState
@@ -117,7 +118,8 @@ class Client(EventDispatcher):
     @property
     def messages(self) -> t.Generator[Message, None, None]:
         for channel in self.channels:
-            yield from channel.messages
+            if isinstance(channel, TextChannel):
+                yield from channel.messages
 
     @property
     def roles(self) -> t.Generator[Role, None, None]:

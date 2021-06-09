@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import typing as t
+
 from .basestate import BaseState
 from .. import rest
 from ..objects.memberobject import GuildMember
@@ -6,16 +10,21 @@ from ..objects.overwriteobject import (
 from ..objects.roleobject import Role
 from ..utils import Permissions, Snowflake
 
+if t.TYPE_CHECKING:
+    from ..clients import Client
+    from ..objects import GuildChannel
+    from ..typing import Json, SnowflakeType
 
-class PermissionOverwriteState(BaseState):
+
+class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
     __key_transformer__ = Snowflake.try_snowflake
     __permission_overwrite_class__ = PermissionOverwrite
 
-    def __init__(self, *, client, channel):
+    def __init__(self, *, client: Client, channel: GuildChannel) -> None:
         super().__init__(client=client)
         self.channel = channel
 
-    def upsert(self, data):
+    def upsert(self, data: Json) -> PermissionOverwrite:
         overwrite = self.get(data['id'])
         if overwrite is not None:
             overwrite.update(data)
@@ -27,15 +36,16 @@ class PermissionOverwriteState(BaseState):
         return overwrite
 
     @property
-    def everyone(self):
+    def everyone(self) -> t.Optional[PermissionOverwrite]:
         return self.get(self.channel.guild_id)
 
-    def apply_to(self, member):
+    def apply_to(self, member: SnowflakeType):
         if not isinstance(member, GuildMember):
             guild = self.channel.guild
             if guild is None:
                 return None
 
+            member: t.Optional[GuildMember]
             member = guild.members.get(member)
             if member is None:
                 return None

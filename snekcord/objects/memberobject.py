@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import typing as t
+from datetime import datetime
+
 from .baseobject import BaseObject
 from .. import rest
 from ..utils import (JsonField, JsonTemplate, Permissions, Snowflake,
@@ -5,11 +10,25 @@ from ..utils import (JsonField, JsonTemplate, Permissions, Snowflake,
 
 __all__ = ('GuildMember',)
 
+if t.TYPE_CHECKING:
+    from .guildobject import Guild
+    from .userobject import User
+    from ..states import GuildMemberState, GuildMemberRoleState
+    from ..typing import Json
+
 
 GuildMemberTemplate = JsonTemplate(
     nick=JsonField('nick'),
-    joined_at=JsonField('joined_at'),
-    premium_since=JsonField('premium_since'),
+    joined_at=JsonField(
+        'joined_at',
+        datetime.fromisoformat,
+        datetime.isoformat
+    ),
+    premium_since=JsonField(
+        'premium_since',
+        datetime.fromisoformat,
+        datetime.isoformat
+    ),
     deaf=JsonField('deaf'),
     mute=JsonField('mute'),
     pending=JsonField('pending'),
@@ -24,17 +43,29 @@ GuildMemberTemplate = JsonTemplate(
 class GuildMember(BaseObject, template=GuildMemberTemplate):
     __slots__ = ('roles', 'user')
 
-    def __init__(self, *, state):
+    if t.TYPE_CHECKING:
+        user: User
+        state: GuildMemberState
+        roles: GuildMemberRoleState
+        nick: t.Optional[str]
+        joined_at: datetime
+        premium_since: t.Optional[datetime]
+        deaf: bool
+        mute: bool
+        pending: t.Optional[bool]
+        _permissions: t.Optional[Permissions]
+
+    def __init__(self, *, state: GuildMemberState):
         super().__init__(state=state)
         self.roles = self.state.client.get_class('GuildMemberRoleState')(
             superstate=self.guild.roles, member=self)
 
     @property
-    def guild(self):
+    def guild(self) -> Guild:
         return self.state.guild
 
     @property
-    def permissions(self):
+    def permissions(self) -> Permissions:
         if self._permissions is not None:
             return self._permissions
 
@@ -56,20 +87,20 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         return permissions
 
     @property
-    def mention(self):
+    def mention(self) -> str:
         if self.nick is not None:
             return f'<@!{self.id}>'
         return self.user.mention
 
     @property
-    def removed(self):
+    def removed(self) -> bool:
         return self.deleted
 
     @property
-    def removed_at(self):
+    def removed_at(self) -> t.Optional[datetime]:
         return self.deleted_at
 
-    async def modify(self, **kwargs):
+    async def modify(self, **kwargs: t.Any) -> GuildMember:
         try:
             kwargs['channel_id'] = Snowflake.try_snowflake(
                 kwargs.pop('voice_channel'))
@@ -82,7 +113,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
+        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
                        kwargs, (), rest.modify_guild_member.json)
 
         data = await rest.modify_guild_member.request(
@@ -93,7 +124,9 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
         return self.state.upsert(data)
 
-    def update(self, data, *args, **kwargs):
+    def update(  # type: ignore
+        self, data: Json, *args: t.Any, **kwargs: t.Any
+    ) -> None:
         super().update(data, *args, **kwargs)
 
         user = data.get('user')

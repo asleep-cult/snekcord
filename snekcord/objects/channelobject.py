@@ -133,13 +133,13 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         return self.state.client.guilds.get(self.guild_id)
 
     @property
-    def parent(self):
+    def parent(self) -> t.Optional[CategoryChannel]:
         """The channel's parent/category
 
         warning:
             This propery relies on the channel cache so it could return None
         """
-        return self.state.client.channels.get(self.parent_id)
+        return self.state.client.channels.get(self.parent_id)  # type: ignore
 
     async def modify(self, **kwargs: t.Any) -> GuildChannel:
         """Invokes an API request to modify the channel
@@ -250,7 +250,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         return f'#{self.name}'
 
     @property
-    def last_message(self) -> Message:
+    def last_message(self) -> t.Optional[Message]:
         """The last message sent in the channel
 
         warning:
@@ -288,9 +288,10 @@ class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
     @property
     def children(self) -> t.Generator[GuildChannel, None, None]:
         """Yields all of the `GuildChannels` that belong to this category"""
-        for channel in self.guild.channels:
-            if channel.parent_id == self.id:
-                yield channel
+        if self.guild is not None:
+            for channel in self.guild.channels:
+                if channel.parent_id == self.id:
+                    yield channel
 
 
 VoiceChannelTemplate = JsonTemplate(
@@ -309,19 +310,30 @@ class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
         user_limit int: The maximum amount of people who can be in this
             channel at once
     """
+    if t.TYPE_CHECKING:
+        bitrate: int
+        user_limit: t.Optional[int]
+
     def __str__(self) -> str:
         return f'#!{self.name}'
 
 
 DMChannelTemplate = JsonTemplate(
     last_message_id=JsonField('last_message_id', Snowflake, str),
-    type=JsonField('type'),
+    type=JsonField(
+        'type',
+        ChannelType.get_enum,
+        ChannelType.get_value
+    ),
     _recipients=JsonArray('recipients'),
     __extends__=(BaseTemplate,)
 )
 
 
 class DMChannel(BaseObject, template=DMChannelTemplate):
+    if t.TYPE_CHECKING:
+        type: ChannelType
+
     async def close(self) -> None:
         """Invokes an API request to close the channel"""
         await rest.delete_channel.request(
