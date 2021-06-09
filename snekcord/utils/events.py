@@ -156,7 +156,7 @@ class EventDispatcher:
             @functools.wraps(func)
             def callback(*args: t.Any):
                 ensure_future(func(), *args)
-                self.remove_listener(name, callback)
+                self.remove_listener(event_name, callback)
 
             self.remove_listener(event_name, callback)
 

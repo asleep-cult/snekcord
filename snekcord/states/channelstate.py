@@ -15,10 +15,10 @@ if t.TYPE_CHECKING:
     from ..objects import Guild
     from ..typing import Json, SnowflakeType
 
-    class Positions(t.TypedDict):
+    class Positions(t.TypedDict, total=False):
         position: int
         lock_permissions: bool
-        parent_id: SnowflakeType
+        parent: SnowflakeType
 
 
 _Channel = t.Union[DMChannel, GuildChannel]
@@ -135,7 +135,7 @@ class GuildChannelState(BaseSubState[Snowflake, GuildChannel]):
             value['id'] = Snowflake.try_snowflake(key)  # type: ignore
 
             try:
-                value['parent_id'] = Snowflake.try_snowflake(
+                value['parent_id'] = Snowflake.try_snowflake(  # type: ignore
                     value.pop('parent'))
             except KeyError:
                 pass

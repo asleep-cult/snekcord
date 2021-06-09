@@ -35,7 +35,7 @@ class Enum(Generic[T]):
         return (f'{self.__class__.__name__}(name={self.name}, '
                 f'value={self.value!r})')
 
-    def __eq__(self, value: T | Enum[T]) -> bool:
+    def __eq__(self, value: T | Enum[T]) -> bool:  # type: ignore
         if isinstance(value, self.__class__):
             value = value.value
 
@@ -44,7 +44,7 @@ class Enum(Generic[T]):
 
         return self.value == value
 
-    def __ne__(self, value: T | Enum[T]) -> bool:
+    def __ne__(self, value: T | Enum[T]) -> bool:  # type: ignore
         if isinstance(value, self.__class__):
             value = value.value
 

@@ -30,7 +30,7 @@ class HTTPEndpoint:
         json: t.Union[Json, t.List[t.Any], None] = None,
         **kwargs: t.Any
     ) -> t.Any:
-        headers = kwargs.setdefault('headers', {})
+        headers: Json = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
         fmt = kwargs.pop('fmt', {})
@@ -728,6 +728,7 @@ class HTTPError(Exception):
 class RestSession(AsyncClient):
     if t.TYPE_CHECKING:
         global_headers: Json
+        api_version: str
 
     def __init__(
         self, client: Client, *args: t.Any, **kwargs: t.Any
@@ -772,6 +773,6 @@ class RestSession(AsyncClient):
             status = HTTPStatus(status_code)
             raise HTTPError(
                 f'{method} {url} responded with {status} {status.phrase}: '
-                f'{data}', response)
+                f'{data!r}', response)
 
         return data

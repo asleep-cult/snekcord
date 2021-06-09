@@ -115,7 +115,6 @@ class BuiltinEmoji:
 
         self.diversity_children: t.List[BuiltinEmoji] = []
         for child in data[3]:
-            child: _Emoji
             self.diversity_children.append(BuiltinEmoji(category, child))
 
     @property

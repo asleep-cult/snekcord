@@ -34,7 +34,7 @@ T_contra = t.TypeVar('T_contra', contravariant=True)
 P = ParamSpec('P')
 
 Coroutine = t.Coroutine[t.Optional[asyncio.Future[t.Any]], None, T]
-CoroCallable = t.Callable[P, Coroutine[T]]
+CoroCallable = t.Callable[P, Coroutine[T]]  # type: ignore
 AnyCoroCallable = t.Callable[..., Coroutine[t.Any]]
 
 

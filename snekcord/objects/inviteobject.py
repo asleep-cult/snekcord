@@ -34,7 +34,7 @@ class Invite(BaseObject, template=InviteTemplate):
 
     if t.TYPE_CHECKING:
         id: str  # type: ignore
-        state: InviteState
+        state: InviteState  # type: ignore
         guild: t.Optional[Guild]
         channel: t.Union[DMChannel, GuildChannel, None]
         inviter: t.Optional[User]

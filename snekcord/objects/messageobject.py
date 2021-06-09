@@ -123,8 +123,9 @@ class Message(BaseObject, template=MessageTemplate):
         super().__init__(state=state)
         self.author = None
         self.member = None
-        self.reactions = self.state.client.get_class('ReactionsState')(
-            client=self.state.client, message=self)
+        self.reactions = self.state.client.get_class(  # type: ignore
+            'ReactionsState')(  # type: ignore
+            client=self.state.client, message=self)  # type: ignore
 
     @property
     def channel(self) -> t.Union[GuildChannel, DMChannel]:

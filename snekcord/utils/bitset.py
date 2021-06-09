@@ -81,3 +81,6 @@ class Bitset:
 
     def to_dict(self) -> dict[str, bool]:
         return dict(zip(self.__bitset_flags__, self))
+
+    def __index__(self) -> int:
+        return self.value

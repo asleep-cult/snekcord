@@ -263,22 +263,32 @@ class Guild(BaseObject, template=GuildTemplate):
         self.vanity_url = GuildVanityURL.unmarshal(guild=self)
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
-        self.channels = self.state.client.get_class('GuildChannelState')(
+        self.channels = self.state.client.get_class(  # type: ignore
+            'GuildChannelState')(  # type: ignore
             superstate=self.state.client.channels, guild=self)
 
-        self.emojis = self.state.client.get_class('GuildEmojiState')(
+        self.emojis = self.state.client.get_class(
+            'GuildEmojiState')(  # type: ignore
             client=self.state.client, guild=self)
 
-        self.roles = self.state.client.get_class('RoleState')(
+        self.roles = self.state.client.get_class(
+            'RoleState')(  # type: ignore
             client=self.state.client, guild=self)
 
-        self.members = self.state.client.get_class('GuildMemberState')(
+        self.members = self.state.client.get_class(
+            'GuildMemberState')(  # type: ignore
             client=self.state.client, guild=self)
 
-        self.bans = self.state.client.get_class('GuildBanState')(
+        self.bans = self.state.client.get_class(
+            'GuildBanState')(  # type: ignore
             client=self.state.client, guild=self)
 
-        self.integrations = self.state.client.get_class('IntegrationState')(
+        integrations_class: t.Type[IntegrationState] = (  # type: ignore
+            self.state.client.get_class(  # type: ignore
+                'IntegrationState'
+            )
+        )
+        self.integrations = integrations_class(
             client=self.state.client, guild=self)
 
     def __str__(self) -> str:
