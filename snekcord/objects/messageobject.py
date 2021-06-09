@@ -4,7 +4,7 @@ from .. import rest
 from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField, JsonTemplate,
                      Snowflake)
 
-__all__ = ('Message',)
+__all__ = ('MessageType', 'MessageFlags', 'Message')
 
 
 class MessageType(Enum, type=int):

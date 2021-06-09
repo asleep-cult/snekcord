@@ -70,7 +70,7 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
                        kwargs, (), rest.modify_guild_template.json)
 
         data = await rest.modify_guild_template.request(
-            sesison=self.state.manager.rest,
+            sessison=self.state.manager.rest,
             fmt=dict(guild_id=self.source_guild_id,
                      template_code=self.code),
             json=kwargs)

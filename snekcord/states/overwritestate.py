@@ -6,6 +6,8 @@ from ..objects.overwriteobject import (
 from ..objects.roleobject import Role
 from ..utils import Permissions, Snowflake
 
+__all__ = ('PermissionOverwriteState',)
+
 
 class PermissionOverwriteState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
@@ -14,6 +16,10 @@ class PermissionOverwriteState(BaseState):
     def __init__(self, *, manager, channel):
         super().__init__(manager=manager)
         self.channel = channel
+
+    @property
+    def everyone(self):
+        return self.get(self.channel.guild_id)
 
     def upsert(self, data):
         overwrite = self.get(data['id'])
@@ -25,10 +31,6 @@ class PermissionOverwriteState(BaseState):
             overwrite.cache()
 
         return overwrite
-
-    @property
-    def everyone(self):
-        return self.get(self.channel.guild_id)
 
     def apply_to(self, member):
         if not isinstance(member, GuildMember):

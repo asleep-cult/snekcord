@@ -3,6 +3,8 @@ from .. import rest
 from ..utils import (Enum, JsonField, JsonTemplate, Permissions,
                      _validate_keys)
 
+__all__ = ('PermissionOverwriteType', 'PermissionOverwrite')
+
 
 class PermissionOverwriteType(Enum, type=int):
     ROLE = 0

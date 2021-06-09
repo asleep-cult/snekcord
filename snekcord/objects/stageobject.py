@@ -3,29 +3,29 @@ from .. import rest
 from ..utils import (Enum, JsonField, JsonTemplate, Snowflake,
                      _validate_keys)
 
-__all__ = ('StagePrivacyLevel', 'Stage',)
+__all__ = ('StageInstancePrivacyLevel', 'StageInstance',)
 
 
-class StagePrivacyLevel(Enum, type=int):
+class StageInstancePrivacyLevel(Enum, type=int):
     PUBLIC = 1
     GUILD_ONLY = 2
 
 
-StageTemplate = JsonTemplate(
+StageInstanceTemplate = JsonTemplate(
     guild_id=JsonField('guild_id', Snowflake, str),
     channel_id=JsonField('channel_id', Snowflake, str),
     topic=JsonField('topic'),
     privacy_level=JsonField(
         'privacy_level',
-        StagePrivacyLevel.get_enum,
-        StagePrivacyLevel.get_value
+        StageInstancePrivacyLevel.get_enum,
+        StageInstancePrivacyLevel.get_value
     ),
     discoverable_disabled=JsonField('discoverable_disabled'),
     __extends__=(BaseTemplate,)
 )
 
 
-class Stage(BaseObject, template=StageTemplate):
+class StageInstance(BaseObject, template=StageInstanceTemplate):
     @property
     def guild(self):
         return self.state.manager.guilds.get(self.guild_id)
@@ -39,7 +39,7 @@ class Stage(BaseObject, template=StageTemplate):
 
     async def modify(self, **kwargs):
         try:
-            kwargs['privacy_level'] = StagePrivacyLevel.get_value(
+            kwargs['privacy_level'] = StageInstancePrivacyLevel.get_value(
                 kwargs['privacy_level'])
         except KeyError:
             pass

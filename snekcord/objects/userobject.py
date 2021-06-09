@@ -23,7 +23,7 @@ class UserFlags(Bitset):
     discord_certified_moderator = Flag(18)
 
 
-class PermiumType(Enum, type=int):
+class PremiumType(Enum, type=int):
     NONE = 0
     NITRO_CLASSIC = 1
     NITRO = 2
@@ -46,8 +46,8 @@ UserTemplate = JsonTemplate(
     ),
     premium_type=JsonField(
         'premium_type',
-        PermiumType.get_enum,
-        PermiumType.get_value
+        PremiumType.get_enum,
+        PremiumType.get_value
     ),
     public_flags=JsonField(
         'public_flags',

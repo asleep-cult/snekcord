@@ -6,7 +6,9 @@ from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField,
                      JsonObject, JsonTemplate, Snowflake,
                      _validate_keys)
 
-__all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
+__all__ = ('MessageNotificationsLevel', 'ExplicitContentFilterLevel',
+           'MFALevel', 'VerificationLevel', 'GuildNSFWLevel',
+           'PremiumTier', 'SystemChannelFlags', 'GuildFeature')
 
 
 class MessageNotificationsLevel(Enum, type=int):
@@ -176,9 +178,9 @@ class Guild(BaseObject, template=GuildTemplate):
         members GuildMemberState: The guild's member state
     """
     # TODO(asleep-cult): Do it
-    __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
-                 'emojis', 'roles', 'members', 'bans', 'integrations',
-                 'unsynced')
+    __slots__ = ('unsynced', 'widget', 'vanity_url', 'welcome_screen',
+                 'channels', 'emojis', 'roles', 'members', 'bans',
+                 'integrations')
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -210,12 +212,6 @@ class Guild(BaseObject, template=GuildTemplate):
     def __str__(self):
         return self.name
 
-    @property
-    def stages(self):
-        for stage in self.state.manager.stages:
-            if stage.guild_id == self.id:
-                yield stage
-
     async def sync(self, payload):
         cache_flags = self.state.manager.cache_flags
 
@@ -229,7 +225,7 @@ class Guild(BaseObject, template=GuildTemplate):
             await self.integrations.fetch_all()
 
         if self.unsynced and cache_flags.guild_invites:
-            await self.invites()
+            await self.fetch_invites()
 
         if 'widget_enabled' not in payload and cache_flags.guild_widget:
             await self.widget.fetch()
@@ -286,24 +282,24 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return data['pruned']
 
-    async def preview(self):
+    async def fetch_preview(self):
         return await self.state.fetch_preview(self.id)
 
-    async def voice_regions(self):
+    async def fetch_voice_regions(self):
         data = await rest.get_guild_voice_regions.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))
 
         return data
 
-    async def invites(self):
+    async def fetch_invites(self):
         data = await rest.get_guild_invites.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))
 
         return self.state.manager.invites.upsert_many(data)
 
-    async def templates(self):
+    async def fetch_templates(self):
         data = await rest.get_guild_templates.request(
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))

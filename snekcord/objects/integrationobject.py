@@ -2,8 +2,8 @@ from .baseobject import BaseObject, BaseTemplate
 from .. import rest
 from ..utils import Enum, JsonField, JsonObject, JsonTemplate, Snowflake
 
-__all__ = ('IntegrationAccount', 'IntegrationApplicationTemplate',
-           'IntegrationTemplate')
+__all__ = ('IntegrationType', 'IntegrationExpireBehavior',
+           'IntegrationAccount', 'IntegrationApplication', 'Integration')
 
 
 class IntegrationType(Enum, type=str):

@@ -3,6 +3,8 @@ from .. import rest
 from ..objects.integrationobject import Integration
 from ..utils import Snowflake
 
+__all__ = ('IntegrationState',)
+
 
 class IntegrationState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
