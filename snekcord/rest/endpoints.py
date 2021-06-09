@@ -1,11 +1,3 @@
-import json
-from collections import deque
-from datetime import datetime
-from http import HTTPStatus
-
-from httpx import AsyncClient
-
-
 class HTTPEndpoint:
     def __init__(self, method, url, *, params=(), json=()):
         self.method = method
@@ -20,7 +12,7 @@ class HTTPEndpoint:
         fmt = kwargs.pop('fmt', {})
         fmt['version'] = session.api_version
 
-        return session.request(self.method, self.url % fmt, params=params,
+        return session.request(self.method, self.url, fmt, params=params,
                                json=json, **kwargs)
 
 
@@ -659,85 +651,3 @@ get_gateway_bot = HTTPEndpoint(
     'GET',
     BASE_API_URL + 'gateway/bot'
 )
-
-
-class RateLimitBucket:
-    def __init__(self, bucket):
-        self.bucket = bucket
-
-        self.limit = None
-        self.remaining = None
-        self.reset_after = None
-
-        self.count = 0
-        self.queue = deque()
-
-    def update(self, headers):
-        limit = headers.get('X-RateLimit-Limit')
-        if limit is not None:
-            self.limit = int(limit)
-
-        remaining = headers.get('X-RateLimit-Remaining')
-        if remaining is not None:
-            self.remaining = int(remaining)
-
-        reset_after = headers.get('X-RateLimit-Reset-After')
-        if reset_after is not None:
-            reset_after = float(reset_after)
-
-        reset = headers.get('X-RateLimit-Reset')
-        if reset is not None:
-            delta = datetime.utcfromtimestamp(float(reset)) - datetime.utcnow()
-
-            total_seconds = delta.total_seconds()
-            if reset_after is None or total_seconds < reset_after:
-                reset_after = total_seconds
-
-        if reset_after is not None:
-            self.reset_after = reset_after
-
-
-class HTTPError(Exception):
-    def __init__(self, msg, response):
-        super().__init__(msg)
-        self.response = response
-
-
-class RestSession(AsyncClient):
-    def __init__(self, manager, *args, **kwargs):
-        self.loop = manager.loop
-        self.manager = manager
-
-        self.authorization = self.manager.token
-        self.api_version = self.manager.api_version
-
-        self.global_headers = kwargs.pop('global_headers', {})
-        self.global_headers.update({
-            'Authorization': self.authorization,
-        })
-
-        kwargs['timeout'] = None
-        super().__init__(*args, **kwargs)
-
-    async def request(self, method, url, *args, **kwargs):
-        response = await super().request(method, url, *args, **kwargs)
-        await response.aclose()
-
-        print(method, url, {k: v for k, v in
-                            response.headers.items()
-                            if k.startswith('x-ratelimit')})
-
-        data = response.content
-
-        content_type = response.headers.get('content-type')
-        if (content_type is not None
-                and content_type.lower() == 'application/json'):
-            data = json.loads(data)
-
-        if response.status_code >= 400:
-            status = HTTPStatus(response.status_code)
-            raise HTTPError(
-                f'{method} {url} responded with {status} {status.phrase}: '
-                f'{data}', response)
-
-        return data

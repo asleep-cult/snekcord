@@ -301,7 +301,7 @@ class Guild(BaseObject, template=GuildTemplate):
             session=self.state.manager.rest,
             fmt=dict(guild_id=self.id))
 
-        return self.state.manager.upsert_many(data)
+        return self.state.manager.invites.upsert_many(data)
 
     async def templates(self):
         data = await rest.get_guild_templates.request(
