@@ -1,27 +1,44 @@
+from __future__ import annotations
+
 import json
+import typing as t
 from collections import deque
 from datetime import datetime
 from http import HTTPStatus
 
-from httpx import AsyncClient
+from httpx import AsyncClient, Response
+
+if t.TYPE_CHECKING:
+    from .clients.client import Client
+    from .typing import Json
 
 
 class HTTPEndpoint:
-    def __init__(self, method, url, *, params=(), json=()):
+    def __init__(
+        self, method: str, url: str, *,
+        params: t.Tuple[str, ...] = (),
+        json: t.Tuple[str, ...] = ()
+    ):
         self.method = method
         self.url = url
         self.params = params
         self.json = json
 
-    def request(self, *, session, params=None, json=None, **kwargs):
+    async def request(
+        self, *, session: RestSession,
+        params: t.Optional[Json] = None,
+        json: t.Optional[Json] = None,
+        **kwargs: t.Any
+    ) -> t.Any:
         headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
         fmt = kwargs.pop('fmt', {})
         fmt['version'] = session.api_version
 
-        return session.request(self.method, self.url % fmt, params=params,
-                               json=json, **kwargs)
+        return await session.request(
+            self.method, self.url % fmt, params=params,
+            json=json, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -662,7 +679,12 @@ get_gateway_bot = HTTPEndpoint(
 
 
 class RateLimitBucket:
-    def __init__(self, bucket):
+    if t.TYPE_CHECKING:
+        limit: t.Optional[float]
+        remaining: t.Optional[float]
+        reset_after: t.Optional[float]
+
+    def __init__(self, bucket: str) -> None:
         self.bucket = bucket
 
         self.limit = None
@@ -670,9 +692,9 @@ class RateLimitBucket:
         self.reset_after = None
 
         self.count = 0
-        self.queue = deque()
+        self.queue: t.Deque[t.Any] = deque()
 
-    def update(self, headers):
+    def update(self, headers: Json) -> None:
         limit = headers.get('X-RateLimit-Limit')
         if limit is not None:
             self.limit = int(limit)
@@ -698,13 +720,18 @@ class RateLimitBucket:
 
 
 class HTTPError(Exception):
-    def __init__(self, msg, response):
+    def __init__(self, msg: str, response: Response) -> None:
         super().__init__(msg)
         self.response = response
 
 
 class RestSession(AsyncClient):
-    def __init__(self, client, *args, **kwargs):
+    if t.TYPE_CHECKING:
+        global_headers: Json
+
+    def __init__(
+        self, client: Client, *args: t.Any, **kwargs: t.Any
+    ) -> None:
         self.loop = client.loop
         self.client = client
 
@@ -717,25 +744,32 @@ class RestSession(AsyncClient):
         })
 
         kwargs['timeout'] = None
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)  # type: ignore
 
-    async def request(self, method, url, *args, **kwargs):
-        response = await super().request(method, url, *args, **kwargs)
+    async def request(  # type: ignore
+        self, method: str, url: str, *args: t.Any, **kwargs: t.Any
+    ) -> t.Any:
+        response = await super().request(  # type: ignore
+            method, url, *args, **kwargs
+        )
         await response.aclose()
 
-        print(method, url, {k: v for k, v in
-                            response.headers.items()
-                            if k.startswith('x-ratelimit')})
+        print(method, url, {k: v for k, v in  # type: ignore
+                            response.headers.items()  # type: ignore
+                            if k.startswith('x-ratelimit')})  # type: ignore
 
         data = response.content
 
-        content_type = response.headers.get('content-type')
+        content_type: t.Optional[str]
+        content_type = response.headers.get('content-type')  # type: ignore
+        status_code: int = response.status_code  # type: ignore
+
         if (content_type is not None
                 and content_type.lower() == 'application/json'):
             data = json.loads(data)
 
-        if response.status_code >= 400:
-            status = HTTPStatus(response.status_code)
+        if status_code >= 400:
+            status = HTTPStatus(status_code)
             raise HTTPError(
                 f'{method} {url} responded with {status} {status.phrase}: '
                 f'{data}', response)

@@ -40,9 +40,10 @@ class GuildState(BaseState[Snowflake, Guild]):
 
     async def fetch(  # type: ignore
         self, guild: SnowflakeType, *,
-        with_counts: t.Optional[bool] = None, sync: bool = True
+        with_counts: t.Optional[bool] = None,
+        sync: bool = True
     ) -> Guild:
-        params = {}
+        params: t.Dict[str, bool] = {}
 
         if with_counts is not None:
             params['with_counts'] = with_counts
@@ -66,7 +67,7 @@ class GuildState(BaseState[Snowflake, Guild]):
         after: t.Optional[SnowflakeType] = None,
         limit: t.Optional[IntConvertable] = None
     ) -> t.Set[Guild]:
-        params = {}
+        params: Json = {}
 
         if before is not None:
             params['before'] = Snowflake.try_snowflake(before)
@@ -117,7 +118,7 @@ class GuildBanState(BaseState[Snowflake, GuildBan]):
         super().__init__(client=client)
         self.guild = guild
 
-    def upsert(self, data: Json) -> GuildBan:
+    def upsert(self, data: Json) -> GuildBan:  # type: ignore
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban.update(data)
