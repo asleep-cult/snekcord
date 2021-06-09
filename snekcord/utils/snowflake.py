@@ -35,12 +35,15 @@ class Snowflake(int):
         from ..objects.baseobject import BaseObject
 
         if isinstance(obj, BaseObject):
-            return obj.id
+            if isinstance(obj.id, cls):
+                return obj.id
+            else:
+                raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
         try:
             return cls(obj)
         except Exception:
-            return obj
+            raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
     @classmethod
     def try_snowflake_set(cls, objs):

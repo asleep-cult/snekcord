@@ -67,36 +67,36 @@ class EventDispatcher:
         else:
             self.loop = asyncio.get_event_loop()
 
-        self._listeners = {}
-        self._waiters = {}
-        self._subscribers = []
+        self.listeners = {}
+        self.waiters = {}
+        self.subscribers = []
 
     def register_listener(self, name, callback):
-        listeners = self._listeners.setdefault(name.lower(), [])
+        listeners = self.listeners.setdefault(name.lower(), [])
         listeners.append(callback)
 
     def remove_listener(self, name, callback):
-        listeners = self._listeners.get(name.lower())
+        listeners = self.listeners.get(name.lower())
         if listeners is not None:
             listeners.remove(callback)
 
     def register_waiter(self, *args, **kwargs):
         waiter = EventWaiter(*args, dispatcher=self, **kwargs)
-        waiters = self._waiters.setdefault(waiter.name, WeakSet())
+        waiters = self.waiters.setdefault(waiter.name, WeakSet())
         waiters.add(waiter)
         return waiter
 
     wait = register_waiter
 
     def remove_waiter(self, waiter):
-        waiters = self._waiters.get(waiter.name.lower())
+        waiters = self.waiters.get(waiter.name.lower())
         if waiters is not None:
             waiters.remove(waiter)
 
     def run_callbacks(self, name, *args):
         name = name.lower()
-        listeners = self._listeners.get(name)
-        waiters = self._waiters.get(name)
+        listeners = self.listeners.get(name)
+        waiters = self.waiters.get(name)
 
         if listeners is not None:
             for listener in listeners:
@@ -106,7 +106,7 @@ class EventDispatcher:
             for waiter in waiters:
                 waiter._put(args)
 
-        for subscriber in self._subscribers:
+        for subscriber in self.subscribers:
             subscriber.run_callbacks(name, *args)
 
     async def dispatch(self, name, *args):
@@ -118,10 +118,10 @@ class EventDispatcher:
         self.run_callbacks(name, *args)
 
     def subscribe(self, dispatcher):
-        dispatcher._subscribers.append(self)
+        dispatcher.subscribers.append(self)
 
     def unsubscribe(self, dispatcher):
-        dispatcher._subscribers.remove(self)
+        dispatcher.subscribers.remove(self)
 
     def on(self, name=None):
         def wrapped(func):

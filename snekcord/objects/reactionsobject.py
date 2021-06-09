@@ -34,7 +34,7 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
             params['limit'] = limit
 
         data = await rest.get_reactions.request(
-            session=self.state.rest,
+            session=self.state.manager.rest,
             fmt=dict(channel_id=self.state.message.channel_id,
                      message_id=self.state.message.id,
                      emoji=self.emoji.to_reaction()))
@@ -54,7 +54,7 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
             user_id = '@me'
 
         await rest.delete_reaction.request(
-            session=self.state.rest,
+            session=self.state.manager.rest,
             fmt=dict(channel_id=self.state.message.channel_id,
                      message_id=self.state.message.id,
                      emoji=self.emoji.to_reaction(),
@@ -62,7 +62,7 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
 
     async def remove_all(self):
         await rest.delete_reactions.request(
-            session=self.state.rest,
+            session=self.state.manager.rest,
             fmt=dict(channel_id=self.state.message.channel_id,
                      message_id=self.state.message.id,
                      emoji=self.emoji.to_reaction()))
