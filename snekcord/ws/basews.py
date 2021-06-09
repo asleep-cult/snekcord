@@ -1,7 +1,7 @@
 import asyncio
 import typing as t
 
-from wsaio import WebSocketClient
+from wsaio import WebSocketClient  # type: ignore
 
 from ..utils import JsonField, JsonObject, JsonTemplate
 
@@ -23,14 +23,14 @@ class WebSocketResponse(JsonObject, template=WebSocketResponseTemplate):
 
 class BaseWebSocket(WebSocketClient):
     if t.TYPE_CHECKING:
-        heartbeat_interval: float
+        heartbeat_interval: t.Optional[float]
         heartbeat_last_sent: float
         heartbeat_last_acked: float
 
     def __init__(
         self, loop: t.Optional[asyncio.AbstractEventLoop] = None
     ) -> None:
-        super().__init__(loop=loop)
+        super().__init__(loop=loop)  # type: ignore
 
         self.heartbeat_interval = None
 

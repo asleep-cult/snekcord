@@ -41,22 +41,22 @@ class Client(EventDispatcher):
     DEFAULT_CLASSES: t.Dict[
         str, t.Type[t.Union[BaseState[t.Any, BaseObject], RestSession]]
     ] = {
-        'ChannelState': ChannelState,
-        'GuildChannelState': GuildChannelState,
-        'GuildEmojiState': GuildEmojiState,
-        'GuildState': GuildState,
-        'IntegrationState': IntegrationState,
-        'GuildBanState': GuildBanState,
-        'InviteState': InviteState,
-        'RoleState': RoleState,
-        'GuildMemberState': GuildMemberState,
-        'MessageState': MessageState,
-        'PermissionOverwriteState': PermissionOverwriteState,
-        'ReactionsState': ReactionsState,
-        'GuildMemberRoleState': GuildMemberRoleState,
-        'UserState': UserState,
-        'StageState': StageState,
-        'RestSession': RestSession,
+        'ChannelState': ChannelState,  # type: ignore
+        'GuildChannelState': GuildChannelState,  # type: ignore
+        'GuildEmojiState': GuildEmojiState,  # type: ignore
+        'GuildState': GuildState,  # type: ignore
+        'IntegrationState': IntegrationState,  # type: ignore
+        'GuildBanState': GuildBanState,  # type: ignore
+        'InviteState': InviteState,  # type: ignore
+        'RoleState': RoleState,  # type: ignore
+        'GuildMemberState': GuildMemberState,  # type: ignore
+        'MessageState': MessageState,  # type: ignore
+        'PermissionOverwriteState': PermissionOverwriteState,  # type: ignore
+        'ReactionsState': ReactionsState,  # type: ignore
+        'GuildMemberRoleState': GuildMemberRoleState,  # type: ignore
+        'UserState': UserState,  # type: ignore
+        'StageState': StageState,  # type: ignore
+        'RestSession': RestSession,  # type: ignore
     }  # type: ignore
 
     if t.TYPE_CHECKING:
@@ -82,17 +82,20 @@ class Client(EventDispatcher):
         self.cache_flags = cache_flags
         self.api_version = f'v{api_version}'
 
-        self.rest = self.get_class('RestSession')(client=self)
-        self.channels = self.get_class('ChannelState')(client=self)
-        self.guilds = self.get_class('GuildState')(client=self)
-        self.invites = self.get_class('InviteState')(client=self)
-        self.stages = self.get_class('StageState')(client=self)
-        self.users = self.get_class('UserState')(client=self)
+        self.rest = self.get_class('RestSession')(client=self)  # type: ignore
+        self.channels = self.get_class(  # type: ignore
+            'ChannelState')(client=self)
+        self.guilds = self.get_class('GuildState')(client=self)  # type: ignore
+        self.invites = self.get_class(
+            'InviteState')(client=self)  # type: ignore
+        self.stages = self.get_class(  # type: ignore
+            'StageState')(client=self)
+        self.users = self.get_class('UserState')(client=self)  # type: ignore
 
         self.finalizing = False
 
-        self._sigpending = []
-        self._sighandlers = {}
+        self._sigpending: t.List[t.Any] = []
+        self._sighandlers: t.Dict[t.Any, t.Any] = {}
 
     @classmethod
     def set_class(cls, name: str, klass: type) -> None:
@@ -182,3 +185,5 @@ class Client(EventDispatcher):
             self.loop.run_forever()
         except BaseException as exc:
             return exc
+
+        return None

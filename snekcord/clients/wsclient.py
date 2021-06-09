@@ -54,7 +54,7 @@ class WebSocketClient(Client):
         self.shards: t.Dict[int, Shard] = {}
 
     @property
-    def user(self) -> User:
+    def user(self) -> t.Optional[User]:
         if self.shards:
             return next(iter(self.shards.values())).user
         return None

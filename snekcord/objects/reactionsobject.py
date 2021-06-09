@@ -28,7 +28,7 @@ class Reactions(
     __slots__ = ('emoji',)
 
     if t.TYPE_CHECKING:
-        id: t.Union[bytes, Snowflake]
+        id: t.Union[bytes, Snowflake]  # type: ignore
         state: ReactionsState
         superstate: UserState
         emoji: t.Optional[t.Union[BuiltinEmoji, GuildEmoji]]
@@ -76,6 +76,7 @@ class Reactions(
     async def remove(
         self, user: t.Optional[SnowflakeType] = None
     ) -> None:
+        user_id: t.Union[Snowflake, str]
         if user is not None:
             user_id = Snowflake.try_snowflake(user)
         else:

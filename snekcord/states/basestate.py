@@ -113,7 +113,7 @@ class BaseState(_StateCommon[KT, OT_co]):
     def get(self, key: SnowflakeType, default: DT) -> Union[OT_co, DT]:
         ...
 
-    def get(self, key: SnowflakeType, default: DT = None) -> Union[DT, OT_co]:
+    def get(self, key: SnowflakeType, default: Any = None) -> Any:
         new_key = self.transform_key(key)
         value = self.mapping.get(new_key)
         if value is None:
@@ -133,7 +133,7 @@ class BaseState(_StateCommon[KT, OT_co]):
 
     def pop(
         self, key: SnowflakeType, default: Any = undefined
-    ) -> Union[OT_co, Any]:
+    ) -> Any:
         new_key = self.transform_key(key)
         try:
             return self.__mapping__.pop(self.mapping, new_key)
@@ -161,7 +161,7 @@ class BaseState(_StateCommon[KT, OT_co]):
     ) -> Set[OT_co]:
         return {self.upsert(value, *args, **kwargs) for value in values}
 
-    def upsert_replace(self, *args: Any, **kwargs: Any):
+    def upsert_replace(self, *args: Any, **kwargs: Any) -> Set[OT_co]:
         values = self.upsert_many(*args, **kwargs)
 
         for value in set(self):
@@ -178,11 +178,14 @@ class BaseState(_StateCommon[KT, OT_co]):
                 self.transform_key(key),
                 value)
 
-    def unrecycle(self, key: KT, *args: Any, **kwargs: Any) -> None:
+    def unrecycle(
+        self, key: KT, *args: Any, **kwargs: Any
+    ) -> Optional[OT_co]:  # type: ignore
         if self.__recycle_enabled__:
-            return self.__recycled_mapping__.pop(
-                self.recycle_bin, self.transform_key(key),
+            return self.__recycled_mapping__.pop(  # type: ignore
+                self.recycle_bin, self.transform_key(key),  # type: ignore
                 *args, **kwargs)  # type: ignore
+        return None
 
     async def fetch(self, *args: Any, **kwargs: Any) -> OT_co:
         raise NotImplementedError
@@ -251,7 +254,17 @@ class BaseSubState(_StateCommon[KT, OT_co]):
         for key in self._keys:
             yield key, self.superstate[key]  # type: ignore
 
-    def get(self, key: SnowflakeType, default: DT = None) -> Union[OT_co, DT]:
+    @overload
+    def get(self, key: SnowflakeType) -> Optional[OT_co]:
+        ...
+
+    @overload
+    def get(self, key: SnowflakeType, default: DT) -> Union[OT_co, DT]:
+        ...
+
+    def get(
+        self, key: SnowflakeType, default: Optional[DT] = None
+    ) -> Union[OT_co, DT, None]:
         if self.superstate.transform_key(key) not in self._keys:
             return default
         return self.superstate.get(key, default)

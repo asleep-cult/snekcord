@@ -24,7 +24,7 @@ class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
         super().__init__(client=client)
         self.channel = channel
 
-    def upsert(self, data: Json) -> PermissionOverwrite:
+    def upsert(self, data: Json) -> PermissionOverwrite:  # type: ignore
         overwrite = self.get(data['id'])
         if overwrite is not None:
             overwrite.update(data)
@@ -39,18 +39,19 @@ class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
     def everyone(self) -> t.Optional[PermissionOverwrite]:
         return self.get(self.channel.guild_id)
 
-    def apply_to(self, member: SnowflakeType):
+    def apply_to(self, member: SnowflakeType) -> t.Optional[Permissions]:
         if not isinstance(member, GuildMember):
             guild = self.channel.guild
             if guild is None:
                 return None
 
-            member: t.Optional[GuildMember]
-            member = guild.members.get(member)
-            if member is None:
+            guild_member = guild.members.get(member)
+            if guild_member is None:
                 return None
+        else:
+            guild_member = member
 
-        permissions = member.permissions
+        permissions = guild_member.permissions
 
         if permissions.administrator:
             return permissions
@@ -64,7 +65,7 @@ class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
 
         allow = 0
         deny = 0
-        for role_id in member.roles.keys():
+        for role_id in guild_member.roles.keys():
             overwrite = self.get(role_id)
             if overwrite is not None:
                 allow |= overwrite.allow.value
@@ -80,7 +81,7 @@ class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
 
         return Permissions.from_value(value)
 
-    async def create(self, obj, **kwargs):
+    async def create(self, obj: SnowflakeType, **kwargs: t.Any):
         if isinstance(obj, GuildMember):
             obj_id = obj.id
             kwargs['type'] = PermissionOverwriteType.MEMBER

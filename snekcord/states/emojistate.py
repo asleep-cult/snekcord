@@ -26,6 +26,8 @@ class GuildEmojiState(BaseState[Snowflake, GuildEmoji]):
     def upsert(  # type: ignore
         self, data: Json
     ) -> t.Union[GuildEmoji, BuiltinEmoji, None]:
+        emoji: t.Union[GuildEmoji, BuiltinEmoji, None]
+
         emoji_id = data['id']
         if emoji_id is not None:
             emoji = self.get(emoji_id)

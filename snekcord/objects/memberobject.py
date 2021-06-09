@@ -57,8 +57,9 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
 
     def __init__(self, *, state: GuildMemberState):
         super().__init__(state=state)
-        self.roles = self.state.client.get_class('GuildMemberRoleState')(
-            superstate=self.guild.roles, member=self)
+        self.roles = self.state.client.get_class(
+            'GuildMemberRoleState')(  # type: ignore
+            superstate=self.guild.roles, member=self)  # type: ignore
 
     @property
     def guild(self) -> Guild:
@@ -74,6 +75,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         if guild.owner_id == self.id:
             return Permissions.all()
 
+        assert guild.roles.everyone is not None
         value = guild.roles.everyone.permissions.value
 
         for role in self.roles:

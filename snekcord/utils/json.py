@@ -145,7 +145,7 @@ class JsonObjectMeta(type):
         attrs['__slots__'] = slots
         attrs['__template__'] = template
 
-        return type.__new__(cls, name, bases, attrs)
+        return type.__new__(cls, name, bases, attrs)  # type: ignore
 
 
 class JsonObject(metaclass=JsonObjectMeta):
@@ -177,10 +177,10 @@ class JsonObject(metaclass=JsonObjectMeta):
             raise NotImplementedError
         return self.__template__.update(self, *args, **kwargs)
 
-    def to_dict(self, *args: t.Any, **kwargs: t.Any) -> Json:
+    def to_dict(self) -> Json:
         if self.__template__ is None:
             raise NotImplementedError
-        return self.__template__.to_dict(self, *args, **kwargs)
+        return self.__template__.to_dict(self)
 
     def marshal(self, *args: t.Any, **kwargs: t.Any) -> str:
         if self.__template__ is None:

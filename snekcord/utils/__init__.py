@@ -1,6 +1,5 @@
 import typing as t
 
-from .aitertools import *
 from .bitset import *
 from .enum import *
 from .events import *

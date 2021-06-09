@@ -51,7 +51,7 @@ class ChannelType(Enum[int]):
 def _guild_channel_creation_keys(
     channel_type: ChannelType
 ) -> t.Tuple[str, ...]:
-    keys = ('name', 'position', 'permission_overwrites')
+    keys: t.Tuple[str, ...] = ('name', 'position', 'permission_overwrites')
 
     if channel_type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
         keys += ('type', 'topic', 'nsfw')
@@ -115,8 +115,10 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     def __init__(self, *, state: ChannelState):
         super().__init__(state=state)
 
-        cls = self.state.client.get_class('PermissionOverwriteState')
-        self.permissions = cls(client=self.state.client, channel=self)
+        cls = self.state.client.get_class(  # type: ignore
+            'PermissionOverwriteState')
+        self.permissions = cls(  # type: ignore
+            client=self.state.client, channel=self)
 
     @property
     def mention(self):
@@ -243,8 +245,9 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
 
         self.last_pin_timestamp = None
 
-        self.messages = self.state.client.get_class('MessageState')(
-            client=self.state.client, channel=self)
+        self.messages = self.state.client.get_class(
+            'MessageState')(  # type: ignore
+            client=self.state.client, channel=self)  # type: ignore
 
     def __str__(self):
         return f'#{self.name}'

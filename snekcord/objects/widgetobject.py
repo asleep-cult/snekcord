@@ -15,31 +15,53 @@ if t.TYPE_CHECKING:
     from .guildobject import Guild
     from ..typing import Json
 
-GuildWidgetChannel = JsonTemplate(
+GuildWidgetChannelTemplate = JsonTemplate(
     name=JsonField('name'),
     position=JsonField('position'),
     __extends__=(BaseTemplate,)
-).default_object('GuildWidgetChannel')
+)
 
 
-GuildWidgetMember = JsonTemplate(
+class GuildWidgetChannel(JsonObject, template=GuildWidgetChannelTemplate):
+    id: Snowflake
+    name: str
+    position: int
+
+
+GuildWidgetMemberTemplate = JsonTemplate(
     username=JsonField('username'),
     discriminator=JsonField('discriminator'),
     avatar=JsonField('avatar'),
     status=JsonField('status'),
     avatar_url=JsonField('avatar_url'),
     __extends__=(BaseTemplate,)
-).default_object('GuildWidgetMember')
+)
 
 
-GuildWidgetJson = JsonTemplate(
+class GuildWidgetMember(JsonObject, template=GuildWidgetMemberTemplate):
+    id: Snowflake
+    username: str
+    discriminator: str
+    avatar: t.Optional[str]
+    status: str
+    avatar_url: str
+
+
+GuildWidgetJsonTemplate = JsonTemplate(
     name=JsonField('name'),
     instant_invite=JsonField('instant_invite'),
     channels=JsonArray('channels', object=GuildWidgetChannel),
     members=JsonArray('members', object=GuildWidgetMember),
     presence_count=JsonField('presence_count'),
     __extends__=(BaseTemplate,)
-).default_object('GuildWidgetJson')
+)
+
+
+class GuildWidgetJson(JsonObject, template=GuildWidgetJsonTemplate):
+    id: Snowflake
+    name: str
+    instant_invite: str
+    channels: t.List[GuildWidgetChannel]
 
 
 GuildWidgetSettingsTemplate = JsonTemplate(

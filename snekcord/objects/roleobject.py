@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import typing as t
 
+from snekcord.utils.json import JsonObject
+
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
 from ..utils import (JsonField, JsonTemplate, Permissions, Snowflake,
@@ -13,11 +15,17 @@ if t.TYPE_CHECKING:
     from .guildobject import Guild
     from ..states import RoleState
 
-RoleTags = JsonTemplate(
+RoleTagsTemplate = JsonTemplate(
     bot_id=JsonField('bot_id', Snowflake, str),
     integration_id=JsonField('integration_id', Snowflake, str),
     premium_subscriber=JsonField('premium_subscriber')
-).default_object('RoleTags')
+)
+
+
+class RoleTags(JsonObject, template=RoleTagsTemplate):
+    bot_id: Snowflake
+    integration_id: Snowflake
+    premium_subscriber: None  # ???
 
 
 RoleTemplate = JsonTemplate(

@@ -29,10 +29,14 @@ class IntegrationExpireBehavior(Enum[int]):
     KICK = 1
 
 
-IntegrationAccount = JsonTemplate(
+IntegrationAccountTemplate = JsonTemplate(
     name=JsonField('name'),
     __extends__=(BaseTemplate,)
-).default_object('IntegrationAccount')
+)
+
+
+class IntegrationAccount(BaseObject, template=IntegrationAccountTemplate):
+    name: str
 
 
 IntegrationApplicationTemplate = JsonTemplate(

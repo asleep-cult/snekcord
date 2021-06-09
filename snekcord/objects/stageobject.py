@@ -51,6 +51,7 @@ class Stage(BaseObject, template=StageTemplate):
         guild = self.guild
         if guild is not None:
             return guild.channels.get(self.channel_id)
+        return None
 
     async def fetch(self) -> Stage:
         return await self.state.fetch(self.channel_id)
