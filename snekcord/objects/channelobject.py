@@ -280,7 +280,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         webhook_channel_id = Snowflake.try_snowflake(webhook_channel)
 
         data = await rest.follow_news_channel.request(
-            session=self.state.manager.rest,
+            session=self.state.client.rest,
             fmt=dict(channel_id=self.id),
             params=dict(webhook_channel_id=webhook_channel_id))
 
