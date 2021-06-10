@@ -41,23 +41,23 @@ class Client(EventDispatcher):
     DEFAULT_CLASSES: t.Dict[
         str, t.Type[t.Union[BaseState[t.Any, BaseObject], RestSession]]
     ] = {
-        'ChannelState': ChannelState,  # type: ignore
-        'GuildChannelState': GuildChannelState,  # type: ignore
-        'GuildEmojiState': GuildEmojiState,  # type: ignore
-        'GuildState': GuildState,  # type: ignore
-        'IntegrationState': IntegrationState,  # type: ignore
-        'GuildBanState': GuildBanState,  # type: ignore
-        'InviteState': InviteState,  # type: ignore
-        'RoleState': RoleState,  # type: ignore
-        'GuildMemberState': GuildMemberState,  # type: ignore
-        'MessageState': MessageState,  # type: ignore
-        'PermissionOverwriteState': PermissionOverwriteState,  # type: ignore
-        'ReactionsState': ReactionsState,  # type: ignore
-        'GuildMemberRoleState': GuildMemberRoleState,  # type: ignore
-        'UserState': UserState,  # type: ignore
-        'StageState': StageState,  # type: ignore
-        'RestSession': RestSession,  # type: ignore
-    }  # type: ignore
+        'ChannelState': ChannelState,
+        'GuildChannelState': GuildChannelState,
+        'GuildEmojiState': GuildEmojiState,
+        'GuildState': GuildState,
+        'IntegrationState': IntegrationState,
+        'GuildBanState': GuildBanState,
+        'InviteState': InviteState,
+        'RoleState': RoleState,
+        'GuildMemberState': GuildMemberState,
+        'MessageState': MessageState,
+        'PermissionOverwriteState': PermissionOverwriteState,
+        'ReactionsState': ReactionsState,
+        'GuildMemberRoleState': GuildMemberRoleState,
+        'UserState': UserState,
+        'StageState': StageState,
+        'RestSession': RestSession,
+    }
 
     if t.TYPE_CHECKING:
         rest: RestSession

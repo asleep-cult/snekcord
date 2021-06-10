@@ -29,11 +29,12 @@ class ReactionsState(BaseState[Snowflake, 'Reactions']):
         if reactions is not None:
             reactions.update(data)
         else:
-            reactions = self.client.get_class(  # type: ignore
-                'Reactionss').unmarshal(data, state=self)  # type: ignore
-            reactions.cache()  # type: ignore
+            from ..objects import Reactions  # Prevent circular imports
 
-        return reactions  # type: ignore
+            reactions = Reactions.unmarshal(data, state=self)
+            reactions.cache()
+
+        return reactions
 
     async def add(
         self, emoji: t.Union[GuildEmoji, BuiltinEmoji]
