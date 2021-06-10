@@ -2,6 +2,7 @@ from .basestate import *
 from .channelstate import *
 from .emojistate import *
 from .guildstate import *
+from .integrationstate import *
 from .invitestate import *
 from .memberstate import *
 from .messagestate import *

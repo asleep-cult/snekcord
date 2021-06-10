@@ -1,3 +1,5 @@
+import typing as t
+
 from .bitset import *
 from .enum import *
 from .events import *
@@ -8,7 +10,8 @@ from .token import *
 from .undefined import *
 
 
-def _validate_keys(name, source, required, keys):
+def _validate_keys(name: str, source: t.Iterable[str],  # type: ignore
+                   required: t.Iterable[str], keys: t.Iterable[str]) -> None:
     for key in required:
         if key not in source:
             raise ValueError(f'{name} is missing required key {key!r}')

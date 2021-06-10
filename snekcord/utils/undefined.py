@@ -1,12 +1,12 @@
-__all__ = ('undefined',)
+__all__ = ('Undefined', 'undefined')
 
 
-class _Undefined:
-    def __bool__(self):
+class Undefined:
+    def __bool__(self) -> bool:
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<undefined>'
 
 
-undefined = _Undefined()
+undefined = Undefined()

@@ -1,7 +1,7 @@
 from base64 import b64decode
 from datetime import datetime
 
-from . import Snowflake
+from .snowflake import Snowflake
 
 __all__ = ('TOKEN_EPOCH', 'get_token_type', 'strip_token_type', 'split_token',
            'get_token_id', 'get_token_timestamp', 'get_token_time',
@@ -10,33 +10,33 @@ __all__ = ('TOKEN_EPOCH', 'get_token_type', 'strip_token_type', 'split_token',
 TOKEN_EPOCH = 1293840000
 
 
-def _padded(string):
+def _padded(string: str) -> str:
     return string + '=' * (4 - len(string) % 4)
 
 
-def get_token_type(token):
+def get_token_type(token: str) -> str:
     return token.strip().split()[0].strip()
 
 
-def strip_token_type(token):
+def strip_token_type(token: str) -> str:
     if ' ' not in token:
         return token
     return ' '.join(token.strip().split()[1:])
 
 
-def split_token(token):
+def split_token(token: str) -> list[str]:
     parts = strip_token_type(token).split('.', 2)
     if len(parts) != 3:
         raise ValueError('Invalid Token')
     return parts
 
 
-def get_token_id(token):
+def get_token_id(token: str) -> Snowflake:
     part = _padded(split_token(token)[0])
     return Snowflake(b64decode(part))
 
 
-def get_token_timestamp(token):
+def get_token_timestamp(token: str) -> int:
     part = _padded(split_token(token)[1])
     timestamp = int.from_bytes(b64decode(part), 'big', signed=False)
     if timestamp < TOKEN_EPOCH:
@@ -48,10 +48,10 @@ def get_token_timestamp(token):
     return timestamp
 
 
-def get_token_time(token):
+def get_token_time(token: str) -> datetime:
     return datetime.fromtimestamp(get_token_timestamp(token))
 
 
-def get_token_hmac(token):
+def get_token_hmac(token: str) -> bytes:
     part = _padded(split_token(token)[2])
     return b64decode(part)

@@ -1,7 +1,12 @@
+import typing as t
+
 from .baseobject import BaseObject, BaseTemplate
 from ..utils import Bitset, Enum, Flag, JsonField, JsonTemplate
 
 __all__ = ('User',)
+
+if t.TYPE_CHECKING:
+    from ..states import UserState
 
 
 class UserFlags(Bitset):
@@ -23,7 +28,7 @@ class UserFlags(Bitset):
     discord_certified_moderator = Flag(18)
 
 
-class PremiumType(Enum, type=int):
+class PremiumType(Enum[int]):
     NONE = 0
     NITRO_CLASSIC = 1
     NITRO = 2
@@ -59,13 +64,27 @@ UserTemplate = JsonTemplate(
 
 
 class User(BaseObject, template=UserTemplate):
-    def __str__(self):
+    if t.TYPE_CHECKING:
+        state: UserState
+        name: str
+        discriminator: str
+        avatar: t.Optional[str]
+        bot: t.Optional[bool]
+        mfa_enabled: t.Optional[bool]
+        locale: t.Optional[str]
+        verified: t.Optional[bool]
+        email: t.Optional[str]
+        flags: t.Optional[UserFlags]
+        premium_type: t.Optional[PremiumType]
+        public_flags: t.Optional[UserFlags]
+
+    def __str__(self) -> str:
         return f'@{self.name}'
 
     @property
-    def tag(self):
+    def tag(self) -> str:
         return f'{self.name}#{self.id}'
 
     @property
-    def mention(self):
+    def mention(self) -> str:
         return f'<@{self.id}>'

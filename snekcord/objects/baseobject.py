@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import typing as t
 from datetime import datetime
 
 from ..exceptions import PartialObjectError
@@ -5,6 +8,10 @@ from ..utils import JsonField, JsonObject, JsonTemplate, Snowflake
 
 __all__ = ('BaseObject',)
 
+if t.TYPE_CHECKING:
+    from ..states.basestate import BaseState
+
+    O = t.TypeVar('O', bound='BaseObject')
 
 BaseTemplate = JsonTemplate(
     id=JsonField('id', Snowflake, str),
@@ -35,14 +42,17 @@ class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at',
                  '__weakref__')
 
-    def __init__(self, *, state):
+    if t.TYPE_CHECKING:
+        id: Snowflake
+        deleted_at: t.Optional[datetime]
+
+    def __init__(self, *, state: BaseState[Snowflake, BaseObject]) -> None:
         self.state = state
-        self.id = None
         self.cached = False
         self.deleted = False
         self.deleted_at = None
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Equivalent to `hash(self.id)`
 
         Raises:
@@ -53,16 +63,16 @@ class BaseObject(JsonObject, template=BaseTemplate):
                 f'{self.__class__.__name__} object is missing a valid id')
         return hash(self.id)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'{self.__class__.__name__}(id={self.id!r}, '
                 f'cached={self.cached}, deleted={self.deleted})')
 
-    def _delete(self):
+    def _delete(self) -> None:
         self.deleted = True
         self.deleted_at = datetime.now()
         self.uncache(recycle=False)
 
-    def cache(self):
+    def cache(self) -> None:
         """Stores the object in the state's cache and attempts
         to remove it from the state's recycle bin
         """
@@ -70,7 +80,7 @@ class BaseObject(JsonObject, template=BaseTemplate):
         self.state[self.id] = self
         self.state.unrecycle(self.id, None)
 
-    def uncache(self, recycle=True):
+    def uncache(self, recycle: bool = True) -> None:
         """Removes the object from the state's cache
 
         Arguments:
@@ -82,6 +92,6 @@ class BaseObject(JsonObject, template=BaseTemplate):
         if recycle:
             self.state.recycle(self.id, self)
 
-    async def fetch(self):
+    async def fetch(self: O) -> O:
         """Equivalent to `self.state.fetch(self.id)`"""
-        return await self.state.fetch(self.id)
+        return await self.state.fetch(self.id)  # type: ignore

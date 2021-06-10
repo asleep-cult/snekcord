@@ -1,9 +1,17 @@
+from __future__ import annotations
+
+import typing as t
+
 from .baseobject import BaseObject
 from .. import rest
 from ..utils import JsonField, JsonObject, JsonTemplate
 
 __all__ = ('Invite', 'GuildVanityURL')
 
+if t.TYPE_CHECKING:
+    from ..objects import DMChannel, GuildChannel, Guild, User
+    from ..states import InviteState
+    from ..typing import Json
 
 InviteTemplate = JsonTemplate(
     id=JsonField('code'),
@@ -24,8 +32,17 @@ class Invite(BaseObject, template=InviteTemplate):
     __slots__ = ('guild', 'channel', 'inviter', 'target_user',
                  'target_application')
 
-    def __init__(self, *, state):
-        super().__init__(state=state)
+    if t.TYPE_CHECKING:
+        id: str  # type: ignore
+        state: InviteState  # type: ignore
+        guild: t.Optional[Guild]
+        channel: t.Union[DMChannel, GuildChannel, None]
+        inviter: t.Optional[User]
+        target_user: t.Optional[User]
+        target_application: None  # ???
+
+    def __init__(self, *, state: InviteState) -> None:
+        super().__init__(state=state)  # type: ignore
         self.guild = None
         self.channel = None
         self.inviter = None
@@ -33,32 +50,35 @@ class Invite(BaseObject, template=InviteTemplate):
         self.target_application = None
 
     @property
-    def code(self):
+    def code(self) -> str:
         return self.id
 
-    async def delete(self):
+    async def delete(self) -> None:
         await rest.delete_invite.request(
-                session=self.state.manager.rest,
+                session=self.state.client.rest,
                 fmt=dict(code=self.code))
 
-    def update(self, data, *args, **kwargs):
+    def update(  # type: ignore
+        self, data: Json,
+        *args: t.Any, **kwargs: t.Any
+    ) -> None:
         super().update(data, *args, **kwargs)
 
         guild = data.get('guild')
         if guild is not None:
-            self.guild = self.state.manager.guilds.upsert(guild)
+            self.guild = self.state.client.guilds.upsert(guild)
 
         channel = data.get('channel')
         if channel is not None:
-            self.channel = self.state.manager.channels.upsert(channel)
+            self.channel = self.state.client.channels.upsert(channel)
 
         inviter = data.get('inviter')
         if inviter is not None:
-            self.inviter = self.state.manager.users.upsert(inviter)
+            self.inviter = self.state.client.users.upsert(inviter)
 
         target_user = data.get('target_user')
         if target_user is not None:
-            self.target_user = self.state.manager.users.upsert(target_user)
+            self.target_user = self.state.client.users.upsert(target_user)
 
 
 GuildVanityURLTemplate = JsonTemplate(
@@ -69,25 +89,31 @@ GuildVanityURLTemplate = JsonTemplate(
 class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
     __slots__ = ('guild',)
 
-    def __init__(self, *, guild):
+    if t.TYPE_CHECKING:
+        code: str
+        guild: Guild
+
+    def __init__(self, *, guild: Guild) -> None:
         self.guild = guild
 
     @property
-    def invite(self):
-        return self.guild.state.manager.invites.get(self.code)
+    def invite(self) -> t.Optional[Invite]:
+        return self.guild.state.client.invites.get(self.code)
 
-    async def fetch(self):
+    async def fetch(self) -> GuildVanityURL:
         data = await rest.get_guild_vanity_url.request(
-            session=self.guild.state.manager.rest,
+            session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         self.update(data)
 
         return self
 
-    def update(self, data, *args, **kwargs):
+    def update(  # type: ignore
+        self, data: Json, *args: t.Any, **kwargs: t.Any
+    ) -> None:
         super().update(data, *args, **kwargs)
 
         if 'code' in data:
-            invite = self.guild.state.manager.invites.upsert(data)
+            invite = self.guild.state.client.invites.upsert(data)
             invite.guild = self.guild

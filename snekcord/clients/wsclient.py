@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import typing as t
 from .client import Client
 from .wsevents import EVENTS
 from .. import rest
@@ -5,6 +8,10 @@ from ..utils.bitset import Bitset, Flag
 from ..ws.shardws import Shard
 
 __all__ = ('WebSocketIntents', 'WebSocketClient')
+
+if t.TYPE_CHECKING:
+    from ..objects import User
+    from ..typing import Json
 
 
 class WebSocketIntents(Bitset):
@@ -28,31 +35,39 @@ class WebSocketIntents(Bitset):
 class WebSocketClient(Client):
     __events__ = EVENTS
 
-    def __init__(self, *args, **kwargs):
-        self.is_user = kwargs.pop('user', False)
-        self.intents = kwargs.pop('intents', None)
-        self.timeouts = kwargs.pop('timeouts', {})
-        self.ws_version = kwargs.pop('ws_version', '9')
+    def __init__(
+        self,
+        *args: t.Any,
+        user: bool = True,
+        intents: t.Optional[WebSocketIntents] = None,
+        timeouts: t.Optional[Json] = None,
+        ws_version: str = '9',
+        **kwargs: t.Any
+    ) -> None:
+        self.is_user = user
+        self.intents = intents
+        self.timeouts = timeouts or {}
+        self.ws_version = ws_version
 
         super().__init__(*args, **kwargs)
 
-        self.shards = {}
+        self.shards: t.Dict[int, Shard] = {}
 
     @property
-    def user(self):
+    def user(self) -> t.Optional[User]:
         if self.shards:
             return next(iter(self.shards.values())).user
         return None
 
-    async def fetch_gateway(self):
+    async def fetch_gateway(self) -> Json:
         data = await rest.get_gateway.request(session=self.rest)
         return data
 
-    async def fetch_gateway_bot(self):
+    async def fetch_gateway_bot(self) -> Json:
         data = await rest.get_gateway_bot.request(session=self.rest)
         return data
 
-    async def connect(self, *args, **kwargs):
+    async def connect(self, *args: t.Any, **kwargs: t.Any) -> None:
         if self.is_user or True:
             shard_id = 0
             self.shard_count = 1
@@ -60,11 +75,11 @@ class WebSocketClient(Client):
             gateway = await self.fetch_gateway()
             gateway_url = gateway['url'] + f'?v={self.ws_version}'
 
-            shard = Shard(manager=self, shard_id=shard_id)
+            shard = Shard(client=self, shard_id=shard_id)
             await shard.connect(gateway_url, *args, **kwargs)
 
             self.shards[shard.id] = shard
 
-    def run_forever(self, *args, **kwargs):
+    def run_forever(self, *args: t.Any, **kwargs: t.Any) -> None:
         self.loop.create_task(self.connect(*args, **kwargs))
         super().run_forever()
