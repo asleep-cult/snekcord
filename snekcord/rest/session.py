@@ -34,8 +34,6 @@ class RestSession(AsyncClient):
             'Authorization': self.authorization,
         })
 
-        self.buckets = {}
-
         kwargs['timeout'] = None
         super().__init__(*args, **kwargs)  # type: ignore
 
