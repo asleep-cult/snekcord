@@ -16,6 +16,9 @@ if t.TYPE_CHECKING:
     from ..typing import Json, SnowflakeType
 
 
+__all__ = ('PermissionOverwriteState',)
+
+
 class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
     __key_transformer__ = Snowflake.try_snowflake
     __permission_overwrite_class__ = PermissionOverwrite
@@ -23,6 +26,10 @@ class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
     def __init__(self, *, client: Client, channel: GuildChannel) -> None:
         super().__init__(client=client)
         self.channel = channel
+
+    @property
+    def everyone(self):
+        return self.get(self.channel.guild_id)
 
     def upsert(self, data: Json) -> PermissionOverwrite:  # type: ignore
         overwrite = self.get(data['id'])
@@ -34,10 +41,6 @@ class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrite]):
             overwrite.cache()
 
         return overwrite
-
-    @property
-    def everyone(self) -> t.Optional[PermissionOverwrite]:
-        return self.get(self.channel.guild_id)
 
     def apply_to(self, member: SnowflakeType) -> t.Optional[Permissions]:
         if not isinstance(member, GuildMember):

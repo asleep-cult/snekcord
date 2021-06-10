@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing as t
 
 from .baseobject import BaseObject
+from .userobject import User
 from .. import rest
 from ..states.basestate import BaseSubState
 from ..utils import JsonField, JsonTemplate, Snowflake
@@ -12,7 +13,6 @@ __all__ = ('Reactions',)
 if t.TYPE_CHECKING:
     from .emojiobject import BuiltinEmoji, GuildEmoji
     from .messageobject import Message
-    from .userobject import User
     from ..states import ReactionsState, UserState
     from ..typing import IntConvertable, Json, SnowflakeType
 

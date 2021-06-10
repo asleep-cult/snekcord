@@ -7,8 +7,8 @@ from .baseobject import BaseObject, BaseTemplate
 from .. import rest
 from ..utils import Enum, JsonField, JsonTemplate, Snowflake
 
-__all__ = ('IntegrationAccount', 'IntegrationApplicationTemplate',
-           'IntegrationTemplate')
+__all__ = ('IntegrationType', 'IntegrationExpireBehavior',
+           'IntegrationAccount', 'IntegrationApplication', 'Integration')
 
 if t.TYPE_CHECKING:
     from .guildobject import Guild

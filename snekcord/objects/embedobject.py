@@ -99,7 +99,7 @@ EmbedImageTemplate = JsonTemplate(
     proxy_url=JsonField('proxy_url'),
     height=JsonField('height'),
     width=JsonField('width')
-).default_object('EmbedImage')
+)
 
 
 class EmbedImage(JsonObject, template=EmbedImageTemplate):

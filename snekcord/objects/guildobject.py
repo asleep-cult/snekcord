@@ -11,14 +11,15 @@ from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField,
                      JsonObject, JsonTemplate, Snowflake,
                      _validate_keys)
 
-
-__all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
+__all__ = ('MessageNotificationsLevel', 'ExplicitContentFilterLevel',
+           'MFALevel', 'VerificationLevel', 'GuildNSFWLevel',
+           'PremiumTier', 'SystemChannelFlags', 'GuildFeature',
+           'Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 if t.TYPE_CHECKING:
     from .channelobject import GuildChannel
     from .emojiobject import GuildEmoji
     from .inviteobject import Invite
-    from .stageobject import Stage
     from .templateobject import GuildTemplate as _GuildTemplate
     from .userobject import User
     from ..states.channelstate import GuildChannelState
@@ -250,9 +251,9 @@ class Guild(BaseObject, template=GuildTemplate):
         state: GuildState
 
     # TODO(asleep-cult): Do it
-    __slots__ = ('widget', 'vanity_url', 'welcome_screen', 'channels',
-                 'emojis', 'roles', 'members', 'bans', 'integrations',
-                 'unsynced')
+    __slots__ = ('unsynced', 'widget', 'vanity_url', 'welcome_screen',
+                 'channels', 'emojis', 'roles', 'members', 'bans',
+                 'integrations')
 
     def __init__(self, *, state: GuildState) -> None:
         super().__init__(state=state)
@@ -294,12 +295,6 @@ class Guild(BaseObject, template=GuildTemplate):
     def __str__(self) -> str:
         return self.name
 
-    @property
-    def stages(self) -> t.Generator[Stage, None, None]:
-        for stage in self.state.client.stages:
-            if stage.guild_id == self.id:
-                yield stage
-
     async def sync(self, payload: Json) -> None:
         cache_flags = self.state.client.cache_flags
 
@@ -313,7 +308,7 @@ class Guild(BaseObject, template=GuildTemplate):
             await self.integrations.fetch_all()
 
         if self.unsynced and cache_flags.guild_invites:
-            await self.invites()
+            await self.fetch_invites()
 
         if 'widget_enabled' not in payload and cache_flags.guild_widget:
             await self.widget.fetch()
@@ -331,7 +326,7 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return self.state.upsert(data)
 
-    async def delete(self):
+    async def delete(self) -> None:
         await rest.delete_guild.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
@@ -370,24 +365,24 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return data['pruned']
 
-    async def preview(self) -> Guild:
+    async def fetch_preview(self) -> Guild:
         return await self.state.fetch_preview(self.id)
 
-    async def voice_regions(self) -> t.List[Json]:
+    async def fetch_voice_regions(self) -> t.List[str]:
         data = await rest.get_guild_voice_regions.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
         return data
 
-    async def invites(self) -> t.Set[Invite]:
+    async def fetch_invites(self) -> t.Set[Invite]:
         data = await rest.get_guild_invites.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
         return self.state.client.invites.upsert_many(data)
 
-    async def templates(self) -> t.List[_GuildTemplate]:
+    async def fetch_templates(self) -> t.List[_GuildTemplate]:
         data = await rest.get_guild_templates.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))

@@ -12,6 +12,8 @@ if t.TYPE_CHECKING:
     from ..objects import Guild
     from ..typing import Json
 
+__all__ = ('IntegrationState',)
+
 
 class IntegrationState(BaseState[Snowflake, Integration]):
     __key_transformer__ = Snowflake.try_snowflake

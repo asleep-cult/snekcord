@@ -5,7 +5,10 @@ import functools
 import typing as t
 from weakref import WeakSet
 
-from ..typing import AnyCallable, AnyCoroCallable
+if t.TYPE_CHECKING:
+    from ..typing import AnyCallable, AnyCoroCallable, ParamSpec
+
+    P = ParamSpec('P')
 
 __all__ = ('EventWaiter', 'EventDispatcher',)
 
@@ -75,9 +78,9 @@ def ensure_future(coro: t.Any) -> asyncio.Future[t.Any] | None:
 class EventDispatcher:
     __events__: t.ClassVar[dict[str, AnyCoroCallable] | None] = None
     loop: asyncio.AbstractEventLoop
-    _listeners: dict[str, list[AnyCallable]]
-    _waiters: dict[str, WeakSet[EventWaiter]]
-    _subscribers: list[EventDispatcher]
+    listeners: dict[str, list[AnyCallable]]
+    waiters: dict[str, WeakSet[EventWaiter]]
+    subscribers: list[EventDispatcher]
 
     def __init__(self, *,
                  loop: asyncio.AbstractEventLoop | None = None) -> None:
@@ -86,37 +89,36 @@ class EventDispatcher:
         else:
             self.loop = asyncio.get_event_loop()
 
-        self._listeners = {}
-        self._waiters = {}
-        self._subscribers = []
+        self.listeners = {}
+        self.waiters = {}
+        self.subscribers = []
 
     def register_listener(self, name: str, callback: AnyCallable) -> None:
-        listeners = self._listeners.setdefault(name.lower(), [])
+        listeners = self.listeners.setdefault(name.lower(), [])
         listeners.append(callback)
 
-    def remove_listener(self, name: str, callback: AnyCallable):
-        listeners = self._listeners.get(name.lower())
+    def remove_listener(self, name: str, callback: AnyCallable) -> None:
+        listeners = self.listeners.get(name.lower())
         if listeners is not None:
             listeners.remove(callback)
 
-    def register_waiter(self, *args: t.Any, **kwargs: t.Any):
-        kwargs['dispatcher'] = self
-        waiter = EventWaiter(*args, **kwargs)
-        waiters = self._waiters.setdefault(waiter.name, WeakSet())
+    def register_waiter(self, *args: t.Any, **kwargs: t.Any) -> EventWaiter:
+        waiter = EventWaiter(*args, dispatcher=self, **kwargs)
+        waiters = self.waiters.setdefault(waiter.name, WeakSet())
         waiters.add(waiter)
         return waiter
 
     wait = register_waiter
 
-    def remove_waiter(self, waiter: EventWaiter):
-        waiters = self._waiters.get(waiter.name.lower())
+    def remove_waiter(self, waiter: EventWaiter) -> None:
+        waiters = self.waiters.get(waiter.name.lower())
         if waiters is not None:
             waiters.remove(waiter)
 
-    def run_callbacks(self, name: str, *args: t.Any):
+    def run_callbacks(self, name: str, *args: t.Any) -> None:
         name = name.lower()
-        listeners = self._listeners.get(name)
-        waiters = self._waiters.get(name)
+        listeners = self.listeners.get(name)
+        waiters = self.waiters.get(name)
 
         if listeners is not None:
             for listener in tuple(listeners):
@@ -126,7 +128,7 @@ class EventDispatcher:
             for waiter in tuple(waiters):
                 waiter._put(args)  # type: ignore
 
-        for subscriber in self._subscribers:
+        for subscriber in self.subscribers:
             subscriber.run_callbacks(name, *args)
 
     async def dispatch(self, name: str, *args: t.Any):
@@ -137,28 +139,32 @@ class EventDispatcher:
 
         self.run_callbacks(name, *args)
 
-    def subscribe(self, dispatcher: EventWaiter) -> None:
-        dispatcher._subscribers.append(self)  # type: ignore
+    def subscribe(self, dispatcher: EventDispatcher) -> None:
+        dispatcher.subscribers.append(self)
 
-    def unsubscribe(self, dispatcher: EventWaiter) -> None:
-        dispatcher._subscribers.remove(self)  # type: ignore
+    def unsubscribe(self, dispatcher: EventDispatcher) -> None:
+        dispatcher.subscribers.remove(self)
 
-    def on(self, name: str | None = None):
-        def wrapped(func: AnyCallable):
+    def on(
+        self, name: t.Optional[str] = None
+    ) -> t.Callable[[t.Callable[P, T]], t.Callable[P, T]]:
+        def wrapped(func: t.Callable[P, T]) -> t.Callable[P, T]:
             self.register_listener(name or func.__name__, func)
             return func
         return wrapped
 
-    def once(self, name: str | None = None):
-        def wrapped(func: AnyCallable):
+    def once(
+        self, name: t.Optional[str] = None
+    ) -> t.Callable[[t.Callable[P, t.Awaitable[t.Any]]], t.Callable[P, None]]:
+        def wrapped(
+            func: t.Callable[P, t.Awaitable[t.Any]]
+        ) -> t.Callable[P, None]:
             event_name = (name or func.__name__).lower()
 
             @functools.wraps(func)
-            def callback(*args: t.Any):
-                ensure_future(func(), *args)
+            def callback(*args: P.args, **kwargs: P.kwargs) -> None:
+                ensure_future(func(*args, **kwargs))
                 self.remove_listener(event_name, callback)
 
-            self.remove_listener(event_name, callback)
-
-            return func
+            return callback
         return wrapped

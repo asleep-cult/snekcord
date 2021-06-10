@@ -7,8 +7,8 @@ from .baseobject import BaseTemplate
 from .. import rest
 from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake
 
-__all__ = ('GuildWidgetChannel', 'GuildWidgetMember',
-           'GuildWidgetJson', 'GuildWidget')
+__all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson',
+           'GuildWidget')
 
 if t.TYPE_CHECKING:
     from .channelobject import GuildChannel

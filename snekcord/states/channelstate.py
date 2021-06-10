@@ -9,7 +9,7 @@ from ..objects.channelobject import (
     VoiceChannel, _guild_channel_creation_keys)
 from ..utils import Snowflake, _validate_keys
 
-__all__ = ('ChannelState',)
+__all__ = ('ChannelState', 'GuildChannelState')
 
 if t.TYPE_CHECKING:
     from ..objects import Guild

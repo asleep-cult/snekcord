@@ -4,19 +4,17 @@ import typing as t
 
 from .basestate import BaseState
 from .. import rest
-from ..objects.reactionsobject import Reactions
 from ..utils import Snowflake
 
 __all__ = ('ReactionsState',)
 
 if t.TYPE_CHECKING:
     from ..clients import Client
-    from ..objects import BuiltinEmoji, GuildEmoji, Message
+    from ..objects import BuiltinEmoji, GuildEmoji, Message, Reactions
     from ..typing import Json
 
 
-class ReactionsState(BaseState[Snowflake, Reactions]):
-    __reactions_class__ = Reactions
+class ReactionsState(BaseState[Snowflake, 'Reactions']):
 
     def __init__(self, *, client: Client, message: Message) -> None:
         super().__init__(client=client)
@@ -26,14 +24,16 @@ class ReactionsState(BaseState[Snowflake, Reactions]):
         ident = (
             self.message.guild.emojis.upsert(data['emoji']).id  # type: ignore
         )
+        reactions: t.Optional[Reactions]
         reactions = self.get(ident)
         if reactions is not None:
             reactions.update(data)
         else:
-            reactions = self.__reactions_class__.unmarshal(data, state=self)
-            reactions.cache()
+            reactions = self.client.get_class(  # type: ignore
+                'Reactionss').unmarshal(data, state=self)  # type: ignore
+            reactions.cache()  # type: ignore
 
-        return reactions
+        return reactions  # type: ignore
 
     async def add(
         self, emoji: t.Union[GuildEmoji, BuiltinEmoji]

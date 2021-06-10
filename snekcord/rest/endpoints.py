@@ -1,16 +1,10 @@
 from __future__ import annotations
 
-import json
 import typing as t
-from collections import deque
-from datetime import datetime
-from http import HTTPStatus
-
-from httpx import AsyncClient, Response
 
 if t.TYPE_CHECKING:
-    from .clients.client import Client
-    from .typing import Json
+    from .session import RestSession
+    from ..typing import Json
 
 
 class HTTPEndpoint:
@@ -36,9 +30,8 @@ class HTTPEndpoint:
         fmt = kwargs.pop('fmt', {})
         fmt['version'] = session.api_version
 
-        return await session.request(
-            self.method, self.url % fmt, params=params,
-            json=json, **kwargs)
+        return session.request(self.method, self.url, fmt, params=params,
+                               json=json, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'
@@ -676,103 +669,3 @@ get_gateway_bot = HTTPEndpoint(
     'GET',
     BASE_API_URL + 'gateway/bot'
 )
-
-
-class RateLimitBucket:
-    if t.TYPE_CHECKING:
-        limit: t.Optional[float]
-        remaining: t.Optional[float]
-        reset_after: t.Optional[float]
-
-    def __init__(self, bucket: str) -> None:
-        self.bucket = bucket
-
-        self.limit = None
-        self.remaining = None
-        self.reset_after = None
-
-        self.count = 0
-        self.queue: t.Deque[t.Any] = deque()
-
-    def update(self, headers: Json) -> None:
-        limit = headers.get('X-RateLimit-Limit')
-        if limit is not None:
-            self.limit = int(limit)
-
-        remaining = headers.get('X-RateLimit-Remaining')
-        if remaining is not None:
-            self.remaining = int(remaining)
-
-        reset_after = headers.get('X-RateLimit-Reset-After')
-        if reset_after is not None:
-            reset_after = float(reset_after)
-
-        reset = headers.get('X-RateLimit-Reset')
-        if reset is not None:
-            delta = datetime.utcfromtimestamp(float(reset)) - datetime.utcnow()
-
-            total_seconds = delta.total_seconds()
-            if reset_after is None or total_seconds < reset_after:
-                reset_after = total_seconds
-
-        if reset_after is not None:
-            self.reset_after = reset_after
-
-
-class HTTPError(Exception):
-    def __init__(self, msg: str, response: Response) -> None:
-        super().__init__(msg)
-        self.response = response
-
-
-class RestSession(AsyncClient):
-    if t.TYPE_CHECKING:
-        global_headers: Json
-        api_version: str
-
-    def __init__(
-        self, client: Client, *args: t.Any, **kwargs: t.Any
-    ) -> None:
-        self.loop = client.loop
-        self.client = client
-
-        self.authorization = self.client.token
-        self.api_version = self.client.api_version
-
-        self.global_headers = kwargs.pop('global_headers', {})
-        self.global_headers.update({
-            'Authorization': self.authorization,
-        })
-
-        kwargs['timeout'] = None
-        super().__init__(*args, **kwargs)  # type: ignore
-
-    async def request(  # type: ignore
-        self, method: str, url: str, *args: t.Any, **kwargs: t.Any
-    ) -> t.Any:
-        response = await super().request(  # type: ignore
-            method, url, *args, **kwargs
-        )
-        await response.aclose()
-
-        print(method, url, {k: v for k, v in  # type: ignore
-                            response.headers.items()  # type: ignore
-                            if k.startswith('x-ratelimit')})  # type: ignore
-
-        data = response.content
-
-        content_type: t.Optional[str]
-        content_type = response.headers.get('content-type')  # type: ignore
-        status_code: int = response.status_code  # type: ignore
-
-        if (content_type is not None
-                and content_type.lower() == 'application/json'):
-            data = json.loads(data)
-
-        if status_code >= 400:
-            status = HTTPStatus(status_code)
-            raise HTTPError(
-                f'{method} {url} responded with {status} {status.phrase}: '
-                f'{data!r}', response)
-
-        return data
