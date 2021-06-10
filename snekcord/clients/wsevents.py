@@ -115,7 +115,7 @@ class ChannelPinsUpdateEvent(BaseEvent):
         channel = client.channels.get(
             payload['channel_id'])
 
-        if channel is not None and isinstance(channel, TextChannel):
+        if channel is not None:
             channel.last_pin_timestamp = payload['last_pin_timestamp']
         return cls(shard=shard, payload=payload, channel=channel)
 
@@ -518,7 +518,7 @@ class MessageCreateEvent(BaseEvent):
         message = None
         channel = client.channels.get(payload['channel_id'])
 
-        if channel is not None and isinstance(channel, TextChannel):
+        if channel is not None:
             message = channel.messages.upsert(payload)
 
         return cls(shard=shard, payload=payload, channel=channel,
@@ -541,7 +541,7 @@ class MessageUpdateEvent(BaseEvent):
         message = None
         channel = client.channels.get(payload['channel_id'])
 
-        if channel is not None and isinstance(channel, TextChannel):
+        if channel is not None:
             message = channel.messages.upsert(payload)
 
         return cls(shard=shard, payload=payload, channel=channel,
@@ -564,7 +564,7 @@ class MessageDeleteEvent(BaseEvent):
         message = None
         channel = client.channels.get(payload['channel_id'])
 
-        if channel is not None and isinstance(channel, TextChannel):
+        if channel is not None:
             message = channel.messages.get(payload['id'])
             if message is not None:
                 message._delete()  # type: ignore
@@ -589,7 +589,7 @@ class MessageDeleteBulkEvent(BaseEvent):
         messages: t.List[Message] = []
         channel = client.channels.get(payload['channel_id'])
 
-        if channel is not None and isinstance(channel, TextChannel):
+        if channel is not None:
             for message in payload['id']:
                 message = channel.messages.get(message)
                 if message is not None:
@@ -619,7 +619,7 @@ class MessageReactionAddEvent(BaseEvent):
         channel = client.channels.get(payload['channel_id'])
         user = client.users.get(payload['user_id'])
 
-        if channel is not None and isinstance(channel, TextChannel):
+        if channel is not None:
             message = channel.messages.get(payload['message_id'])
             if message is not None:
                 reactions = message.reactions.upsert(payload)

@@ -30,8 +30,9 @@ class HTTPEndpoint:
         fmt = kwargs.pop('fmt', {})
         fmt['version'] = session.api_version
 
-        return session.request(self.method, self.url, fmt, params=params,
-                               json=json, **kwargs)
+        return await session.request(
+            self.method, self.url, fmt, params=params,
+            json=json, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'

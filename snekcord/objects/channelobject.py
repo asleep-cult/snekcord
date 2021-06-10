@@ -15,7 +15,7 @@ if t.TYPE_CHECKING:
     from ..states.channelstate import ChannelState
     from ..states.messagestate import MessageState
     from ..states.overwritestate import PermissionOverwriteState
-    from ..typing import Json
+    from ..typing import Json, SnowflakeType
 
 
 class ChannelType(Enum[int]):
@@ -275,7 +275,6 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
             This property relies on the message cache so it could return None
         """
         return self.messages.get(self.last_message_id)
-
 
     async def follow(self, webhook_channel: SnowflakeType) -> FollowedChannel:
         webhook_channel_id = Snowflake.try_snowflake(webhook_channel)
