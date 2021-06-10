@@ -7,7 +7,7 @@ EVENTS = {}
 if t.TYPE_CHECKING:
     from ..objects import (
         DMChannel, Guild, GuildBan, GuildChannel,
-        GuildMember, Invite, Message, Reactions, Role, Stage,
+        GuildMember, Invite, Message, Reactions, Role, StageInstance,
         TextChannel, User)
     from ..typing import Json
     from ..ws.shardws import Shard
@@ -508,7 +508,7 @@ class MessageCreateEvent(BaseEvent):
     __fields__ = ('channel', 'message')
 
     if t.TYPE_CHECKING:
-        channel: t.Union[DMChannel, GuildChannel, None]
+        channel: t.Optional[TextChannel]
         message: t.Optional[Message]
 
     @classmethod
@@ -531,7 +531,7 @@ class MessageUpdateEvent(BaseEvent):
     __fields__ = ('channel', 'message')
 
     if t.TYPE_CHECKING:
-        channel: t.Union[DMChannel, GuildChannel, None]
+        channel: t.Optional[TextChannel]
         message: t.Optional[Message]
 
     @classmethod
@@ -554,7 +554,7 @@ class MessageDeleteEvent(BaseEvent):
     __fields__ = ('channel', 'message')
 
     if t.TYPE_CHECKING:
-        channel: t.Union[DMChannel, GuildChannel, None]
+        channel: t.Optional[TextChannel]
         message: t.Optional[Message]
 
     @classmethod
@@ -579,7 +579,7 @@ class MessageDeleteBulkEvent(BaseEvent):
     __fields__ = ('channel', 'messages')
 
     if t.TYPE_CHECKING:
-        channel: t.Union[DMChannel, GuildChannel, None]
+        channel: t.Optional[TextChannel]
         messages: t.List[Message]
 
     @classmethod
@@ -634,7 +634,7 @@ class StageInstanceCreateEvent(BaseEvent):
     __fields__ = ('stage',)
 
     if t.TYPE_CHECKING:
-        stage: Stage
+        stage: StageInstance
 
     @classmethod
     async def execute(
@@ -650,7 +650,7 @@ class StageInstanceUpdateEvent(BaseEvent):
     __fields__ = ('stage',)
 
     if t.TYPE_CHECKING:
-        stage: Stage
+        stage: StageInstance
 
     @classmethod
     async def execute(
@@ -666,7 +666,7 @@ class StageInstanceDeleteEvent(BaseEvent):
     __fields__ = ('stage',)
 
     if t.TYPE_CHECKING:
-        stage: Stage
+        stage: StageInstance
 
     @classmethod
     async def execute(
