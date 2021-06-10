@@ -4,11 +4,11 @@ import typing as t
 
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (Enum, JsonArray, JsonField, JsonTemplate, Snowflake,
-                     _validate_keys)
+from ..utils import (Enum, JsonArray, JsonField, JsonObject, JsonTemplate,
+                     Snowflake, _validate_keys)
 
-__all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'CategoryChannel',
-           'VoiceChannel', 'DMChannel')
+__all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'FollowedChannel',
+           'CategoryChannel', 'VoiceChannel', 'DMChannel')
 
 if t.TYPE_CHECKING:
     from ..objects import Guild, Message
@@ -212,6 +212,21 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             self.permissions.upsert_replace(permission_overwrites)
 
 
+FollowedChannelTemplate = JsonTemplate(
+    channel_id=JsonField('channel_id', Snowflake, str),
+    webhook_id=JsonField('webhook_id', Snowflake, str),
+)
+
+
+class FollowedChannel(JsonObject, template=FollowedChannelTemplate):
+    def __init__(self, *, state):
+        self.state = state
+
+    @property
+    def channel(self):
+        return self.state.get(self.channel_id)
+
+
 TextChannelTemplate = JsonTemplate(
     topic=JsonField('topic'),
     slowmode=JsonField('rate_limit_per_user'),
@@ -261,6 +276,17 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         """
         return self.messages.get(self.last_message_id)
 
+
+    async def follow(self, webhook_channel: SnowflakeType) -> FollowedChannel:
+        webhook_channel_id = Snowflake.try_snowflake(webhook_channel)
+
+        data = await rest.follow_news_channel.request(
+            session=self.state.manager.rest,
+            fmt=dict(channel_id=self.id),
+            params=dict(webhook_channel_id=webhook_channel_id))
+
+        return FollowedChannel.unmarshal(data, state=self.state)
+
     async def typing(self) -> None:
         """Invokes an API request to trigger the typing indicator
         in the channel
@@ -269,7 +295,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
             session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
-    async def pins(self) -> t.Set[Message]:
+    async def fetch_pins(self) -> t.Set[Message]:
         """Invokes an API request to get the pinned messages
         in the channel
 

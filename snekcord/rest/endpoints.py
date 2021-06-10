@@ -159,7 +159,7 @@ create_channel_invite = HTTPEndpoint(
 follow_news_channel = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'channels/%(channel_id)s/followers',
-    json=('webhook_channel_id',),
+    params=('webhook_channel_id',),
 )
 
 trigger_typing_indicator = HTTPEndpoint(
