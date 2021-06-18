@@ -79,6 +79,11 @@ class MessageState(BaseState[Snowflake, Message]):
         except KeyError:
             pass
 
+        try:
+            kwargs['embeds'] = [embed.to_dict() for embed in kwargs['embeds']]
+        except KeyError:
+            pass
+
         _validate_keys(f'{self.__class__.__name__}.create',  # type: ignore
                        kwargs, (), rest.create_channel_message.json)
 
