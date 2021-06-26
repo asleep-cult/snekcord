@@ -75,7 +75,7 @@ get_channel_message = HTTPEndpoint(
 create_channel_message = HTTPEndpoint(
     'POST',
     BASE_API_URL + 'channels/%(channel_id)s/messages',
-    json=('content', 'nonce', 'tts', 'embed', 'allowed_mentions',
+    json=('content', 'nonce', 'tts', 'embed', 'embeds', 'allowed_mentions',
           'message_reference'),
 )
 
