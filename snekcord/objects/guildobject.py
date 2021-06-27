@@ -22,6 +22,8 @@ if t.TYPE_CHECKING:
     from .inviteobject import Invite
     from .templateobject import GuildTemplate as _GuildTemplate
     from .userobject import User
+    from .webhookobject import Webhook
+
     from ..states.channelstate import GuildChannelState
     from ..states.emojistate import GuildEmojiState
     from ..states.guildstate import GuildBanState, GuildState
@@ -453,6 +455,12 @@ class Guild(BaseObject, template=GuildTemplate):
             for stage in stage_instances:
                 stage['guild_id'] = self.id
                 self.state.client.stages.upsert(stage)
+
+    async def webhooks(self) -> t.Set[Webhook]:
+        data = await rest.get_guild_webhooks.request(
+            session=self.state.client.rest, fmt={'guild_id': self.id}
+        )
+        return self.state.client.webhooks.upsert_many(data)
 
 
 GuildBanTemplate = JsonTemplate(

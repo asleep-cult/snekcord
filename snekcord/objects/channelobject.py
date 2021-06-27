@@ -15,6 +15,7 @@ if t.TYPE_CHECKING:
     from ..states.channelstate import ChannelState
     from ..states.messagestate import MessageState
     from ..states.overwritestate import PermissionOverwriteState
+    from ..states.webhookstate import ChannelWebhookState
     from ..typing import Json, SnowflakeType
 
 
@@ -241,6 +242,8 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
     Attributes:
         messages MessageState: The channel's message state
 
+        webhooks WebhookState: The channel's webhook state
+
         topic str: The channel's topic
 
         slowmode int: The amount of time you have to wait between
@@ -249,13 +252,16 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         last_message_id Snowflake: The id of the last message sent in the
             channel
     """
-    __slots__ = ('messages', 'last_pin_timestamp')
+    __slots__ = ('messages', 'webhooks', 'last_pin_timestamp')
 
     if t.TYPE_CHECKING:
         messages: MessageState
+        webhooks: ChannelWebhookState
         last_message_id: Snowflake
 
     def __init__(self, *, state: ChannelState):
+        # Prevent circular imports
+        from ..states.webhookstate import ChannelWebhookState
         super().__init__(state=state)
 
         self.last_pin_timestamp = None
@@ -263,6 +269,8 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         self.messages = self.state.client.get_class(
             'MessageState')(  # type: ignore
             client=self.state.client, channel=self)  # type: ignore
+        self.webhooks = ChannelWebhookState(
+            superstate=self.state.client.webhooks, channel=self)
 
     def __str__(self):
         return f'#{self.name}'

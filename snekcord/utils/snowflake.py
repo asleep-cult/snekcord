@@ -3,12 +3,8 @@ from __future__ import annotations
 import typing as t
 from datetime import datetime
 
-from ..typing import IntConvertable
-
 if t.TYPE_CHECKING:
-    from ..objects.baseobject import BaseObject
-
-    SnowflakeLike = t.Union[IntConvertable, BaseObject]
+    from ..typing import SnowflakeType
 
 __all__ = ('Snowflake',)
 
@@ -43,7 +39,7 @@ class Snowflake(int):
                    | increment)
 
     @classmethod
-    def try_snowflake(cls, obj: SnowflakeLike) -> Snowflake:
+    def try_snowflake(cls, obj: SnowflakeType) -> Snowflake:
         from ..objects.baseobject import BaseObject
 
         if isinstance(obj, BaseObject):
@@ -59,7 +55,7 @@ class Snowflake(int):
 
     @classmethod
     def try_snowflake_set(cls,
-                          objs: t.Iterable[SnowflakeLike]) -> t.Set[Snowflake]:
+                          objs: t.Iterable[SnowflakeType]) -> t.Set[Snowflake]:
         return {cls.try_snowflake(obj) for obj in objs}
 
     @property

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from snekcord.typing import SnowflakeType
 
 import typing as t
 from datetime import datetime
@@ -146,6 +147,16 @@ class Message(BaseObject, template=MessageTemplate):
         await rest.delete_message.request(
             session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, message_id=self.id))
+
+    async def bulk_delete(self, messages: t.Iterable[SnowflakeType]) -> None:
+        await rest.bulk_delete_messages.request(
+            json={
+                'messages': [
+                    Snowflake.try_snowflake(message) for message in messages
+                ]
+            },
+            fmt=dict(channel_id=self.id)
+        )
 
     def update(   # type: ignore
         self, data: Json, *args: t.Any, **kwargs: t.Any

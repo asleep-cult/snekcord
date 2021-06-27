@@ -88,7 +88,7 @@ class JsonField:
             self._marshal = marshal
 
     def unmarshal(self, value: t.Any) -> t.Any:
-        if self._unmarshal is not None:
+        if self._unmarshal is not None and value is not None:
             value = self._unmarshal(value)
         return value
 

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from snekcord.typing import SnowflakeType
 
 import typing as t
 
@@ -13,7 +12,7 @@ __all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson',
 if t.TYPE_CHECKING:
     from .channelobject import GuildChannel
     from .guildobject import Guild
-    from ..typing import Json
+    from ..typing import Json, SnowflakeType
 
 GuildWidgetChannelTemplate = JsonTemplate(
     name=JsonField('name'),

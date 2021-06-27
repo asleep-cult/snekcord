@@ -562,7 +562,9 @@ class MessageDeleteEvent(BaseEvent):
         cls, client: WebSocketClient, shard: Shard, payload: Json
     ) -> MessageDeleteEvent:
         message = None
-        channel = client.channels.get(payload['channel_id'])
+        channel: t.Optional[TextChannel] = client.channels.get(
+            payload['channel_id']
+        )
 
         if channel is not None:
             message = channel.messages.get(payload['id'])
@@ -587,13 +589,16 @@ class MessageDeleteBulkEvent(BaseEvent):
         cls, client: WebSocketClient, shard: Shard, payload: Json
     ) -> MessageDeleteBulkEvent:
         messages: t.List[Message] = []
-        channel = client.channels.get(payload['channel_id'])
+        channel: t.Optional[TextChannel] = client.channels.get(
+            payload['channel_id']
+        )
 
         if channel is not None:
-            for message in payload['id']:
+            for message in payload['ids']:
                 message = channel.messages.get(message)
                 if message is not None:
                     messages.append(message)
+                    message._delete()
 
         return cls(shard=shard, payload=payload, channel=channel,
                    messages=messages)
