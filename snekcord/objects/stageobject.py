@@ -46,7 +46,7 @@ class StageInstance(BaseObject, template=StageInstanceTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.modify_stage_instance.json)
 
         data = await rest.modify_stage_instance.request(

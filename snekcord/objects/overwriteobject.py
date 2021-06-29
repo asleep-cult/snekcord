@@ -51,7 +51,7 @@ class PermissionOverwrite(BaseObject, template=PermissionOverwriteTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.create_channel_permission.json)
 
         await rest.create_channel_permission.request(

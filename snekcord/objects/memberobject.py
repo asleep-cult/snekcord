@@ -92,7 +92,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.modify_guild_member.json)
 
         data = await rest.modify_guild_member.request(

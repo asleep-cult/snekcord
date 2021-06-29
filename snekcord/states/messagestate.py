@@ -68,7 +68,7 @@ class MessageState(BaseState):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.create',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.create',
                        kwargs, (), rest.create_channel_message.json)
 
         data = await rest.create_channel_message.request(

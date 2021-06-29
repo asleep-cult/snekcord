@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from ..utils import undefined
 
 __all__ = ('BaseState', 'BaseSubState')

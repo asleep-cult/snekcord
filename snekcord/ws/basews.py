@@ -17,7 +17,7 @@ WebSocketResponse = JsonTemplate(
 
 class BaseWebSocket(WebSocketClient):
     def __init__(self, *, loop=None):
-        super().__init__(loop=loop)  # type: ignore
+        super().__init__(loop=loop)
 
         self.heartbeat_interval = None
 

@@ -1,12 +1,10 @@
-from __future__ import annotations
-
 import asyncio
 import json
 import platform
 import random
 import time
 
-from wsaio import taskify  # type: ignore
+from wsaio import taskify
 
 from .basews import BaseWebSocket, WebSocketResponse
 from ..utils import Enum, Snowflake

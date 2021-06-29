@@ -36,7 +36,7 @@ class GuildEmojiState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id, emoji_id=emoji_id))
 
-        return self.upsert(data)  # type: ignore
+        return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
