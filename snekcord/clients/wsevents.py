@@ -5,30 +5,30 @@ WS_EVENTS = {}
 
 def register(cls):
     __all__.append(cls.__name__)
-    WS_EVENTS[cls.__event_name__.lower()] = cls.execute
+    WS_EVENTS[cls._event_name_.lower()] = cls.execute
     return cls
 
 
 class BaseEvent:
-    __fields__ = ('shard', 'payload')
+    _fields_ = ('shard', 'payload')
 
     def __init__(self, **kwargs):
-        for field in self.__fields__:
+        for field in self._fields_:
             setattr(self, field, kwargs[field])
 
     def __init_subclass__(cls) -> None:
         for base in cls.__bases__:
             if issubclass(base, BaseEvent):
-                cls.__fields__ += base.__fields__
+                cls._fields_ += base._fields_
 
     def __repr__(self):
         attrs = [
             (field, getattr(self, field))
-            for field in self.__fields__
+            for field in self._fields_
             if field != 'payload'
         ]
         formatted = ', '.join(f'{name}={value}' for name, value in attrs)
-        return f'{self.__class__.__name__}({formatted})'
+        return f'<{self.__class__.__name__} {formatted}>'
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -37,8 +37,8 @@ class BaseEvent:
 
 @register
 class ChannelCreateEvent(BaseEvent):
-    __event_name__ = 'CHANNEL_CREATE'
-    __fields__ = ('channel',)
+    _event_name_ = 'CHANNEL_CREATE'
+    _fields_ = ('channel',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -48,8 +48,8 @@ class ChannelCreateEvent(BaseEvent):
 
 @register
 class ChannelUpdateEvent(BaseEvent):
-    __event_name__ = 'CHANNEL_UPDATE'
-    __fields__ = ('channel',)
+    _event_name_ = 'CHANNEL_UPDATE'
+    _fields_ = ('channel',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -59,8 +59,8 @@ class ChannelUpdateEvent(BaseEvent):
 
 @register
 class ChannelDeleteEvent(BaseEvent):
-    __event_name__ = 'CHANNEL_DELETE'
-    __fields__ = ('channel',)
+    _event_name_ = 'CHANNEL_DELETE'
+    _fields_ = ('channel',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -71,8 +71,8 @@ class ChannelDeleteEvent(BaseEvent):
 
 @register
 class ChannelPinsUpdateEvent(BaseEvent):
-    __event_name__ = 'CHANNEL_PINS_UPDATE'
-    __fields__ = ('channel',)
+    _event_name_ = 'CHANNEL_PINS_UPDATE'
+    _fields_ = ('channel',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -87,8 +87,8 @@ class ChannelPinsUpdateEvent(BaseEvent):
 
 @register
 class GuildReceiveEvent(BaseEvent):
-    __event_name__ = 'GUILD_RECEIVE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_RECEIVE'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -99,8 +99,8 @@ class GuildReceiveEvent(BaseEvent):
 
 @register
 class GuildAvailableEvent(BaseEvent):
-    __event_name__ = 'GUILD_AVAILABLE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_AVAILABLE'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -111,8 +111,8 @@ class GuildAvailableEvent(BaseEvent):
 
 @register
 class GuildJoinEvent(BaseEvent):
-    __event_name__ = 'GUILD_JOIN'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_JOIN'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -123,8 +123,8 @@ class GuildJoinEvent(BaseEvent):
 
 @register
 class GuildUpdateEvent(BaseEvent):
-    __event_name__ = 'GUILD_UPDATE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_UPDATE'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -135,8 +135,8 @@ class GuildUpdateEvent(BaseEvent):
 
 @register
 class GuildUnavailableEvent(BaseEvent):
-    __event_name__ = 'GUILD_UNAVAILABLE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_UNAVAILABLE'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -146,8 +146,8 @@ class GuildUnavailableEvent(BaseEvent):
 
 @register
 class GuildDeleteEvent(BaseEvent):
-    __event_name__ = 'GUILD_DELETE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_DELETE'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -158,8 +158,8 @@ class GuildDeleteEvent(BaseEvent):
 
 @register
 class GuildBanAddEvent(BaseEvent):
-    __event_name__ = 'GUILD_BAN_ADD'
-    __fields__ = ('guild', 'ban')
+    _event_name_ = 'GUILD_BAN_ADD'
+    _fields_ = ('guild', 'ban')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -174,8 +174,8 @@ class GuildBanAddEvent(BaseEvent):
 
 @register
 class GuildBanRemoveEvent(BaseEvent):
-    __event_name__ = 'GUILD_BAN_REMOVE'
-    __fields__ = ('guild', 'ban')
+    _event_name_ = 'GUILD_BAN_REMOVE'
+    _fields_ = ('guild', 'ban')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -191,8 +191,8 @@ class GuildBanRemoveEvent(BaseEvent):
 
 @register
 class GuildEmojisUpdateEvent(BaseEvent):
-    __event_name__ = 'GUILD_EMOJIS_UPDATE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_EMOJIS_UPDATE'
+    _fields_ = ('guild',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -206,14 +206,14 @@ class GuildEmojisUpdateEvent(BaseEvent):
 
 @register
 class GuildIntegrationsUpdateEvent(BaseEvent):
-    __event_name__ = 'GUILD_INTEGRATIONS_UPDATE'
-    __fields__ = ('guild',)
+    _event_name_ = 'GUILD_INTEGRATIONS_UPDATE'
+    _fields_ = ('guild',)
 
 
 @register
 class GuildMemberAddEvent(BaseEvent):
-    __event_name__ = 'GUILD_MEMBER_ADD'
-    __fields__ = ('guild', 'member')
+    _event_name_ = 'GUILD_MEMBER_ADD'
+    _fields_ = ('guild', 'member')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -228,8 +228,8 @@ class GuildMemberAddEvent(BaseEvent):
 
 @register
 class GuildMemberUpdateEvent(BaseEvent):
-    __event_name__ = 'GUILD_MEMBER_UPDATE'
-    __fields__ = ('guild', 'member')
+    _event_name_ = 'GUILD_MEMBER_UPDATE'
+    _fields_ = ('guild', 'member')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -244,8 +244,8 @@ class GuildMemberUpdateEvent(BaseEvent):
 
 @register
 class GuildMemberRemoveEvent(BaseEvent):
-    __event_name__ = 'GUILD_MEMBER_REMOVE'
-    __fields__ = ('user', 'guild', 'member')
+    _event_name_ = 'GUILD_MEMBER_REMOVE'
+    _fields_ = ('user', 'guild', 'member')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -264,8 +264,8 @@ class GuildMemberRemoveEvent(BaseEvent):
 
 @register
 class GuildRoleCreateEvent(BaseEvent):
-    __event_name__ = 'GUILD_ROLE_CREATE'
-    __fields__ = ('guild', 'role')
+    _event_name_ = 'GUILD_ROLE_CREATE'
+    _fields_ = ('guild', 'role')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -280,8 +280,8 @@ class GuildRoleCreateEvent(BaseEvent):
 
 @register
 class GuildRoleUpdateEvent(BaseEvent):
-    __event_name__ = 'GUILD_ROLE_UPDATE'
-    __fields__ = ('guild', 'role')
+    _event_name_ = 'GUILD_ROLE_UPDATE'
+    _fields_ = ('guild', 'role')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -296,8 +296,8 @@ class GuildRoleUpdateEvent(BaseEvent):
 
 @register
 class GuildRoleDeleteEvent(BaseEvent):
-    __event_name__ = 'GUILD_ROLE_DELETE'
-    __fields__ = ('guild', 'role')
+    _event_name_ = 'GUILD_ROLE_DELETE'
+    _fields_ = ('guild', 'role')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -314,23 +314,23 @@ class GuildRoleDeleteEvent(BaseEvent):
 
 @register
 class IntegrationCreateEvent(BaseEvent):
-    __event_name__ = 'INTEGRATION_CREATE'
+    _event_name_ = 'INTEGRATION_CREATE'
 
 
 @register
 class IntegrationUpdateEvent(BaseEvent):
-    __event_name__ = 'INTEGRATION_UPDATE'
+    _event_name_ = 'INTEGRATION_UPDATE'
 
 
 @register
 class IntegrationDeleteEvent(BaseEvent):
-    __event_name__ = 'INTEGRATION_DELETE'
+    _event_name_ = 'INTEGRATION_DELETE'
 
 
 @register
 class InviteCreateEvent(BaseEvent):
-    __event_name__ = 'INVITE_CREATE'
-    __fields__ = ('invite',)
+    _event_name_ = 'INVITE_CREATE'
+    _fields_ = ('invite',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -340,8 +340,8 @@ class InviteCreateEvent(BaseEvent):
 
 @register
 class InviteDeleteEvent(BaseEvent):
-    __event_name__ = 'INVITE_DELETE'
-    __fields__ = ('invite',)
+    _event_name_ = 'INVITE_DELETE'
+    _fields_ = ('invite',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -355,8 +355,8 @@ class InviteDeleteEvent(BaseEvent):
 
 @register
 class MessageCreateEvent(BaseEvent):
-    __event_name__ = 'MESSAGE_CREATE'
-    __fields__ = ('channel', 'message')
+    _event_name_ = 'MESSAGE_CREATE'
+    _fields_ = ('channel', 'message')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -372,8 +372,8 @@ class MessageCreateEvent(BaseEvent):
 
 @register
 class MessageUpdateEvent(BaseEvent):
-    __event_name__ = 'MESSAGE_UPDATE'
-    __fields__ = ('channel', 'message')
+    _event_name_ = 'MESSAGE_UPDATE'
+    _fields_ = ('channel', 'message')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -389,8 +389,8 @@ class MessageUpdateEvent(BaseEvent):
 
 @register
 class MessageDeleteEvent(BaseEvent):
-    __event_name__ = 'MESSAGE_DELETE'
-    __fields__ = ('channel', 'message')
+    _event_name_ = 'MESSAGE_DELETE'
+    _fields_ = ('channel', 'message')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -408,8 +408,8 @@ class MessageDeleteEvent(BaseEvent):
 
 @register
 class MessageDeleteBulkEvent(BaseEvent):
-    __event_name__ = 'MESSAGE_DELETE_BULK'
-    __fields__ = ('channel', 'messages')
+    _event_name_ = 'MESSAGE_DELETE_BULK'
+    _fields_ = ('channel', 'messages')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -428,8 +428,8 @@ class MessageDeleteBulkEvent(BaseEvent):
 
 @register
 class MessageReactionAddEvent(BaseEvent):
-    __event_name__ = 'MESSAGE_REACTION_ADD'
-    __fields__ = ('channel', 'message', 'reactions', 'user')
+    _event_name_ = 'MESSAGE_REACTION_ADD'
+    _fields_ = ('channel', 'message', 'reactions', 'user')
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -449,8 +449,8 @@ class MessageReactionAddEvent(BaseEvent):
 
 @register
 class StageInstanceCreateEvent(BaseEvent):
-    __event_name__ = 'STAGE_INSTANCE_CREATE'
-    __fields__ = ('stage',)
+    _event_name_ = 'STAGE_INSTANCE_CREATE'
+    _fields_ = ('stage',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -460,8 +460,8 @@ class StageInstanceCreateEvent(BaseEvent):
 
 @register
 class StageInstanceUpdateEvent(BaseEvent):
-    __event_name__ = 'STAGE_INSTANCE_UPDATE'
-    __fields__ = ('stage',)
+    _event_name_ = 'STAGE_INSTANCE_UPDATE'
+    _fields_ = ('stage',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
@@ -471,8 +471,8 @@ class StageInstanceUpdateEvent(BaseEvent):
 
 @register
 class StageInstanceDeleteEvent(BaseEvent):
-    __event_name__ = 'STAGE_INSTANCE_DELETE'
-    __fields__ = ('stage',)
+    _event_name_ = 'STAGE_INSTANCE_DELETE'
+    _fields_ = ('stage',)
 
     @classmethod
     async def execute(cls, client, shard, payload):
