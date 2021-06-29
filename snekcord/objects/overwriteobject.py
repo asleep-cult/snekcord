@@ -1,8 +1,8 @@
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .. import rest
 from ..utils import _validate_keys
 from ..utils.enum import Enum
-from ..utils.json import JsonField, JsonTemplate
+from ..utils.json import JsonField
 from ..utils.permissions import Permissions
 
 __all__ = ('PermissionOverwriteType', 'PermissionOverwrite')
@@ -13,27 +13,11 @@ class PermissionOverwriteType(Enum[int]):
     MEMBER = 1
 
 
-PermissionOverwriteTemplate = JsonTemplate(
-    type=JsonField(
-        'type',
-        PermissionOverwriteType.get_enum,
-        PermissionOverwriteType.get_value
-    ),
-    allow=JsonField(
-        'allow',
-        Permissions.from_value,
-        Permissions.get_value
-    ),
-    deny=JsonField(
-        'deny',
-        Permissions.from_value,
-        Permissions.get_value
-    ),
-    __extends__=(BaseTemplate,)
-)
+class PermissionOverwrite(BaseObject):
+    type = JsonField('type', PermissionOverwriteType.get_enum)
+    allow = JsonField('allow', Permissions.from_value)
+    deny = JsonField('deny', Permissions.from_value)
 
-
-class PermissionOverwrite(BaseObject, template=PermissionOverwriteTemplate):
     @property
     def channel(self):
         return self.state.channel

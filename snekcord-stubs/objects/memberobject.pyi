@@ -8,20 +8,18 @@ from .guildobject import Guild
 from .userobject import User
 from ..states.memberstate import GuildMemberState
 from ..states.rolestate import GuildMemberRoleState
-from ..utils.json import JsonTemplate
+from ..utils.json import JsonField
 from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
-GuildMemberTemplate: JsonTemplate = ...
 
-
-class GuildMember(BaseObject[Snowflake], template=GuildMemberTemplate):
-    nick: str
-    created_at: datetime
-    premium_since: datetime
-    daef: bool
-    mute: bool
-    pending: bool
+class GuildMember(BaseObject[Snowflake]):
+    nick: JsonField[str]
+    created_at: JsonField[datetime]
+    premium_since: JsonField[datetime]
+    daef: JsonField[bool]
+    mute: JsonField[bool]
+    pending: JsonField[bool]
 
     state: GuildMemberState
     user: User | None

@@ -1,17 +1,12 @@
 from datetime import datetime
 
-from ..exceptions import PartialObjectError
-from ..utils.json import JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 __all__ = ('BaseObject',)
 
-BaseTemplate = JsonTemplate(
-    id=JsonField('id', Snowflake, str),
-)
 
-
-class BaseObject(JsonObject, template=BaseTemplate):
+class BaseObject(JsonObject):
     """The base class for all cachable Discord entities
 
     Attributes:
@@ -32,8 +27,9 @@ class BaseObject(JsonObject, template=BaseTemplate):
         The `deleted` and `deleted_at` attributes will only be accurate
         for objects maintained by a Discord WebSocket connection
     """
-    __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at',
-                 '__weakref__')
+    __slots__ = ('state', 'cached', 'deleted', 'deleted_at', '__weakref__')
+
+    id = JsonField('id', Snowflake)
 
     def __init__(self, *, state):
         self.state = state
@@ -42,14 +38,8 @@ class BaseObject(JsonObject, template=BaseTemplate):
         self.deleted_at = None
 
     def __hash__(self):
-        """Equivalent to `hash(self.id)`
-
-        Raises:
-            PartialObjectError: Raised when the object's id is None
-        """
         if self.id is None:
-            raise PartialObjectError(
-                f'{self.__class__.__name__} object is missing a valid id')
+            raise ValueError(f'{self.__class__.__name__} is missing a valid id')
         return hash(self.id)
 
     def __repr__(self):

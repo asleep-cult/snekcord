@@ -5,31 +5,26 @@ import typing as t
 from .baseobject import BaseObject
 from .guildobject import Guild
 from ..states.rolestate import RoleState
-from ..utils.json import JsonObject, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
-RoleTagsTemplate: JsonTemplate = ...
+
+class RoleTags(JsonObject):
+    bot_id: JsonField[Snowflake]
+    integration_id: JsonField[Snowflake]
+    premium_subscriber: JsonField[bool]
 
 
-class RoleTags(JsonObject, template=RoleTagsTemplate):
-    bot_id: Snowflake
-    integration_id: Snowflake
-    premium_subscriber: bool
-
-
-RoleTemplate: JsonTemplate = ...
-
-
-class Role(BaseObject[Snowflake], template=RoleTemplate):
-    raw_name: str
-    color: int
-    hoist: bool
-    position: int
-    permissions: Permissions
-    managed: bool
-    mentionable: bool
-    tags: RoleTags
+class Role(BaseObject[Snowflake]):
+    raw_name: JsonField[str]
+    color: JsonField[int]
+    hoist: JsonField[bool]
+    position: JsonField[int]
+    permissions: JsonField[Permissions]
+    managed: JsonField[bool]
+    mentionable: JsonField[bool]
+    tags: JsonField[RoleTags]
 
     state: RoleState
 

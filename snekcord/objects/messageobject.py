@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .embedobject import Embed
 from .. import rest
 from ..utils.bitset import Bitset, Flag
 from ..utils.enum import Enum
-from ..utils.json import JsonArray, JsonField, JsonTemplate
+from ..utils.json import JsonArray, JsonField
 from ..utils.snowflake import Snowflake
 
 __all__ = ('MessageType', 'MessageFlags', 'Message')
@@ -47,47 +47,31 @@ class MessageFlags(Bitset):
     LOADING = Flag(8)
 
 
-MessageTemplate = JsonTemplate(
-    channel_id=JsonField('channel_id', Snowflake, str),
-    guild_id=JsonField('guild_id', Snowflake, str),
-    content=JsonField('content'),
-    edited_at=JsonField(
-        'edited_timestamp',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    tts=JsonField('tts'),
-    mention_everyone=JsonField('mention_everyone'),
-    _mentions=JsonArray('mentions'),
-    _mention_roles=JsonArray('mention_roles'),
-    _mention_channels=JsonArray('mention_channels'),
-    _attachments=JsonArray('attachments'),
-    embeds=JsonArray('embeds', object=Embed),
-    nonce=JsonField('nonce'),
-    pinned=JsonField('pinned'),
-    webhook_id=JsonField('webhook_id', Snowflake, str),
-    type=JsonField(
-        'type',
-        MessageType.get_enum,
-        MessageType.get_value
-    ),
-    _activity=JsonField('activity'),
-    application=JsonField('application'),
-    _message_reference=JsonField('message_reference'),
-    flags=JsonField(
-        'flags',
-        MessageFlags.from_value,
-        MessageFlags.get_value
-    ),
-    _stickers=JsonArray('stickers'),
-    _referenced_message=JsonField('referenced_message'),
-    _interaction=JsonField('interaction'),
-    __extends__=(BaseTemplate,)
-)
-
-
-class Message(BaseObject, template=MessageTemplate):
+class Message(BaseObject):
     __slots__ = ('author', 'member', 'reactions')
+
+    channel_id = JsonField('channel_id', Snowflake)
+    guild_id = JsonField('guild_id', Snowflake)
+    content = JsonField('content')
+    edited_at = JsonField('edited_timestamp', datetime.fromisoformat)
+    tts = JsonField('tts')
+    mention_everyone = JsonField('mention_everyone')
+    _mentions = JsonArray('mentions')
+    _mention_roles = JsonArray('mention_roles')
+    _mention_channels = JsonArray('mention_channels')
+    _attachments = JsonArray('attachments')
+    embeds = JsonArray('embeds', object=Embed)
+    nonce = JsonField('nonce')
+    pinned = JsonField('pinned')
+    webhook_id = JsonField('webhook_id', Snowflake)
+    type = JsonField('type', MessageType.get_enum)
+    _activity = JsonField('activity')
+    application = JsonField('application')
+    _message_reference = JsonField('message_reference')
+    flags = JsonField('flags', MessageFlags.from_value)
+    _stickers = JsonArray('stickers')
+    _referenced_message = JsonField('referenced_message')
+    _interaction = JsonField('interaction')
 
     def __init__(self, *, state):
         super().__init__(state=state)

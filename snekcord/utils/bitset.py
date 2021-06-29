@@ -60,8 +60,5 @@ class Bitset:
         self.value = value
         return self
 
-    def get_value(self):
-        return self.value
-
     def to_dict(self):
         return dict(zip(self.__bitset_flags__, self))

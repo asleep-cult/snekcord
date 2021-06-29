@@ -1,9 +1,9 @@
 from urllib.parse import quote
 
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .. import rest
 from ..utils import _validate_keys
-from ..utils.json import JsonArray, JsonField, JsonTemplate
+from ..utils.json import JsonArray, JsonField
 from ..utils.snowflake import Snowflake
 
 try:
@@ -15,19 +15,15 @@ except ImportError:
 __all__ = ('GuildEmoji', 'BuiltinEmoji')
 
 
-GuildEmojiTemplate = JsonTemplate(
-    name=JsonField('name'),
-    role_ids=JsonArray('roles', Snowflake, str),
-    required_colons=JsonField('required_colons'),
-    managed=JsonField('managed'),
-    animated=JsonField('animated'),
-    available=JsonField('available'),
-    __extends__=(BaseTemplate,)
-)
-
-
-class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
+class GuildEmoji(BaseObject):
     __slots__ = ('user',)
+
+    name = JsonField('name')
+    role_ids = JsonArray('roles', Snowflake)
+    required_colons = JsonField('required_colons')
+    managed = JsonField('managed')
+    animages = JsonField('animated')
+    available = JsonField('available')
 
     def __init__(self, *, state):
         super().__init__(state=state)

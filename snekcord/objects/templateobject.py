@@ -3,36 +3,26 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .. import rest
 from ..utils import _validate_keys
-from ..utils.json import JsonField, JsonTemplate
+from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildTemplate',)
 
-GuildTemplateTemplate = JsonTemplate(
-    id=JsonField('code'),
-    name=JsonField('name'),
-    description=JsonField('description'),
-    usage_count=JsonField('usage_count'),
-    creator_id=JsonField('creator_id', Snowflake, str),
-    created_at=JsonField(
-        'created_at',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    updated_at=JsonField(
-        'updated_at',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    source_guild_id=JsonField('source_guild_id', Snowflake, str),
-    serialized_source_guild=JsonField('serialized_source_guild'),
+
+class GuildTemplate(BaseObject):
+    id = JsonField('code')
+    name = JsonField('name')
+    description = JsonField('description')
+    usage_count = JsonField('usage_count')
+    creator_id = JsonField('creator_id', Snowflake)
+    created_at = JsonField('created_at', datetime.fromisoformat)
+    updated_at = JsonField('updated_at', datetime.fromisoformat)
+    source_guild_id = JsonField('source_guild_id', Snowflake)
+    serialized_source_guild = JsonField('serialized_source_guild')
     # if someone actually needs this field to be more user friendly...
     # ever... make an issue https://github.com/asleep-cult/snekcord/issues
-    is_dirty=JsonField('is_dirty'),
-)
+    is_dirty = JsonField('is_dirty')
 
-
-class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
     @property
     def code(self):
         return self.id

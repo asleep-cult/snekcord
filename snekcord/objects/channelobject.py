@@ -1,8 +1,8 @@
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .. import rest
 from ..utils import _validate_keys
 from ..utils.enum import Enum
-from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 __all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'FollowedChannel',
@@ -61,18 +61,7 @@ def _guild_channel_modification_keys(channel_type):
     return keys
 
 
-GuildChannelTemplate = JsonTemplate(
-    name=JsonField('name'),
-    guild_id=JsonField('guild_id', Snowflake, str),
-    position=JsonField('position'),
-    nsfw=JsonField('nsfw'),
-    parent_id=JsonField('parent_id', Snowflake, str),
-    type=JsonField('type', ChannelType.get_enum, ChannelType.get_value),
-    __extends__=(BaseTemplate,)
-)
-
-
-class GuildChannel(BaseObject, template=GuildChannelTemplate):
+class GuildChannel(BaseObject):
     """The base class for all channels that belong to a `Guild`
 
     Attributes:
@@ -90,6 +79,13 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         type ChannelType: The channel's type
     """
     __slots__ = ('permissions',)
+
+    name = JsonField('name')
+    guild_id = JsonField('guild_id', Snowflake)
+    position = JsonField('position')
+    nsfw = JsonField('nsfw')
+    parent_id = JsonField('parent_id', Snowflake)
+    type = JsonField('type', ChannelType.get_enum)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -187,13 +183,10 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             self.permissions.upsert_replace(permission_overwrites)
 
 
-FollowedChannelTemplate = JsonTemplate(
-    channel_id=JsonField('channel_id', Snowflake, str),
-    webhook_id=JsonField('webhook_id', Snowflake, str),
-)
+class FollowedChannel(JsonObject):
+    channel_id = JsonField('channel_id', Snowflake)
+    webhook_id = JsonField('webhook_id', Snowflake)
 
-
-class FollowedChannel(JsonObject, template=FollowedChannelTemplate):
     def __init__(self, *, state):
         self.state = state
 
@@ -202,15 +195,7 @@ class FollowedChannel(JsonObject, template=FollowedChannelTemplate):
         return self.state.get(self.channel_id)
 
 
-TextChannelTemplate = JsonTemplate(
-    topic=JsonField('topic'),
-    slowmode=JsonField('rate_limit_per_user'),
-    last_message_id=JsonField('last_message_id', Snowflake, str),
-    __extends__=(GuildChannelTemplate,)
-)
-
-
-class TextChannel(GuildChannel, template=TextChannelTemplate):
+class TextChannel(GuildChannel):
     """Represents the `GUILD_TEXT` and `GUILD_NEWS` channel types
 
     Attributes:
@@ -225,6 +210,10 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
             channel
     """
     __slots__ = ('messages', 'last_pin_timestamp')
+
+    topic = JsonField('topic')
+    slowmode = JsonField('rate_limit_per_user')
+    last_message_id = JsonField('last_message_id', Snowflake)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -278,7 +267,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         return self.messages.upsert_many(data)
 
 
-class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
+class CategoryChannel(GuildChannel):
     """Represents the `GUILD_CATEGORY` channel type"""
     def __str__(self):
         return f'#{self.name}'
@@ -292,14 +281,7 @@ class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
                     yield channel
 
 
-VoiceChannelTemplate = JsonTemplate(
-    bitrate=JsonField('bitrate'),
-    user_limit=JsonField('user_limit'),
-    __extends__=(GuildChannelTemplate,)
-)
-
-
-class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
+class VoiceChannel(GuildChannel):
     """Represents the `GUILD_VOICE` channel type
 
     Attributes:
@@ -308,23 +290,18 @@ class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
         user_limit int: The maximum amount of people who can be in this
             channel at once
     """
+    bitrate = JsonField('bitrate')
+    user_limit = JsonField('user_limit')
+
     def __str__(self):
         return f'#!{self.name}'
 
 
-DMChannelTemplate = JsonTemplate(
-    last_message_id=JsonField('last_message_id', Snowflake, str),
-    type=JsonField(
-        'type',
-        ChannelType.get_enum,
-        ChannelType.get_value
-    ),
-    _recipients=JsonArray('recipients'),
-    __extends__=(BaseTemplate,)
-)
+class DMChannel(BaseObject):
+    last_message_id = JsonField('last_message_id', Snowflake)
+    type = JsonField('type', ChannelType.get_enum)
+    _recipients = JsonArray('recipients')
 
-
-class DMChannel(BaseObject, template=DMChannelTemplate):
     async def close(self):
         """Invokes an API request to close the channel"""
         await rest.delete_channel.request(

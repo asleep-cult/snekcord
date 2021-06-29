@@ -3,7 +3,7 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .. import rest
 from ..utils.enum import Enum
-from ..utils.json import JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 
 __all__ = ('Invite', 'GuildVanityURL')
 
@@ -13,32 +13,21 @@ class InviteTargetType(Enum[int]):
     EMBEDDED_APPLICATION = 2
 
 
-InviteTemplate = JsonTemplate(
-    id=JsonField('code'),
-    target_type=JsonField(
-        'target_type',
-        InviteTargetType.get_enum,
-        InviteTargetType.get_value
-    ),
-    presence_count=JsonField('approximate_presence_count'),
-    member_count=JsonField('approximate_member_count'),
-    expires_at=JsonField('expires_at'),
-
-    uses=JsonField('uses'),
-    max_uses=JsonField('max_uses'),
-    max_age=JsonField('max_age'),
-    temporary=JsonField('temporary'),
-    created_at=JsonField(
-        'temporary',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-)
-
-
-class Invite(BaseObject, template=InviteTemplate):
+class Invite(BaseObject):
     __slots__ = ('guild', 'channel', 'inviter', 'target_user',
                  'target_application')
+
+    id = JsonField('code')
+    target_type = JsonField('target_type', InviteTargetType.get_enum)
+    presence_count = JsonField('approximate_presence_count')
+    member_count = JsonField('approximate_member_count')
+    expires_at = JsonField('expires_at')
+
+    uses = JsonField('uses')
+    max_uses = JsonField('max_uses')
+    max_age = JsonField('max_age')
+    temporary = JsonField('temporary')
+    created_at = JsonField('temporary', datetime.fromisoformat)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -77,13 +66,10 @@ class Invite(BaseObject, template=InviteTemplate):
             self.target_user = self.state.client.users.upsert(target_user)
 
 
-GuildVanityURLTemplate = JsonTemplate(
-    code=JsonField('code')
-)
-
-
-class GuildVanityURL(JsonObject, template=GuildVanityURLTemplate):
+class GuildVanityURL(JsonObject):
     __slots__ = ('guild',)
+
+    code = JsonField('code')
 
     def __init__(self, *, guild):
         self.guild = guild

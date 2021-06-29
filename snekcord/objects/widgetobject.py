@@ -1,58 +1,40 @@
-from .baseobject import BaseTemplate
 from .. import rest
-from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson',
            'GuildWidget')
 
-GuildWidgetChannelTemplate = JsonTemplate(
-    name=JsonField('name'),
-    position=JsonField('position'),
-    __extends__=(BaseTemplate,)
-)
+
+class GuildWidgetChannel(JsonObject):
+    id = JsonField('id', Snowflake)
+    name = JsonField('name')
+    position = JsonField('position')
 
 
-class GuildWidgetChannel(JsonObject, template=GuildWidgetChannelTemplate):
-    pass
+class GuildWidgetMember(JsonObject):
+    id = JsonField('id', Snowflake)
+    username = JsonField('username')
+    discriminator = JsonField('discriminator')
+    avatar = JsonField('avatar')
+    status = JsonField('status')
+    avatar_url = JsonField('avatar_url')
 
 
-GuildWidgetMemberTemplate = JsonTemplate(
-    username=JsonField('username'),
-    discriminator=JsonField('discriminator'),
-    avatar=JsonField('avatar'),
-    status=JsonField('status'),
-    avatar_url=JsonField('avatar_url'),
-    __extends__=(BaseTemplate,)
-)
+class GuildWidgetJson(JsonObject):
+    id = JsonField('id', Snowflake)
+    name = JsonField('name')
+    instant_invite = JsonField('instant_invite')
+    channels = JsonArray('channels', object=GuildWidgetChannel)
+    members = JsonArray('members', object=GuildWidgetMember)
+    presence_count = JsonField('presence_count')
 
 
-class GuildWidgetMember(JsonObject, template=GuildWidgetMemberTemplate):
-    pass
-
-
-GuildWidgetJsonTemplate = JsonTemplate(
-    name=JsonField('name'),
-    instant_invite=JsonField('instant_invite'),
-    channels=JsonArray('channels', object=GuildWidgetChannel),
-    members=JsonArray('members', object=GuildWidgetMember),
-    presence_count=JsonField('presence_count'),
-    __extends__=(BaseTemplate,)
-)
-
-
-class GuildWidgetJson(JsonObject, template=GuildWidgetJsonTemplate):
-    pass
-
-
-GuildWidgetSettingsTemplate = JsonTemplate(
-    enabled=JsonField('enabled'),
-    channel_id=JsonField('channel_id'),
-)
-
-
-class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
+class GuildWidget(JsonObject):
     __slots__ = ('guild',)
+
+    enabled = JsonField('enabled')
+    channel_id = JsonField('channel_id')
 
     def __init__(self, *, guild):
         self.guild = guild

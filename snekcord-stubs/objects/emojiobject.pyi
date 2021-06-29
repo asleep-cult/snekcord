@@ -6,7 +6,7 @@ from .baseobject import BaseObject
 from .guildobject import Guild
 from .userobject import User
 from ..states.emojistate import EmojiState
-from ..utils.json import JsonTemplate
+from ..utils.json import JsonArray, JsonField
 from ..utils.snowflake import Snowflake
 
 T = t.TypeVar('T')
@@ -16,16 +16,14 @@ ALL_CATEGORIES: dict[str, _Emoji]
 
 BUILTIN_EMOJIS: dict[bytes, BuiltinEmoji]
 
-GuildEmojiTemplate: JsonTemplate = ...
 
-
-class GuildEmoji(BaseObject[Snowflake], template=GuildEmojiTemplate):
-    name: str
-    role_ids: list[Snowflake]
-    required_colons: bool
-    managed: bool
-    animated: bool
-    available: bool
+class GuildEmoji(BaseObject[Snowflake]):
+    name: JsonField[str]
+    role_ids: JsonArray[Snowflake]
+    required_colons: JsonField[bool]
+    managed: JsonField[bool]
+    animated: JsonField[bool]
+    available: JsonField[bool]
 
     state: EmojiState
     user: User | None

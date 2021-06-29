@@ -3,48 +3,37 @@ from __future__ import annotations
 from .channelobject import GuildChannel
 from .guildobject import Guild
 from ..typedefs import SnowflakeConvertible
-from ..utils.json import JsonObject, JsonTemplate
+from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
-GuildWidgetChannelTemplate: JsonTemplate = ...
+
+class GuildWidgetChannel(JsonObject):
+    id: JsonField[Snowflake]
+    name: JsonField[str]
+    position: JsonField[int]
 
 
-class GuildWidgetChannel(JsonObject, template=GuildWidgetChannelTemplate):
-    id: Snowflake
-    name: str
-    position: int
+class GuildWidgetMember(JsonObject):
+    id: JsonField[Snowflake]
+    username: JsonField[str]
+    discriminator: JsonField[str]
+    avatar: JsonField[str]
+    status: JsonField[str]
+    avatar_url: JsonField[str]
 
 
-GuildWidgetMemberTemplate: JsonTemplate = ...
-
-
-class GuildWidgetMember(JsonObject, template=GuildWidgetMemberTemplate):
-    id: Snowflake
-    username: str
-    discriminator: str
-    avatar: str
-    status: str
-    avatar_url: str
-
-
-GuildWidgetJsonTemplate: JsonTemplate = ...
-
-
-class GuildWidgetJson(JsonObject, template=GuildWidgetJsonTemplate):
-    id: Snowflake
+class GuildWidgetJson(JsonObject):
+    id: JsonField[Snowflake]
     name: str
     instant_invite: str
-    channels: list[GuildWidgetChannel]
-    members: list[GuildWidgetMember]
+    channels: JsonArray[GuildWidgetChannel]
+    members: JsonArray[GuildWidgetMember]
     presence_count: int
 
 
-GuildWidgetSettingsTemplate: JsonTemplate = ...
-
-
-class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
-    enabled: bool
-    channel_id: Snowflake
+class GuildWidget(JsonObject):
+    enabled: JsonField[bool]
+    channel_id: JsonField[Snowflake]
 
     guild: Guild
 

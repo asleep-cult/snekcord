@@ -1,52 +1,51 @@
+import typing as t
+
 from .baseobject import BaseObject
 from ..states.userstate import UserState
 from ..utils.bitset import Bitset, Flag
 from ..utils.enum import Enum
-from ..utils.json import JsonTemplate
+from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
 
 class UserFlags(Bitset):
-    discord_employee = Flag(0)
-    partnered_server_owner = Flag(1)
-    hypesquad_events = Flag(2)
-    bug_hunter_level_1 = Flag(3)
-    mfa_sms = Flag(4)
-    premium_promo_dismissed = Flag(5)
-    house_bravery = Flag(6)
-    house_brilliance = Flag(7)
-    house_balance = Flag(8)
-    early_supporter = Flag(9)
-    team_user = Flag(10)
-    has_unread_urgent_message = Flag(13)
-    bug_hunter_level_2 = Flag(14)
-    verified_bot = Flag(16)
-    early_verified_bot_developer = Flag(17)
-    discord_certified_moderator = Flag(18)
+    discord_employee: t.ClassVar[Flag]
+    partnered_server_owner: t.ClassVar[Flag]
+    hypesquad_events: t.ClassVar[Flag]
+    bug_hunter_level_1: t.ClassVar[Flag]
+    mfa_sms: t.ClassVar[Flag]
+    premium_promo_dismissed: t.ClassVar[Flag]
+    house_bravery: t.ClassVar[Flag]
+    house_brilliance: t.ClassVar[Flag]
+    house_balance: t.ClassVar[Flag]
+    early_supporter: t.ClassVar[Flag]
+    team_user: t.ClassVar[Flag]
+    has_unread_urgent_message: t.ClassVar[Flag]
+    bug_hunter_level_2: t.ClassVar[Flag]
+    verified_bot: t.ClassVar[Flag]
+    early_verified_bot_developer: t.ClassVar[Flag]
+    discord_certified_moderator: t.ClassVar[Flag]
 
 
 class PremiumType(Enum[int]):
-    NONE = 0
-    NITRO_CLASSIC = 1
-    NITRO = 2
+    NONE: t.ClassVar[int]
+    NITRO_CLASSIC: t.ClassVar[int]
+    NITRO: t.ClassVar[int]
 
 
-UserTemplate: JsonTemplate = ...
-
-
-class User(BaseObject[Snowflake], template=UserTemplate):
-    name: str
-    discriminator: str
-    avatar: str
-    bot: bool
-    system: bool
-    mfa_enabled: bool
-    locale: str
-    verified: bool
-    email: str
-    flags: UserFlags
-    premium_type: PremiumType
-    public_flags: UserFlags
+class User(BaseObject[Snowflake]):
+    name: JsonField[str]
+    discriminator: JsonField[str]
+    avatar: JsonField[str]
+    bot: JsonField[bool]
+    system: JsonField[bool]
+    mfa_enabled: JsonField[bool]
+    locale: JsonField[str]
+    verified: JsonField[bool]
+    email: JsonField[str]
+    flags: JsonField[UserFlags]
+    premium_type: JsonField[PremiumType]
+    public_flags: JsonField[UserFlags]
 
     state: UserState
 

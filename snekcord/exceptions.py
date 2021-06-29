@@ -1,2 +1,0 @@
-class PartialObjectError(TypeError):
-    pass

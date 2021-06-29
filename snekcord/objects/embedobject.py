@@ -2,7 +2,7 @@ import copy
 from datetime import datetime
 
 from ..utils.enum import Enum
-from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonArray, JsonField, JsonObject
 
 __all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
@@ -32,15 +32,7 @@ class EmbedType(Enum[str]):
     LINK = 'link'
 
 
-EmbedThumbnailTemplate = JsonTemplate(
-    url=JsonField('url'),
-    proxy_url=JsonField('proxy_url'),
-    height=JsonField('height'),
-    width=JsonField('width')
-)
-
-
-class EmbedThumbnail(JsonObject, template=EmbedThumbnailTemplate):
+class EmbedThumbnail(JsonObject):
     """An embed thumbnail
 
     Attributes:
@@ -52,17 +44,13 @@ class EmbedThumbnail(JsonObject, template=EmbedThumbnailTemplate):
 
         width int: The thumbnail's width
     """
+    url = JsonField('url')
+    proxy_url = JsonField('proxy_url')
+    height = JsonField('height')
+    width = JsonField('width')
 
 
-EmbedVideoTemplate = JsonTemplate(
-    url=JsonField('url'),
-    proxy_url=JsonField('proxy_url'),
-    height=JsonField('height'),
-    width=JsonField('width')
-)
-
-
-class EmbedVideo(JsonObject, template=EmbedVideoTemplate):
+class EmbedVideo(JsonObject):
     """An embed video
 
     Attributes:
@@ -74,17 +62,13 @@ class EmbedVideo(JsonObject, template=EmbedVideoTemplate):
 
         width int: The video's width
     """
+    url = JsonField('url')
+    proxy_url = JsonField('proxy_url')
+    height = JsonField('height')
+    width = JsonField('width')
 
 
-EmbedImageTemplate = JsonTemplate(
-    url=JsonField('url'),
-    proxy_url=JsonField('proxy_url'),
-    height=JsonField('height'),
-    width=JsonField('width')
-)
-
-
-class EmbedImage(JsonObject, template=EmbedImageTemplate):
+class EmbedImage(JsonObject):
     """An embed image
 
     Attributes:
@@ -96,15 +80,13 @@ class EmbedImage(JsonObject, template=EmbedImageTemplate):
 
         width int: The image's width
     """
+    url = JsonField('url')
+    proxy_url = JsonField('proxy_url')
+    height = JsonField('height')
+    width = JsonField('width')
 
 
-EmbedProviderTemplate = JsonTemplate(
-    name=JsonField('name'),
-    url=JsonField('url')
-)
-
-
-class EmbedProvider(JsonObject, template=EmbedProviderTemplate):
+class EmbedProvider(JsonObject):
     """An embed provider
 
     Attributes:
@@ -112,16 +94,11 @@ class EmbedProvider(JsonObject, template=EmbedProviderTemplate):
 
         url str: The provider's url
     """
+    name = JsonField('name')
+    url = JsonField('url')
 
 
-EmbedAuthorTemplate = JsonTemplate(
-    name=JsonField('name'),
-    icon_url=JsonField('icon_url'),
-    proxy_icon_url=JsonField('proxy_icon_url')
-)
-
-
-class EmbedAuthor(JsonObject, template=EmbedAuthorTemplate):
+class EmbedAuthor(JsonObject):
     """An embed author
 
     Attributes:
@@ -131,16 +108,12 @@ class EmbedAuthor(JsonObject, template=EmbedAuthorTemplate):
 
         proxy_icon_url str: The author's proxy icon url
     """
+    name = JsonField('name')
+    icon_url = JsonField('icon_url')
+    proxy_icon_url = JsonField('proxy_icon_url')
 
 
-EmbedFooterTemplate = JsonTemplate(
-    text=JsonField('text'),
-    icon_url=JsonField('icon_url'),
-    proxy_icon_url=JsonField('proxy_icon_url')
-)
-
-
-class EmbedFooter(JsonObject, template=EmbedFooterTemplate):
+class EmbedFooter(JsonObject):
     """An embed footer
 
     Attributes:
@@ -150,16 +123,12 @@ class EmbedFooter(JsonObject, template=EmbedFooterTemplate):
 
         proxy_icon_url str: The footer's proxy icon url
     """
+    text = JsonField('text')
+    icon_url = JsonField('icon_url')
+    proxy_icon_url = JsonField('proxy_icon_url')
 
 
-EmbedFieldTemplate = JsonTemplate(
-    name=JsonField('name'),
-    value=JsonField('value'),
-    inline=JsonField('inline')
-)
-
-
-class EmbedField(JsonObject, template=EmbedFieldTemplate):
+class EmbedField(JsonObject):
     """An embed field
 
     Attributes:
@@ -169,34 +138,12 @@ class EmbedField(JsonObject, template=EmbedFieldTemplate):
 
         inline bool: Whether or not the field is inline
     """
+    name = JsonField('name')
+    value = JsonField('value')
+    inline = JsonField('inline')
 
 
-EmbedTemplate = JsonTemplate(
-    title=JsonField('title'),
-    type=JsonField(
-        'type', EmbedType.get_enum,
-        EmbedType.get_value,
-        default=EmbedType.RICH
-    ),
-    description=JsonField('description'),
-    url=JsonField('url'),
-    timestamp=JsonField(
-        'timestamp',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    color=JsonField('color'),
-    footer=JsonField('footer', object=EmbedFooter),
-    image=JsonField('image', object=EmbedImage),
-    thumbnail=JsonField('thumbnail', object=EmbedThumbnail),
-    video=JsonField('video', object=EmbedVideo),
-    provider=JsonField('provider', object=EmbedProvider),
-    author=JsonField('author', object=EmbedAuthor),
-    fields=JsonArray('fields', object=EmbedField)
-)
-
-
-class Embed(JsonObject, template=EmbedTemplate):
+class Embed(JsonObject):
     """Represents embedded rich content in a `Message`
 
     Attributes:
@@ -226,6 +173,20 @@ class Embed(JsonObject, template=EmbedTemplate):
 
         fields list[EmbedField]: The embed's fields
     """
+    title = JsonField('title'),
+    type = JsonField('type', EmbedType.get_enum, default=EmbedType.RICH)
+    description = JsonField('description')
+    url = JsonField('url')
+    timestamp = JsonField('timestamp', datetime.fromisoformat)
+    color = JsonField('color')
+    footer = JsonField('footer', object=EmbedFooter)
+    image = JsonField('image', object=EmbedImage)
+    thumbnail = JsonField('thumbnail', object=EmbedThumbnail)
+    video = JsonField('video', object=EmbedVideo)
+    provider = JsonField('provider', object=EmbedProvider)
+    author = JsonField('author', object=EmbedAuthor)
+    fields = JsonArray('fields', object=EmbedField)
+
     def to_builder(self):
         """Equivalent to `EmbedBuilder.from_embed(self)`"""
         return EmbedBuilder.from_embed(self)

@@ -1,7 +1,7 @@
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from ..utils.bitset import Bitset, Flag
 from ..utils.enum import Enum
-from ..utils.json import JsonField, JsonTemplate
+from ..utils.json import JsonField
 
 __all__ = ('User',)
 
@@ -31,36 +31,20 @@ class PremiumType(Enum[int]):
     NITRO = 2
 
 
-UserTemplate = JsonTemplate(
-    name=JsonField('username'),
-    discriminator=JsonField('discriminator'),
-    avatar=JsonField('avatar'),
-    bot=JsonField('bot'),
-    system=JsonField('system'),
-    mfa_enabled=JsonField('mfa_enabled'),
-    locale=JsonField('locale'),
-    verified=JsonField('verified'),
-    email=JsonField('email'),
-    flags=JsonField(
-        'flags',
-        UserFlags.from_value,
-        UserFlags.get_value
-    ),
-    premium_type=JsonField(
-        'premium_type',
-        PremiumType.get_enum,
-        PremiumType.get_value
-    ),
-    public_flags=JsonField(
-        'public_flags',
-        UserFlags.from_value,
-        UserFlags.get_value
-    ),
-    __extends__=(BaseTemplate,)
-)
+class User(BaseObject):
+    name = JsonField('username')
+    discriminator = JsonField('discriminator')
+    avatar = JsonField('avatar')
+    bot = JsonField('bot')
+    system = JsonField('system')
+    mfa_enabled = JsonField('mfa_enabled')
+    locale = JsonField('locale')
+    verified = JsonField('verified')
+    email = JsonField('email')
+    flags = JsonField('flags', UserFlags.from_value)
+    premium_type = JsonField('premium_type', PremiumType.get_enum)
+    public_flags = JsonField('public_flags', UserFlags.from_value)
 
-
-class User(BaseObject, template=UserTemplate):
     def __str__(self):
         return f'@{self.name}'
 

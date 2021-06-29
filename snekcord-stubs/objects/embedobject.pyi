@@ -6,100 +6,76 @@ from datetime import datetime
 from .channelobject import TextChannel
 from .messageobject import Message
 from ..utils.enum import Enum
-from ..utils.json import JsonObject, JsonTemplate
+from ..utils.json import JsonArray, JsonField, JsonObject
 
 
 class EmbedType(Enum[str]):
-    RICH = 'rich'
-    IMAGE = 'image'
-    VIDEO = 'video'
-    GIFV = 'gifv'
-    ARTICLE = 'article'
-    LINK = 'link'
+    RICH: str
+    IMAGE: str
+    VIDEO: str
+    GIFV: str
+    ARTICLE: str
+    LINK: str
 
 
-EmbedThumbnailTemplate: JsonTemplate = ...
+class EmbedThumbnail(JsonObject):
+    user: JsonField[str]
+    proxy_url: JsonField[str]
+    height: JsonField[int]
+    width: JsonField[int]
 
 
-class EmbedThumbnail(JsonObject, template=EmbedThumbnailTemplate):
-    user: str
-    proxy_url: str
-    height: int
-    width: int
+class EmbedVideo(JsonObject):
+    url: JsonField[str]
+    proxy_url: JsonField[str]
+    height: JsonField[int]
+    width: JsonField[int]
 
 
-EmbedVideoTemplate: JsonTemplate = ...
+class EmbedImage(JsonObject):
+    url: JsonField[str]
+    proxy_url: JsonField[str]
+    height: JsonField[int]
+    width: JsonField[int]
 
 
-class EmbedVideo(JsonObject, template=EmbedVideoTemplate):
-    url: str
-    proxy_url: str
-    height: int
-    width: int
+class EmbedProvider(JsonObject):
+    name: JsonField[str]
+    url: JsonField[str]
 
 
-EmbedImageTemplate: JsonTemplate = ...
+class EmbedAuthor(JsonObject):
+    name: JsonField[str]
+    icon_url: JsonField[str]
+    proxy_icon_url: JsonField[str]
 
 
-class EmbedImage(JsonObject, template=EmbedImageTemplate):
-    url: str
-    proxy_url: str
-    height: int
-    width: int
+class EmbedFooter(JsonObject):
+    text: JsonField[str]
+    icon_url: JsonField[str]
+    proxy_icon_url: JsonField[str]
 
 
-EmbedProviderTemplate: JsonTemplate = ...
+class EmbedField(JsonObject):
+    name: JsonField[str]
+    value: JsonField[str]
+    inline: JsonField[bool]
 
 
-class EmbedProvider(JsonObject, template=EmbedProviderTemplate):
-    name: str
-    url: str
-
-
-EmbedAuthorTemplate: JsonTemplate = ...
-
-
-class EmbedAuthor(JsonObject, template=EmbedAuthorTemplate):
-    name: str
-    icon_url: str
-    proxy_icon_url: str
-
-
-EmbedFooterTemplate: JsonTemplate = ...
-
-
-class EmbedFooter(JsonObject, template=EmbedFooterTemplate):
-    text: str
-    icon_url: str
-    proxy_icon_url: str
-
-
-EmbedFieldTemplate: JsonTemplate = ...
-
-
-class EmbedField(JsonObject, template=EmbedFieldTemplate):
-    name: str
-    value: str
-    inline: bool
-
-
-EmbedTemplate: JsonTemplate = ...
-
-
-class Embed(JsonObject, template=EmbedTemplate):
-    title: str
-    type: EmbedType
-    description: str
-    url: str
-    timestamp: datetime
-    color: int
-    footer: EmbedFooter
-    image: EmbedImage
-    thumbnail: EmbedThumbnail
-    video: EmbedVideo
-    provider: EmbedProvider
-    author: EmbedAuthor
-    fields: EmbedField
+class Embed(JsonObject):
+    title: JsonField[str]
+    type: JsonField[EmbedType]
+    description: JsonField[str]
+    url: JsonField[str]
+    timestamp: JsonField[datetime]
+    color: JsonField[int]
+    footer: JsonField[EmbedFooter]
+    image: JsonField[EmbedImage]
+    thumbnail: JsonField[EmbedThumbnail]
+    video: JsonField[EmbedVideo]
+    provider: JsonField[EmbedProvider]
+    author: JsonField[EmbedAuthor]
+    fields: JsonArray[EmbedField]
 
 
 class EmbedBuilder:
@@ -181,5 +157,4 @@ class EmbedBuilder:
 
     def clear_fields(self) -> EmbedBuilder: ...
 
-    def send_to(self, channel: TextChannel,
-                **kwargs: t.Any) -> Message: ...
+    def send_to(self, channel: TextChannel, **kwargs: t.Any) -> Message: ...

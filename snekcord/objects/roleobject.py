@@ -1,41 +1,29 @@
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .. import rest
 from ..utils import _validate_keys
-from ..utils.json import JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 __all__ = ('RoleTags', 'Role')
 
-RoleTagsTemplate = JsonTemplate(
-    bot_id=JsonField('bot_id', Snowflake, str),
-    integration_id=JsonField('integration_id', Snowflake, str),
-    premium_subscriber=JsonField('premium_subscriber')
-)
+
+class RoleTags(JsonObject):
+    bot_id = JsonField('bot_id', Snowflake),
+    integration_id = JsonField('integration_id', Snowflake)
+    premium_subscriber = JsonField('premium_subscriber')
 
 
-class RoleTags(JsonObject, template=RoleTagsTemplate):
-    pass
+class Role(BaseObject):
+    raw_name = JsonField('name')
+    color = JsonField('color')
+    hoist = JsonField('hoist')
+    position = JsonField('position')
+    permissions = JsonField('permissions', Permissions.from_value)
+    managed = JsonField('managed')
+    mentionable = JsonField('mentionable')
+    tags = JsonField('tags', object=RoleTags)
 
-
-RoleTemplate = JsonTemplate(
-    raw_name=JsonField('name'),
-    color=JsonField('color'),
-    hoist=JsonField('hoist'),
-    position=JsonField('position'),
-    permissions=JsonField(
-        'permissions',
-        Permissions.from_value,
-        Permissions.get_value
-    ),
-    managed=JsonField('managed'),
-    mentionable=JsonField('mentionable'),
-    tags=JsonField('tags', object=RoleTags),
-    __extends__=(BaseTemplate,)
-)
-
-
-class Role(BaseObject, template=RoleTemplate):
     # For some reason '@everyone' pings everyone and the everyone role
     # is named '@everyone', this is escaped to prevent accidental pings
 

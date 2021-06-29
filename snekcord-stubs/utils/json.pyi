@@ -2,69 +2,54 @@ from __future__ import annotations
 
 import typing as t
 
-from ..typedefs import AnyCallable, Json
+from ..typedefs import Json
+
+__all__ = ('JsonObject', 'JsonField', 'JsonArray')
 
 T = t.TypeVar('T')
-
-__all__ = ('JsonTemplate', 'JsonField', 'JsonArray', 'JsonObject')
-
-
-class JsonTemplate:
-    local_fields: dict[str, JsonField]
-    fields: dict[str, JsonField]
-
-    def __init__(self, __extends__: tuple[JsonTemplate, ...] = ...,
-                 **fields: JsonField) -> None: ...
-
-    def update(self, obj: JsonObject, data: Json, *,
-               set_defaults: bool = ...) -> None: ...
-
-    def to_dict(self, obj: JsonObject) -> Json: ...
-
-    def marshal(self, obj: JsonObject, *args: t.Any,
-                **kwargs: t.Any) -> str: ...
-
-    def default_type(self, name: str = ...) -> type[JsonObject]: ...
+FT = t.TypeVar('FT')
 
 
-class JsonField:
-    key: str
-    object: type[JsonObject] | None
-
-    def __init__(self, key: str, marshal: AnyCallable | None = ...,
-                 object: type[JsonObject] | None = ...,
-                 default: t.Any = ...) -> None: ...
-
-    def unmarshal(self, value: t.Any) -> t.Any: ...
-
-    def marshal(self, value: t.Any) -> t.Any: ...
-
-    def default(self) -> t.Any: ...
-
-
-class JsonArray(JsonField):
-    def unmarshal(self, value: list[t.Any]) -> list[t.Any]: ...
-
-    def marshal(self, value: list[t.Any]) -> list[t.Any]: ...
-
-
-class JsonObjectMeta(type):
-    def __new__(cls, name: str, bases: tuple[type, ...],
-                attrs: dict[str, t.Any],
-                template: JsonTemplate | None = ...) -> None: ...
-
-
-class JsonObject(metaclass=JsonObjectMeta):
-    __template__: t.ClassVar[JsonTemplate | None]
-
-    __fields__: set[str]
+class JsonObject:
+    _json_data_: Json
 
     @classmethod
-    def unmarshal(cls: type[T], data: Json | t.ByteString | None = ...,
-                  *args: t.Any, **kwargs: t.Any) -> T: ...
+    def unmarshal(cls: type[T], data: Json | None = ..., **kwargs: t.Any) -> T: ...
 
-    def update(self, *args: t.Any, **kwargs: t.Any) -> None: ...
+    def update(self, data: Json) -> None: ...
 
     def to_dict(self) -> Json: ...
 
     def marshal(self, *args: t.Any, **kwargs: t.Any) -> str: ...
+
+
+class JsonField(t.Generic[FT]):
+    def __init__(self, key: str, unmarshaler: t.Callable[[t.Any], FT] | None = ...,
+                 object: type[JsonObject] | None = ...,
+                 default: t.Callable[[], FT] | FT | None = ...) -> None: ...
+
+    def __set_name__(self, instance: JsonObject, name: str) -> None: ...
+
+    @t.overload
+    def __get__(self, instance: None, owner: type[JsonObject]) -> JsonField[FT]: ...
+
+    @t.overload
+    def __get__(self, instance: JsonObject, owner: type[JsonObject]) -> FT | None: ...
+
+    def __set__(self, instance: JsonObject, value: t.Any) -> t.NoReturn: ...
+
+    def __delete__(self, instance: JsonObject) -> t.NoReturn: ...
+
+    def _unmsrshal_(self, value: t.Any) -> FT: ...
+
+    def unmarshaler(self, func: T) -> T: ...
+
+
+class JsonArray(JsonField[FT]):
+    @t.overload
+    def __get__(self, instance: None, owner: type[JsonObject]) -> JsonField[FT]: ...
+
+    @t.overload
+    def __get__(self, instance: JsonObject, owner: type[JsonObject]) -> list[FT] | None: ...
+
+    def _unmsrshal_(self, value: list[t.Any]) -> list[FT]: ...

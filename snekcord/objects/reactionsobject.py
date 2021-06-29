@@ -1,19 +1,17 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..states.basestate import BaseSubState
-from ..utils.json import JsonField, JsonTemplate
+from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
 __all__ = ('Reactions',)
 
-ReactionsTemplate = JsonTemplate(
-    count=JsonField('count'),
-    me=JsonField('me'),
-)
 
-
-class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
+class Reactions(BaseSubState, BaseObject):
     __slots__ = ('emoji',)
+
+    count = JsonField('count')
+    me = JsonField('mw')
 
     def __init__(self, *, state):
         BaseSubState.__init__(self, superstate=state.client.users)
@@ -73,4 +71,4 @@ class Reactions(BaseSubState, BaseObject, template=ReactionsTemplate):
         emoji = data.get('emoji')
         if emoji is not None:
             self.emoji = self.state.message.guild.emojis.upsert(emoji)
-            self.id = self.emoji.id
+            self._json_data_['id'] = self.emoji.id

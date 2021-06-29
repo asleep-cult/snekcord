@@ -11,39 +11,36 @@ from ..states.messagestate import MessageState
 from ..states.overwritestate import PermissionOverwriteState
 from ..typedefs import SnowflakeConvertible
 from ..utils.enum import Enum
-from ..utils.json import JsonObject, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 T = t.TypeVar('T')
 
 
 class ChannelType(Enum[int]):
-    GUILD_TEXT = 0
-    DM = 1
-    GUILD_VOICE = 2
-    GROUP_DM = 3
-    GUILD_CATEGORY = 4
-    GUILD_NEWS = 5
-    GUILD_STORE = 6
-    GUILD_NEWS_THREAD = 10
-    GUILD_PUBLIC_THREAD = 11
-    GUILD_PRIVATE_THREAD = 12
-    GUILD_STAGE_VOICE = 13
+    GUILD_TEXT: t.ClassVar[int]
+    DM: t.ClassVar[int]
+    GUILD_VOICE: t.ClassVar[int]
+    GROUP_DM: t.ClassVar[int]
+    GUILD_CATEGORY: t.ClassVar[int]
+    GUILD_NEWS: t.ClassVar[int]
+    GUILD_STORE: t.ClassVar[int]
+    GUILD_NEWS_THREAD: t.ClassVar[int]
+    GUILD_PUBLIC_THREAD: t.ClassVar[int]
+    GUILD_PRIVATE_THREAD: t.ClassVar[int]
+    GUILD_STAGE_VOICE: t.ClassVar[int]
 
 
-GuildChannelTemplate: JsonTemplate = ...
-
-
-class GuildChannel(BaseObject[Snowflake], template=GuildChannelTemplate):
-    name: str
-    guild_id: Snowflake
-    position: int
-    nsfw: bool
-    parent_id: Snowflake
-    type: ChannelType
-    permissions: PermissionOverwriteState
+class GuildChannel(BaseObject[Snowflake]):
+    name: JsonField[str]
+    guild_id: JsonField[Snowflake]
+    position: JsonField[int]
+    nsfw: JsonField[bool]
+    parent_id: JsonField[Snowflake]
+    type: JsonField[ChannelType]
 
     state: ChannelState
+    permissions: PermissionOverwriteState
 
     def __init__(self, *, state: ChannelState) -> None: ...
 
@@ -61,12 +58,10 @@ class GuildChannel(BaseObject[Snowflake], template=GuildChannelTemplate):
     async def delete(self) -> None: ...
 
 
-FollowedChannelTemplate: JsonTemplate = ...
+class FollowedChannel(JsonObject):
+    channel_id: JsonField[Snowflake]
+    webhook_id: JsonField[Snowflake]
 
-
-class FollowedChannel(JsonObject, template=FollowedChannelTemplate):
-    channel_id: Snowflake
-    webhook_id: Snowflake
     state: ChannelState
 
     def __init__(self, *, state: ChannelState) -> None: ...
@@ -75,13 +70,11 @@ class FollowedChannel(JsonObject, template=FollowedChannelTemplate):
     def channel(self) -> TextChannel: ...
 
 
-TextChannelTemplate: JsonTemplate = ...
+class TextChannel(BaseObject[Snowflake]):
+    topic: JsonField[str]
+    slowmode: JsonField[int]
+    last_message_id: JsonField[Snowflake]
 
-
-class TextChannel(BaseObject[Snowflake], template=TextChannelTemplate):
-    topic: str
-    slowmode: int
-    last_message_id: Snowflake
     last_pin_timestamp: datetime | None
     messages: MessageState
 
@@ -96,25 +89,19 @@ class TextChannel(BaseObject[Snowflake], template=TextChannelTemplate):
     async def fetch_pins(self) -> set[Message]: ...
 
 
-class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
+class CategoryChannel(GuildChannel):
     @property
     def children(self) -> t.Generator[GuildChannel, None, None]: ...
 
 
-VoiceChannelTemplate: JsonTemplate = ...
+class VoiceChannel(GuildChannel):
+    bitrate: JsonField[int]
+    user_limit: JsonField[int]
 
 
-class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
-    bitrate: int
-    user_limit: int
-
-
-DMChannelTemplate: JsonTemplate = ...
-
-
-class DMChannel(BaseObject, template=DMChannelTemplate):
-    last_message_id: Snowflake
-    type: ChannelType
+class DMChannel(BaseObject[Snowflake]):
+    last_message_id: JsonField[Snowflake]
+    type: JsonField[ChannelType]
 
     state: ChannelState
 

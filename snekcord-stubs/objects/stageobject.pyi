@@ -7,24 +7,21 @@ from .channelobject import GuildChannel
 from .guildobject import Guild
 from ..states.stagestate import StageInstanceState
 from ..utils.enum import Enum
-from ..utils.json import JsonTemplate
+from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
 
 class StageInstancePrivacyLevel(Enum[int]):
-    PUBLIC = 1
-    GUILD_ONLY = 2
+    PUBLIC: t.ClassVar[int]
+    GUILD_ONLY: t.ClassVar[int]
 
 
-StageInstanceTemplate: JsonTemplate = ...
-
-
-class StageInstance(BaseObject[Snowflake], template=StageInstanceTemplate):
-    guild_id: Snowflake
-    channel_id: Snowflake
-    topic: str
-    privacy_level: StageInstanceTemplate
-    discoverable_disabled: bool
+class StageInstance(BaseObject[Snowflake]):
+    guild_id: JsonField[Snowflake]
+    channel_id: JsonField[Snowflake]
+    topic: JsonField[str]
+    privacy_level: JsonField[StageInstancePrivacyLevel]
+    discoverable_disabled: JsonField[bool]
 
     state: StageInstanceState
 

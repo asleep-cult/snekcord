@@ -74,8 +74,8 @@ WS_EVENTS: WebSocketEvents
 
 
 class BaseEvent:
-    __event_name__: t.ClassVar[str]
-    __fields__: t.ClassVar[tuple[str, ...]]
+    _event_name_: t.ClassVar[str]
+    _fields_: t.ClassVar[tuple[str, ...]]
 
     shard: Shard
     data: Json

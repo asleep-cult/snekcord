@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing as t
 from datetime import datetime
 
 from .guildobject import Guild
@@ -7,37 +8,31 @@ from .roleobject import Role
 from .userobject import User
 from ..states.integrationstate import IntegrationState
 from ..utils.enum import Enum
-from ..utils.json import JsonObject, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 
 class IntegrationType(Enum[str]):
-    TWITCH = 'twitch'
-    YOUTUBE = 'youtube'
-    DISCORD = 'discord'
+    TWITCH: t.ClassVar[str]
+    YOUTUBE: t.ClassVar[str]
+    DISCORD: t.ClassVar[str]
 
 
 class IntegrationExpireBehavior(Enum[int]):
-    REMOVE_ROLE = 0
-    KICK = 1
+    REMOVE_ROLE: t.ClassVar[int]
+    KICK: t.ClassVar[int]
 
 
-IntegrationAccountTemplate: JsonTemplate = ...
+class IntegrationAccount(JsonObject):
+    id: JsonField[Snowflake]
+    name: JsonField[str]
 
 
-class IntegrationAccount(JsonObject, template=IntegrationAccountTemplate):
-    name: str
-
-
-IntegrationApplicationTemplate: JsonTemplate = ...
-
-
-class IntegrationApplication(JsonObject,
-                             template=IntegrationApplicationTemplate):
-    name: str
-    icon: str
-    description: str
-    summary: str
+class IntegrationApplication(JsonObject):
+    name: JsonField[str]
+    icon: JsonField[str]
+    description: JsonField[str]
+    summary: JsonField[str]
 
     bot: User | None
     integration: Integration
@@ -45,22 +40,19 @@ class IntegrationApplication(JsonObject,
     def __init__(self, *, integration: Integration) -> None: ...
 
 
-IntegrationTemplate: JsonTemplate = ...
-
-
-class Integration(JsonObject, template=IntegrationTemplate):
-    name: str
-    type: IntegrationType
-    enabled: bool
-    syncing: bool
-    role_id: Snowflake
-    enable_emoticons: bool
-    expire_behavior: IntegrationExpireBehavior
-    expire_grace_period: int
-    account: IntegrationAccount
-    synced_at: datetime
-    subscriber_count: int
-    revoked: bool
+class Integration(JsonObject):
+    name: JsonField[str]
+    type: JsonField[IntegrationType]
+    enabled: JsonField[bool]
+    syncing: JsonField[bool]
+    role_id: JsonField[Snowflake]
+    enable_emoticons: JsonField[bool]
+    expire_behavior: JsonField[IntegrationExpireBehavior]
+    expire_grace_period: JsonField[int]
+    account: JsonField[IntegrationAccount]
+    synced_at: JsonField[datetime]
+    subscriber_count: JsonField[int]
+    revoked: JsonField[bool]
 
     state: IntegrationState
     user: User | None

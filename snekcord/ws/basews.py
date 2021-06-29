@@ -2,17 +2,16 @@ import asyncio
 
 from wsaio import WebSocketClient
 
-from ..utils import JsonField, JsonTemplate
+from ..utils import JsonField, JsonObject
 
 __all__ = ('BaseWebSocket',)
 
 
-WebSocketResponse = JsonTemplate(
-    opcode=JsonField('op'),
-    sequence=JsonField('s'),
-    name=JsonField('t'),
-    data=JsonField('d'),
-).default_type('WebSocketResponse')
+class WebSocketResponse(JsonObject):
+    opcode = JsonField('op')
+    sequence = JsonField('s')
+    name = JsonField('t')
+    data = JsonField('d')
 
 
 class BaseWebSocket(WebSocketClient):

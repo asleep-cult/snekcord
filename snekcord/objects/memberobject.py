@@ -2,36 +2,24 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..utils import (JsonField, JsonTemplate, Permissions, Snowflake,
-                     _validate_keys)
+from ..utils import _validate_keys
+from ..utils.json import JsonField
+from ..utils.permissions import Permissions
+from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildMember',)
 
-GuildMemberTemplate = JsonTemplate(
-    nick=JsonField('nick'),
-    joined_at=JsonField(
-        'joined_at',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    premium_since=JsonField(
-        'premium_since',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    deaf=JsonField('deaf'),
-    mute=JsonField('mute'),
-    pending=JsonField('pending'),
-    _permissions=JsonField(
-        'permissions',
-        Permissions.from_value,
-        Permissions.get_value
-    ),
-)
 
-
-class GuildMember(BaseObject, template=GuildMemberTemplate):
+class GuildMember(BaseObject):
     __slots__ = ('roles', 'user')
+
+    nick = JsonField('nick'),
+    joined_at = JsonField('joined_at', datetime.fromisoformat)
+    premium_since = JsonField('premium_since', datetime.fromisoformat)
+    deaf = JsonField('deaf')
+    mute = JsonField('mute')
+    pending = JsonField('pending')
+    _permissions = JsonField('permissions', Permissions.from_value)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -109,7 +97,7 @@ class GuildMember(BaseObject, template=GuildMemberTemplate):
         user = data.get('user')
         if user is not None:
             self.user = self.state.client.users.upsert(user)
-            self.id = self.user.id
+            self._json_data_['id'] = self.user.id
 
         roles = data.get('roles')
         if roles is not None:

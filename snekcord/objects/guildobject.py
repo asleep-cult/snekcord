@@ -1,13 +1,13 @@
 from datetime import datetime
 
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
 from ..utils import _validate_keys
 from ..utils.bitset import Bitset, Flag
 from ..utils.enum import Enum
-from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 __all__ = ('MessageNotificationsLevel', 'ExplicitContentFilterLevel',
@@ -81,94 +81,7 @@ class GuildFeature(Enum[str]):
     MORE_STICKERS = 'MORE_STICKERS'
 
 
-GuildPreviewTemplate = JsonTemplate(
-    name=JsonField('name'),
-    icon=JsonField('icon'),
-    splash=JsonField('splash'),
-    discovery_splash=JsonField('discovery_splash'),
-    features=JsonArray(
-        'features',
-        GuildFeature.get_enum,
-        GuildFeature.get_value
-    ),
-    member_count=JsonField('approximate_member_count'),
-    presence_count=JsonField('approximate_presence_count'),
-    description=JsonField('description'),
-    __extends__=(BaseTemplate,)
-)
-
-
-GuildTemplate = JsonTemplate(
-    icon_hash=JsonField('icon_hash'),
-    owner=JsonField('owner'),
-    owner_id=JsonField('owner_id', Snowflake, str),
-    permissions=JsonField('permissions'),
-    region=JsonField('region'),
-    afk_channel_id=JsonField('afk_channel_id', Snowflake, str),
-    afk_timeout=JsonField('afk_timeout'),
-    verification_level=JsonField(
-        'verification_level',
-        VerificationLevel.get_enum,
-        VerificationLevel.get_value
-    ),
-    default_message_notifications=JsonField(
-        'default_message_notifications',
-        MessageNotificationsLevel.get_enum,
-        MessageNotificationsLevel.get_value
-    ),
-    explicit_content_filter=JsonField(
-        'explicit_content_filter',
-        ExplicitContentFilterLevel.get_enum,
-        ExplicitContentFilterLevel.get_value
-    ),
-    mfa_level=JsonField(
-        'mfa_level',
-        MFALevel.get_enum,
-        MFALevel.get_value
-    ),
-    application_id=JsonField('application_id', Snowflake, str),
-    system_channel_id=JsonField('system_channel_id', Snowflake, str),
-    system_channel_flags=JsonField(
-        'system_channel_flags',
-        SystemChannelFlags.from_value,
-        SystemChannelFlags.get_value
-    ),
-    rules_channel_id=JsonField('rules_channel_id', Snowflake, str),
-    joined_at=JsonField(
-        'joined_at',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    large=JsonField('large'),
-    unavailable=JsonField('unavailable'),
-    member_count=JsonField('member_count'),
-    _voice_states=JsonArray('voice_states'),
-    _threads=JsonArray('threads'),
-    _presences=JsonArray('presences'),
-    max_presences=JsonField('max_presences'),
-    max_members=JsonField('max_members'),
-    banner=JsonField('banner'),
-    premium_tier=JsonField(
-        'permium_tier',
-        PremiumTier.get_enum,
-        PremiumTier.get_value,
-    ),
-    premium_subscription_count=JsonField('premium_subscription_count'),
-    preferred_locale=JsonField('preferred_locale'),
-    public_updates_channel_id=JsonField(
-        'public_updates_channel_id', Snowflake, str
-    ),
-    max_video_channel_users=JsonField('max_video_channel_users'),
-    nsfw_level=JsonField(
-        'nsfw',
-        GuildNSFWLevel.get_enum,
-        GuildNSFWLevel.get_value
-    ),
-    __extends__=(GuildPreviewTemplate,)
-)
-
-
-class Guild(BaseObject, template=GuildTemplate):
+class Guild(BaseObject):
     """Represents a Guild from Discord
 
     Attributes:
@@ -189,6 +102,48 @@ class Guild(BaseObject, template=GuildTemplate):
     __slots__ = ('unsynced', 'widget', 'vanity_url', 'welcome_screen',
                  'channels', 'emojis', 'roles', 'members', 'bans',
                  'integrations')
+
+    name = JsonField('name')
+    icon = JsonField('icon')
+    splash = JsonField('splash')
+    discovery_splash = JsonField('discovery_splash')
+    features = JsonArray('features', GuildFeature.get_enum)
+    member_count = JsonField('approximate_member_count')
+    presence_count = JsonField('approximate_presence_count')
+    description = JsonField('description')
+    icon_hash = JsonField('icon_hash')
+    owner = JsonField('owner')
+    owner_id = JsonField('owner_id', Snowflake)
+    permissions = JsonField('permissions')
+    region = JsonField('region')
+    afk_channel_id = JsonField('afk_channel_id', Snowflake)
+    afk_timeout = JsonField('afk_timeout')
+    verification_level = JsonField('verification_level', VerificationLevel.get_enum)
+    default_message_notifications = JsonField('default_message_notifications',
+                                              MessageNotificationsLevel.get_enum)
+    explicit_content_filter = JsonField('explicit_content_filter',
+                                        ExplicitContentFilterLevel.get_enum)
+    mfa_level = JsonField('mfa_level', MFALevel.get_enum)
+    application_id = JsonField('application_id', Snowflake)
+    system_channel_id = JsonField('system_channel_id', Snowflake)
+    system_channel_flags = JsonField('system_channel_flags', SystemChannelFlags.from_value)
+    rules_channel_id = JsonField('rules_channel_id', Snowflake)
+    joined_at = JsonField('joined_at', datetime.fromisoformat)
+    large = JsonField('large')
+    unavailable = JsonField('unavailable')
+    member_count = JsonField('member_count')
+    _voice_states = JsonArray('voice_states')
+    _threads = JsonArray('threads')
+    _presences = JsonArray('presences')
+    max_presences = JsonField('max_presences')
+    max_members = JsonField('max_members')
+    banner = JsonField('banner')
+    premium_tier = JsonField('permium_tier', PremiumTier.get_enum)
+    premium_subscription_count = JsonField('premium_subscription_count')
+    preferred_locale = JsonField('preferred_locale')
+    public_updates_channel_id = JsonField('public_updates_channel_id', Snowflake)
+    max_video_channel_users = JsonField('max_video_channel_users')
+    nsfw_level = JsonField('nsfw', GuildNSFWLevel.get_enum)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -325,9 +280,6 @@ class Guild(BaseObject, template=GuildTemplate):
 
         return self.state.new_template(data)
 
-    def to_preview_dict(self):
-        return GuildPreviewTemplate.to_dict(self)
-
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
@@ -377,13 +329,10 @@ class Guild(BaseObject, template=GuildTemplate):
                 self.state.client.stages.upsert(stage)
 
 
-GuildBanTemplate = JsonTemplate(
-    reason=JsonField('reason'),
-)
-
-
-class GuildBan(BaseObject, template=GuildBanTemplate):
+class GuildBan(BaseObject):
     __slots__ = ('user',)
+
+    reason = JsonField('reason')
 
     @property
     def guild(self):
@@ -398,18 +347,10 @@ class GuildBan(BaseObject, template=GuildBanTemplate):
         user = data.get('user')
         if user is not None:
             self.user = self.state.client.users.upsert(user)
-            self.id = self.user.id
+            self._json_data_['id'] = self.user.id
 
 
-WelcomeScreenChannelTemplate = JsonTemplate(
-    channel_id=JsonField('channel_id', Snowflake, str),
-    description=JsonField('description'),
-    emoji_id=JsonField('emoji', Snowflake, str),
-    emoji_name=JsonField('emoji_name'),
-)
-
-
-class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
+class WelcomeScreenChannel(JsonObject):
     """Represents a channel in a `WelcomeScreen`
 
     Attributes:
@@ -426,6 +367,11 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
             welcome channel
     """
     __slots__ = ('welcome_screen',)
+
+    channel_id = JsonField('channel_id', Snowflake)
+    description = JsonField('description')
+    emoji_id = JsonField('emoji', Snowflake)
+    emoji_name = JsonField('emoji_name')
 
     def __init__(self, *, welcome_screen):
         self.welcome_screen = welcome_screen
@@ -449,12 +395,7 @@ class WelcomeScreenChannel(JsonObject, template=WelcomeScreenChannelTemplate):
         return self.welcome_screen.guild.emojis.get(self.emoji_id)
 
 
-WelcomeScreenTemplate = JsonTemplate(
-    channel_id=JsonField('channel_id', Snowflake, str),
-)
-
-
-class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
+class WelcomeScreen(JsonObject):
     """Represents a `Guild`'s welcome screen
 
     Attributes:
@@ -465,6 +406,8 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
         welcome_channels list[WelcomeChannel]: The welcome screen's channels
     """
     __slots__ = ('guild', 'welcome_channels')
+
+    channel_id = JsonField('channel_id', Snowflake)
 
     def __init__(self, *, guild):
         self.guild = guild
@@ -537,7 +480,7 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
                     pass
 
                 _validate_keys(f'welcome_channels[{key}]', value, (),
-                               WelcomeScreenChannelTemplate.fields)
+                               ('channel_id', 'description', 'emoji_id', 'emoji_name'))
 
                 welcome_channels.append(value)
 
@@ -565,6 +508,5 @@ class WelcomeScreen(JsonObject, template=WelcomeScreenTemplate):
             self.welcome_channels.clear()
 
             for channel in welcome_channels:
-                channel = WelcomeScreenChannel.unmarshal(
-                    channel, welcome_screen=self)
+                channel = WelcomeScreenChannel.unmarshal(channel, welcome_screen=self)
                 self.welcome_channels.append(channel)

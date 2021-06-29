@@ -7,22 +7,20 @@ from .baseobject import BaseObject
 from .guildobject import Guild
 from ..states.guildstate import GuildState
 from ..typedefs import Json
-from ..utils.json import JsonTemplate
+from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
-GuildTemplateTemplate: JsonTemplate = ...
 
-
-class GuildTemplate(BaseObject[str], template=GuildTemplateTemplate):
-    name: str
-    description: str
-    usage_count: int
-    creator_id: Snowflake
-    created_at: datetime
-    updated_at: datetime
-    source_guild_id: Snowflake
-    serialized_source_guild: Json
-    is_dirty: bool
+class GuildTemplate(BaseObject[str]):
+    name: JsonField[str]
+    description: JsonField[str]
+    usage_count: JsonField[int]
+    creator_id: JsonField[Snowflake]
+    created_at: JsonField[datetime]
+    updated_at: JsonField[datetime]
+    source_guild_id: JsonField[Snowflake]
+    serialized_source_guild: JsonField[Json]
+    is_dirty: JsonField[bool]
 
     state: GuildState
 

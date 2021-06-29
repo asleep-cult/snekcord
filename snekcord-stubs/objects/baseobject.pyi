@@ -4,18 +4,16 @@ import typing as t
 from datetime import datetime
 
 from ..states.basestate import BaseState
-from ..utils import JsonObject, JsonTemplate
+from ..utils import JsonField, JsonObject
 
 __all__ = ('BaseObject',)
 
 T = t.TypeVar('T')
 IDT = t.TypeVar('IDT')
 
-BaseTemplate: JsonTemplate
 
-
-class BaseObject(t.Generic[IDT], JsonObject, template=BaseTemplate):
-    id: IDT | None
+class BaseObject(t.Generic[IDT], JsonObject):
+    id: JsonField[IDT]
 
     state: BaseState[t.Any, IDT, t.Any]
     cached: bool

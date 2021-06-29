@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .. import rest
 from ..utils.enum import Enum
-from ..utils.json import JsonField, JsonTemplate
+from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 __all__ = ('IntegrationType', 'IntegrationExpireBehavior',
@@ -21,28 +21,18 @@ class IntegrationExpireBehavior(Enum[int]):
     KICK = 1
 
 
-IntegrationAccountTemplate = JsonTemplate(
-    name=JsonField('name'),
-    __extends__=(BaseTemplate,)
-)
+class IntegrationAccount(JsonObject):
+    id = JsonField('id', Snowflake)
+    name = JsonField('name')
 
 
-class IntegrationAccount(BaseObject, template=IntegrationAccountTemplate):
-    name: str
-
-
-IntegrationApplicationTemplate = JsonTemplate(
-    name=JsonField('name'),
-    icon=JsonField('icon'),
-    description=JsonField('description'),
-    summary=JsonField('summary'),
-    __extends__=(BaseTemplate,)
-)
-
-
-class IntegrationApplication(BaseObject,
-                             template=IntegrationApplicationTemplate):
+class IntegrationApplication(JsonObject):
     __slots__ = ('integration', 'bot')
+
+    name = JsonField('name')
+    icon = JsonField('icon')
+    description = JsonField('description')
+    summary = JsonField('summary')
 
     def __init__(self, *, integration):
         self.integration = integration
@@ -56,37 +46,21 @@ class IntegrationApplication(BaseObject,
             self.bot = self.integration.state.client.users.upsert(bot)
 
 
-IntegrationTemplate = JsonTemplate(
-    name=JsonField('name'),
-    type=JsonField(
-        'type',
-        IntegrationType.get_enum,
-        IntegrationType.get_value
-    ),
-    enabled=JsonField('enabled'),
-    syncing=JsonField('syncing'),
-    role_id=JsonField('role_id', Snowflake, str),
-    enable_emoticons=JsonField('emoticons'),
-    expire_behavior=JsonField(
-        'expire_behavior',
-        IntegrationExpireBehavior.get_enum,
-        IntegrationExpireBehavior.get_value
-    ),
-    expire_grace_period=JsonField('expire_grace_period'),
-    account=JsonField('account', object=IntegrationAccount),
-    synced_at=JsonField(
-        'synced_at',
-        datetime.fromisoformat,
-        datetime.isoformat
-    ),
-    subscriber_count=JsonField('subscriber_count'),
-    revoked=JsonField('revoked'),
-    __extends__=(BaseTemplate,)
-)
-
-
-class Integration(BaseObject, template=IntegrationTemplate):
+class Integration(BaseObject):
     __slots__ = ('user', 'application')
+
+    name = JsonField('name')
+    type = JsonField('type', IntegrationType.get_enum)
+    enabled = JsonField('enabled')
+    syncing = JsonField('syncing')
+    role_id = JsonField('role_id', Snowflake)
+    enable_emoticons = JsonField('emoticons')
+    expire_behavior = JsonField('expire_behavior', IntegrationExpireBehavior.get_enum)
+    expire_grace_period = JsonField('expire_grace_period')
+    account = JsonField('account', object=IntegrationAccount)
+    synced_at = JsonField('synced_at', datetime.fromisoformat)
+    subscriber_count = JsonField('subscriber_count')
+    revoked = JsonField('revoked')
 
     def __init__(self, *, state):
         super().__init__(state=state)

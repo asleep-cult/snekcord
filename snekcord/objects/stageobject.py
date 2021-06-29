@@ -1,8 +1,8 @@
-from .baseobject import BaseObject, BaseTemplate
+from .baseobject import BaseObject
 from .. import rest
 from ..utils import _validate_keys
 from ..utils.enum import Enum
-from ..utils.json import JsonField, JsonTemplate
+from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
 __all__ = ('StageInstancePrivacyLevel', 'StageInstance',)
@@ -13,21 +13,13 @@ class StageInstancePrivacyLevel(Enum[int]):
     GUILD_ONLY = 2
 
 
-StageInstanceTemplate = JsonTemplate(
-    guild_id=JsonField('guild_id', Snowflake, str),
-    channel_id=JsonField('channel_id', Snowflake, str),
-    topic=JsonField('topic'),
-    privacy_level=JsonField(
-        'privacy_level',
-        StageInstancePrivacyLevel.get_enum,
-        StageInstancePrivacyLevel.get_value
-    ),
-    discoverable_disabled=JsonField('discoverable_disabled'),
-    __extends__=(BaseTemplate,)
-)
+class StageInstance(BaseObject):
+    guild_id = JsonField('guild_id', Snowflake)
+    channel_id = JsonField('channel_id', Snowflake)
+    topic = JsonField('topic')
+    privacy_level = JsonField('privacy_level', StageInstancePrivacyLevel.get_enum)
+    discoverable_disabled = JsonField('discoverable_disabled')
 
-
-class StageInstance(BaseObject, template=StageInstanceTemplate):
     @property
     def guild(self):
         return self.state.client.guilds.get(self.guild_id)

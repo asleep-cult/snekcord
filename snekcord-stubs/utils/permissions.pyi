@@ -1,42 +1,44 @@
+import typing as t
+
 from .bitset import Bitset, Flag
 
 __all__ = ('Permissions',)
 
 
 class Permissions(Bitset):
-    create_instant_invite = Flag(0)
-    kick_members = Flag(1)
-    ban_members = Flag(2)
-    administrator = Flag(3)
-    manage_channels = Flag(4)
-    manage_guild = Flag(5)
-    add_reactions = Flag(6)
-    view_audit_log = Flag(7)
-    priority_speaker = Flag(8)
-    stream = Flag(9)
-    view_channel = Flag(10)
-    send_messages = Flag(11)
-    send_tts_messages = Flag(12)
-    manage_messages = Flag(13)
-    embed_links = Flag(14)
-    attach_files = Flag(15)
-    read_message_history = Flag(16)
-    mention_everyone = Flag(17)
-    use_external_emojis = Flag(18)
-    view_guild_insights = Flag(19)
-    connect = Flag(20)
-    speak = Flag(21)
-    mute_members = Flag(22)
-    deafen_members = Flag(23)
-    move_members = Flag(24)
-    use_vad = Flag(25)
-    change_nickname = Flag(26)
-    manage_nicknames = Flag(27)
-    manage_roles = Flag(28)
-    manage_webhoooks = Flag(29)
-    manage_emojis = Flag(30)
-    use_slash_commands = Flag(31)
-    request_to_speak = Flag(32)
-    manage_threads = Flag(34)
-    use_public_threads = Flag(35)
-    use_private_threads = Flag(36)
+    create_instant_invite: t.ClassVar[Flag]
+    kick_members: t.ClassVar[Flag]
+    ban_members: t.ClassVar[Flag]
+    administrator: t.ClassVar[Flag]
+    manage_channels: t.ClassVar[Flag]
+    manage_guild: t.ClassVar[Flag]
+    add_reactions: t.ClassVar[Flag]
+    view_audit_log: t.ClassVar[Flag]
+    priority_speaker: t.ClassVar[Flag]
+    stream: t.ClassVar[Flag]
+    view_channel: t.ClassVar[Flag]
+    send_messages: t.ClassVar[Flag]
+    send_tts_messages: t.ClassVar[Flag]
+    manage_messages: t.ClassVar[Flag]
+    embed_links: t.ClassVar[Flag]
+    attach_files: t.ClassVar[Flag]
+    read_message_history: t.ClassVar[Flag]
+    mention_everyone: t.ClassVar[Flag]
+    use_external_emojis: t.ClassVar[Flag]
+    view_guild_insights: t.ClassVar[Flag]
+    connect: t.ClassVar[Flag]
+    speak: t.ClassVar[Flag]
+    mute_members: t.ClassVar[Flag]
+    deafen_members: t.ClassVar[Flag]
+    move_members: t.ClassVar[Flag]
+    use_vad: t.ClassVar[Flag]
+    change_nickname: t.ClassVar[Flag]
+    manage_nicknames: t.ClassVar[Flag]
+    manage_roles: t.ClassVar[Flag]
+    manage_webhoooks: t.ClassVar[Flag]
+    manage_emojis: t.ClassVar[Flag]
+    use_slash_commands: t.ClassVar[Flag]
+    request_to_speak: t.ClassVar[Flag]
+    manage_threads: t.ClassVar[Flag]
+    use_public_threads: t.ClassVar[Flag]
+    use_private_threads: t.ClassVar[Flag]

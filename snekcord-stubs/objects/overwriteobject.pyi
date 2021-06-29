@@ -6,24 +6,20 @@ from .baseobject import BaseObject
 from .channelobject import GuildChannel
 from ..states.overwritestate import PermissionOverwriteState
 from ..utils.enum import Enum
-from ..utils.json import JsonTemplate
+from ..utils.json import JsonField
 from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 
 class PermissionOverwriteType(Enum[int]):
-    ROLE = 0
-    MEMBER = 1
+    ROLE: t.ClassVar[int]
+    MEMBER: t.ClassVar[int]
 
 
-PermissionOverwriteTemplate: JsonTemplate = ...
-
-
-class PermissionOverwrie(BaseObject[Snowflake],
-                         template=PermissionOverwriteTemplate):
-    type: PermissionOverwriteType
-    allow: Permissions
-    deny: Permissions
+class PermissionOverwrie(BaseObject[Snowflake]):
+    type: JsonField[PermissionOverwriteType]
+    allow: JsonField[Permissions]
+    deny: JsonField[Permissions]
 
     state: PermissionOverwriteState
 
