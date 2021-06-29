@@ -1,21 +1,12 @@
-from __future__ import annotations
-
-import typing as t
-
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (Enum, JsonArray, JsonField, JsonObject, JsonTemplate,
-                     Snowflake, _validate_keys)
+from ..utils import _validate_keys
+from ..utils.enum import Enum
+from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'FollowedChannel',
            'CategoryChannel', 'VoiceChannel', 'DMChannel')
-
-if t.TYPE_CHECKING:
-    from ..objects import Guild, Message
-    from ..states.channelstate import ChannelState
-    from ..states.messagestate import MessageState
-    from ..states.overwritestate import PermissionOverwriteState
-    from ..typing import Json, SnowflakeType
 
 
 class ChannelType(Enum[int]):
@@ -48,10 +39,8 @@ class ChannelType(Enum[int]):
     GUILD_STAGE_VOICE = 13
 
 
-def _guild_channel_creation_keys(
-    channel_type: ChannelType
-) -> t.Tuple[str, ...]:
-    keys: t.Tuple[str, ...] = ('name', 'position', 'permission_overwrites')
+def _guild_channel_creation_keys(channel_type):
+    keys = ('name', 'position', 'permission_overwrites')
 
     if channel_type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
         keys += ('type', 'topic', 'nsfw')
@@ -63,9 +52,7 @@ def _guild_channel_creation_keys(
     return keys
 
 
-def _guild_channel_modification_keys(
-    channel_type: ChannelType
-) -> t.Tuple[str, ...]:
+def _guild_channel_modification_keys(channel_type):
     keys = _guild_channel_creation_keys(channel_type)
 
     if channel_type == ChannelType.GUILD_VOICE:
@@ -104,21 +91,11 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
     """
     __slots__ = ('permissions',)
 
-    if t.TYPE_CHECKING:
-        name: str
-        guild_id: Snowflake
-        parent_id: t.Optional[Snowflake]
-        state: ChannelState
-        type: ChannelType
-        permissions: PermissionOverwriteState
-
-    def __init__(self, *, state: ChannelState):
+    def __init__(self, *, state):
         super().__init__(state=state)
 
-        cls = self.state.client.get_class(  # type: ignore
-            'PermissionOverwriteState')
-        self.permissions = cls(  # type: ignore
-            client=self.state.client, channel=self)
+        cls = self.state.client.get_class('PermissionOverwriteState')
+        self.permissions = cls(client=self.state.client, channel=self)
 
     @property
     def mention(self):
@@ -126,7 +103,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         return f'<#{self.id}>'
 
     @property
-    def guild(self) -> t.Optional[Guild]:
+    def guild(self):
         """The `Guild` that the channel belongs to
 
         warning:
@@ -135,15 +112,15 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
         return self.state.client.guilds.get(self.guild_id)
 
     @property
-    def parent(self) -> t.Optional[CategoryChannel]:
+    def parent(self):
         """The channel's parent/category
 
         warning:
             This propery relies on the channel cache so it could return None
         """
-        return self.state.client.channels.get(self.parent_id)  # type: ignore
+        return self.state.client.channels.get(self.parent_id)
 
-    async def modify(self, **kwargs: t.Any) -> GuildChannel:
+    async def modify(self, **kwargs):
         """Invokes an API request to modify the channel
 
         **Arguments:**
@@ -182,7 +159,7 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             except KeyError:
                 pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), _guild_channel_modification_keys(self.type))
 
         data = await rest.modify_channel.request(
@@ -190,17 +167,15 @@ class GuildChannel(BaseObject, template=GuildChannelTemplate):
             fmt=dict(channel_id=self.id),
             json=kwargs)
 
-        return self.state.upsert(data)  # type: ignore
+        return self.state.upsert(data)
 
-    async def delete(self) -> None:
+    async def delete(self):
         """Invokes an API request to delete the channel"""
         await rest.delete_channel.request(
             session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
-    def update(  # type: ignore
-        self, data: Json, *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         guild = self.guild
@@ -251,24 +226,19 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
     """
     __slots__ = ('messages', 'last_pin_timestamp')
 
-    if t.TYPE_CHECKING:
-        messages: MessageState
-        last_message_id: Snowflake
-
-    def __init__(self, *, state: ChannelState):
+    def __init__(self, *, state):
         super().__init__(state=state)
 
         self.last_pin_timestamp = None
 
-        self.messages = self.state.client.get_class(
-            'MessageState')(  # type: ignore
-            client=self.state.client, channel=self)  # type: ignore
+        self.messages = self.state.client.get_class('MessageState')(
+            client=self.state.client, channel=self)
 
     def __str__(self):
         return f'#{self.name}'
 
     @property
-    def last_message(self) -> t.Optional[Message]:
+    def last_message(self):
         """The last message sent in the channel
 
         warning:
@@ -276,7 +246,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
         """
         return self.messages.get(self.last_message_id)
 
-    async def follow(self, webhook_channel: SnowflakeType) -> FollowedChannel:
+    async def follow(self, webhook_channel):
         webhook_channel_id = Snowflake.try_snowflake(webhook_channel)
 
         data = await rest.follow_news_channel.request(
@@ -286,7 +256,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
 
         return FollowedChannel.unmarshal(data, state=self.state)
 
-    async def typing(self) -> None:
+    async def typing(self):
         """Invokes an API request to trigger the typing indicator
         in the channel
         """
@@ -294,7 +264,7 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
             session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
-    async def fetch_pins(self) -> t.Set[Message]:
+    async def fetch_pins(self):
         """Invokes an API request to get the pinned messages
         in the channel
 
@@ -314,7 +284,7 @@ class CategoryChannel(GuildChannel, template=GuildChannelTemplate):
         return f'#{self.name}'
 
     @property
-    def children(self) -> t.Generator[GuildChannel, None, None]:
+    def children(self):
         """Yields all of the `GuildChannels` that belong to this category"""
         if self.guild is not None:
             for channel in self.guild.channels:
@@ -338,11 +308,7 @@ class VoiceChannel(GuildChannel, template=VoiceChannelTemplate):
         user_limit int: The maximum amount of people who can be in this
             channel at once
     """
-    if t.TYPE_CHECKING:
-        bitrate: int
-        user_limit: t.Optional[int]
-
-    def __str__(self) -> str:
+    def __str__(self):
         return f'#!{self.name}'
 
 
@@ -359,10 +325,7 @@ DMChannelTemplate = JsonTemplate(
 
 
 class DMChannel(BaseObject, template=DMChannelTemplate):
-    if t.TYPE_CHECKING:
-        type: ChannelType
-
-    async def close(self) -> None:
+    async def close(self):
         """Invokes an API request to close the channel"""
         await rest.delete_channel.request(
             session=self.state.client.rest,

@@ -1,17 +1,10 @@
-from __future__ import annotations
-
-import typing as t
 from datetime import datetime
 
 from ..exceptions import PartialObjectError
-from ..utils import JsonField, JsonObject, JsonTemplate, Snowflake
+from ..utils.json import JsonField, JsonObject, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('BaseObject',)
-
-if t.TYPE_CHECKING:
-    from ..states.basestate import BaseState
-
-    O = t.TypeVar('O', bound='BaseObject')
 
 BaseTemplate = JsonTemplate(
     id=JsonField('id', Snowflake, str),
@@ -42,17 +35,13 @@ class BaseObject(JsonObject, template=BaseTemplate):
     __slots__ = ('state', 'id', 'cached', 'deleted', 'deleted_at',
                  '__weakref__')
 
-    if t.TYPE_CHECKING:
-        id: Snowflake
-        deleted_at: t.Optional[datetime]
-
-    def __init__(self, *, state: BaseState[Snowflake, BaseObject]) -> None:
+    def __init__(self, *, state):
         self.state = state
         self.cached = False
         self.deleted = False
         self.deleted_at = None
 
-    def __hash__(self) -> int:
+    def __hash__(self):
         """Equivalent to `hash(self.id)`
 
         Raises:
@@ -63,35 +52,25 @@ class BaseObject(JsonObject, template=BaseTemplate):
                 f'{self.__class__.__name__} object is missing a valid id')
         return hash(self.id)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return (f'{self.__class__.__name__}(id={self.id!r}, '
                 f'cached={self.cached}, deleted={self.deleted})')
 
-    def _delete(self) -> None:
+    def _delete(self):
         self.deleted = True
         self.deleted_at = datetime.now()
         self.uncache(recycle=False)
 
-    def cache(self) -> None:
-        """Stores the object in the state's cache and attempts
-        to remove it from the state's recycle bin
-        """
+    def cache(self):
+        """Stores the object in the state's cache"""
         self.cached = True
         self.state[self.id] = self
-        self.state.unrecycle(self.id, None)
 
-    def uncache(self, recycle: bool = True) -> None:
-        """Removes the object from the state's cache
-
-        Arguments:
-            recycle bool: Whether or not to put the object in the
-                state's recycle bin
-        """
+    def uncache(self):
+        """Removes the object from the state's cache"""
         self.cached = False
         self.state.pop(self.id, None)
-        if recycle:
-            self.state.recycle(self.id, self)
 
-    async def fetch(self: O) -> O:
+    async def fetch(self):
         """Equivalent to `self.state.fetch(self.id)`"""
-        return await self.state.fetch(self.id)  # type: ignore
+        return await self.state.fetch(self.id)

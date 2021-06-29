@@ -14,7 +14,7 @@ if t.TYPE_CHECKING:
     from ..typing import Json
 
 
-class ReactionsState(BaseState[Snowflake, 'Reactions']):
+class ReactionsState(BaseState):
 
     def __init__(self, *, client: Client, message: Message) -> None:
         super().__init__(client=client)

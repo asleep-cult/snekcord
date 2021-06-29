@@ -1,23 +1,17 @@
-from __future__ import annotations
-
-import typing as t
-
 from .basestate import BaseState
 from .. import rest
 from ..objects.stageobject import StageInstance, StageInstancePrivacyLevel
-from ..utils import Snowflake, _validate_keys
+from ..utils import _validate_keys
+from ..utils.snowflake import Snowflake
 
-__all__ = ('StageState',)
-
-if t.TYPE_CHECKING:
-    from ..typing import Json, SnowflakeType
+__all__ = ('StageInstanceState',)
 
 
-class StageState(BaseState[Snowflake, StageInstance]):
+class StageInstanceState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __stage_instance_class__ = StageInstance
 
-    def upsert(self, data: Json) -> StageInstance:  # type: ignore
+    def upsert(self, data):
         stage = self.get(data['id'])
         if stage is not None:
             stage.update(data)
@@ -27,9 +21,7 @@ class StageState(BaseState[Snowflake, StageInstance]):
 
         return stage
 
-    async def fetch(  # type: ignore
-        self, stage: SnowflakeType
-    ) -> StageInstance:
+    async def fetch(self, stage):
         stage_id = Snowflake.try_snowflake(stage)
 
         data = await rest.get_stage_instance.request(
@@ -38,7 +30,7 @@ class StageState(BaseState[Snowflake, StageInstance]):
 
         return self.upsert(data)
 
-    async def create(self, **kwargs: t.Any) -> StageInstance:
+    async def create(self, **kwargs):
         try:
             kwargs['channel_id'] = Snowflake.try_snowflake(
                 kwargs.pop('channel'))
@@ -51,7 +43,7 @@ class StageState(BaseState[Snowflake, StageInstance]):
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.create',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.create',
                        kwargs, ('channel_id', 'topic'),
                        rest.create_stage_instance.json)
 

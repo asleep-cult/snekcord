@@ -1,22 +1,14 @@
-from __future__ import annotations
-
-import typing as t
 from datetime import datetime
 
 from .baseobject import BaseObject, BaseTemplate
 from .embedobject import Embed
 from .. import rest
-from ..utils import (Bitset, Enum, Flag, JsonArray, JsonField, JsonTemplate,
-                     Snowflake)
+from ..utils.bitset import Bitset, Flag
+from ..utils.enum import Enum
+from ..utils.json import JsonArray, JsonField, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('MessageType', 'MessageFlags', 'Message')
-
-if t.TYPE_CHECKING:
-    from ..objects import (
-        DMChannel, Guild, GuildChannel, GuildMember, User
-    )
-    from ..states import MessageState, ReactionsState
-    from ..typing import Json
 
 
 class MessageType(Enum[int]):
@@ -59,7 +51,7 @@ MessageTemplate = JsonTemplate(
     channel_id=JsonField('channel_id', Snowflake, str),
     guild_id=JsonField('guild_id', Snowflake, str),
     content=JsonField('content'),
-    edited_timestamp=JsonField(
+    edited_at=JsonField(
         'edited_timestamp',
         datetime.fromisoformat,
         datetime.isoformat
@@ -73,11 +65,7 @@ MessageTemplate = JsonTemplate(
     embeds=JsonArray('embeds', object=Embed),
     nonce=JsonField('nonce'),
     pinned=JsonField('pinned'),
-    webhook_id=JsonField(
-        'webhook_id',
-        Snowflake,
-        str
-    ),
+    webhook_id=JsonField('webhook_id', Snowflake, str),
     type=JsonField(
         'type',
         MessageType.get_enum,
@@ -101,41 +89,22 @@ MessageTemplate = JsonTemplate(
 class Message(BaseObject, template=MessageTemplate):
     __slots__ = ('author', 'member', 'reactions')
 
-    if t.TYPE_CHECKING:
-        state: MessageState
-        reactions: ReactionsState
-        author: t.Optional[User]
-        member: t.Optional[GuildMember]
-        channel_id: Snowflake
-        guild_id: t.Optional[Snowflake]
-        content: str
-        edited_timestamp: t.Optional[datetime]
-        tts: bool
-        mention_everyone: bool
-        embeds: t.List[Embed]
-        nonce: t.Optional[t.Union[int, str]]
-        pinned: bool
-        type: MessageType
-        application: t.Optional[Json]
-        flags: t.Optional[MessageFlags]
-
-    def __init__(self, *, state: MessageState) -> None:
+    def __init__(self, *, state):
         super().__init__(state=state)
         self.author = None
         self.member = None
-        self.reactions = self.state.client.get_class(  # type: ignore
-            'ReactionsState')(  # type: ignore
-            client=self.state.client, message=self)  # type: ignore
+        self.reactions = self.state.client.get_class('ReactionsState')(
+            client=self.state.client, message=self)
 
     @property
-    def channel(self) -> t.Union[GuildChannel, DMChannel]:
+    def channel(self):
         return self.state.channel
 
     @property
-    def guild(self) -> t.Optional[Guild]:
+    def guild(self):
         return getattr(self.channel, 'guild', None)
 
-    async def crosspost(self) -> Message:
+    async def crosspost(self):
         data = await rest.crosspost_message.request(
             session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, message_id=self.id))
@@ -147,9 +116,7 @@ class Message(BaseObject, template=MessageTemplate):
             session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, message_id=self.id))
 
-    def update(   # type: ignore
-        self, data: Json, *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         author = data.get('author')

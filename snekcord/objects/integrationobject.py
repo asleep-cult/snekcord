@@ -1,21 +1,13 @@
-from __future__ import annotations
-
-import typing as t
 from datetime import datetime
 
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import Enum, JsonField, JsonTemplate, Snowflake
+from ..utils.enum import Enum
+from ..utils.json import JsonField, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('IntegrationType', 'IntegrationExpireBehavior',
            'IntegrationAccount', 'IntegrationApplication', 'Integration')
-
-if t.TYPE_CHECKING:
-    from .guildobject import Guild
-    from .roleobject import Role
-    from .userobject import User
-    from ..states import IntegrationState
-    from ..typing import Json
 
 
 class IntegrationType(Enum[str]):
@@ -52,21 +44,11 @@ class IntegrationApplication(BaseObject,
                              template=IntegrationApplicationTemplate):
     __slots__ = ('integration', 'bot')
 
-    if t.TYPE_CHECKING:
-        integration: Integration
-        bot: t.Optional[User]
-        name: str
-        icon: t.Optional[str]
-        description: str
-        summary: str
-
-    def __init__(self, *, integration: Integration) -> None:
+    def __init__(self, *, integration):
         self.integration = integration
         self.bot = None
 
-    def update(  # type: ignore
-        self, data: Json, *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         bot = data.get('bot')
@@ -106,46 +88,25 @@ IntegrationTemplate = JsonTemplate(
 class Integration(BaseObject, template=IntegrationTemplate):
     __slots__ = ('user', 'application')
 
-    if t.TYPE_CHECKING:
-        user: t.Optional[User]
-        application: IntegrationApplication
-        state: IntegrationState
-        name: str
-        type: IntegrationType
-        enabled: bool
-        syncing: t.Optional[bool]
-        role_id: t.Optional[Snowflake]
-        enable_emoticons: t.Optional[bool]
-        expire_behavior: t.Optional[IntegrationExpireBehavior]
-        expire_grace_period: int
-        account: IntegrationAccount
-        synced_at: t.Optional[datetime]
-        subscriber_count: t.Optional[int]
-        revoked: t.Optional[bool]
-
-    def __init__(self, *, state: IntegrationState):
+    def __init__(self, *, state):
         super().__init__(state=state)
         self.user = None
         self.application = IntegrationApplication.unmarshal(integration=self)
 
     @property
-    def guild(self) -> Guild:
+    def guild(self):
         return self.state.guild
 
     @property
-    def role(self) -> t.Optional[Role]:
-        if self.role_id is not None:
-            return self.guild.roles.get(self.role_id)
-        return None
+    def role(self):
+        return self.guild.roles.get(self.role_id)
 
-    async def delete(self) -> None:
+    async def delete(self):
         await rest.delete_guild_integration.request(
             session=self.state.client.rest,
             fmt=dict(guild_id=self.guild.id, integration_id=self.id))
 
-    def update(  # type: ignore
-        self, data: Json, *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         user = data.get('user')

@@ -8,4 +8,4 @@
 # E741: ambiguous variable name (T = TypeVar('T'))
 per-file-ignores =
     *: F541, F811, E741
-    __init__.py: F401, F403
+    __init__.*: F401, F403

@@ -1,33 +1,21 @@
-from __future__ import annotations
-
-import typing as t
-
 from .basestate import BaseState
 from .. import rest
 from ..objects.messageobject import Message
-from ..utils import Snowflake, _validate_keys
+from ..utils import _validate_keys
+from ..utils.snowflake import Snowflake
 
 __all__ = ('MessageState',)
 
-if t.TYPE_CHECKING:
-    from ..clients import Client
-    from ..objects import DMChannel, GuildChannel
-    from ..typing import Json, SnowflakeType
 
-    Channel = t.Union[DMChannel, GuildChannel]
-
-
-class MessageState(BaseState[Snowflake, Message]):
+class MessageState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __message_class__ = Message
 
-    def __init__(
-        self, *, client: Client, channel: Channel
-    ) -> None:
+    def __init__(self, *, client, channel):
         super().__init__(client=client)
         self.channel = channel
 
-    def upsert(self, data: Json) -> Message:  # type: ignore
+    def upsert(self, data):
         message = self.get(data['id'])
         if message is not None:
             message.update(data)
@@ -37,7 +25,7 @@ class MessageState(BaseState[Snowflake, Message]):
 
         return message
 
-    async def fetch(self, message: SnowflakeType):  # type: ignore
+    async def fetch(self, message):
         message_id = Snowflake.try_snowflake(message)
 
         data = await rest.get_channel_message.request(
@@ -46,13 +34,9 @@ class MessageState(BaseState[Snowflake, Message]):
 
         return self.upsert(data)
 
-    async def fetch_many(
-        self, around: t.Optional[SnowflakeType] = None,
-        before: t.Optional[SnowflakeType] = None,
-        after: t.Optional[SnowflakeType] = None,
-        limit: t.Optional[SnowflakeType] = None
-    ) -> t.Set[Message]:
-        params: Json = {}
+    async def fetch_many(self, around=None, before=None, after=None,
+                         limit=None):
+        params = {}
 
         if around is not None:
             params['around'] = around
@@ -73,7 +57,7 @@ class MessageState(BaseState[Snowflake, Message]):
 
         return self.upsert_many(data)
 
-    async def create(self, **kwargs: t.Any) -> Message:
+    async def create(self, **kwargs):
         try:
             kwargs['embed'] = kwargs['embed'].to_dict()
         except KeyError:
@@ -94,9 +78,7 @@ class MessageState(BaseState[Snowflake, Message]):
 
         return self.upsert(data)
 
-    async def bulk_delete(
-        self, messages: t.Iterable[SnowflakeType]
-    ) -> None:
+    async def bulk_delete(self, messages):
         message_ids = tuple(Snowflake.try_snowflake_set(messages))
 
         await rest.bulk_delete_messages.request(

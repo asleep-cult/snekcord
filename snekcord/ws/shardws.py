@@ -5,17 +5,13 @@ import json
 import platform
 import random
 import time
-import typing as t
 
 from wsaio import taskify  # type: ignore
 
 from .basews import BaseWebSocket, WebSocketResponse
 from ..utils import Enum, Snowflake
 
-if t.TYPE_CHECKING:
-    from ..clients.wsclient import WebSocketClient, WebSocketIntents
-    from ..objects.userobject import User
-    from ..typing import Json, SnowflakeType
+__all__ = ('ShardOpcode', 'ShardCloseCode', 'Shard', 'ShardWebSocket')
 
 
 class ShardOpcode(Enum[int]):
@@ -51,17 +47,7 @@ class ShardCloseCode(Enum[int]):
 
 
 class Shard:
-    if t.TYPE_CHECKING:
-        ws: ShardWebSocket
-        user: User
-        heartbeater_task: t.Optional[asyncio.Task[t.NoReturn]]
-        available_guilds: t.Set[str]
-        unavailable_guilds: t.Set[str]
-        startup_guilds: t.Set[str]
-        session_id: t.Optional[int]
-        callbacks: t.Dict[str, t.Callable[..., t.Any]]
-
-    def __init__(self, *, client: WebSocketClient, shard_id: int) -> None:
+    def __init__(self, *, client, shard_id):
         self.client = client
 
         self.id = shard_id
@@ -83,12 +69,13 @@ class Shard:
 
         self.create_ws(reconnect=False)
 
-    def create_ws(self, *, reconnect: bool = True):
+    def create_ws(self, *, reconnect=True):
         if not reconnect:
             self.session_id = None
+            self.sequence = -1
             self.available_guilds = set()
             self.unavailable_guilds = set()
-            self.sequence = -1
+            self.user = None
         else:
             self.session_id = self.ws.session_id
             self.sequence = self.ws.sequence
@@ -107,29 +94,28 @@ class Shard:
     def latency(self):
         return self.ws.latency
 
-    async def on_hello(self) -> None:
+    async def on_hello(self):
         self.heartbeater_task = self.loop.create_task(self.heartbeater())
 
-    async def on_ready(self, data: Json) -> None:
+    async def on_ready(self, data):
         self.user = self.client.users.upsert(data['user'])
 
-    async def on_dispatch(self, name: str, data: Json) -> None:
+    async def on_dispatch(self, name, data):
         await self.client.dispatch(name, self, data)
 
-    async def on_guilds_received(self) -> None:
+    async def on_guilds_received(self):
         await self.client.dispatch('SHARD_READY', self)
 
-    async def on_closed(self, code: int, data: Json) -> None:
+    async def on_closed(self, code, data):
         print(f'SHARD {self.id} DIED. {code}, {data}')
 
-    async def on_closing(self, exc: Exception) -> None:
+    async def on_closing(self, exc):
         print(f'SHARD {self.id} DIED. {exc}')
 
-    async def on_connection_lost(self, exc: Exception) -> None:
+    async def on_connection_lost(self, exc):
         print(f'SHARD {self.id} LOST CONNECTION. {exc}')
 
-    async def heartbeater(self) -> t.NoReturn:
-        assert self.ws.heartbeat_interval is not None
+    async def heartbeater(self):
         delay = (random.random() * self.ws.heartbeat_interval) / 1000
         await asyncio.sleep(delay)
 
@@ -138,26 +124,14 @@ class Shard:
             await self.ws.send_heartbeat()
             await asyncio.sleep(heartbeat_interval)
 
-    async def connect(self, *args: t.Any, **kwargs: t.Any) -> None:
-        await self.ws.connect(*args, **kwargs)  # type: ignore
+    async def connect(self, *args, **kwargs):
+        await self.ws.connect(*args, **kwargs)
 
 
 class ShardWebSocket(BaseWebSocket):
-    if t.TYPE_CHECKING:
-        startup_guilds: t.Set[str]
-        unavailable_guilds: t.Set[str]
-        available_guilds: t.Set[str]
-        v: t.Optional[str]
-
-    def __init__(self, shard_id: int, shard_count: int, *,
-                 loop: t.Optional[asyncio.AbstractEventLoop],
-                 token: str, intents: t.Optional[WebSocketIntents],
-                 callbacks: t.Dict[str, t.Callable[..., t.Any]],
-                 session_id: t.Optional[int] = None,
-                 available_guilds: t.Optional[t.Set[str]] = None,
-                 unavailable_guilds: t.Optional[t.Set[str]] = None,
-                 sequence: int = -1
-                 ) -> None:
+    def __init__(self, shard_id, shard_count, *, loop=None, token, intents,
+                 callbacks, session_id=None, available_guilds=None,
+                 unavailable_guilds=None, sequence=-1):
         super().__init__(loop=loop)
         self.id = shard_id
         self.count = shard_count
@@ -184,27 +158,27 @@ class ShardWebSocket(BaseWebSocket):
         self._chunk_nonce = -1
 
     @property
-    def shard(self) -> t.Optional[t.Tuple[int, int]]:
+    def shard(self):
         if self.count is not None:
             return (self.id, self.count)
         return None
 
     @taskify
-    async def closing_connection(self, exc: Exception) -> None:
+    async def closing_connection(self, exc):
         super().closing_connection(exc)
         await self.callbacks['CLOSING'](exc)
 
     @taskify
-    async def ws_close_received(self, code: int, data: bytes) -> None:
+    async def ws_close_received(self, code, data):
         super().ws_close_received(code, data)
         await self.callbacks['CLOSED'](code, data)
 
     @taskify
-    async def connection_lost(self, exc: Exception) -> None:
+    async def connection_lost(self, exc):
         super().connection_lost(exc)
         await self.callbacks['CONNECTION_LOST'](exc)
 
-    async def _remove_startup_guild(self, guild_id: str) -> None:
+    async def _remove_startup_guild(self, guild_id):
         try:
             self.startup_guilds.remove(guild_id)
         except KeyError:
@@ -214,7 +188,7 @@ class ShardWebSocket(BaseWebSocket):
             if not self.startup_guilds:
                 await self.callbacks['GUILDS_RECEIVED']()
 
-    async def identify(self) -> None:
+    async def identify(self):
         payload = {
             'op': ShardOpcode.IDENTIFY,
             'd': {
@@ -236,7 +210,7 @@ class ShardWebSocket(BaseWebSocket):
 
         await self.send_str(json.dumps(payload))
 
-    async def resume(self) -> None:
+    async def resume(self):
         payload = {
             'op': ShardOpcode.RESUME,
             'd': {
@@ -247,7 +221,7 @@ class ShardWebSocket(BaseWebSocket):
         }
         await self.send_str(json.dumps(payload))
 
-    async def send_heartbeat(self) -> None:
+    async def send_heartbeat(self):
         payload = {
             'op': ShardOpcode.HEARTBEAT,
             'd': None
@@ -255,14 +229,9 @@ class ShardWebSocket(BaseWebSocket):
         await self.send_str(json.dumps(payload))
         self.heartbeat_last_sent = time.perf_counter()
 
-    async def request_guild_members(
-        self,
-        guild: SnowflakeType, presences: t.Optional[bool] = None,
-        limit: t.Optional[int] = None,
-        users: t.Optional[t.Iterable[SnowflakeType]] = None,
-        query: t.Optional[str] = None
-    ) -> None:
-        payload: Json = {
+    async def request_guild_members(self, guild, presences=None, limit=None,
+                                    users=None, query=None):
+        payload = {
             'op': ShardOpcode.REQUEST_GUILD_MEMBERS,
             'guild_id': Snowflake.try_snowflake(guild)
         }
@@ -294,7 +263,7 @@ class ShardWebSocket(BaseWebSocket):
         await self.send_str(json.dumps(payload))
 
     @taskify
-    async def ws_text_received(self, data: Json):  # type: ignore
+    async def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
         opcode = ShardOpcode.get_enum(response.opcode)
 
@@ -303,7 +272,6 @@ class ShardWebSocket(BaseWebSocket):
             self.sequence = response.sequence
 
         if opcode == ShardOpcode.DISPATCH:
-            assert response.data is not None
             name = response.name
 
             if name == 'READY':
@@ -370,7 +338,6 @@ class ShardWebSocket(BaseWebSocket):
             return
 
         elif opcode == ShardOpcode.HELLO:
-            assert response.data is not None
             self.heartbeat_interval = response.data['heartbeat_interval']
             await self.callbacks['HELLO']()
             await self.identify()

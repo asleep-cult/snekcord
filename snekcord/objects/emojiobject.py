@@ -1,28 +1,15 @@
-from __future__ import annotations
-
-import typing as t
-
 from urllib.parse import quote
 
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (JsonArray, JsonField, JsonTemplate, Snowflake,
-                     _validate_keys)
-
-if t.TYPE_CHECKING:
-    from .guildobject import Guild
-    from .userobject import User
-    from ..states import GuildEmojiState
-    from ..typing import Json
-
-    _Emoji = t.Tuple[bytes, tuple[str], float, t.Tuple[t.Any, ...]]
-
-    ALL_CATEGORIES: dict[str, t.List[_Emoji]]
+from ..utils import _validate_keys
+from ..utils.json import JsonArray, JsonField, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 try:
-    from snekcord.emojis import ALL_CATEGORIES  # type: ignore
+    from snekcord.emojis import ALL_CATEGORIES
 except ImportError:
-    ALL_CATEGORIES = {}  # type: ignore
+    ALL_CATEGORIES = {}
 
 
 __all__ = ('GuildEmoji', 'BuiltinEmoji')
@@ -40,27 +27,20 @@ GuildEmojiTemplate = JsonTemplate(
 
 
 class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
-    __slots__ = ('guild', 'user')
+    __slots__ = ('user',)
 
-    if t.TYPE_CHECKING:
-        guild: Guild
-        user: t.Optional[User]
-        name: t.Optional[str]
-        role_ids: t.Optional[t.List[Snowflake]]
-        required_colons: t.Optional[bool]
-        managed: t.Optional[bool]
-        animated: t.Optional[bool]
-        available: t.Optional[bool]
-
-    def __init__(self, *, state: GuildEmojiState, guild: Guild) -> None:
+    def __init__(self, *, state):
         super().__init__(state=state)
-        self.guild = guild
         self.user = None
 
-    def __str__(self) -> str:
+    def __str__(self):
         if self.animated:
             return f'<a:{self.name}:{self.id}>'
         return f'<:{self.name}:{self.id}>'
+
+    @property
+    def guild(self):
+        return self.state.guild
 
     @property
     def roles(self):
@@ -68,14 +48,14 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
             for role_id in self.role_ids:
                 yield self.guild.roles.get(role_id)
 
-    async def modify(self, **kwargs: t.Any) -> GuildEmoji:
+    async def modify(self, **kwargs):
         try:
             roles = Snowflake.try_snowflake_set(kwargs['roles'])
             kwargs['roles'] = tuple(roles)
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.modify_guild_emoji.json)
 
         data = await rest.modify_guild_emoji.request(
@@ -95,9 +75,7 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
     def to_reaction(self):
         return quote(f'{self.name}:{self.id}')
 
-    def update(  # type: ignore
-        self, data: Json, *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         user = data.get('user')
@@ -106,14 +84,14 @@ class GuildEmoji(BaseObject, template=GuildEmojiTemplate):
 
 
 class BuiltinEmoji:
-    def __init__(self, category: str, data: _Emoji):
+    def __init__(self, category, data):
         self.category = category
 
         self.surrogates = data[0]
         self.names = data[1]
         self.unicode_version = data[2]
 
-        self.diversity_children: t.List[BuiltinEmoji] = []
+        self.diversity_children = []
         for child in data[3]:
             self.diversity_children.append(BuiltinEmoji(category, child))
 
@@ -121,7 +99,7 @@ class BuiltinEmoji:
     def id(self):
         return self.surrogates
 
-    def store(self, cache: t.Dict[bytes, BuiltinEmoji]) -> None:
+    def _store(self, cache):
         cache[self.surrogates] = self
 
         for child in self.diversity_children:
@@ -131,9 +109,9 @@ class BuiltinEmoji:
         return quote(self.surrogates)
 
 
-BUILTIN_EMOJIS: t.Dict[bytes, BuiltinEmoji] = {}
+BUILTIN_EMOJIS = {}
 
 for category, emojis in ALL_CATEGORIES.items():
     for data in emojis:
         emoji = BuiltinEmoji(category, data)
-        emoji.store(BUILTIN_EMOJIS)
+        emoji._store(BUILTIN_EMOJIS)

@@ -1,32 +1,21 @@
-from __future__ import annotations
-
-import typing as t
-
 from .basestate import BaseState
 from .. import rest
 from ..objects.memberobject import GuildMember
-from ..utils import Snowflake, _validate_keys
+from ..utils import _validate_keys
+from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildMemberState',)
 
-if t.TYPE_CHECKING:
-    from ..clients import Client
-    from ..objects import Guild
-    from ..typing import Json, IntConvertable, SnowflakeType
 
-
-class GuildMemberState(BaseState[Snowflake, GuildMember]):
+class GuildMemberState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __guild_member_class__ = GuildMember
 
-    if t.TYPE_CHECKING:
-        guild: Guild
-
-    def __init__(self, *, client: Client, guild: Guild) -> None:
+    def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
 
-    def upsert(self, data: Json) -> GuildMember:  # type: ignore
+    def upsert(self, data):
         member = self.get(data['user']['id'])
         if member is not None:
             member.update(data)
@@ -37,7 +26,7 @@ class GuildMemberState(BaseState[Snowflake, GuildMember]):
 
         return member
 
-    async def fetch(self, user: SnowflakeType) -> GuildMember:  # type: ignore
+    async def fetch(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_member.request(
@@ -47,13 +36,8 @@ class GuildMemberState(BaseState[Snowflake, GuildMember]):
 
         return self.upsert(data)
 
-    async def fetch_many(
-        self, *,
-        before: t.Optional[SnowflakeType] = None,
-        after: t.Optional[SnowflakeType] = None,
-        limit: t.Optional[IntConvertable] = None
-    ) -> t.Set[GuildMember]:
-        params: Json = {}
+    async def fetch_many(self, *, before=None, after=None, limit=None):
+        params = {}
 
         if before is not None:
             params['before'] = Snowflake.try_snowflake(before)
@@ -62,7 +46,7 @@ class GuildMemberState(BaseState[Snowflake, GuildMember]):
             params['after'] = Snowflake.try_snowflake(after)
 
         if limit is not None:
-            params['limit'] = int(limit)
+            params['limit'] = limit
 
         data = await rest.get_guild_members.request(
             session=self.client.rest,
@@ -71,13 +55,11 @@ class GuildMemberState(BaseState[Snowflake, GuildMember]):
 
         return self.upsert_many(data)
 
-    async def search(
-        self, query: str, limit: t.Optional[IntConvertable] = None
-    ) -> t.Set[GuildMember]:
-        params: Json = {'query': query}
+    async def search(self, query, limit=None):
+        params = {'query': query}
 
         if limit is not None:
-            params['limit'] = int(limit)
+            params['limit'] = limit
 
         data = await rest.search_guild_members.request(
             session=self.client.rest,
@@ -86,10 +68,8 @@ class GuildMemberState(BaseState[Snowflake, GuildMember]):
 
         return self.upsert_many(data)
 
-    async def add(
-        self, user: SnowflakeType, **kwargs: t.Any
-    ) -> None:
-        _validate_keys(f'{self.__class__.__name__}.add',  # type: ignore
+    async def add(self, user, **kwargs):
+        _validate_keys(f'{self.__class__.__name__}.add',
                        kwargs, ('access_token',), rest.add_guild_member.json)
 
         user_id = Snowflake.try_snowflake(user)
@@ -99,7 +79,7 @@ class GuildMemberState(BaseState[Snowflake, GuildMember]):
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
-    async def remove(self, user: SnowflakeType) -> None:
+    async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_member.request(

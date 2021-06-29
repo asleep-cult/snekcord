@@ -1,17 +1,11 @@
-from __future__ import annotations
-
-import typing as t
-
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (Enum, JsonField, JsonTemplate, Permissions,
-                     _validate_keys)
+from ..utils import _validate_keys
+from ..utils.enum import Enum
+from ..utils.json import JsonField, JsonTemplate
+from ..utils.permissions import Permissions
 
 __all__ = ('PermissionOverwriteType', 'PermissionOverwrite')
-
-if t.TYPE_CHECKING:
-    from .channelobject import GuildChannel
-    from ..states.overwritestate import PermissionOverwriteState
 
 
 class PermissionOverwriteType(Enum[int]):
@@ -40,17 +34,11 @@ PermissionOverwriteTemplate = JsonTemplate(
 
 
 class PermissionOverwrite(BaseObject, template=PermissionOverwriteTemplate):
-    if t.TYPE_CHECKING:
-        state: PermissionOverwriteState
-        type: PermissionOverwriteType
-        allow: Permissions
-        deny: Permissions
-
     @property
-    def channel(self) -> GuildChannel:
+    def channel(self):
         return self.state.channel
 
-    async def modify(self, **kwargs: t.Any) -> None:
+    async def modify(self, **kwargs):
         kwargs['type'] = PermissionOverwriteType.get_value(self.type)
 
         try:
@@ -71,7 +59,7 @@ class PermissionOverwrite(BaseObject, template=PermissionOverwriteTemplate):
             fmt=dict(channel_id=self.channel.id, overwrite_id=self.id),
             json=kwargs)
 
-    async def delete(self) -> None:
+    async def delete(self):
         await rest.delete_channel_permission.request(
             session=self.state.client.rest,
             fmt=dict(channel_id=self.channel.id, overwrite_id=self.id))

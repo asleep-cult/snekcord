@@ -1,28 +1,19 @@
-from __future__ import annotations
-
 import json
-import typing as t
 from http import HTTPStatus
 
-from httpx import AsyncClient, Response
+from httpx import AsyncClient
 
 __all__ = ('HTTPError', 'RestSession')
 
-if t.TYPE_CHECKING:
-    from ..clients import Client
-    from ..typing import Json
-
 
 class HTTPError(Exception):
-    def __init__(self, msg: str, response: Response) -> None:
+    def __init__(self, msg, response):
         super().__init__(msg)
         self.response = response
 
 
 class RestSession(AsyncClient):
-    def __init__(
-        self, client: Client, *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def __init__(self, client, *args, **kwargs):
         self.loop = client.loop
         self.client = client
 
@@ -35,26 +26,21 @@ class RestSession(AsyncClient):
         })
 
         kwargs['timeout'] = None
-        super().__init__(*args, **kwargs)  # type: ignore
+        super().__init__(*args, **kwargs)
 
-    async def request(  # type: ignore
-        self, method: str, url: str,
-        fmt: Json, *args: t.Any, **kwargs: t.Any
-    ) -> t.Any:
-        response = await super().request(  # type: ignore
-            method, url % fmt, *args, **kwargs)
+    async def request(self, method, url, fmt, *args, **kwargs):
+        url = url % fmt
+        response = await super().request(method, url, *args, **kwargs)
         await response.aclose()
 
         data = response.content
 
-        content_type: str = response.headers.get(  # type: ignore
-            'content-type')
+        content_type = response.headers.get('content-type')
         if (content_type is not None
                 and content_type.lower() == 'application/json'):
             data = json.loads(data)
 
-        status_code: int = response.status_code  # type: ignore
-
+        status_code = response.status_code
         if status_code >= 400:
             status = HTTPStatus(status_code)
             raise HTTPError(
