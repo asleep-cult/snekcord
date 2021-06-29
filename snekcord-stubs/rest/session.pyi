@@ -21,11 +21,9 @@ class RestSession(AsyncClient):
     loop: asyncio.AbstractEventLoop
     client: Client
     authorization: str
-    api_version: str
     global_headers: Json
 
-    def __init__(self, client: Client, *args: t.Any,
-                 **kwargs: t.Any) -> None: ...
+    def __init__(self, client: Client, *args: t.Any, **kwargs: t.Any) -> None: ...
 
-    async def request(self, method: str, url: str, fmt: Json,
-                      *args: t.Any, **kwargs: t.Any) -> Json | bytes: ...
+    async def request(self, method: str, url: str, fmt: Json | None = ...,
+                      **kwargs: t.Any) -> Json | bytes: ...

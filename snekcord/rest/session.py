@@ -18,7 +18,6 @@ class RestSession(AsyncClient):
         self.client = client
 
         self.authorization = self.client.token
-        self.api_version = self.client.api_version
 
         self.global_headers = kwargs.pop('global_headers', {})
         self.global_headers.update({
@@ -28,9 +27,11 @@ class RestSession(AsyncClient):
         kwargs['timeout'] = None
         super().__init__(*args, **kwargs)
 
-    async def request(self, method, url, fmt, *args, **kwargs):
-        url = url % fmt
-        response = await super().request(method, url, *args, **kwargs)
+    async def request(self, method, url, fmt=None, **kwargs):
+        if fmt is not None:
+            url = url % fmt
+
+        response = await super().request(method, url, **kwargs)
         await response.aclose()
 
         data = response.content

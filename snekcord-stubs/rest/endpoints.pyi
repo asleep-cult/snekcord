@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import typing as t
+
 from .session import RestSession
 from ..typedefs import Json
 
@@ -16,6 +18,4 @@ class HTTPEndpoint:
                  params: tuple[str, ...] = ...,
                  json: tuple[str, ...] = ...) -> None: ...
 
-    async def request(self, *, session: RestSession,
-                      params: Json | None = ...,
-                      json: Json | None = ...) -> Json | bytes: ...
+    async def request(self, *, session: RestSession, **kwargs: t.Any) -> Json | bytes: ...

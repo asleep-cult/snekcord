@@ -9,13 +9,11 @@ __all__ = ('WebSocketClient',)
 class WebSocketClient(Client):
     _events_ = WS_EVENTS
 
-    def __init__(self, *args, user=True, intents=None, timeouts=None,
-                 ws_version='9', **kwargs):
+    def __init__(self, *args, user=True, intents=None, timeouts=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_user = user
         self.intents = intents
         self.timeouts = timeouts
-        self.ws_version = ws_version
         self.shards = {}
 
     @property
@@ -38,7 +36,7 @@ class WebSocketClient(Client):
             self.shard_count = 1
 
             gateway = await self.fetch_gateway()
-            gateway_url = gateway['url'] + f'?v={self.ws_version}'
+            gateway_url = gateway['url'] + '?v=9'
 
             shard = Shard(client=self, shard_id=shard_id)
             await shard.connect(gateway_url, *args, **kwargs)

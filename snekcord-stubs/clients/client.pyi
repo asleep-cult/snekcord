@@ -9,8 +9,6 @@ from .. import states
 from ..flags import CacheFlags
 from ..objects.emojiobject import GuildEmoji
 from ..objects.memberobject import GuildMember
-from ..objects.messageobject import Message
-from ..objects.roleobject import Role
 from ..utils.events import EventDispatcher
 
 __all__ = ('ClientClasses', 'Client',)
@@ -51,20 +49,13 @@ class Client(EventDispatcher):
 
     def __init__(self, token: str,
                  loop: asyncio.AbstractEventLoop | None = ...,
-                 cache_flags: CacheFlags | None = ...,
-                 api_version: str = ...) -> None: ...
+                 cache_flags: CacheFlags | None = ...) -> None: ...
 
     @classmethod
     def add_handled_signal(cls, signo: signal.Signals) -> None: ...
 
     @property
     def members(self) -> t.Generator[GuildMember, None, None]: ...
-
-    @property
-    def messages(self) -> t.Generator[Message, None, None]: ...
-
-    @property
-    def roles(self) -> t.Generator[Role, None, None]: ...
 
     @property
     def emojis(self) -> t.Generator[GuildEmoji, None, None]: ...

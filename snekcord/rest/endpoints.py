@@ -6,18 +6,14 @@ class HTTPEndpoint:
         self.params = params
         self.json = json
 
-    async def request(self, *, session, params=None, json=None, **kwargs):
+    async def request(self, *, session, **kwargs):
         headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
-        fmt = kwargs.pop('fmt', {})
-        fmt['version'] = session.api_version
-
-        return await session.request(self.method, self.url, fmt, params=params,
-                                     json=json, **kwargs)
+        return await session.request(self.method, self.url, **kwargs)
 
 
-BASE_API_URL = 'https://discord.com/api/%(version)s/'
+BASE_API_URL = 'https://discord.com/api/v9/'
 
 get_guild_audit_log = HTTPEndpoint(
     'GET',

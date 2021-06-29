@@ -29,8 +29,12 @@ class _ClientClasses:
         'UserState',
     }
 
+    _local_classes_ = set()
+
     def __getattribute__(self, name):
-        if name in _ClientClasses._rest_classes_:
+        if name in _ClientClasses._local_classes_:
+            return super().__getattribute__(name)
+        elif name in _ClientClasses._rest_classes_:
             from .. import rest
 
             return getattr(rest, name)
@@ -42,6 +46,7 @@ class _ClientClasses:
             return super().__getattribute__(name)
 
     def set_class(self, name, klass):
+        _ClientClasses._local_classes_.add(name)
         setattr(self, name, klass)
 
 
@@ -51,12 +56,11 @@ ClientClasses = _ClientClasses()
 class Client(EventDispatcher):
     _handled_signals_ = [signal.SIGINT, signal.SIGTERM]
 
-    def __init__(self, token, *, loop=None, cache_flags=None, api_version='9'):
+    def __init__(self, token, *, loop=None, cache_flags=None):
         super().__init__(loop=loop)
 
         self.token = token
         self.cache_flags = cache_flags
-        self.api_version = f'v{api_version}'
 
         self.rest = ClientClasses.RestSession(client=self)
         self.channels = ClientClasses.ChannelState(client=self)
@@ -78,17 +82,6 @@ class Client(EventDispatcher):
     def members(self):
         for guild in self.guilds:
             yield from guild.members
-
-    @property
-    def messages(self):
-        for channel in self.channels:
-            if hasattr(channel, 'messages'):
-                yield from channel.messages
-
-    @property
-    def roles(self):
-        for guild in self.guilds:
-            yield from guild.roles
 
     @property
     def emojis(self):
