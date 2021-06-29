@@ -31,7 +31,7 @@ def ensure_future(coro: t.Any) -> asyncio.Future[t.Any] | None: ...
 
 
 class EventDispatcher:
-    __events__: t.ClassVar[dict[str, AnyCoroCallable] | None]
+    _events_: t.ClassVar[dict[str, AnyCoroCallable] | None]
 
     loop: asyncio.AbstractEventLoop
     listeners: dict[str, list[AnyCallable]]

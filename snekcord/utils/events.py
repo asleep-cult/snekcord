@@ -59,7 +59,7 @@ def ensure_future(coro):
 
 
 class EventDispatcher:
-    __events__ = None
+    _events_ = None
 
     def __init__(self, *, loop=None):
         if loop is not None:
@@ -110,8 +110,8 @@ class EventDispatcher:
             subscriber.run_callbacks(name, *args)
 
     async def dispatch(self, name: str, *args):
-        if self.__events__ is not None:
-            event = self.__events__.get(name.lower())
+        if self._events_ is not None:
+            event = self._events_.get(name.lower())
             if event is not None:
                 args = (await event(self, *args),)
 

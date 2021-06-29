@@ -7,19 +7,19 @@ class Enum:
         self.value = value
 
     def __init_subclass__(cls):
-        cls.__enum_names__ = {}
-        cls.__enum_values__ = {}
+        cls._enum_names_ = {}
+        cls._enum_values_ = {}
 
         for key, value in cls.__dict__.items():
             if (not key.startswith('_')
-                    and isinstance(value, cls.__enum_type__)):
+                    and isinstance(value, cls._enum_type_)):
                 enum = cls(key, value)
-                cls.__enum_names__[key] = enum
-                cls.__enum_values__[value] = enum
+                cls._enum_names_[key] = enum
+                cls._enum_values_[value] = enum
 
     def __class_getitem__(cls, klass):
         if isinstance(klass, type):
-            return type(cls.__name__, (cls,), {'__enum_type__': klass})
+            return type(cls.__name__, (cls,), {'_enum_type_': klass})
         return klass
 
     def __repr__(self):
@@ -30,7 +30,7 @@ class Enum:
         if isinstance(value, self.__class__):
             value = value.value
 
-        if not isinstance(value, self.__enum_type__):
+        if not isinstance(value, self._enum_type_):
             return NotImplemented
 
         return self.value == value
@@ -39,7 +39,7 @@ class Enum:
         if isinstance(value, self.__class__):
             value = value.value
 
-        if not isinstance(value, self.__enum_type__):
+        if not isinstance(value, self._enum_type_):
             return NotImplemented
 
         return self.value != value
@@ -47,7 +47,7 @@ class Enum:
     @classmethod
     def get_enum(cls, value):
         try:
-            return cls.__enum_values__[value]
+            return cls._enum_names_[value]
         except KeyError:
             return cls('undefined', value)
 
@@ -55,7 +55,7 @@ class Enum:
     def get_value(cls, enum):
         if isinstance(enum, cls):
             return enum.value
-        elif isinstance(enum, cls.__enum_type__):
+        elif isinstance(enum, cls._enum_type_):
             return enum
         raise ValueError(
             f'{enum!r} is not a valid {cls.__name__}')

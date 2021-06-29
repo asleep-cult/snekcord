@@ -26,7 +26,7 @@ class WebSocketIntents(Bitset):
 
 
 class WebSocketClient(Client):
-    __events__ = WS_EVENTS
+    _events_ = WS_EVENTS
 
     def __init__(self, *args, user=True, intents=None, timeouts=None,
                  ws_version='9', **kwargs):

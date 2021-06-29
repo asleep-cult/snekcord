@@ -62,7 +62,7 @@ class BaseState(_StateCommon):
         return self.__mapping__.__delitem__(self.mapping, key)
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(length={len(self)})'
+        return f'<{self.__class__.__name__} length={len(self)}>'
 
     def keys(self):
         return self.__mapping__.keys(self.mapping)
@@ -149,8 +149,8 @@ class BaseSubState(_StateCommon):
         return self.superstate[key]
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(length={len(self)}, '
-                f'superstate={self.superstate!r})')
+        return (f'<{self.__class__.__name__} length={len(self)},'
+                f' superstate={self.superstate!r}>')
 
     def set_keys(self, keys):
         self._keys = {self.superstate.transform_key(key) for key in keys}

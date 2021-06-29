@@ -46,8 +46,8 @@ class Client(EventDispatcher):
         'StageInstanceState': StageInstanceState,
     }
 
-    __classes__ = DEFAULT_CLASSES.copy()
-    __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
+    _classes_ = DEFAULT_CLASSES.copy()
+    _handled_signals_ = [signal.SIGINT, signal.SIGTERM]
 
     def __init__(self, token, *, loop=None, cache_flags=None, api_version='9'):
         super().__init__(loop=loop)
@@ -70,17 +70,17 @@ class Client(EventDispatcher):
 
     @classmethod
     def get_class(cls, name):
-        return cls.__classes__[name]
+        return cls._classes_[name]
 
     @classmethod
     def set_class(cls, name, klass):
         default = cls.DEFAULT_CLASSES[name]
         assert issubclass(klass, default)
-        cls.__classes__[name] = klass
+        cls._classes_[name] = klass
 
     @classmethod
     def add_handled_signal(cls, signo):
-        cls.__handled_signals__.append(signo)
+        cls._handled_signals_.append(signo)
 
     @property
     def members(self):
@@ -109,7 +109,7 @@ class Client(EventDispatcher):
 
         self._sigpending.clear()
 
-        for signo in self.__handled_signals__:
+        for signo in self._handled_signals_:
             signal.signal(signo, self._sighandlers[signo])
 
     def _sighandle(self, signo, frame):
@@ -141,7 +141,7 @@ class Client(EventDispatcher):
         self.loop.call_soon_threadsafe(self.loop.close)
 
     def run_forever(self):
-        for signo in self.__handled_signals__:
+        for signo in self._handled_signals_:
             self._sighandlers[signo] = signal.getsignal(signo)
             signal.signal(signo, self._sighandle)
 

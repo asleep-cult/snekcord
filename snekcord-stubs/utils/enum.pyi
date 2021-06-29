@@ -8,9 +8,9 @@ T = t.TypeVar('T')
 
 
 class Enum(t.Generic[T]):
-    __enum_type__: type[T]
-    __enum_names__: t.ClassVar[dict[str, Enum[T]]]
-    __enum_values__: t.ClassVar[dict[T, Enum[T]]]
+    _enum_type_: type[T]
+    _enum_names_: t.ClassVar[dict[str, Enum[T]]]
+    _enum_values_: t.ClassVar[dict[T, Enum[T]]]
 
     name: str
     value: T

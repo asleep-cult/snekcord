@@ -44,8 +44,8 @@ class ClientClasses(t.TypedDict):
 class Client(EventDispatcher):
     DEFAULT_CLASSES: t.ClassVar[ClientClasses]
 
-    __classes__: t.ClassVar[ClientClasses]
-    __handled_signals__: t.ClassVar[list[signal.Signals]]
+    _classes_: t.ClassVar[ClientClasses]
+    _handled_signals_: t.ClassVar[list[signal.Signals]]
 
     rest: rest.RestSession
     channels: states.ChannelState

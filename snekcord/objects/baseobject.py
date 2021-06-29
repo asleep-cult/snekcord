@@ -53,8 +53,8 @@ class BaseObject(JsonObject, template=BaseTemplate):
         return hash(self.id)
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(id={self.id!r}, '
-                f'cached={self.cached}, deleted={self.deleted})')
+        return (f'<{self.__class__.__name__} id={self.id!r},'
+                f' cached={self.cached}, deleted={self.deleted}>')
 
     def _delete(self):
         self.deleted = True
