@@ -8,6 +8,7 @@ from .guildobject import Guild
 from .messageobject import Message
 from ..states.channelstate import ChannelState
 from ..states.messagestate import MessageState
+from ..states.webhookstate import ChannelWebhookState
 from ..states.overwritestate import PermissionOverwriteState
 from ..typedefs import SnowflakeConvertible
 from ..utils.enum import Enum
@@ -84,6 +85,7 @@ class TextChannel(BaseObject[Snowflake], template=TextChannelTemplate):
     last_message_id: Snowflake
     last_pin_timestamp: datetime | None
     messages: MessageState
+    webhooks: ChannelWebhookState
 
     @property
     def last_message(self) -> Message | None: ...
