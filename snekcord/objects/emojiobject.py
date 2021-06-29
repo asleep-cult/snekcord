@@ -103,7 +103,7 @@ class BuiltinEmoji:
         cache[self.surrogates] = self
 
         for child in self.diversity_children:
-            child.store(cache)
+            child._store(cache)
 
     def to_reaction(self) -> str:
         return quote(self.surrogates)

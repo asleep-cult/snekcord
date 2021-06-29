@@ -3,7 +3,7 @@ import setuptools
 setuptools.setup(
     name='snekcord',
     version='0.2.3',
-    papckages=[
+    packages=[
         'snekcord-stubs',
         'snekcord',
         'snekcord.clients',

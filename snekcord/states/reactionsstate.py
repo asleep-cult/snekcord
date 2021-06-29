@@ -1,12 +1,11 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects import Reactions
+from ..objects.reactionsobject import Reactions
 
 __all__ = ('ReactionsState',)
 
 
 class ReactionsState(BaseState):
-
     def __init__(self, *, client, message):
         super().__init__(client=client)
         self.message = message
