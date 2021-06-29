@@ -49,7 +49,7 @@ class BaseObject(JsonObject):
     def _delete(self):
         self.deleted = True
         self.deleted_at = datetime.now()
-        self.uncache(recycle=False)
+        self.uncache()
 
     def cache(self):
         """Stores the object in the state's cache"""

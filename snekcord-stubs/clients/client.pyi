@@ -13,10 +13,10 @@ from ..objects.messageobject import Message
 from ..objects.roleobject import Role
 from ..utils.events import EventDispatcher
 
-__all__ = ('Client',)
+__all__ = ('ClientClasses', 'Client',)
 
 
-class ClientClasses(t.TypedDict):
+class ClientClasses:
     RestSession: type[rest.RestSession]
     ChannelState: type[states.ChannelState]
     GuildChannelState: type[states.GuildChannelState]
@@ -34,11 +34,11 @@ class ClientClasses(t.TypedDict):
     StageInstanceState: type[states.StageInstanceState]
     UserState: type[states.UserState]
 
+    @classmethod
+    def set_class(cls, name: str, klass: type) -> None: ...
+
 
 class Client(EventDispatcher):
-    DEFAULT_CLASSES: t.ClassVar[ClientClasses]
-
-    _classes_: t.ClassVar[ClientClasses]
     _handled_signals_: t.ClassVar[list[signal.Signals]]
 
     rest: rest.RestSession
@@ -53,12 +53,6 @@ class Client(EventDispatcher):
                  loop: asyncio.AbstractEventLoop | None = ...,
                  cache_flags: CacheFlags | None = ...,
                  api_version: str = ...) -> None: ...
-
-    @classmethod
-    def get_class(cls, name: str) -> type: ...
-
-    @classmethod
-    def set_class(cls, name: str, klass: type) -> None: ...
 
     @classmethod
     def add_handled_signal(cls, signo: signal.Signals) -> None: ...

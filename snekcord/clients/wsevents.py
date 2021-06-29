@@ -3,10 +3,12 @@ __all__ = []
 WS_EVENTS = {}
 
 
-def register(cls):
-    __all__.append(cls.__name__)
-    WS_EVENTS[cls._event_name_.lower()] = cls.execute
-    return cls
+def register(name):
+    def wrapped(cls):
+        __all__.append(cls.__name__)
+        WS_EVENTS[name.lower()] = cls.execute
+        return cls
+    return wrapped
 
 
 class BaseEvent:
@@ -35,9 +37,8 @@ class BaseEvent:
         raise NotImplementedError
 
 
-@register
+@register('CHANNEL_CREATE')
 class ChannelCreateEvent(BaseEvent):
-    _event_name_ = 'CHANNEL_CREATE'
     _fields_ = ('channel',)
 
     @classmethod
@@ -46,9 +47,8 @@ class ChannelCreateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, channel=channel)
 
 
-@register
+@register('CHANNEL_UPDATE')
 class ChannelUpdateEvent(BaseEvent):
-    _event_name_ = 'CHANNEL_UPDATE'
     _fields_ = ('channel',)
 
     @classmethod
@@ -57,9 +57,8 @@ class ChannelUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, channel=channel)
 
 
-@register
+@register('CHANNEL_DELETE')
 class ChannelDeleteEvent(BaseEvent):
-    _event_name_ = 'CHANNEL_DELETE'
     _fields_ = ('channel',)
 
     @classmethod
@@ -69,9 +68,8 @@ class ChannelDeleteEvent(BaseEvent):
         return cls(shard=shard, payload=payload, channel=channel)
 
 
-@register
+@register('CHANNEL_PINS_UPDATE')
 class ChannelPinsUpdateEvent(BaseEvent):
-    _event_name_ = 'CHANNEL_PINS_UPDATE'
     _fields_ = ('channel',)
 
     @classmethod
@@ -85,9 +83,8 @@ class ChannelPinsUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, channel=channel)
 
 
-@register
+@register('GUILD_RECEIVE')
 class GuildReceiveEvent(BaseEvent):
-    _event_name_ = 'GUILD_RECEIVE'
     _fields_ = ('guild',)
 
     @classmethod
@@ -97,9 +94,8 @@ class GuildReceiveEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_RECEIVE')
 class GuildAvailableEvent(BaseEvent):
-    _event_name_ = 'GUILD_AVAILABLE'
     _fields_ = ('guild',)
 
     @classmethod
@@ -109,9 +105,8 @@ class GuildAvailableEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_JOIN')
 class GuildJoinEvent(BaseEvent):
-    _event_name_ = 'GUILD_JOIN'
     _fields_ = ('guild',)
 
     @classmethod
@@ -121,9 +116,8 @@ class GuildJoinEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_UPDATE')
 class GuildUpdateEvent(BaseEvent):
-    _event_name_ = 'GUILD_UPDATE'
     _fields_ = ('guild',)
 
     @classmethod
@@ -133,9 +127,8 @@ class GuildUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_UNAVAILABLE')
 class GuildUnavailableEvent(BaseEvent):
-    _event_name_ = 'GUILD_UNAVAILABLE'
     _fields_ = ('guild',)
 
     @classmethod
@@ -144,9 +137,8 @@ class GuildUnavailableEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_DELETE')
 class GuildDeleteEvent(BaseEvent):
-    _event_name_ = 'GUILD_DELETE'
     _fields_ = ('guild',)
 
     @classmethod
@@ -156,9 +148,8 @@ class GuildDeleteEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_BAN_ADD')
 class GuildBanAddEvent(BaseEvent):
-    _event_name_ = 'GUILD_BAN_ADD'
     _fields_ = ('guild', 'ban')
 
     @classmethod
@@ -172,9 +163,8 @@ class GuildBanAddEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, ban=ban)
 
 
-@register
+@register('GUILD_BAN_REMOVE')
 class GuildBanRemoveEvent(BaseEvent):
-    _event_name_ = 'GUILD_BAN_REMOVE'
     _fields_ = ('guild', 'ban')
 
     @classmethod
@@ -189,9 +179,8 @@ class GuildBanRemoveEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, ban=ban)
 
 
-@register
+@register('GUILD_EMOJIS_UPDATE')
 class GuildEmojisUpdateEvent(BaseEvent):
-    _event_name_ = 'GUILD_EMOJIS_UPDATE'
     _fields_ = ('guild',)
 
     @classmethod
@@ -204,15 +193,13 @@ class GuildEmojisUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild)
 
 
-@register
+@register('GUILD_INTEGRATIONS_UPDATE')
 class GuildIntegrationsUpdateEvent(BaseEvent):
-    _event_name_ = 'GUILD_INTEGRATIONS_UPDATE'
     _fields_ = ('guild',)
 
 
-@register
+@register('GUILD_MEMBER_ADD')
 class GuildMemberAddEvent(BaseEvent):
-    _event_name_ = 'GUILD_MEMBER_ADD'
     _fields_ = ('guild', 'member')
 
     @classmethod
@@ -226,9 +213,8 @@ class GuildMemberAddEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, member=member)
 
 
-@register
+@register('GUILD_MEMBER_UPDATE')
 class GuildMemberUpdateEvent(BaseEvent):
-    _event_name_ = 'GUILD_MEMBER_UPDATE'
     _fields_ = ('guild', 'member')
 
     @classmethod
@@ -242,9 +228,8 @@ class GuildMemberUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, member=member)
 
 
-@register
+@register('GUILD_MEMBER_REMOVE')
 class GuildMemberRemoveEvent(BaseEvent):
-    _event_name_ = 'GUILD_MEMBER_REMOVE'
     _fields_ = ('user', 'guild', 'member')
 
     @classmethod
@@ -262,9 +247,8 @@ class GuildMemberRemoveEvent(BaseEvent):
                    member=member)
 
 
-@register
+@register('GUILD_ROLE_CREATE')
 class GuildRoleCreateEvent(BaseEvent):
-    _event_name_ = 'GUILD_ROLE_CREATE'
     _fields_ = ('guild', 'role')
 
     @classmethod
@@ -278,9 +262,8 @@ class GuildRoleCreateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
 
-@register
+@register('GUILD_ROLE_UPDATE')
 class GuildRoleUpdateEvent(BaseEvent):
-    _event_name_ = 'GUILD_ROLE_UPDATE'
     _fields_ = ('guild', 'role')
 
     @classmethod
@@ -294,9 +277,8 @@ class GuildRoleUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
 
-@register
+@register('GUILD_ROLE_DELETE')
 class GuildRoleDeleteEvent(BaseEvent):
-    _event_name_ = 'GUILD_ROLE_DELETE'
     _fields_ = ('guild', 'role')
 
     @classmethod
@@ -312,24 +294,23 @@ class GuildRoleDeleteEvent(BaseEvent):
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
 
-@register
+@register('INTEGRATION_CREATE')
 class IntegrationCreateEvent(BaseEvent):
-    _event_name_ = 'INTEGRATION_CREATE'
+    pass
 
 
-@register
+@register('INTEGRATION_UPDATE')
 class IntegrationUpdateEvent(BaseEvent):
-    _event_name_ = 'INTEGRATION_UPDATE'
+    pass
 
 
-@register
+@register('INTEGRATION_DELETE')
 class IntegrationDeleteEvent(BaseEvent):
-    _event_name_ = 'INTEGRATION_DELETE'
+    pass
 
 
-@register
+@register('INVITE_CREATE')
 class InviteCreateEvent(BaseEvent):
-    _event_name_ = 'INVITE_CREATE'
     _fields_ = ('invite',)
 
     @classmethod
@@ -338,9 +319,8 @@ class InviteCreateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, invite=invite)
 
 
-@register
+@register('INVITE_DELETE')
 class InviteDeleteEvent(BaseEvent):
-    _event_name_ = 'INVITE_DELETE'
     _fields_ = ('invite',)
 
     @classmethod
@@ -353,9 +333,8 @@ class InviteDeleteEvent(BaseEvent):
         return cls(shard=shard, payload=payload, invite=invite)
 
 
-@register
+@register('MESSAGE_CREATE')
 class MessageCreateEvent(BaseEvent):
-    _event_name_ = 'MESSAGE_CREATE'
     _fields_ = ('channel', 'message')
 
     @classmethod
@@ -370,9 +349,8 @@ class MessageCreateEvent(BaseEvent):
                    message=message)
 
 
-@register
+@register('MESSAGE_UPDATE')
 class MessageUpdateEvent(BaseEvent):
-    _event_name_ = 'MESSAGE_UPDATE'
     _fields_ = ('channel', 'message')
 
     @classmethod
@@ -387,9 +365,8 @@ class MessageUpdateEvent(BaseEvent):
                    message=message)
 
 
-@register
+@register('MESSAGE_DELETE')
 class MessageDeleteEvent(BaseEvent):
-    _event_name_ = 'MESSAGE_DELETE'
     _fields_ = ('channel', 'message')
 
     @classmethod
@@ -406,9 +383,8 @@ class MessageDeleteEvent(BaseEvent):
                    message=message)
 
 
-@register
+@register('MESSAGE_DELETE_BULK')
 class MessageDeleteBulkEvent(BaseEvent):
-    _event_name_ = 'MESSAGE_DELETE_BULK'
     _fields_ = ('channel', 'messages')
 
     @classmethod
@@ -426,9 +402,8 @@ class MessageDeleteBulkEvent(BaseEvent):
                    messages=messages)
 
 
-@register
+@register('MESSAGE_REACTION_ADD')
 class MessageReactionAddEvent(BaseEvent):
-    _event_name_ = 'MESSAGE_REACTION_ADD'
     _fields_ = ('channel', 'message', 'reactions', 'user')
 
     @classmethod
@@ -447,9 +422,8 @@ class MessageReactionAddEvent(BaseEvent):
                    message=message, reactions=reactions, user=user)
 
 
-@register
+@register('STAGE_INSTANCE_CREATE')
 class StageInstanceCreateEvent(BaseEvent):
-    _event_name_ = 'STAGE_INSTANCE_CREATE'
     _fields_ = ('stage',)
 
     @classmethod
@@ -458,9 +432,8 @@ class StageInstanceCreateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, stage=stage)
 
 
-@register
+@register('STAGE_INSTANCE_UPDATE')
 class StageInstanceUpdateEvent(BaseEvent):
-    _event_name_ = 'STAGE_INSTANCE_UPDATE'
     _fields_ = ('stage',)
 
     @classmethod
@@ -469,9 +442,8 @@ class StageInstanceUpdateEvent(BaseEvent):
         return cls(shard=shard, payload=payload, stage=stage)
 
 
-@register
+@register('STAGE_INSTANCE_DELETE')
 class StageInstanceDeleteEvent(BaseEvent):
-    _event_name_ = 'STAGE_INSTANCE_DELETE'
     _fields_ = ('stage',)
 
     @classmethod

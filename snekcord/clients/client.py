@@ -1,45 +1,32 @@
 import asyncio
 import signal
 
-from ..rest import RestSession
-from ..states.channelstate import ChannelState, GuildChannelState
-from ..states.emojistate import GuildEmojiState
-from ..states.guildstate import GuildBanState, GuildState
-from ..states.integrationstate import IntegrationState
-from ..states.invitestate import InviteState
-from ..states.memberstate import GuildMemberState
-from ..states.messagestate import MessageState
-from ..states.overwritestate import PermissionOverwriteState
-from ..states.reactionsstate import ReactionsState
-from ..states.rolestate import GuildMemberRoleState, RoleState
-from ..states.stagestate import StageInstanceState
-from ..states.userstate import UserState
 from ..utils.events import EventDispatcher
 
-__all__ = ('Client',)
+__all__ = ('ClientClasses', 'Client',)
+
+
+class ClientClasses:
+    from ..rest import RestSession
+    from ..states.channelstate import ChannelState, GuildChannelState
+    from ..states.emojistate import GuildEmojiState
+    from ..states.guildstate import GuildBanState, GuildState
+    from ..states.integrationstate import IntegrationState
+    from ..states.invitestate import InviteState
+    from ..states.memberstate import GuildMemberState
+    from ..states.messagestate import MessageState
+    from ..states.overwritestate import PermissionOverwriteState
+    from ..states.reactionsstate import ReactionsState
+    from ..states.rolestate import GuildMemberRoleState, RoleState
+    from ..states.stagestate import StageInstanceState
+    from ..states.userstate import UserState
+
+    @classmethod
+    def set_class(cls, name, klass):
+        setattr(cls, name, klass)
 
 
 class Client(EventDispatcher):
-    DEFAULT_CLASSES = {
-        'RestSession': RestSession,
-        'ChannelState': ChannelState,
-        'GuildChannelState': GuildChannelState,
-        'GuildEmojiState': GuildEmojiState,
-        'GuildState': GuildState,
-        'IntegrationState': IntegrationState,
-        'GuildBanState': GuildBanState,
-        'InviteState': InviteState,
-        'RoleState': RoleState,
-        'GuildMemberState': GuildMemberState,
-        'MessageState': MessageState,
-        'PermissionOverwriteState': PermissionOverwriteState,
-        'ReactionsState': ReactionsState,
-        'GuildMemberRoleState': GuildMemberRoleState,
-        'UserState': UserState,
-        'StageInstanceState': StageInstanceState,
-    }
-
-    _classes_ = DEFAULT_CLASSES.copy()
     _handled_signals_ = [signal.SIGINT, signal.SIGTERM]
 
     def __init__(self, token, *, loop=None, cache_flags=None, api_version='9'):
@@ -49,27 +36,17 @@ class Client(EventDispatcher):
         self.cache_flags = cache_flags
         self.api_version = f'v{api_version}'
 
-        self.rest = self.get_class('RestSession')(client=self)
-        self.channels = self.get_class('ChannelState')(client=self)
-        self.guilds = self.get_class('GuildState')(client=self)
-        self.invites = self.get_class('InviteState')(client=self)
-        self.stages = self.get_class('StageInstanceState')(client=self)
-        self.users = self.get_class('UserState')(client=self)
+        self.rest = ClientClasses.RestSession(client=self)
+        self.channels = ClientClasses.ChannelState(client=self)
+        self.guilds = ClientClasses.GuildState(client=self)
+        self.invites = ClientClasses.InviteState(client=self)
+        self.stages = ClientClasses.StageInstanceState(client=self)
+        self.users = ClientClasses.UserState(client=self)
 
         self.finalizing = False
 
         self._sigpending = []
         self._sighandlers = {}
-
-    @classmethod
-    def get_class(cls, name):
-        return cls._classes_[name]
-
-    @classmethod
-    def set_class(cls, name, klass):
-        default = cls.DEFAULT_CLASSES[name]
-        assert issubclass(klass, default)
-        cls._classes_[name] = klass
 
     @classmethod
     def add_handled_signal(cls, signo):

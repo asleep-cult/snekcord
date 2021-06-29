@@ -85,6 +85,8 @@ class Guild(BaseObject):
     nsfw_level = JsonField('nsfw', GuildNSFWLevel.get_enum)
 
     def __init__(self, *, state):
+        from ..clients.client import ClientClasses
+
         super().__init__(state=state)
 
         self.unsynced = True
@@ -93,23 +95,13 @@ class Guild(BaseObject):
         self.vanity_url = GuildVanityURL.unmarshal(guild=self)
         self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
 
-        self.bans = self.state.client.get_class('GuildBanState')(
-            client=self.state.client, guild=self)
-
-        self.channels = self.state.client.get_class('GuildChannelState')(
+        self.bans = ClientClasses.GuildBanState(client=self.state.client, guild=self)
+        self.channels = ClientClasses.GuildChannelState(
             superstate=self.state.client.channels, guild=self)
-
-        self.emojis = self.state.client.get_class('GuildEmojiState')(
-            client=self.state.client, guild=self)
-
-        self.roles = self.state.client.get_class('RoleState')(
-            client=self.state.client, guild=self)
-
-        self.members = self.state.client.get_class('GuildMemberState')(
-            client=self.state.client, guild=self)
-
-        self.integrations = self.state.client.get_class('IntegrationState')(
-            client=self.state.client, guild=self)
+        self.emojis = ClientClasses.GuildEmojiState(client=self.state.client, guild=self)
+        self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
+        self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
+        self.integrations = ClientClasses.IntegrationState(client=self.state.client, guild=self)
 
     def __str__(self):
         return self.name

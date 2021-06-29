@@ -22,17 +22,19 @@ class GuildMember(BaseObject):
     _permissions = JsonField('permissions', Permissions.from_value)
 
     def __init__(self, *, state):
+        from ..clients.client import ClientClasses
+
         super().__init__(state=state)
+
         self.user = None
-        self.roles = self.state.client.get_class('GuildMemberRoleState')(
-            superstate=self.guild.roles, member=self)
+        self.roles = ClientClasses.GuildMemberRoleState(superstate=self.guild.roles, member=self)
 
     @property
     def guild(self):
         return self.state.guild
 
     @property
-    def permissions(self) -> Permissions:
+    def permissions(self):
         if self._permissions is not None:
             return self._permissions
 
@@ -60,7 +62,7 @@ class GuildMember(BaseObject):
         return self.user.mention
 
     @property
-    def removed(self) -> bool:
+    def removed(self):
         return self.deleted
 
     @property

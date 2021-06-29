@@ -5,8 +5,8 @@ from ..utils import _validate_keys
 from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
-__all__ = ('GuildChannel', 'TextChannel', 'FollowedChannel',
-           'CategoryChannel', 'VoiceChannel', 'DMChannel')
+__all__ = ('GuildChannel', 'TextChannel', 'FollowedChannel', 'CategoryChannel',
+           'VoiceChannel', 'DMChannel')
 
 
 def _guild_channel_creation_keys(channel_type):
@@ -58,10 +58,12 @@ class GuildChannel(BaseObject):
     type = JsonField('type', ChannelType.get_enum)
 
     def __init__(self, *, state):
+        from ..clients.client import ClientClasses
+
         super().__init__(state=state)
 
-        cls = self.state.client.get_class('PermissionOverwriteState')
-        self.permissions = cls(client=self.state.client, channel=self)
+        self.permissions = ClientClasses.PermissionOverwriteState(
+            client=self.state.client, channel=self)
 
     @property
     def mention(self):
@@ -186,12 +188,13 @@ class TextChannel(GuildChannel):
     last_message_id = JsonField('last_message_id', Snowflake)
 
     def __init__(self, *, state):
+        from ..clients.client import ClientClasses
+
         super().__init__(state=state)
 
         self.last_pin_timestamp = None
 
-        self.messages = self.state.client.get_class('MessageState')(
-            client=self.state.client, channel=self)
+        self.messages = ClientClasses.MessageState(client=self.state.client, channel=self)
 
     def __str__(self):
         return f'#{self.name}'

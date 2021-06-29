@@ -9,8 +9,7 @@ __all__ = ('Invite', 'GuildVanityURL')
 
 
 class Invite(BaseObject):
-    __slots__ = ('guild', 'channel', 'inviter', 'target_user',
-                 'target_application')
+    __slots__ = ('guild', 'channel', 'inviter', 'target_user', 'target_application')
 
     id = JsonField('code')
     target_type = JsonField('target_type', InviteTargetType.get_enum)

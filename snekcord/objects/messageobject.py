@@ -38,11 +38,14 @@ class Message(BaseObject):
     _interaction = JsonField('interaction')
 
     def __init__(self, *, state):
+        from ..clients.client import ClientClasses
+
         super().__init__(state=state)
+
         self.author = None
         self.member = None
-        self.reactions = self.state.client.get_class('ReactionsState')(
-            client=self.state.client, message=self)
+
+        self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
     @property
     def channel(self):

@@ -28,8 +28,7 @@ class StageInstance(BaseObject):
 
     async def modify(self, **kwargs):
         try:
-            kwargs['privacy_level'] = StageInstancePrivacyLevel.get_value(
-                kwargs['privacy_level'])
+            kwargs['privacy_level'] = StageInstancePrivacyLevel.get_value(kwargs['privacy_level'])
         except KeyError:
             pass
 
