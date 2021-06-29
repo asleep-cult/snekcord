@@ -1,6 +1,6 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.userobject import User
+from ..clients.client import ClientClasses
 from ..utils.snowflake import Snowflake
 
 __all__ = ('UserState',)
@@ -8,14 +8,13 @@ __all__ = ('UserState',)
 
 class UserState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __user_class__ = User
 
     def upsert(self, data):
         user = self.get(data['id'])
         if user is not None:
             user.update(data)
         else:
-            user = self.__user_class__.unmarshal(data, state=self)
+            user = ClientClasses.User.unmarshal(data, state=self)
             user.cache()
 
         return user

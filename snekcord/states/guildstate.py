@@ -1,7 +1,6 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.guildobject import Guild, GuildBan
-from ..objects.templateobject import GuildTemplate
+from ..clients.client import ClientClasses
 from ..utils import _validate_keys
 from ..utils.snowflake import Snowflake
 
@@ -10,21 +9,19 @@ __all__ = ('GuildState', 'GuildBanState')
 
 class GuildState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __guild_class__ = Guild
-    __guild_template_class__ = GuildTemplate
 
     def upsert(self, data):
         guild = self.get(data['id'])
         if guild is not None:
             guild.update(data)
         else:
-            guild = self.__guild_class__.unmarshal(data, state=self)
+            guild = ClientClasses.Guild.unmarshal(data, state=self)
             guild.cache()
 
         return guild
 
     def new_template(self, data):
-        return self.__guild_template_class__.unmarshal(data, state=self)
+        return ClientClasses.GuildTemplate.unmarshal(data, state=self)
 
     def new_template_many(self, values):
         return {self.new_template(value) for value in values}
@@ -95,7 +92,6 @@ class GuildState(BaseState):
 
 class GuildBanState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __ban_class__ = GuildBan
 
     def __init__(self, *, client, guild):
         super().__init__(client=client)
@@ -106,7 +102,7 @@ class GuildBanState(BaseState):
         if ban is not None:
             ban.update(data)
         else:
-            ban = self.__ban_class__.unmarshal(data, state=self)
+            ban = ClientClasses.GuildBan.unmarshal(data, state=self)
             ban.cache()
 
         return ban

@@ -1,6 +1,6 @@
 from .basestate import BaseState, BaseSubState
 from .. import rest
-from ..objects.roleobject import Role
+from ..clients.client import ClientClasses
 from ..utils import _validate_keys
 from ..utils.snowflake import Snowflake
 
@@ -9,7 +9,6 @@ __all__ = ('RoleState', 'GuildMemberRoleState')
 
 class RoleState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __role_class__ = Role
 
     def __init__(self, *, client, guild):
         super().__init__(client=client)
@@ -24,8 +23,7 @@ class RoleState(BaseState):
         if role is not None:
             role.update(data)
         else:
-            role = self.__role_class__.unmarshal(
-                data, state=self)
+            role = ClientClasses.Role.unmarshal(data, state=self)
             role.cache()
 
         return role

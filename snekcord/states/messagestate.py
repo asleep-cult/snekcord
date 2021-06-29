@@ -1,6 +1,6 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.messageobject import Message
+from ..clients.client import ClientClasses
 from ..utils import _validate_keys
 from ..utils.snowflake import Snowflake
 
@@ -9,7 +9,6 @@ __all__ = ('MessageState',)
 
 class MessageState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __message_class__ = Message
 
     def __init__(self, *, client, channel):
         super().__init__(client=client)
@@ -20,7 +19,7 @@ class MessageState(BaseState):
         if message is not None:
             message.update(data)
         else:
-            message = self.__message_class__.unmarshal(data, state=self)
+            message = ClientClasses.Message.unmarshal(data, state=self)
             message.cache()
 
         return message

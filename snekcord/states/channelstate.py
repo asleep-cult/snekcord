@@ -1,8 +1,7 @@
 from .basestate import BaseState, BaseSubState
 from .. import rest
-from ..objects.channelobject import (
-    CategoryChannel, ChannelType, DMChannel, GuildChannel, TextChannel,
-    VoiceChannel, _guild_channel_creation_keys)
+from ..clients.client import ClientClasses
+from ..objects.channelobject import ChannelType, _guild_channel_creation_keys
 from ..utils import Snowflake, _validate_keys
 
 __all__ = ('ChannelState', 'GuildChannelState')
@@ -10,17 +9,18 @@ __all__ = ('ChannelState', 'GuildChannelState')
 
 class ChannelState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __channel_classes__ = {
-        ChannelType.GUILD_TEXT: TextChannel,
-        ChannelType.DM: DMChannel,
-        ChannelType.GUILD_VOICE: VoiceChannel,
-        ChannelType.GUILD_CATEGORY: CategoryChannel,
-        ChannelType.GUILD_NEWS: TextChannel,
-    }
-    __default_class__ = GuildChannel
 
     def get_class(self, type):
-        return self.__channel_classes__.get(type, self.__default_class__)
+        if type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
+            return ClientClasses.TextChannel
+        elif type == ChannelType.DM:
+            return ClientClasses.DMChannel
+        elif type == ChannelType.GUILD_VOICE:
+            return ClientClasses.VoiceChannel
+        elif type == ChannelType.GUILD_CATEGORY:
+            return ClientClasses.CategoryChannel
+        else:
+            return ClientClasses.GuildChannel
 
     def upsert(self, data):
         channel = self.get(data['id'])

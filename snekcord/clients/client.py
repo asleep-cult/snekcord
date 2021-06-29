@@ -7,6 +7,30 @@ __all__ = ('ClientClasses', 'Client',)
 
 
 class _ClientClasses:
+    _object_classes_ = {
+        'GuildChannel',
+        'FollowedChannel',
+        'TextChannel',
+        'CategoryChannel',
+        'VoiceChannel',
+        'DMChannel',
+        'GuildEmoji',
+        'Guild',
+        'Integration',
+        'Invite',
+        'GuildVanityURL',
+        'GuildMember',
+        'Message',
+        'PermissionOverwrite',
+        'Reactions',
+        'Role',
+        'StageInstance',
+        'GuildTemplate',
+        'User',
+        'GuildWidget',
+        'WelcomeScreen',
+    }
+
     _rest_classes_ = {
         'RestSession',
     }
@@ -34,6 +58,10 @@ class _ClientClasses:
     def __getattribute__(self, name):
         if name in _ClientClasses._local_classes_:
             return super().__getattribute__(name)
+        elif name in _ClientClasses._object_classes_:
+            from .. import objects
+
+            return getattr(objects, name)
         elif name in _ClientClasses._rest_classes_:
             from .. import rest
 

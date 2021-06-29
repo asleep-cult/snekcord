@@ -1,6 +1,6 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.integrationobject import Integration
+from ..clients.client import ClientClasses
 from ..utils import Snowflake
 
 __all__ = ('IntegrationState',)
@@ -8,7 +8,6 @@ __all__ = ('IntegrationState',)
 
 class IntegrationState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __integration_class__ = Integration
 
     def __init__(self, *, client, guild):
         super().__init__(client=client)
@@ -19,8 +18,7 @@ class IntegrationState(BaseState):
         if integration is not None:
             integration.update(data)
         else:
-            integration = self.__integration_class__.unmarshal(
-                data, state=self)
+            integration = ClientClasses.Integration.unmarshal(data, state=self)
             integration.cache()
 
         return integration

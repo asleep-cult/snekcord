@@ -1,6 +1,7 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.emojiobject import BUILTIN_EMOJIS, GuildEmoji
+from ..clients.client import ClientClasses
+from ..objects.emojiobject import BUILTIN_EMOJIS
 from ..utils import Snowflake
 
 __all__ = ('GuildEmojiState',)
@@ -8,7 +9,6 @@ __all__ = ('GuildEmojiState',)
 
 class GuildEmojiState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __guild_emoji_class__ = GuildEmoji
 
     def __init__(self, *, client, guild):
         super().__init__(client=client)
@@ -21,7 +21,7 @@ class GuildEmojiState(BaseState):
             if emoji is not None:
                 emoji.update(data)
             else:
-                emoji = self.__guild_emoji_class__.unmarshal(data, state=self)
+                emoji = ClientClasses.GuildEmoji.unmarshal(data, state=self)
                 emoji.cache()
         else:
             surrogates = data['name'].encode()

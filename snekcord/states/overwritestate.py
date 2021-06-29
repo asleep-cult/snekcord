@@ -1,11 +1,8 @@
 from .basestate import BaseState
 from .. import rest
+from ..clients.client import ClientClasses
 from ..flags import Permissions
-from ..objects.memberobject import GuildMember
-from ..objects.overwriteobject import (
-    PermissionOverwrite,
-    PermissionOverwriteType)
-from ..objects.roleobject import Role
+from ..objects.overwriteobject import PermissionOverwriteType
 from ..utils.snowflake import Snowflake
 
 __all__ = ('PermissionOverwriteState',)
@@ -13,7 +10,6 @@ __all__ = ('PermissionOverwriteState',)
 
 class PermissionOverwriteState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __permission_overwrite_class__ = PermissionOverwrite
 
     def __init__(self, *, client, channel):
         super().__init__(client=client)
@@ -28,14 +24,13 @@ class PermissionOverwriteState(BaseState):
         if overwrite is not None:
             overwrite.update(data)
         else:
-            overwrite = self.__permission_overwrite_class__.unmarshal(
-                data, state=self)
+            overwrite = ClientClasses.PermissionOverwrite.unmarshal(data, state=self)
             overwrite.cache()
 
         return overwrite
 
     def apply_to(self, member):
-        if not isinstance(member, GuildMember):
+        if not isinstance(member, ClientClasses.GuildMember):
             guild = self.channel.guild
             if guild is None:
                 return None
@@ -75,10 +70,10 @@ class PermissionOverwriteState(BaseState):
         return Permissions.from_value(value)
 
     async def create(self, obj, **kwargs):
-        if isinstance(obj, GuildMember):
+        if isinstance(obj, ClientClasses.GuildMember):
             obj_id = obj.id
             kwargs['type'] = PermissionOverwriteType.MEMBER
-        if isinstance(obj, Role):
+        if isinstance(obj, ClientClasses.Role):
             obj_id = obj.id
             kwargs['type'] = PermissionOverwriteType.ROLE
         else:

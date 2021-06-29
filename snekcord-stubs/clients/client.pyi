@@ -4,6 +4,7 @@ import asyncio
 import signal
 import typing as t
 
+from .. import objects
 from .. import rest
 from .. import states
 from ..flags import CacheFlags
@@ -15,7 +16,30 @@ __all__ = ('ClientClasses', 'Client',)
 
 
 class ClientClasses:
+    GuildChannel: type[objects.GuildChannel]
+    FollowedChannel: type[objects.FollowedChannel]
+    TextChannel: type[objects.TextChannel]
+    CategoryChannel: type[objects.CategoryChannel]
+    VoiceChannel: type[objects.VoiceChannel]
+    DMChannel: type[objects.DMChannel]
+    GuildEmoji: type[objects.GuildEmoji]
+    Guild: type[objects.Guild]
+    Integration: type[objects.Integration]
+    Invite: type[objects.Invite]
+    GuildVanityURL: type[objects.GuildVanityURL]
+    GuildMember: type[objects.GuildMember]
+    Message: type[objects.Message]
+    PermissionOverwrite: type[objects.PermissionOverwrie]
+    Reactions: type[objects.Reactions]
+    Role: type[objects.Role]
+    StageInstance: type[objects.StageInstance]
+    GuildTemplate: type[objects.GuildTemplate]
+    User: type[objects.User]
+    GuildWidget: type[objects.GuildWidget]
+    WelcomeScreen: type[objects.WelcomeScreen]
+
     RestSession: type[rest.RestSession]
+
     ChannelState: type[states.ChannelState]
     GuildChannelState: type[states.GuildChannelState]
     GuildEmojiState: type[states.GuildEmojiState]

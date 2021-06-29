@@ -1,6 +1,6 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.reactionsobject import Reactions
+from ..clients.client import ClientClasses
 
 __all__ = ('ReactionsState',)
 
@@ -16,7 +16,7 @@ class ReactionsState(BaseState):
         if reactions is not None:
             reactions.update(data)
         else:
-            reactions = Reactions.unmarshal(data, state=self)
+            reactions = ClientClasses.Reactions.unmarshal(data, state=self)
             reactions.cache()
 
         return reactions

@@ -1,6 +1,7 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.stageobject import StageInstance, StageInstancePrivacyLevel
+from ..clients.client import ClientClasses
+from ..objects.stageobject import StageInstancePrivacyLevel
 from ..utils import _validate_keys
 from ..utils.snowflake import Snowflake
 
@@ -9,14 +10,13 @@ __all__ = ('StageInstanceState',)
 
 class StageInstanceState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __stage_instance_class__ = StageInstance
 
     def upsert(self, data):
         stage = self.get(data['id'])
         if stage is not None:
             stage.update(data)
         else:
-            stage = self.__stage_instance_class__.unmarshal(data, state=self)
+            stage = ClientClasses.StageInstance.unmarshal(data, state=self)
             stage.cache()
 
         return stage

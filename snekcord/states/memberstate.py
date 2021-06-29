@@ -1,6 +1,6 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.memberobject import GuildMember
+from ..clients.client import ClientClasses
 from ..utils import _validate_keys
 from ..utils.snowflake import Snowflake
 
@@ -9,7 +9,6 @@ __all__ = ('GuildMemberState',)
 
 class GuildMemberState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
-    __guild_member_class__ = GuildMember
 
     def __init__(self, *, client, guild):
         super().__init__(client=client)
@@ -20,8 +19,7 @@ class GuildMemberState(BaseState):
         if member is not None:
             member.update(data)
         else:
-            member = self.__guild_member_class__.unmarshal(
-                data, state=self)
+            member = ClientClasses.GuildMember.unmarshal(data, state=self)
             member.cache()
 
         return member

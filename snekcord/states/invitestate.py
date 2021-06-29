@@ -1,19 +1,17 @@
 from .basestate import BaseState
 from .. import rest
-from ..objects.inviteobject import Invite
+from ..clients.client import ClientClasses
 
 __all__ = ('InviteState',)
 
 
 class InviteState(BaseState):
-    __invite_class__ = Invite
-
     def upsert(self, data):
         invite = self.get(data['code'])
         if invite is not None:
             invite.update(data)
         else:
-            invite = self.__invite_class__.unmarshal(data, state=self)
+            invite = ClientClasses.Invite.unmarshal(data, state=self)
             invite.cache()
 
         return invite

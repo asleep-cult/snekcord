@@ -1,8 +1,6 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .inviteobject import GuildVanityURL
-from .widgetobject import GuildWidget
 from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import (
@@ -90,9 +88,9 @@ class Guild(BaseObject):
 
         self.unsynced = True
 
-        self.widget = GuildWidget.unmarshal(guild=self)
-        self.vanity_url = GuildVanityURL.unmarshal(guild=self)
-        self.welcome_screen = WelcomeScreen.unmarshal(guild=self)
+        self.widget = ClientClasses.GuildWidget.unmarshal(guild=self)
+        self.vanity_url = ClientClasses.GuildVanityURL.unmarshal(guild=self)
+        self.welcome_screen = ClientClasses.WelcomeScreen.unmarshal(guild=self)
 
         self.bans = ClientClasses.GuildBanState(client=self.state.client, guild=self)
         self.channels = ClientClasses.GuildChannelState(
