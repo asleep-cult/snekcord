@@ -1,7 +1,6 @@
 import asyncio
 import signal
 
-from ..objects.channelobject import TextChannel
 from ..rest import RestSession
 from ..states.channelstate import ChannelState, GuildChannelState
 from ..states.emojistate import GuildEmojiState
@@ -95,7 +94,7 @@ class Client(EventDispatcher):
     @property
     def messages(self):
         for channel in self.channels:
-            if isinstance(channel, TextChannel):
+            if hasattr(channel, 'messages'):
                 yield from channel.messages
 
     @property

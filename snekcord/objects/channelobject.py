@@ -1,5 +1,6 @@
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
+from ..states.webhookstate import ChannelWebhookState
 from ..utils import _validate_keys
 from ..utils.enum import Enum
 from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
@@ -229,18 +230,14 @@ class TextChannel(GuildChannel, template=TextChannelTemplate):
     __slots__ = ('messages', 'webhooks', 'last_pin_timestamp')
 
     def __init__(self, *, state):
-        # Prevent circular imports
-        from ..states.webhookstate import ChannelWebhookState
-
         super().__init__(state=state)
 
         self.last_pin_timestamp = None
 
-        self.webhooks = ChannelWebhookState(
-            superstate=self.state.client.webhooks, channel=self)
-
         self.messages = self.state.client.get_class('MessageState')(
             client=self.state.client, channel=self)
+        self.webhooks = ChannelWebhookState(
+            superstate=self.state.client.webhooks, channel=self)
 
     def __str__(self):
         return f'#{self.name}'
