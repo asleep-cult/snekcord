@@ -1,13 +1,8 @@
-from __future__ import annotations
-
 import asyncio
 import signal
-import typing as t
-from types import FrameType
 
 from ..objects.channelobject import TextChannel
 from ..rest import RestSession
-from ..states.basestate import BaseState
 from ..states.channelstate import ChannelState, GuildChannelState
 from ..states.emojistate import GuildEmojiState
 from ..states.guildstate import GuildBanState, GuildState
@@ -18,17 +13,12 @@ from ..states.messagestate import MessageState
 from ..states.overwritestate import PermissionOverwriteState
 from ..states.reactionsstate import ReactionsState
 from ..states.rolestate import GuildMemberRoleState, RoleState
-from ..states.stagestage import StageState
+from ..states.stagestate import StageInstanceState
 from ..states.userstate import UserState
 from ..states.webhookstate import WebhookState
 from ..utils import Bitset, EventDispatcher, Flag
 
 __all__ = ('CacheFlags', 'Client')
-
-if t.TYPE_CHECKING:
-    from signal import Signals
-
-    from ..objects import BaseObject, GuildMember, GuildEmoji, Message, Role
 
 
 class CacheFlags(Bitset):
@@ -39,9 +29,8 @@ class CacheFlags(Bitset):
 
 
 class Client(EventDispatcher):
-    DEFAULT_CLASSES: t.Dict[
-        str, t.Type[t.Union[BaseState[t.Any, BaseObject], RestSession]]
-    ] = {
+    DEFAULT_CLASSES = {
+        'RestSession': RestSession,
         'ChannelState': ChannelState,
         'GuildChannelState': GuildChannelState,
         'GuildEmojiState': GuildEmojiState,
@@ -56,89 +45,70 @@ class Client(EventDispatcher):
         'ReactionsState': ReactionsState,
         'GuildMemberRoleState': GuildMemberRoleState,
         'UserState': UserState,
-        'StageState': StageState,
         'RestSession': RestSession,
-        'WebhookState': WebhookState
+        'WebhookState': WebhookState,
+        'StageInstanceState': StageInstanceState
     }
-
-    if t.TYPE_CHECKING:
-        rest: RestSession
-        channels: ChannelState
-        guilds: GuildState
-        invites: InviteState
-        stages: StageState
-        users: UserState
-        webhooks: WebhookState
-        finalizing: bool
 
     __classes__ = DEFAULT_CLASSES.copy()
     __handled_signals__ = [signal.SIGINT, signal.SIGTERM]
 
-    def __init__(self, token: str, *,
-                 loop: t.Optional[asyncio.AbstractEventLoop] = None,
-                 cache_flags: t.Optional[CacheFlags] = None,
-                 api_version: str = '9'
-                 ) -> None:
+    def __init__(self, token, *, loop=None, cache_flags=None, api_version='9'):
         super().__init__(loop=loop)
 
         self.token = token
         self.cache_flags = cache_flags
         self.api_version = f'v{api_version}'
 
-        self.rest = self.get_class('RestSession')(client=self)  # type: ignore
-        self.channels = self.get_class(  # type: ignore
-            'ChannelState')(client=self)
-        self.guilds = self.get_class('GuildState')(client=self)  # type: ignore
-        self.invites = self.get_class(
-            'InviteState')(client=self)  # type: ignore
-        self.stages = self.get_class(  # type: ignore
-            'StageState')(client=self)
-        self.users = self.get_class('UserState')(client=self)  # type: ignore
+        self.rest = self.get_class('RestSession')(client=self)
+        self.channels = self.get_class('ChannelState')(client=self)
+        self.guilds = self.get_class('GuildState')(client=self)
+        self.invites = self.get_class('InviteState')(client=self)
+        self.stages = self.get_class('StageInstanceState')(client=self)
+        self.users = self.get_class('UserState')(client=self)
         self.webhooks = self.get_class('WebhookState')(client=self)
 
         self.finalizing = False
 
-        self._sigpending: t.List[t.Any] = []
-        self._sighandlers: t.Dict[t.Any, t.Any] = {}
+        self._sigpending = []
+        self._sighandlers = {}
 
     @classmethod
-    def set_class(cls, name: str, klass: type) -> None:
-        default = cls.DEFAULT_CLASSES[name]
-        assert issubclass(klass, default)  # type: ignore
-        cls.__classes__[name] = klass
-
-    @classmethod
-    def get_class(
-        cls, name: str
-    ) -> t.Type[t.Union[BaseState[t.Any, BaseObject], RestSession]]:
+    def get_class(cls, name):
         return cls.__classes__[name]
 
     @classmethod
-    def add_handled_signal(cls, signo: Signals) -> None:
+    def set_class(cls, name, klass):
+        default = cls.DEFAULT_CLASSES[name]
+        assert issubclass(klass, default)
+        cls.__classes__[name] = klass
+
+    @classmethod
+    def add_handled_signal(cls, signo):
         cls.__handled_signals__.append(signo)
 
     @property
-    def members(self) -> t.Generator[GuildMember, None, None]:
+    def members(self):
         for guild in self.guilds:
             yield from guild.members
 
     @property
-    def messages(self) -> t.Generator[Message, None, None]:
+    def messages(self):
         for channel in self.channels:
             if isinstance(channel, TextChannel):
                 yield from channel.messages
 
     @property
-    def roles(self) -> t.Generator[Role, None, None]:
+    def roles(self):
         for guild in self.guilds:
             yield from guild.roles
 
     @property
-    def emojis(self) -> t.Generator[GuildEmoji, None, None]:
+    def emojis(self):
         for guild in self.guilds:
             yield from guild.emojis
 
-    def _repropagate(self) -> None:
+    def _repropagate(self):
         for signo, frame in self._sigpending:
             self._sighandlers[signo](signo, frame)
 
@@ -147,7 +117,7 @@ class Client(EventDispatcher):
         for signo in self.__handled_signals__:
             signal.signal(signo, self._sighandlers[signo])
 
-    def _sighandle(self, signo: int, frame: FrameType) -> None:
+    def _sighandle(self, signo, frame):
         self._sigpending.append((signo, frame))
 
         if self.finalizing:
@@ -161,10 +131,10 @@ class Client(EventDispatcher):
 
         asyncio.run_coroutine_threadsafe(self.finalize(), loop=self.loop)
 
-    async def close(self) -> None:
+    async def close(self):
         await self.rest.aclose()
 
-    async def finalize(self) -> None:
+    async def finalize(self):
         await self.close()
 
         tasks = asyncio.all_tasks(loop=self.loop)
@@ -175,15 +145,10 @@ class Client(EventDispatcher):
         self.loop.call_soon_threadsafe(self._repropagate)
         self.loop.call_soon_threadsafe(self.loop.close)
 
-    def run_forever(self) -> t.Optional[BaseException]:
+    def run_forever(self):
         for signo in self.__handled_signals__:
-            try:
-                self._sighandlers[signo] = (  # type: ignore
-                    signal.getsignal(signo))
-
-                signal.signal(signo, self._sighandle)
-            except BaseException:
-                pass
+            self._sighandlers[signo] = signal.getsignal(signo)
+            signal.signal(signo, self._sighandle)
 
         try:
             self.loop.run_forever()

@@ -1,17 +1,11 @@
-from __future__ import annotations
-
-import typing as t
-
 from .baseobject import BaseObject, BaseTemplate
 from .. import rest
-from ..utils import (Enum, JsonField, JsonTemplate, Snowflake,
-                     _validate_keys)
+from ..utils import _validate_keys
+from ..utils.enum import Enum
+from ..utils.json import JsonField, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('StageInstancePrivacyLevel', 'StageInstance',)
-
-if t.TYPE_CHECKING:
-    from ..objects import Guild, GuildChannel
-    from ..states import StageState
 
 
 class StageInstancePrivacyLevel(Enum[int]):
@@ -34,36 +28,25 @@ StageInstanceTemplate = JsonTemplate(
 
 
 class StageInstance(BaseObject, template=StageInstanceTemplate):
-    if t.TYPE_CHECKING:
-        state: StageState
-        guild_id: Snowflake
-        channel_id: Snowflake
-        topic: str
-        privacy_level: StageInstancePrivacyLevel
-        discoverable_disabled: bool
-
     @property
-    def guild(self) -> t.Optional[Guild]:
+    def guild(self):
         return self.state.client.guilds.get(self.guild_id)
 
     @property
-    def channel(self) -> t.Optional[GuildChannel]:
-        guild = self.guild
-        if guild is not None:
-            return guild.channels.get(self.channel_id)
-        return None
+    def channel(self):
+        return self.state.client.channels.get(self.channel_id)
 
-    async def fetch(self) -> StageInstance:
+    async def fetch(self):
         return await self.state.fetch(self.channel_id)
 
-    async def modify(self, **kwargs: t.Any) -> StageInstance:
+    async def modify(self, **kwargs):
         try:
             kwargs['privacy_level'] = StageInstancePrivacyLevel.get_value(
                 kwargs['privacy_level'])
         except KeyError:
             pass
 
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.modify_stage_instance.json)
 
         data = await rest.modify_stage_instance.request(

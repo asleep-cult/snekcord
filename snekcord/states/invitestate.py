@@ -1,21 +1,14 @@
-from __future__ import annotations
-
-import typing as t
-
 from .basestate import BaseState
 from .. import rest
 from ..objects.inviteobject import Invite
 
 __all__ = ('InviteState',)
 
-if t.TYPE_CHECKING:
-    from ..typing import Json
 
-
-class InviteState(BaseState[str, Invite]):
+class InviteState(BaseState):
     __invite_class__ = Invite
 
-    def upsert(self, data: Json) -> Invite:  # type: ignore
+    def upsert(self, data):
         invite = self.get(data['code'])
         if invite is not None:
             invite.update(data)
@@ -25,12 +18,8 @@ class InviteState(BaseState[str, Invite]):
 
         return invite
 
-    async def fetch(  # type: ignore
-        self, code: str, *,
-        with_counts: t.Optional[bool] = None,
-        with_expiration: t.Optional[bool] = None
-    ) -> Invite:
-        params: Json = {}
+    async def fetch(self, code, *, with_counts=None, with_expiration=None):
+        params = {}
 
         if with_counts is not None:
             params['with_counts'] = with_counts

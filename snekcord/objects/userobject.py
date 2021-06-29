@@ -1,12 +1,9 @@
-import typing as t
-
 from .baseobject import BaseObject, BaseTemplate
-from ..utils import Bitset, Enum, Flag, JsonField, JsonTemplate
+from ..utils.bitset import Bitset, Flag
+from ..utils.enum import Enum
+from ..utils.json import JsonField, JsonTemplate
 
 __all__ = ('User',)
-
-if t.TYPE_CHECKING:
-    from ..states import UserState
 
 
 class UserFlags(Bitset):
@@ -64,27 +61,13 @@ UserTemplate = JsonTemplate(
 
 
 class User(BaseObject, template=UserTemplate):
-    if t.TYPE_CHECKING:
-        state: UserState
-        name: str
-        discriminator: str
-        avatar: t.Optional[str]
-        bot: t.Optional[bool]
-        mfa_enabled: t.Optional[bool]
-        locale: t.Optional[str]
-        verified: t.Optional[bool]
-        email: t.Optional[str]
-        flags: t.Optional[UserFlags]
-        premium_type: t.Optional[PremiumType]
-        public_flags: t.Optional[UserFlags]
-
-    def __str__(self) -> str:
+    def __str__(self):
         return f'@{self.name}'
 
     @property
-    def tag(self) -> str:
+    def tag(self):
         return f'{self.name}#{self.id}'
 
     @property
-    def mention(self) -> str:
+    def mention(self):
         return f'<@{self.id}>'

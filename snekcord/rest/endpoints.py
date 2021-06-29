@@ -1,38 +1,20 @@
-from __future__ import annotations
-
-import typing as t
-
-if t.TYPE_CHECKING:
-    from .session import RestSession
-    from ..typing import Json
-
 
 class HTTPEndpoint:
-    def __init__(
-        self, method: str, url: str, *,
-        params: t.Tuple[str, ...] = (),
-        json: t.Tuple[str, ...] = ()
-    ):
+    def __init__(self, method, url, *, params=(), json=()):
         self.method = method
         self.url = url
         self.params = params
         self.json = json
 
-    async def request(
-        self, *, session: RestSession,
-        params: t.Optional[Json] = None,
-        json: t.Union[Json, t.List[t.Any], None] = None,
-        **kwargs: t.Any
-    ) -> t.Any:
-        headers: Json = kwargs.setdefault('headers', {})
+    async def request(self, *, session, params=None, json=None, **kwargs):
+        headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
         fmt = kwargs.pop('fmt', {})
         fmt['version'] = session.api_version
 
-        return await session.request(
-            self.method, self.url, fmt, params=params,
-            json=json, **kwargs)
+        return await session.request(self.method, self.url, fmt, params=params,
+                                     json=json, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/%(version)s/'

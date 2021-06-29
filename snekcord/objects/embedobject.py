@@ -1,22 +1,12 @@
-from __future__ import annotations
-
 import copy
-import typing as t
 from datetime import datetime
 
-from ..utils import (Enum, JsonArray, JsonField, JsonObject,
-                     JsonTemplate)
+from ..utils.enum import Enum
+from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
 
 __all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
            'Embed', 'EmbedBuilder')
-
-if t.TYPE_CHECKING:
-    from ..typing import Json
-    from .channelobject import TextChannel
-    from .messageobject import Message
-
-    EB = t.TypeVar('EB', bound='EmbedBuilder')
 
 
 class EmbedType(Enum[str]):
@@ -62,10 +52,6 @@ class EmbedThumbnail(JsonObject, template=EmbedThumbnailTemplate):
 
         width int: The thumbnail's width
     """
-    user: str
-    proxy_url: str
-    height: int
-    width: int
 
 
 EmbedVideoTemplate = JsonTemplate(
@@ -88,10 +74,6 @@ class EmbedVideo(JsonObject, template=EmbedVideoTemplate):
 
         width int: The video's width
     """
-    url: str
-    proxy_url: str
-    height: int
-    width: int
 
 
 EmbedImageTemplate = JsonTemplate(
@@ -114,10 +96,6 @@ class EmbedImage(JsonObject, template=EmbedImageTemplate):
 
         width int: The image's width
     """
-    url: str
-    proxy_url: str
-    height: int
-    width: int
 
 
 EmbedProviderTemplate = JsonTemplate(
@@ -134,8 +112,6 @@ class EmbedProvider(JsonObject, template=EmbedProviderTemplate):
 
         url str: The provider's url
     """
-    name: str
-    url: str
 
 
 EmbedAuthorTemplate = JsonTemplate(
@@ -155,9 +131,6 @@ class EmbedAuthor(JsonObject, template=EmbedAuthorTemplate):
 
         proxy_icon_url str: The author's proxy icon url
     """
-    name: str
-    icon_url: str
-    proxy_icon_url: str
 
 
 EmbedFooterTemplate = JsonTemplate(
@@ -177,9 +150,6 @@ class EmbedFooter(JsonObject, template=EmbedFooterTemplate):
 
         proxy_icon_url str: The footer's proxy icon url
     """
-    text: str
-    icon_url: str
-    proxy_icon_url: str
 
 
 EmbedFieldTemplate = JsonTemplate(
@@ -199,21 +169,21 @@ class EmbedField(JsonObject, template=EmbedFieldTemplate):
 
         inline bool: Whether or not the field is inline
     """
-    name: str
-    value: str
-    inline: bool
 
 
 EmbedTemplate = JsonTemplate(
     title=JsonField('title'),
     type=JsonField(
-        'type', EmbedType.get_enum, EmbedType.get_value,
+        'type', EmbedType.get_enum,
+        EmbedType.get_value,
         default=EmbedType.RICH
     ),
     description=JsonField('description'),
     url=JsonField('url'),
     timestamp=JsonField(
-        'timestamp', datetime.fromisoformat, datetime.isoformat
+        'timestamp',
+        datetime.fromisoformat,
+        datetime.isoformat
     ),
     color=JsonField('color'),
     footer=JsonField('footer', object=EmbedFooter),
@@ -256,21 +226,7 @@ class Embed(JsonObject, template=EmbedTemplate):
 
         fields list[EmbedField]: The embed's fields
     """
-    title: t.Optional[str]
-    type: t.Optional[EmbedType]
-    description: t.Optional[str]
-    url: t.Optional[str]
-    timestamp: t.Optional[datetime]
-    color: t.Optional[int]
-    footer: t.Optional[EmbedFooter]
-    image: t.Optional[EmbedImage]
-    thumbnail: t.Optional[EmbedThumbnail]
-    video: t.Optional[EmbedVideo]
-    provider: t.Optional[EmbedProvider]
-    author: t.Optional[EmbedAuthor]
-    fields: t.List[EmbedField]
-
-    def to_builder(self) -> EmbedBuilder:
+    def to_builder(self):
         """Equivalent to `EmbedBuilder.from_embed(self)`"""
         return EmbedBuilder.from_embed(self)
 
@@ -284,21 +240,36 @@ class EmbedBuilder:
     note:
         All methods in this class return the builder
     """
-    def __init__(self, **kwargs: t.Any):
+    def __init__(self, title=None, type=None, description=None, url=None,
+                 timestamp=None, color=None):
         """
         Accepts `title`, `type`, `description`, `url`, `timestamp` and `color`
         keyword arguments, see the corresponding `set_*` methods for more
         information
         """
         self.embed = Embed.unmarshal({'fields': []})
-        self.set_title(kwargs.get('title'))
-        self.set_type(kwargs.get('type'))
-        self.set_description(kwargs.get('description'))
-        self.set_url(kwargs.get('url'))
-        self.set_timestamp(kwargs.get('timestamp'))
-        self.set_color(kwargs.get('color'))
+        self.set_title(title)
+        self.set_type(type)
+        self.set_description(description)
+        self.set_url(url)
+        self.set_timestamp(timestamp)
+        self.set_color(color)
 
-    def set_title(self, title: t.Any):
+    @classmethod
+    def from_embed(cls, embed):
+        """Creates a builder from an `Embed`
+
+        Arguments:
+            embed Embed: The embed to create a builder from
+
+        Returns:
+            EmbedBuilder: The builder
+        """
+        self = cls.__new__(cls)
+        self.embed = copy.copy(embed)
+        return self
+
+    def set_title(self, title):
         """Sets the embed's title
 
         Raises:
@@ -318,7 +289,7 @@ class EmbedBuilder:
         self.embed.title = None
         return self
 
-    def set_type(self: EB, type: t.Optional[str]) -> EB:
+    def set_type(self, type):
         """Sets the embed's type
 
         Raises:
@@ -328,12 +299,12 @@ class EmbedBuilder:
         self.embed.update({'type': embed_type})
         return self
 
-    def clear_type(self: EB) -> EB:
+    def clear_type(self):
         """Clears embed's type"""
         self.embed.type = None
         return self
 
-    def set_description(self: EB, description: t.Any) -> EB:
+    def set_description(self, description):
         """Sets the embed's description
 
         Raises:
@@ -348,12 +319,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_description(self: EB) -> EB:
+    def clear_description(self):
         """Clears the embed's description"""
         self.embed.description = None
         return self
 
-    def set_url(self: EB, url: t.Any) -> EB:
+    def set_url(self, url):
         """Sets the embed's url
 
         Raises:
@@ -368,12 +339,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_url(self: EB) -> EB:
+    def clear_url(self):
         """Clears the embed's url"""
         self.embed.url = None
         return self
 
-    def set_timestamp(self: EB, timestamp: t.Any) -> EB:
+    def set_timestamp(self, timestamp):
         """Sets the embed's timestamp
 
         Raises:
@@ -393,12 +364,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_timestamp(self: EB) -> EB:
+    def clear_timestamp(self):
         """Clears the embed's timestamp"""
         self.embed.timestamp = None
         return self
 
-    def set_color(self: EB, color: t.Any) -> EB:
+    def set_color(self, color):
         """Sets the embed's color
 
         Raises:
@@ -412,15 +383,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_color(self: EB) -> EB:
+    def clear_color(self):
         """Clears the embed's color"""
         self.embed.color = None
         return self
 
-    def set_footer(
-        self: EB, text: t.Any,
-        icon_url: t.Any = None, proxy_icon_url: t.Any = None
-    ) -> EB:
+    def set_footer(self, text, icon_url=None, proxy_icon_url=None):
         """Sets the embed's footer
 
         Raises:
@@ -450,15 +418,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_footer(self: EB) -> EB:
+    def clear_footer(self):
         """Clears the embed's footer"""
         self.embed.footer = None
         return self
 
-    def _attachment(
-        self, url: t.Any = None, proxy_url: t.Any = None,
-        height: t.Any = None, width: t.Any = None
-    ) -> Json:
+    def _attachment(self, url=None, proxy_url=None, height=None, width=None):
         if url is not None and not isinstance(url, str):
             raise TypeError(
                 f'url should be a str or None, got {url.__class__.__name__!r}')
@@ -485,10 +450,7 @@ class EmbedBuilder:
             'width': width
         }
 
-    def set_image(
-        self: EB, url: t.Any = None, proxy_url: t.Any = None,
-        height: t.Any = None, width: t.Any = None
-    ) -> EB:
+    def set_image(self, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's image
 
         Raises:
@@ -499,15 +461,11 @@ class EmbedBuilder:
         })
         return self
 
-    def clear_image(self) -> None:
+    def clear_image(self):
         """Clears the embed's image"""
         self.embed.image = None
 
-    def set_thumbnail(
-        self: EB, url: t.Any = None,
-        proxy_url: t.Any = None,
-        height: t.Any = None, width: t.Any = None
-    ) -> EB:
+    def set_thumbnail(self, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's thumbnail
 
         Raises:
@@ -518,16 +476,12 @@ class EmbedBuilder:
         })
         return self
 
-    def clear_thumbnail(self: EB) -> EB:
+    def clear_thumbnail(self):
         """Clears the embed's thumbnail"""
         self.embed.thumbnail = None
         return self
 
-    def set_video(
-        self: EB, url: t.Any = None,
-        proxy_url: t.Any = None, height: t.Any = None,
-        width: t.Any = None
-    ) -> EB:
+    def set_video(self, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's video
 
         Raises:
@@ -538,15 +492,12 @@ class EmbedBuilder:
         })
         return self
 
-    def clear_video(self: EB) -> EB:
+    def clear_video(self):
         """Clears the embed's video"""
         self.embed.video = None
         return self
 
-    def set_provider(
-        self: EB, name: t.Any = None,
-        url: t.Any = None
-    ) -> EB:
+    def set_provider(self, name=None, url=None):
         """Sets the embed's provider
 
         Raises:
@@ -569,15 +520,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_provider(self: EB) -> EB:
+    def clear_provider(self):
         """Clears the embed's provider"""
         self.embed.provider = None
         return self
 
-    def set_author(
-        self: EB, name: t.Any, icon_url: t.Any = None,
-        proxy_icon_url: t.Any = None
-    ) -> EB:
+    def set_author(self, name, icon_url=None, proxy_icon_url=None):
         """Sets the embed's author
 
         Raises:
@@ -607,14 +555,12 @@ class EmbedBuilder:
 
         return self
 
-    def clear_author(self: EB) -> EB:
+    def clear_author(self):
         """Clears the embed's author"""
         self.embed.author = None
         return self
 
-    def _field(
-        self, name: t.Any, value: t.Any, inline: t.Any = None
-    ) -> EmbedField:
+    def _field(self, name, value, inline=None):
         if not isinstance(name, str):
             raise TypeError(
                 f'name should be a str, got {name.__class__.__name__!r}')
@@ -634,9 +580,7 @@ class EmbedBuilder:
             'inline': inline
         })
 
-    def add_field(
-        self: EB, name: t.Any, value: t.Any, inline: t.Any = None
-    ) -> EB:
+    def add_field(self, name, value, inline=None):
         """Adds a field to the embed
 
         Raises:
@@ -645,10 +589,7 @@ class EmbedBuilder:
         self.embed.fields.append(self._field(name, value, inline))
         return self
 
-    def insert_field(
-        self: EB, index: int, name: str,
-        value: str, inline: t.Optional[bool] = None
-    ) -> EB:
+    def insert_field(self, index, name, value, inline=None):
         """Inserts a field into the embed at `index`
 
         Raises:
@@ -657,10 +598,7 @@ class EmbedBuilder:
         self.embed.fields.insert(index, self._field(name, value, inline))
         return self
 
-    def extend_fields(
-        self: EB,
-        *fields: t.Union[t.Tuple[str, str], t.Tuple[str, str, bool]]
-    ) -> EB:
+    def extend_fields(self, *fields):
         """Adds multiple fields of `(name, value, inline=None)` to the embed
 
         Examples:
@@ -679,30 +617,14 @@ class EmbedBuilder:
             self.add_field(*field)
         return self
 
-    def clear_fields(self: EB) -> EB:
+    def clear_fields(self):
         """Clears the fields of the embed"""
         self.embed.fields.clear()
         return self
 
-    async def send_to(
-        self, channel: TextChannel, **kwargs: t.Any
-    ) -> Message:
+    async def send_to(self, channel, **kwargs):
         """Sends the embed to `channel` with `**kwargs`, equivalent to
         `await channel.messages.create(embed=self.embed)`
         """
         kwargs['embed'] = self.embed
         return await channel.messages.create(**kwargs)
-
-    @classmethod
-    def from_embed(cls: t.Type[EB], embed: Embed) -> EB:
-        """Creates a builder from an `Embed`
-
-        Arguments:
-            embed Embed: The embed to create a builder from
-
-        Returns:
-            EmbedBuilder: The builder
-        """
-        self = cls.__new__(cls)
-        self.embed = copy.copy(embed)
-        return self

@@ -1,36 +1,23 @@
 import asyncio
-import typing as t
 
-from wsaio import WebSocketClient  # type: ignore
+from wsaio import WebSocketClient
 
-from ..utils import JsonField, JsonObject, JsonTemplate
+from ..utils import JsonField, JsonTemplate
+
+__all__ = ('BaseWebSocket',)
 
 
-WebSocketResponseTemplate = JsonTemplate(
+WebSocketResponse = JsonTemplate(
     opcode=JsonField('op'),
     sequence=JsonField('s'),
     name=JsonField('t'),
     data=JsonField('d'),
-)
-
-
-class WebSocketResponse(JsonObject, template=WebSocketResponseTemplate):
-    opcode: int
-    sequence: int
-    name: t.Optional[str]
-    data: t.Optional[t.Dict[str, t.Any]]
+).default_type('WebSocketResponse')
 
 
 class BaseWebSocket(WebSocketClient):
-    if t.TYPE_CHECKING:
-        heartbeat_interval: t.Optional[float]
-        heartbeat_last_sent: float
-        heartbeat_last_acked: float
-
-    def __init__(
-        self, loop: t.Optional[asyncio.AbstractEventLoop] = None
-    ) -> None:
-        super().__init__(loop=loop)  # type: ignore
+    def __init__(self, *, loop=None):
+        super().__init__(loop=loop)
 
         self.heartbeat_interval = None
 
@@ -40,8 +27,8 @@ class BaseWebSocket(WebSocketClient):
         self.ready = asyncio.Event()
 
     @property
-    def latency(self) -> float:
+    def latency(self):
         return self.heartbeat_last_acked - self.heartbeat_last_sent
 
-    async def send_heartbeat(self) -> None:
+    async def send_heartbeat(self):
         raise NotImplementedError

@@ -1,26 +1,19 @@
-from __future__ import annotations
-
-import typing as t
-
 from .basestate import BaseState
 from .. import rest
 from ..objects.guildobject import Guild, GuildBan
 from ..objects.templateobject import GuildTemplate
-from ..utils import Snowflake, _validate_keys
+from ..utils import _validate_keys
+from ..utils.snowflake import Snowflake
 
-__all__ = ('GuildState',)
-
-if t.TYPE_CHECKING:
-    from ..clients import Client
-    from ..typing import IntConvertable, Json, SnowflakeType
+__all__ = ('GuildState', 'GuildBanState')
 
 
-class GuildState(BaseState[Snowflake, Guild]):
+class GuildState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __guild_class__ = Guild
     __guild_template_class__ = GuildTemplate
 
-    def upsert(self, data: Json) -> Guild:  # type: ignore
+    def upsert(self, data):
         guild = self.get(data['id'])
         if guild is not None:
             guild.update(data)
@@ -30,20 +23,14 @@ class GuildState(BaseState[Snowflake, Guild]):
 
         return guild
 
-    def new_template(self, data: Json) -> GuildTemplate:
+    def new_template(self, data):
         return self.__guild_template_class__.unmarshal(data, state=self)
 
-    def new_template_many(
-        self, values: t.Iterable[Json]
-    ) -> t.List[GuildTemplate]:
-        return [self.new_template(value) for value in values]
+    def new_template_many(self, values):
+        return {self.new_template(value) for value in values}
 
-    async def fetch(  # type: ignore
-        self, guild: SnowflakeType, *,
-        with_counts: t.Optional[bool] = None,
-        sync: bool = True
-    ) -> Guild:
-        params: t.Dict[str, bool] = {}
+    async def fetch(self, guild, *, with_counts=None, sync=True):
+        params = {}
 
         if with_counts is not None:
             params['with_counts'] = with_counts
@@ -62,12 +49,8 @@ class GuildState(BaseState[Snowflake, Guild]):
 
         return guild
 
-    async def fetch_many(
-        self, *, before: t.Optional[SnowflakeType] = None,
-        after: t.Optional[SnowflakeType] = None,
-        limit: t.Optional[IntConvertable] = None
-    ) -> t.Set[Guild]:
-        params: Json = {}
+    async def fetch_many(self, *, before=None, after=None, limit=None):
+        params = {}
 
         if before is not None:
             params['before'] = Snowflake.try_snowflake(before)
@@ -84,7 +67,7 @@ class GuildState(BaseState[Snowflake, Guild]):
 
         return self.upsert_many(data)
 
-    async def fetch_preview(self, guild: SnowflakeType) -> Guild:
+    async def fetch_preview(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
 
         data = await rest.get_guild_preview.request(
@@ -93,15 +76,15 @@ class GuildState(BaseState[Snowflake, Guild]):
 
         return self.upsert(data)
 
-    async def fetch_template(self, code: str) -> GuildTemplate:
+    async def fetch_template(self, code):
         data = await rest.get_template.request(
             session=self.client.rest,
             fmt=dict(code=code))
 
         return self.new_template(data)
 
-    async def create(self, **kwargs: t.Any) -> Guild:
-        _validate_keys(f'{self.__class__.__name__}.create',  # type: ignore
+    async def create(self, **kwargs):
+        _validate_keys(f'{self.__class__.__name__}.create',
                        kwargs, ('name',), rest.create_guild.json)
 
         data = await rest.create_guild.request(
@@ -110,26 +93,25 @@ class GuildState(BaseState[Snowflake, Guild]):
         return self.upsert(data)
 
 
-class GuildBanState(BaseState[Snowflake, GuildBan]):
+class GuildBanState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __ban_class__ = GuildBan
 
-    def __init__(self, *, client: Client, guild: Guild) -> None:
+    def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
 
-    def upsert(self, data: Json) -> GuildBan:  # type: ignore
+    def upsert(self, data):
         ban = self.get(data['user']['id'])
         if ban is not None:
             ban.update(data)
         else:
-            ban = self.__ban_class__.unmarshal(
-                data, state=self, guild=self.guild)
+            ban = self.__ban_class__.unmarshal(data, state=self)
             ban.cache()
 
         return ban
 
-    async def fetch(self, user: SnowflakeType) -> GuildBan:  # type: ignore
+    async def fetch(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_ban.request(
@@ -138,15 +120,15 @@ class GuildBanState(BaseState[Snowflake, GuildBan]):
 
         return self.upsert(data)
 
-    async def fetch_all(self) -> t.Set[GuildBan]:
+    async def fetch_all(self):
         data = await rest.get_guild_bans.request(
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return self.upsert_many(data)
 
-    async def add(self, user: SnowflakeType, **kwargs: t.Any) -> None:
-        _validate_keys(f'{self.__class__.__name__}.add',  # type: ignore
+    async def add(self, user, **kwargs):
+        _validate_keys(f'{self.__class__.__name__}.add',
                        kwargs, (), rest.create_guild_ban.json)
 
         user_id = Snowflake.try_snowflake(user)
@@ -156,7 +138,7 @@ class GuildBanState(BaseState[Snowflake, GuildBan]):
             fmt=dict(guild_id=self.guild.id, user_id=user_id),
             json=kwargs)
 
-    async def remove(self, user: SnowflakeType) -> None:
+    async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_ban.request(

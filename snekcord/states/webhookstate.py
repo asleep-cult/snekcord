@@ -1,31 +1,23 @@
-from __future__ import annotations
-
-import typing as t
-
 from .basestate import BaseState, BaseSubState
 from .. import rest
-from ..objects.channelobject import TextChannel
 from ..objects.webhookobject import Webhook
 from ..utils import Snowflake, _validate_keys
-
-if t.TYPE_CHECKING:
-    from ..typing import Json, SnowflakeType
 
 
 __all__ = ('WebhookState')
 
 
-class WebhookState(BaseState[Snowflake, Webhook]):
+class WebhookState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
     __webhook_class__ = Webhook
 
-    async def fetch(self, webhook_id: SnowflakeType) -> Webhook:
+    async def fetch(self, webhook_id):
         data = await rest.get_webhook.request(
             fmt={'webhook_id': Snowflake.try_snowflake(webhook_id)}
         )
         return self.upsert(data)
 
-    def upsert(self, data: Json) -> Webhook:  # type: ignore
+    def upsert(self, data):
         webhook = self.get(data['id'])
         if webhook is not None:
             webhook.update(data)
@@ -36,18 +28,12 @@ class WebhookState(BaseState[Snowflake, Webhook]):
         return webhook
 
 
-class ChannelWebhookState(BaseSubState[Snowflake, Webhook]):
-    if t.TYPE_CHECKING:
-        channel: TextChannel
-        superstate: WebhookState
-
-    def __init__(
-        self, *, superstate: WebhookState, channel: TextChannel
-    ) -> None:
+class ChannelWebhookState(BaseSubState):
+    def __init__(self, *, superstate, channel) -> None:
         super().__init__(superstate=superstate)
         self.channel = channel
 
-    async def create(self, **kwargs: t.Any) -> Webhook:
+    async def create(self, **kwargs):
         _validate_keys(
             f'{self.__class__.__name__}.create', kwargs, ('name',),
             rest.create_webhook.json)
@@ -58,7 +44,7 @@ class ChannelWebhookState(BaseSubState[Snowflake, Webhook]):
 
         return self.superstate.upsert(data)
 
-    async def fetch_many(self) -> t.Set[Webhook]:
+    async def fetch_many(self):
         data = await rest.get_channel_webhooks.request(
             session=self.superstate.client.rest,
             fmt={'channel_id': self.channel.id}

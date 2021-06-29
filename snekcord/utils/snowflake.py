@@ -1,10 +1,4 @@
-from __future__ import annotations
-
-import typing as t
 from datetime import datetime
-
-if t.TYPE_CHECKING:
-    from ..typing import SnowflakeType
 
 __all__ = ('Snowflake',)
 
@@ -23,9 +17,7 @@ class Snowflake(int):
     INCREMENT_MASK = 0xFFF
 
     @classmethod
-    def build(cls, timestamp: datetime | float | None = None,
-              worker_id: int = 0, process_id: int = 0,
-              increment: int = 0) -> Snowflake:
+    def build(cls, timestamp=None, worker_id=0, process_id=0, increment=0):
         if timestamp is None:
             timestamp = datetime.now().timestamp()
         elif isinstance(timestamp, datetime):
@@ -39,7 +31,7 @@ class Snowflake(int):
                    | increment)
 
     @classmethod
-    def try_snowflake(cls, obj: SnowflakeType) -> Snowflake:
+    def try_snowflake(cls, obj):
         from ..objects.baseobject import BaseObject
 
         if isinstance(obj, BaseObject):
@@ -54,26 +46,25 @@ class Snowflake(int):
             raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
     @classmethod
-    def try_snowflake_set(cls,
-                          objs: t.Iterable[SnowflakeType]) -> t.Set[Snowflake]:
+    def try_snowflake_set(cls, objs):
         return {cls.try_snowflake(obj) for obj in objs}
 
     @property
-    def timestamp(self) -> float:
+    def timestamp(self):
         return ((self >> self.TIMESTAMP_SHIFT) + self.SNOWFLAKE_EPOCH) / 1000
 
     @property
-    def time(self) -> datetime:
+    def time(self):
         return datetime.fromtimestamp(self.timestamp)
 
     @property
-    def worker_id(self) -> int:
+    def worker_id(self):
         return (self & self.WORKER_ID_MASK) >> self.WORKER_ID_SHIFT
 
     @property
-    def process_id(self) -> int:
+    def process_id(self):
         return (self & self.PROCESS_ID_MASK) >> self.PROCESS_ID_SHIFT
 
     @property
-    def increment(self) -> int:
+    def increment(self):
         return self & self.INCREMENT_MASK

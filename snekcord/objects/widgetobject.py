@@ -1,18 +1,10 @@
-from __future__ import annotations
-
-import typing as t
-
 from .baseobject import BaseTemplate
 from .. import rest
-from ..utils import JsonArray, JsonField, JsonObject, JsonTemplate, Snowflake
+from ..utils.json import JsonArray, JsonField, JsonObject, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson',
            'GuildWidget')
-
-if t.TYPE_CHECKING:
-    from .channelobject import GuildChannel
-    from .guildobject import Guild
-    from ..typing import Json, SnowflakeType
 
 GuildWidgetChannelTemplate = JsonTemplate(
     name=JsonField('name'),
@@ -22,9 +14,7 @@ GuildWidgetChannelTemplate = JsonTemplate(
 
 
 class GuildWidgetChannel(JsonObject, template=GuildWidgetChannelTemplate):
-    id: Snowflake
-    name: str
-    position: int
+    pass
 
 
 GuildWidgetMemberTemplate = JsonTemplate(
@@ -38,12 +28,7 @@ GuildWidgetMemberTemplate = JsonTemplate(
 
 
 class GuildWidgetMember(JsonObject, template=GuildWidgetMemberTemplate):
-    id: Snowflake
-    username: str
-    discriminator: str
-    avatar: t.Optional[str]
-    status: str
-    avatar_url: str
+    pass
 
 
 GuildWidgetJsonTemplate = JsonTemplate(
@@ -57,10 +42,7 @@ GuildWidgetJsonTemplate = JsonTemplate(
 
 
 class GuildWidgetJson(JsonObject, template=GuildWidgetJsonTemplate):
-    id: Snowflake
-    name: str
-    instant_invite: str
-    channels: t.List[GuildWidgetChannel]
+    pass
 
 
 GuildWidgetSettingsTemplate = JsonTemplate(
@@ -72,20 +54,14 @@ GuildWidgetSettingsTemplate = JsonTemplate(
 class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
     __slots__ = ('guild',)
 
-    if t.TYPE_CHECKING:
-        enabled: bool
-        channel_id: t.Optional[Snowflake]
-
-    def __init__(self, *, guild: Guild) -> None:
+    def __init__(self, *, guild):
         self.guild = guild
 
     @property
-    def channel(self) -> t.Optional[GuildChannel]:
-        if self.channel_id is not None:
-            return self.guild.channels.get(self.channel_id)
-        return None
+    def channel(self):
+        return self.guild.channels.get(self.channel_id)
 
-    async def fetch(self) -> GuildWidget:
+    async def fetch(self):
         data = await rest.get_guild_widget_settings.request(
             session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
@@ -94,11 +70,8 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
 
         return self
 
-    async def modify(
-        self, enabled: t.Optional[bool] = None,
-        channel: t.Optional[SnowflakeType] = None
-    ) -> GuildWidget:
-        json: Json = {}
+    async def modify(self, enabled=None, channel=None):
+        json = {}
 
         if enabled is not None:
             json['enabled'] = enabled
@@ -115,23 +88,21 @@ class GuildWidget(JsonObject, template=GuildWidgetSettingsTemplate):
 
         return self
 
-    async def fetch_json(self) -> GuildWidgetJson:
+    async def fetch_json(self):
         data = await rest.get_guild_widget.request(
             session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return GuildWidgetJson.unmarshal(data)
 
-    async def fetch_shield(self) -> bytes:
+    async def fetch_shield(self):
         data = await rest.get_guild_widget_image.request(
             session=self.guild.state.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
         return data
 
-    async def fetch_banner(
-        self, style: str = '1'
-    ) -> bytes:
+    async def fetch_banner(self, style='1'):
         style = f'banner{style}'
 
         data = await rest.get_guild_widget_image.request(

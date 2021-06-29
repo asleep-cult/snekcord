@@ -1,18 +1,12 @@
-from __future__ import annotations
-
-import typing as t
 from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..utils import JsonField, JsonTemplate, Snowflake, _validate_keys
+from ..utils import _validate_keys
+from ..utils.json import JsonField, JsonTemplate
+from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildTemplate',)
-
-if t.TYPE_CHECKING:
-    from .guildobject import Guild
-    from .userobject import User
-    from ..typing import Json
 
 GuildTemplateTemplate = JsonTemplate(
     id=JsonField('code'),
@@ -39,31 +33,19 @@ GuildTemplateTemplate = JsonTemplate(
 
 
 class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
-    if t.TYPE_CHECKING:
-        id: str  # type: ignore
-        name: str
-        description: t.Optional[str]
-        usage_count: int
-        creator_id: Snowflake
-        created_at: datetime
-        updated_at: datetime
-        source_guild_id: Snowflake
-        serialized_source_guild: Json
-        is_dirty: t.Optional[bool]
-
     @property
-    def code(self) -> str:
+    def code(self):
         return self.id
 
     @property
-    def creator(self) -> t.Optional[User]:
+    def creator(self):
         return self.state.client.users.get(self.creator_id)
 
     @property
-    def source_guild(self) -> t.Optional[Guild]:
+    def source_guild(self):
         return self.state.client.guilds.get(self.source_guild_id)
 
-    async def fetch(self) -> GuildTemplate:
+    async def fetch(self):
         data = await rest.get_template.request(
             session=self.state.client.rest,
             fmt=dict(code=self.code))
@@ -72,12 +54,9 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
         return self
 
-    async def create_guild(self, **kwargs: t.Any) -> Guild:
-        _validate_keys(  # type: ignore
-            f'{self.__class__.__name__}.create_guild',
-            kwargs, ('name',),
-            rest.create_guild_from_template.json
-        )
+    async def create_guild(self, **kwargs):
+        _validate_keys(f'{self.__class__.__name__}.create_guild',
+                       kwargs, ('name',), rest.create_guild_from_template.json)
 
         data = await rest.create_guild_from_template.request(
             session=self.state.client.rest,
@@ -96,8 +75,8 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
 
         return self
 
-    async def modify(self, **kwargs: t.Any) -> GuildTemplate:
-        _validate_keys(f'{self.__class__.__name__}.modify',  # type: ignore
+    async def modify(self, **kwargs):
+        _validate_keys(f'{self.__class__.__name__}.modify',
                        kwargs, (), rest.modify_guild_template.json)
 
         data = await rest.modify_guild_template.request(
@@ -116,10 +95,7 @@ class GuildTemplate(BaseObject, template=GuildTemplateTemplate):
             fmt=dict(guild_id=self.source_guild_id,
                      template_code=self.code))
 
-    def update(  # type: ignore
-        self, data: Json,
-        *args: t.Any, **kwargs: t.Any
-    ) -> None:
+    def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         creator = data.get('creator')
