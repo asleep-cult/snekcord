@@ -1,42 +1,12 @@
 from .baseobject import BaseObject
 from .. import rest
+from ..enums import ChannelType
 from ..utils import _validate_keys
-from ..utils.enum import Enum
 from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
-__all__ = ('ChannelType', 'GuildChannel', 'TextChannel', 'FollowedChannel',
+__all__ = ('GuildChannel', 'TextChannel', 'FollowedChannel',
            'CategoryChannel', 'VoiceChannel', 'DMChannel')
-
-
-class ChannelType(Enum[int]):
-    """An enumeration of Discord's channel types
-
-    | Name                   | Description                             |
-    | ---------------------- | --------------------------------------- |
-    | `GUILD_TEXT`           | A text channel in a `Guild`             |
-    | `DM`                   | A direct message channel                |
-    | `GUILD_VOICE`          | A voice channel in a `Guild`            |
-    | `GROUP_DM`             | A `DM` channel with multiple recipients |
-    | `GUILD_CATEGORY`       | A category channel in a `Guild`         |
-    | `GUILD_NEWS`           | A news channel in a `Guild`             |
-    | `GUILD_STORE`          | A store channel in a `Guild`            |
-    | `GUILD_NEWS_THREAD`    | A news thread channel in a `Guild`      |
-    | `GUILD_PUBLIC_THREAD`  | A public thread channel in a `Guild`    |
-    | `GUILD_PRIVATE_THREAD` | A private thread channel in a `Guild`   |
-    | `GUILD_STAGE_VOICE`    | A stage channel in a `Guild`            |
-    """
-    GUILD_TEXT = 0
-    DM = 1
-    GUILD_VOICE = 2
-    GROUP_DM = 3
-    GUILD_CATEGORY = 4
-    GUILD_NEWS = 5
-    GUILD_STORE = 6
-    GUILD_NEWS_THREAD = 10
-    GUILD_PUBLIC_THREAD = 11
-    GUILD_PRIVATE_THREAD = 12
-    GUILD_STAGE_VOICE = 13
 
 
 def _guild_channel_creation_keys(channel_type):

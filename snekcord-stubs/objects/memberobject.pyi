@@ -6,10 +6,10 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .guildobject import Guild
 from .userobject import User
+from ..flags import Permissions
 from ..states.memberstate import GuildMemberState
 from ..states.rolestate import GuildMemberRoleState
 from ..utils.json import JsonField
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 

@@ -2,23 +2,11 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..utils.enum import Enum
+from ..enums import IntegrationExpireBehavior, IntegrationType
 from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
-__all__ = ('IntegrationType', 'IntegrationExpireBehavior',
-           'IntegrationAccount', 'IntegrationApplication', 'Integration')
-
-
-class IntegrationType(Enum[str]):
-    TWITCH = 'twitch'
-    YOUTUBE = 'youtube'
-    DISCORD = 'discord'
-
-
-class IntegrationExpireBehavior(Enum[int]):
-    REMOVE_ROLE = 0
-    KICK = 1
+__all__ = ('IntegrationAccount', 'IntegrationApplication', 'Integration')
 
 
 class IntegrationAccount(JsonObject):

@@ -4,81 +4,20 @@ from .baseobject import BaseObject
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
+from ..enums import (
+    ExplicitContentFilterLevel,
+    GuildFeature,
+    GuildNSFWLevel,
+    MFALevel,
+    MessageNotificationsLevel,
+    PremiumTier,
+    VerificationLevel)
+from ..flags import SystemChannelFlags
 from ..utils import _validate_keys
-from ..utils.bitset import Bitset, Flag
-from ..utils.enum import Enum
 from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
-__all__ = ('MessageNotificationsLevel', 'ExplicitContentFilterLevel',
-           'MFALevel', 'VerificationLevel', 'GuildNSFWLevel',
-           'PremiumTier', 'SystemChannelFlags', 'GuildFeature',
-           'Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
-
-
-class MessageNotificationsLevel(Enum[int]):
-    ALL_MESSAGES = 0
-    ONLY_MENTIONS = 1
-
-
-class ExplicitContentFilterLevel(Enum[int]):
-    DISABLED = 0
-    MEMBERS_WITHOUT_ROLES = 1
-    ALL_MEMBERS = 2
-
-
-class MFALevel(Enum[int]):
-    NONE = 0
-    ELEVATED = 1
-
-
-class VerificationLevel(Enum[int]):
-    NONE = 0
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
-    VERY_HIGH = 4
-
-
-class GuildNSFWLevel(Enum[int]):
-    DEFAULT = 0
-    EXPLICIT = 1
-    SAFE = 2
-    AGE_RESTRICTED = 3
-
-
-class PremiumTier(Enum[int]):
-    NONE = 0
-    TIER_1 = 1
-    TIER_2 = 2
-    TIER_3 = 3
-
-
-class SystemChannelFlags(Bitset):
-    SUPPRESS_JOIN_NOTIFICATIONS = Flag(0)
-    SUPPRESS_PREMIUM_SUBSCRIPTIONS = Flag(1)
-    SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = Flag(2)
-
-
-class GuildFeature(Enum[str]):
-    ANIMATED_ICON = 'ANIMATED_ICON'
-    BANNER = 'BANNER'
-    COMMERCE = 'COMMERCE'
-    COMMUNITY = 'COMMUNITY'
-    DISCOVERABLE = 'DISCOVERABLE'
-    FEATURABLE = 'FEATURABLE'
-    INVITE_SPLASH = 'INVITE_SPLASH'
-    MEMBER_VERIFIVATION_GATE_ENABLED = 'MEMBER_VEFIFICATION_GATE_ENNABLED'
-    NEWS = 'NEWS'
-    PARTNERED = 'PARTNERED'
-    PREVIEW_ENABLED = 'PREVIEW_ENABLED'
-    VANITY_URL = 'VANITY_URL'
-    VERIFIED = 'VERIFIED'
-    VIP_REGIONS = 'VIP_REGIONS'
-    WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
-    TICKETED_EVENTS_ENABLED = 'TICKETED_EVENTS_ENABLED'
-    MONETIZATION_ENABLED = 'MONETIZATION_ENABLED'
-    MORE_STICKERS = 'MORE_STICKERS'
+__all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 
 class Guild(BaseObject):

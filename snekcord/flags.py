@@ -1,6 +1,4 @@
-from .bitset import Bitset, Flag
-
-__all__ = ('Permissions',)
+from .utils.bitset import Bitset, Flag
 
 
 class Permissions(Bitset):
@@ -40,3 +38,39 @@ class Permissions(Bitset):
     manage_threads = Flag(34)
     use_public_threads = Flag(35)
     use_private_threads = Flag(36)
+
+
+class SystemChannelFlags(Bitset):
+    suppress_join_notifications = Flag(0)
+    suppress_premium_subscriptions = Flag(1)
+    suppress_guild_reminder_notifications = Flag(2)
+
+
+class MessageFlags(Bitset):
+    crossposted = Flag(0)
+    is_crosspost = Flag(1)
+    suppress_embeds = Flag(2)
+    source_message_deleted = Flag(3)
+    urgent = Flag(4)
+    has_thread = Flag(5)
+    epheneral = Flag(7)
+    loading = Flag(8)
+
+
+class UserFlags(Bitset):
+    discord_employee = Flag(0)
+    partnered_server_owner = Flag(1)
+    hypesquad_events = Flag(2)
+    bug_hunter_level_1 = Flag(3)
+    mfa_sms = Flag(4)
+    premium_promo_dismissed = Flag(5)
+    house_bravery = Flag(6)
+    house_brilliance = Flag(7)
+    house_balance = Flag(8)
+    early_supporter = Flag(9)
+    team_user = Flag(10)
+    has_unread_urgent_message = Flag(13)
+    bug_hunter_level_2 = Flag(14)
+    verified_bot = Flag(16)
+    early_verified_bot_developer = Flag(17)
+    discord_certified_moderator = Flag(18)

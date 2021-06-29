@@ -2,15 +2,10 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..utils.enum import Enum
+from ..enums import InviteTargetType
 from ..utils.json import JsonField, JsonObject
 
 __all__ = ('Invite', 'GuildVanityURL')
-
-
-class InviteTargetType(Enum[int]):
-    STREAM = 1
-    EMBEDDED_APPLICATION = 2
 
 
 class Invite(BaseObject):

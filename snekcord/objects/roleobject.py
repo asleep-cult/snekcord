@@ -1,8 +1,8 @@
 from .baseobject import BaseObject
 from .. import rest
+from ..flags import Permissions
 from ..utils import _validate_keys
 from ..utils.json import JsonField, JsonObject
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 __all__ = ('RoleTags', 'Role')

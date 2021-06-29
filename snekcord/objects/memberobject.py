@@ -2,9 +2,9 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
+from ..flags import Permissions
 from ..utils import _validate_keys
 from ..utils.json import JsonField
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 __all__ = ('GuildMember',)

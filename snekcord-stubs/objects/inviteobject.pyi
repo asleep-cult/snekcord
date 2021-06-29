@@ -7,14 +7,9 @@ from .baseobject import BaseObject
 from .channelobject import GuildChannel
 from .guildobject import Guild
 from .userobject import User
+from ..enums import InviteTargetType
 from ..states.invitestate import InviteState
-from ..utils.enum import Enum
 from ..utils.json import JsonField, JsonObject
-
-
-class InviteTargetType(Enum[int]):
-    STREAM: t.ClassVar[int]
-    EMBEDDED_APPLICATION: t.ClassVar[int]
 
 
 class Invite(BaseObject[str]):

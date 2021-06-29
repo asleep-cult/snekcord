@@ -4,16 +4,11 @@ import typing as t
 
 from .baseobject import BaseObject
 from .channelobject import GuildChannel
+from ..enums import PermissionOverwriteType
+from ..flags import Permissions
 from ..states.overwritestate import PermissionOverwriteState
-from ..utils.enum import Enum
 from ..utils.json import JsonField
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
-
-
-class PermissionOverwriteType(Enum[int]):
-    ROLE: t.ClassVar[int]
-    MEMBER: t.ClassVar[int]
 
 
 class PermissionOverwrie(BaseObject[Snowflake]):

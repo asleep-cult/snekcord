@@ -5,15 +5,10 @@ import typing as t
 from .baseobject import BaseObject
 from .channelobject import GuildChannel
 from .guildobject import Guild
+from ..enums import StageInstancePrivacyLevel
 from ..states.stagestate import StageInstanceState
-from ..utils.enum import Enum
 from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
-
-
-class StageInstancePrivacyLevel(Enum[int]):
-    PUBLIC: t.ClassVar[int]
-    GUILD_ONLY: t.ClassVar[int]
 
 
 class StageInstance(BaseObject[Snowflake]):

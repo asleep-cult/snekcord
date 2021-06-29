@@ -1,16 +1,11 @@
 from .baseobject import BaseObject
 from .. import rest
+from ..enums import StageInstancePrivacyLevel
 from ..utils import _validate_keys
-from ..utils.enum import Enum
 from ..utils.json import JsonField
 from ..utils.snowflake import Snowflake
 
-__all__ = ('StageInstancePrivacyLevel', 'StageInstance',)
-
-
-class StageInstancePrivacyLevel(Enum[int]):
-    PUBLIC = 1
-    GUILD_ONLY = 2
+__all__ = ('StageInstance',)
 
 
 class StageInstance(BaseObject):

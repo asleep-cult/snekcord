@@ -1,8 +1,6 @@
 import typing as t
 
-from .bitset import Bitset, Flag
-
-__all__ = ('Permissions',)
+from .utils.bitset import Bitset, Flag
 
 
 class Permissions(Bitset):
@@ -42,3 +40,39 @@ class Permissions(Bitset):
     manage_threads: t.ClassVar[Flag]
     use_public_threads: t.ClassVar[Flag]
     use_private_threads: t.ClassVar[Flag]
+
+
+class SystemChannelFlags(Bitset):
+    suppress_join_notifications: t.ClassVar[Flag]
+    suppress_premium_subscriptions: t.ClassVar[Flag]
+    suppress_guild_reminder_notifications: t.ClassVar[Flag]
+
+
+class MessageFlags(Bitset):
+    crossposted: t.ClassVar[Flag]
+    is_crosspost: t.ClassVar[Flag]
+    suppress_embeds: t.ClassVar[Flag]
+    source_message_deleted: t.ClassVar[Flag]
+    urgent: t.ClassVar[Flag]
+    has_thread: t.ClassVar[Flag]
+    ephemeral: t.ClassVar[Flag]
+    loading: t.ClassVar[Flag]
+
+
+class UserFlags(Bitset):
+    discord_employee: t.ClassVar[Flag]
+    partnered_server_owner: t.ClassVar[Flag]
+    hypesquad_events: t.ClassVar[Flag]
+    bug_hunter_level_1: t.ClassVar[Flag]
+    mfa_sms: t.ClassVar[Flag]
+    premium_promo_dismissed: t.ClassVar[Flag]
+    house_bravery: t.ClassVar[Flag]
+    house_brilliance: t.ClassVar[Flag]
+    house_balance: t.ClassVar[Flag]
+    early_supporter: t.ClassVar[Flag]
+    team_user: t.ClassVar[Flag]
+    has_unread_urgent_message: t.ClassVar[Flag]
+    bug_hunter_level_2: t.ClassVar[Flag]
+    verified_bot: t.ClassVar[Flag]
+    early_verified_bot_developer: t.ClassVar[Flag]
+    discord_certified_moderator: t.ClassVar[Flag]

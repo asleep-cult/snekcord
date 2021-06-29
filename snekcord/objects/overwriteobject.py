@@ -1,16 +1,11 @@
 from .baseobject import BaseObject
 from .. import rest
+from ..enums import PermissionOverwriteType
+from ..flags import Permissions
 from ..utils import _validate_keys
-from ..utils.enum import Enum
 from ..utils.json import JsonField
-from ..utils.permissions import Permissions
 
-__all__ = ('PermissionOverwriteType', 'PermissionOverwrite')
-
-
-class PermissionOverwriteType(Enum[int]):
-    ROLE = 0
-    MEMBER = 1
+__all__ = ('PermissionOverwrite')
 
 
 class PermissionOverwrite(BaseObject):

@@ -10,6 +10,15 @@ from .inviteobject import GuildVanityURL, Invite
 from .templateobject import GuildTemplate
 from .userobject import User
 from .widgetobject import GuildWidget
+from ..enums import (
+    ExplicitContentFilterLevel,
+    GuildFeature,
+    GuildNSFWLevel,
+    MFALevel,
+    MessageNotificationsLevel,
+    PremiumTier,
+    VerificationLevel)
+from ..flags import SystemChannelFlags
 from ..states.channelstate import GuildChannelState
 from ..states.emojistate import GuildEmojiState
 from ..states.guildstate import GuildBanState, GuildState
@@ -17,75 +26,8 @@ from ..states.integrationstate import GuildIntegrationState
 from ..states.memberstate import GuildMemberState
 from ..states.rolestate import RoleState
 from ..typedefs import Json
-from ..utils.bitset import Bitset, Flag
-from ..utils.enum import Enum
 from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
-
-
-class MessageNotificationsLevel(Enum[int]):
-    ALL_MESSAGES: t.ClassVar[int]
-    ONLY_MENTIONS: t.ClassVar[int]
-
-
-class ExplicitContentFilterLevel(Enum[int]):
-    DISABLED: t.ClassVar[int]
-    MEMBERS_WITHOUT_ROLES: t.ClassVar[int]
-    ALL_MEMBERS: t.ClassVar[int]
-
-
-class MFALevel(Enum[int]):
-    NONE: t.ClassVar[int]
-    ELEVATED: t.ClassVar[int]
-
-
-class VerificationLevel(Enum[int]):
-    NONE: t.ClassVar[int]
-    LOW: t.ClassVar[int]
-    MEDIUM: t.ClassVar[int]
-    HIGH: t.ClassVar[int]
-    VERY_HIGH: t.ClassVar[int]
-
-
-class GuildNSFWLevel(Enum[int]):
-    DEFAULT: t.ClassVar[int]
-    EXPLICIT: t.ClassVar[int]
-    SAFE: t.ClassVar[int]
-    AGE_RESTRICTED: t.ClassVar[int]
-
-
-class PremiumTier(Enum[int]):
-    NONE: t.ClassVar[int]
-    TIER_1: t.ClassVar[int]
-    TIER_2: t.ClassVar[int]
-    TIER_3: t.ClassVar[int]
-
-
-class SystemChannelFlags(Bitset):
-    SUPPRESS_JOIN_NOTIFICATIONS: t.ClassVar[Flag]
-    SUPPRESS_PREMIUM_SUBSCRIPTIONS: t.ClassVar[Flag]
-    SUPPRESS_GUILD_REMINDER_NOTIFICATIONS: t.ClassVar[Flag]
-
-
-class GuildFeature(Enum[str]):
-    ANIMATED_ICON: t.ClassVar[str]
-    BANNER: t.ClassVar[str]
-    COMMERCE: t.ClassVar[str]
-    COMMUNITY: t.ClassVar[str]
-    DISCOVERABLE: t.ClassVar[str]
-    FEATURABLE: t.ClassVar[str]
-    INVITE_SPLASH: t.ClassVar[str]
-    MEMBER_VERIFIVATION_GATE_ENABLED: t.ClassVar[str]
-    NEWS: t.ClassVar[str]
-    PARTNERED: t.ClassVar[str]
-    PREVIEW_ENABLED: t.ClassVar[str]
-    VANITY_URL: t.ClassVar[str]
-    VERIFIED: t.ClassVar[str]
-    VIP_REGIONS: t.ClassVar[str]
-    WELCOME_SCREEN_ENABLED: t.ClassVar[str]
-    TICKETED_EVENTS_ENABLED: t.ClassVar[str]
-    MONETIZATION_ENABLED: t.ClassVar[str]
-    MORE_STICKERS: t.ClassVar[str]
 
 
 class Guild(BaseObject[Snowflake]):

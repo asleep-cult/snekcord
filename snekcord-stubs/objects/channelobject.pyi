@@ -6,29 +6,15 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .guildobject import Guild
 from .messageobject import Message
+from ..enums import ChannelType
 from ..states.channelstate import ChannelState
 from ..states.messagestate import MessageState
 from ..states.overwritestate import PermissionOverwriteState
 from ..typedefs import SnowflakeConvertible
-from ..utils.enum import Enum
 from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
 T = t.TypeVar('T')
-
-
-class ChannelType(Enum[int]):
-    GUILD_TEXT: t.ClassVar[int]
-    DM: t.ClassVar[int]
-    GUILD_VOICE: t.ClassVar[int]
-    GROUP_DM: t.ClassVar[int]
-    GUILD_CATEGORY: t.ClassVar[int]
-    GUILD_NEWS: t.ClassVar[int]
-    GUILD_STORE: t.ClassVar[int]
-    GUILD_NEWS_THREAD: t.ClassVar[int]
-    GUILD_PUBLIC_THREAD: t.ClassVar[int]
-    GUILD_PRIVATE_THREAD: t.ClassVar[int]
-    GUILD_STAGE_VOICE: t.ClassVar[int]
 
 
 class GuildChannel(BaseObject[Snowflake]):

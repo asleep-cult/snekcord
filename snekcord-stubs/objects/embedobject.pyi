@@ -5,17 +5,8 @@ from datetime import datetime
 
 from .channelobject import TextChannel
 from .messageobject import Message
-from ..utils.enum import Enum
+from ..enums import EmbedType
 from ..utils.json import JsonArray, JsonField, JsonObject
-
-
-class EmbedType(Enum[str]):
-    RICH: str
-    IMAGE: str
-    VIDEO: str
-    GIFV: str
-    ARTICLE: str
-    LINK: str
 
 
 class EmbedThumbnail(JsonObject):

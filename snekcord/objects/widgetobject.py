@@ -2,8 +2,7 @@ from .. import rest
 from ..utils.json import JsonArray, JsonField, JsonObject
 from ..utils.snowflake import Snowflake
 
-__all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson',
-           'GuildWidget')
+__all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson', 'GuildWidget')
 
 
 class GuildWidgetChannel(JsonObject):

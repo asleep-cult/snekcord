@@ -6,21 +6,10 @@ from datetime import datetime
 from .guildobject import Guild
 from .roleobject import Role
 from .userobject import User
+from ..enums import IntegrationExpireBehavior, IntegrationType
 from ..states.integrationstate import IntegrationState
-from ..utils.enum import Enum
 from ..utils.json import JsonField, JsonObject
 from ..utils.snowflake import Snowflake
-
-
-class IntegrationType(Enum[str]):
-    TWITCH: t.ClassVar[str]
-    YOUTUBE: t.ClassVar[str]
-    DISCORD: t.ClassVar[str]
-
-
-class IntegrationExpireBehavior(Enum[int]):
-    REMOVE_ROLE: t.ClassVar[int]
-    KICK: t.ClassVar[int]
 
 
 class IntegrationAccount(JsonObject):

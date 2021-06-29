@@ -7,7 +7,7 @@ from ..utils.json import JsonArray, JsonField
 from ..utils.snowflake import Snowflake
 
 try:
-    from snekcord.emojis import ALL_CATEGORIES
+    from snekcord.emojis import ALL_CATEGORIES  # type: ignore
 except ImportError:
     ALL_CATEGORIES = {}
 

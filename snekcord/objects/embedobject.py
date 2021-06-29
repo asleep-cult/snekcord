@@ -1,35 +1,12 @@
 import copy
 from datetime import datetime
 
-from ..utils.enum import Enum
+from ..enums import EmbedType
 from ..utils.json import JsonArray, JsonField, JsonObject
 
-__all__ = ('EmbedType', 'EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
+__all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
            'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
            'Embed', 'EmbedBuilder')
-
-
-class EmbedType(Enum[str]):
-    """An enumeration of Discord's embed types
-
-    | Name      | Description                                        |
-    | --------- | -------------------------------------------------- |
-    | `RICH`    | Generic embed rendered from attributes             |
-    | `IMAGE`   | Image embed                                        |
-    | `VIDEO`   | Video embed                                        |
-    | `GIFV`    | Animated gif image embed rendered as a video embed |
-    | `ARTICLE` | Article embed                                      |
-    | `LINK`    | Link embed                                         |
-
-    warning:
-        This is not used by Discord and should be considered deprecated
-    """
-    RICH = 'rich'
-    IMAGE = 'image'
-    VIDEO = 'video'
-    GIFV = 'gifv'
-    ARTICLE = 'article'
-    LINK = 'link'
 
 
 class EmbedThumbnail(JsonObject):

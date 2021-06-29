@@ -4,9 +4,9 @@ import typing as t
 
 from .baseobject import BaseObject
 from .guildobject import Guild
+from ..flags import Permissions
 from ..states.rolestate import RoleState
 from ..utils.json import JsonField, JsonObject
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 
