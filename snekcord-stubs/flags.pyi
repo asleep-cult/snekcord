@@ -4,10 +4,10 @@ from .utils.bitset import Bitset, Flag
 
 
 class CacheFlags(Bitset):
-    guild_bans = Flag(0)
-    guild_integrations = Flag(1)
-    guild_invites = Flag(2)
-    guild_widget = Flag(3)
+    guild_bans: t.ClassVar[Flag]
+    guild_integrations: t.ClassVar[Flag]
+    guild_invites: t.ClassVar[Flag]
+    guild_widget: t.ClassVar[Flag]
 
 
 class WebSocketIntents(Bitset):
