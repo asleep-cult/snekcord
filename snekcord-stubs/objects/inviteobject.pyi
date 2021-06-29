@@ -18,15 +18,15 @@ class InviteTargetType(Enum[int]):
 
 
 class Invite(BaseObject[str]):
-    target_type: JsonField[InviteTargetType]
-    presence_count: JsonField[int]
-    member_count: JsonField[int]
-    expires_at: JsonField[int]
-    uses: JsonField[int]
-    max_uses: JsonField[int]
-    max_age: JsonField[int]
-    temporary: JsonField[bool]
-    created_at: JsonField[datetime]
+    target_type: t.ClassVar[JsonField[InviteTargetType]]
+    presence_count: t.ClassVar[JsonField[int]]
+    member_count: t.ClassVar[JsonField[int]]
+    expires_at: t.ClassVar[JsonField[int]]
+    uses: t.ClassVar[JsonField[int]]
+    max_uses: t.ClassVar[JsonField[int]]
+    max_age: t.ClassVar[JsonField[int]]
+    temporary: t.ClassVar[JsonField[bool]]
+    created_at: t.ClassVar[JsonField[datetime]]
 
     state: InviteState
     guild: Guild | None
@@ -44,7 +44,7 @@ class Invite(BaseObject[str]):
 
 
 class GuildVanityURL(JsonObject):
-    code: JsonField[str]
+    code: t.ClassVar[JsonField[str]]
 
     guild: Guild
 

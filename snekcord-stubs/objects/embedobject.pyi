@@ -19,63 +19,63 @@ class EmbedType(Enum[str]):
 
 
 class EmbedThumbnail(JsonObject):
-    user: JsonField[str]
-    proxy_url: JsonField[str]
-    height: JsonField[int]
-    width: JsonField[int]
+    user: t.ClassVar[JsonField[str]]
+    proxy_url: t.ClassVar[JsonField[str]]
+    height: t.ClassVar[JsonField[int]]
+    width: t.ClassVar[JsonField[int]]
 
 
 class EmbedVideo(JsonObject):
-    url: JsonField[str]
-    proxy_url: JsonField[str]
-    height: JsonField[int]
-    width: JsonField[int]
+    url: t.ClassVar[JsonField[str]]
+    proxy_url: t.ClassVar[JsonField[str]]
+    height: t.ClassVar[JsonField[int]]
+    width: t.ClassVar[JsonField[int]]
 
 
 class EmbedImage(JsonObject):
-    url: JsonField[str]
-    proxy_url: JsonField[str]
-    height: JsonField[int]
-    width: JsonField[int]
+    url: t.ClassVar[JsonField[str]]
+    proxy_url: t.ClassVar[JsonField[str]]
+    height: t.ClassVar[JsonField[int]]
+    width: t.ClassVar[JsonField[int]]
 
 
 class EmbedProvider(JsonObject):
-    name: JsonField[str]
-    url: JsonField[str]
+    name: t.ClassVar[JsonField[str]]
+    url: t.ClassVar[JsonField[str]]
 
 
 class EmbedAuthor(JsonObject):
-    name: JsonField[str]
-    icon_url: JsonField[str]
-    proxy_icon_url: JsonField[str]
+    name: t.ClassVar[JsonField[str]]
+    icon_url: t.ClassVar[JsonField[str]]
+    proxy_icon_url: t.ClassVar[JsonField[str]]
 
 
 class EmbedFooter(JsonObject):
-    text: JsonField[str]
-    icon_url: JsonField[str]
-    proxy_icon_url: JsonField[str]
+    text: t.ClassVar[JsonField[str]]
+    icon_url: t.ClassVar[JsonField[str]]
+    proxy_icon_url: t.ClassVar[JsonField[str]]
 
 
 class EmbedField(JsonObject):
-    name: JsonField[str]
-    value: JsonField[str]
-    inline: JsonField[bool]
+    name: t.ClassVar[JsonField[str]]
+    value: t.ClassVar[JsonField[str]]
+    inline: t.ClassVar[JsonField[bool]]
 
 
 class Embed(JsonObject):
-    title: JsonField[str]
-    type: JsonField[EmbedType]
-    description: JsonField[str]
-    url: JsonField[str]
-    timestamp: JsonField[datetime]
-    color: JsonField[int]
-    footer: JsonField[EmbedFooter]
-    image: JsonField[EmbedImage]
-    thumbnail: JsonField[EmbedThumbnail]
-    video: JsonField[EmbedVideo]
-    provider: JsonField[EmbedProvider]
-    author: JsonField[EmbedAuthor]
-    fields: JsonArray[EmbedField]
+    title: t.ClassVar[JsonField[str]]
+    type: t.ClassVar[JsonField[EmbedType]]
+    description: t.ClassVar[JsonField[str]]
+    url: t.ClassVar[JsonField[str]]
+    timestamp: t.ClassVar[JsonField[datetime]]
+    color: t.ClassVar[JsonField[int]]
+    footer: t.ClassVar[JsonField[EmbedFooter]]
+    image: t.ClassVar[JsonField[EmbedImage]]
+    thumbnail: t.ClassVar[JsonField[EmbedThumbnail]]
+    video: t.ClassVar[JsonField[EmbedVideo]]
+    provider: t.ClassVar[JsonField[EmbedProvider]]
+    author: t.ClassVar[JsonField[EmbedAuthor]]
+    fields: t.ClassVar[JsonArray[EmbedField]]
 
 
 class EmbedBuilder:

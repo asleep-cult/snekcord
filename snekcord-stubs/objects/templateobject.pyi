@@ -12,15 +12,15 @@ from ..utils.snowflake import Snowflake
 
 
 class GuildTemplate(BaseObject[str]):
-    name: JsonField[str]
-    description: JsonField[str]
-    usage_count: JsonField[int]
-    creator_id: JsonField[Snowflake]
-    created_at: JsonField[datetime]
-    updated_at: JsonField[datetime]
-    source_guild_id: JsonField[Snowflake]
-    serialized_source_guild: JsonField[Json]
-    is_dirty: JsonField[bool]
+    name: t.ClassVar[JsonField[str]]
+    description: t.ClassVar[JsonField[str]]
+    usage_count: t.ClassVar[JsonField[int]]
+    creator_id: t.ClassVar[JsonField[Snowflake]]
+    created_at: t.ClassVar[JsonField[datetime]]
+    updated_at: t.ClassVar[JsonField[datetime]]
+    source_guild_id: t.ClassVar[JsonField[Snowflake]]
+    serialized_source_guild: t.ClassVar[JsonField[Json]]
+    is_dirty: t.ClassVar[JsonField[bool]]
 
     state: GuildState
 

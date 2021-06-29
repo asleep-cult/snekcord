@@ -17,9 +17,9 @@ class PermissionOverwriteType(Enum[int]):
 
 
 class PermissionOverwrie(BaseObject[Snowflake]):
-    type: JsonField[PermissionOverwriteType]
-    allow: JsonField[Permissions]
-    deny: JsonField[Permissions]
+    type: t.ClassVar[JsonField[PermissionOverwriteType]]
+    allow: t.ClassVar[JsonField[Permissions]]
+    deny: t.ClassVar[JsonField[Permissions]]
 
     state: PermissionOverwriteState
 

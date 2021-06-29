@@ -14,12 +14,12 @@ from ..utils.snowflake import Snowflake
 
 
 class GuildMember(BaseObject[Snowflake]):
-    nick: JsonField[str]
-    created_at: JsonField[datetime]
-    premium_since: JsonField[datetime]
-    daef: JsonField[bool]
-    mute: JsonField[bool]
-    pending: JsonField[bool]
+    nick: t.ClassVar[JsonField[str]]
+    created_at: t.ClassVar[JsonField[datetime]]
+    premium_since: t.ClassVar[JsonField[datetime]]
+    daef: t.ClassVar[JsonField[bool]]
+    mute: t.ClassVar[JsonField[bool]]
+    pending: t.ClassVar[JsonField[bool]]
 
     state: GuildMemberState
     user: User | None

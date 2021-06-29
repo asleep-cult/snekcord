@@ -89,41 +89,41 @@ class GuildFeature(Enum[str]):
 
 
 class Guild(BaseObject[Snowflake]):
-    name: JsonField[str]
-    icon: JsonField[str]
-    icon_hash: JsonField[str]
-    splash: JsonField[str]
-    discovery_splash: JsonField[str]
-    features: JsonArray[GuildFeature]
-    member_count: JsonField[int]
-    presence_count: JsonField[int]
-    description: JsonField[str]
-    owner: JsonField[bool]
-    owner_id: JsonField[Snowflake]
-    permissions: JsonField[str]
-    region: JsonField[str]
-    afk_channel_id: JsonField[Snowflake]
-    afk_timeout: JsonField[int]
-    verification_level: JsonField[VerificationLevel]
-    default_message_notifications: JsonField[MessageNotificationsLevel]
-    explicit_content_filter: JsonField[ExplicitContentFilterLevel]
-    mfa_level: JsonField[MFALevel]
-    application_id: JsonField[Snowflake]
-    system_channel_id: JsonField[Snowflake]
-    system_channel_flags: JsonField[SystemChannelFlags]
-    rules_channel_id: JsonField[Snowflake]
-    joined_at: JsonField[datetime]
-    large: JsonField[bool]
-    unavailable: JsonField[bool]
-    max_presences: JsonField[int]
-    max_members: JsonField[int]
-    banner: JsonField[str]
-    premium_tier: JsonField[PremiumTier]
-    premium_subscription_count: JsonField[int]
-    preferred_locale: JsonField[str]
-    public_updates_channel_id: JsonField[Snowflake]
-    max_video_channel_users: JsonField[int]
-    nsfw_level: JsonField[GuildNSFWLevel]
+    name: t.ClassVar[JsonField[str]]
+    icon: t.ClassVar[JsonField[str]]
+    icon_hash: t.ClassVar[JsonField[str]]
+    splash: t.ClassVar[JsonField[str]]
+    discovery_splash: t.ClassVar[JsonField[str]]
+    features: t.ClassVar[JsonArray[GuildFeature]]
+    member_count: t.ClassVar[JsonField[int]]
+    presence_count: t.ClassVar[JsonField[int]]
+    description: t.ClassVar[JsonField[str]]
+    owner: t.ClassVar[JsonField[bool]]
+    owner_id: t.ClassVar[JsonField[Snowflake]]
+    permissions: t.ClassVar[JsonField[str]]
+    region: t.ClassVar[JsonField[str]]
+    afk_channel_id: t.ClassVar[JsonField[Snowflake]]
+    afk_timeout: t.ClassVar[JsonField[int]]
+    verification_level: t.ClassVar[JsonField[VerificationLevel]]
+    default_message_notifications: t.ClassVar[JsonField[MessageNotificationsLevel]]
+    explicit_content_filter: t.ClassVar[JsonField[ExplicitContentFilterLevel]]
+    mfa_level: t.ClassVar[JsonField[MFALevel]]
+    application_id: t.ClassVar[JsonField[Snowflake]]
+    system_channel_id: t.ClassVar[JsonField[Snowflake]]
+    system_channel_flags: t.ClassVar[JsonField[SystemChannelFlags]]
+    rules_channel_id: t.ClassVar[JsonField[Snowflake]]
+    joined_at: t.ClassVar[JsonField[datetime]]
+    large: t.ClassVar[JsonField[bool]]
+    unavailable: t.ClassVar[JsonField[bool]]
+    max_presences: t.ClassVar[JsonField[int]]
+    max_members: t.ClassVar[JsonField[int]]
+    banner: t.ClassVar[JsonField[str]]
+    premium_tier: t.ClassVar[JsonField[PremiumTier]]
+    premium_subscription_count: t.ClassVar[JsonField[int]]
+    preferred_locale: t.ClassVar[JsonField[str]]
+    public_updates_channel_id: t.ClassVar[JsonField[Snowflake]]
+    max_video_channel_users: t.ClassVar[JsonField[int]]
+    nsfw_level: t.ClassVar[JsonField[GuildNSFWLevel]]
 
     state: GuildState
     unsynced: bool
@@ -161,7 +161,7 @@ class Guild(BaseObject[Snowflake]):
 
 
 class GuildBan(BaseObject[Snowflake]):
-    reason: JsonField[str]
+    reason: t.ClassVar[JsonField[str]]
 
     state: GuildBanState
     user: User
@@ -171,10 +171,10 @@ class GuildBan(BaseObject[Snowflake]):
 
 
 class WelcomeScreenChannel(JsonObject):
-    channel_id: JsonField[Snowflake]
-    description: JsonField[str]
-    emoji_id: JsonField[str]
-    emoji_name: JsonField[str]
+    channel_id: t.ClassVar[JsonField[Snowflake]]
+    description: t.ClassVar[JsonField[str]]
+    emoji_id: t.ClassVar[JsonField[str]]
+    emoji_name: t.ClassVar[JsonField[str]]
 
     welcome_screen: WelcomeScreen
 

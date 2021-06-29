@@ -34,18 +34,18 @@ class PremiumType(Enum[int]):
 
 
 class User(BaseObject[Snowflake]):
-    name: JsonField[str]
-    discriminator: JsonField[str]
-    avatar: JsonField[str]
-    bot: JsonField[bool]
-    system: JsonField[bool]
-    mfa_enabled: JsonField[bool]
-    locale: JsonField[str]
-    verified: JsonField[bool]
-    email: JsonField[str]
-    flags: JsonField[UserFlags]
-    premium_type: JsonField[PremiumType]
-    public_flags: JsonField[UserFlags]
+    name: t.ClassVar[JsonField[str]]
+    discriminator: t.ClassVar[JsonField[str]]
+    avatar: t.ClassVar[JsonField[str]]
+    bot: t.ClassVar[JsonField[bool]]
+    system: t.ClassVar[JsonField[bool]]
+    mfa_enabled: t.ClassVar[JsonField[bool]]
+    locale: t.ClassVar[JsonField[str]]
+    verified: t.ClassVar[JsonField[bool]]
+    email: t.ClassVar[JsonField[str]]
+    flags: t.ClassVar[JsonField[UserFlags]]
+    premium_type: t.ClassVar[JsonField[PremiumType]]
+    public_flags: t.ClassVar[JsonField[UserFlags]]
 
     state: UserState
 

@@ -12,35 +12,35 @@ __all__ = ('ShardOpcode', 'ShardCloseCode', 'Shard', 'ShardWebSocket')
 
 
 class ShardOpcode(Enum[int]):
-    DISPATCH = 0
-    HEARTBEAT = 1
-    IDENTIFY = 2
-    PRESENCE_UPDATE = 3
-    VOICE_STATE_UPDATE = 4
-    VOICE_SERVER_PING = 5
-    RESUME = 6
-    RECONNECT = 7
-    REQUEST_GUILD_MEMBERS = 8
-    INVALID_SESSION = 9
-    HELLO = 10
-    HEARTBEAT_ACK = 11
+    DISPATCH: t.ClassVar[int]
+    HEARTBEAT: t.ClassVar[int]
+    IDENTIFY: t.ClassVar[int]
+    PRESENCE_UPDATE: t.ClassVar[int]
+    VOICE_STATE_UPDATE: t.ClassVar[int]
+    VOICE_SERVER_PING: t.ClassVar[int]
+    RESUME: t.ClassVar[int]
+    RECONNECT: t.ClassVar[int]
+    REQUEST_GUILD_MEMBERS: t.ClassVar[int]
+    INVALID_SESSION: t.ClassVar[int]
+    HELLO: t.ClassVar[int]
+    HEARTBEAT_ACK: t.ClassVar[int]
 
 
 class ShardCloseCode(Enum[int]):
-    UNKNOWN_ERROR = 4000
-    UNKNOWN_OPCODE = 4001
-    DECODE_ERROR = 4002
-    NOT_AUTHENTICATED = 4003
-    AUTHENTICATION_FAILED = 4004
-    ALREADY_AUTHENTICATED = 4005
-    INVALID_SEQUENCE = 4007
-    RATE_LIMITED = 4008
-    SESSION_TIMED_OUT = 4009
-    INVALID_SHARD = 4010
-    SHARDING_REQUIRED = 4011
-    INVALID_API_VERSION = 4012
-    INVALID_INTENTS = 4013
-    DISALLOWED_INTENTS = 4014
+    UNKNOWN_ERROR: t.ClassVar[int]
+    UNKNOWN_OPCODE: t.ClassVar[int]
+    DECODE_ERROR: t.ClassVar[int]
+    NOT_AUTHENTICATED: t.ClassVar[int]
+    AUTHENTICATION_FAILED: t.ClassVar[int]
+    ALREADY_AUTHENTICATED: t.ClassVar[int]
+    INVALID_SEQUENCE: t.ClassVar[int]
+    RATE_LIMITED: t.ClassVar[int]
+    SESSION_TIMED_OUT: t.ClassVar[int]
+    INVALID_SHARD: t.ClassVar[int]
+    SHARDING_REQUIRED: t.ClassVar[int]
+    INVALID_API_VERSION: t.ClassVar[int]
+    INVALID_INTENTS: t.ClassVar[int]
+    DISALLOWED_INTENTS: t.ClassVar[int]
 
 
 class ShardWebSocketCallbacks:

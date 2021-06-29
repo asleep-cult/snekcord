@@ -17,11 +17,11 @@ class StageInstancePrivacyLevel(Enum[int]):
 
 
 class StageInstance(BaseObject[Snowflake]):
-    guild_id: JsonField[Snowflake]
-    channel_id: JsonField[Snowflake]
-    topic: JsonField[str]
-    privacy_level: JsonField[StageInstancePrivacyLevel]
-    discoverable_disabled: JsonField[bool]
+    guild_id: t.ClassVar[JsonField[Snowflake]]
+    channel_id: t.ClassVar[JsonField[Snowflake]]
+    topic: t.ClassVar[JsonField[str]]
+    privacy_level: t.ClassVar[JsonField[StageInstancePrivacyLevel]]
+    discoverable_disabled: t.ClassVar[JsonField[bool]]
 
     state: StageInstanceState
 

@@ -18,12 +18,12 @@ BUILTIN_EMOJIS: dict[bytes, BuiltinEmoji]
 
 
 class GuildEmoji(BaseObject[Snowflake]):
-    name: JsonField[str]
-    role_ids: JsonArray[Snowflake]
-    required_colons: JsonField[bool]
-    managed: JsonField[bool]
-    animated: JsonField[bool]
-    available: JsonField[bool]
+    name: t.ClassVar[JsonField[str]]
+    role_ids: t.ClassVar[JsonArray[Snowflake]]
+    required_colons: t.ClassVar[JsonField[bool]]
+    managed: t.ClassVar[JsonField[bool]]
+    animated: t.ClassVar[JsonField[bool]]
+    available: t.ClassVar[JsonField[bool]]
 
     state: EmojiState
     user: User | None

@@ -11,20 +11,20 @@ from ..utils.snowflake import Snowflake
 
 
 class RoleTags(JsonObject):
-    bot_id: JsonField[Snowflake]
-    integration_id: JsonField[Snowflake]
-    premium_subscriber: JsonField[bool]
+    bot_id: t.ClassVar[JsonField[Snowflake]]
+    integration_id: t.ClassVar[JsonField[Snowflake]]
+    premium_subscriber: t.ClassVar[JsonField[bool]]
 
 
 class Role(BaseObject[Snowflake]):
-    raw_name: JsonField[str]
-    color: JsonField[int]
-    hoist: JsonField[bool]
-    position: JsonField[int]
-    permissions: JsonField[Permissions]
-    managed: JsonField[bool]
-    mentionable: JsonField[bool]
-    tags: JsonField[RoleTags]
+    raw_name: t.ClassVar[JsonField[str]]
+    color: t.ClassVar[JsonField[int]]
+    hoist: t.ClassVar[JsonField[bool]]
+    position: t.ClassVar[JsonField[int]]
+    permissions: t.ClassVar[JsonField[Permissions]]
+    managed: t.ClassVar[JsonField[bool]]
+    mentionable: t.ClassVar[JsonField[bool]]
+    tags: t.ClassVar[JsonField[RoleTags]]
 
     state: RoleState
 

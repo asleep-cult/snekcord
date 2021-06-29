@@ -53,19 +53,19 @@ class MessageFlags(Bitset):
 
 
 class Message(BaseObject[Snowflake]):
-    channel_id: JsonField[Snowflake]
-    guild_id: JsonField[Snowflake]
-    content: JsonField[str]
-    edited_at: JsonField[datetime]
-    tts: JsonField[bool]
-    mention_everyone: JsonField[bool]
-    embeds: JsonArray[Embed]
-    nonce: JsonField[int | str]
-    pinned: JsonField[bool]
-    webhook_id: JsonField[Snowflake]
-    type: JsonField[MessageType]
+    channel_id: t.ClassVar[JsonField[Snowflake]]
+    guild_id: t.ClassVar[JsonField[Snowflake]]
+    content: t.ClassVar[JsonField[str]]
+    edited_at: t.ClassVar[JsonField[datetime]]
+    tts: t.ClassVar[JsonField[bool]]
+    mention_everyone: t.ClassVar[JsonField[bool]]
+    embeds: t.ClassVar[JsonArray[Embed]]
+    nonce: t.ClassVar[JsonField[int | str]]
+    pinned: t.ClassVar[JsonField[bool]]
+    webhook_id: t.ClassVar[JsonField[Snowflake]]
+    type: t.ClassVar[JsonField[MessageType]]
     application: None
-    flags: JsonField[MessageFlags]
+    flags: t.ClassVar[JsonField[MessageFlags]]
 
     state: MessageState
     author: User | None

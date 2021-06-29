@@ -32,12 +32,12 @@ class ChannelType(Enum[int]):
 
 
 class GuildChannel(BaseObject[Snowflake]):
-    name: JsonField[str]
-    guild_id: JsonField[Snowflake]
-    position: JsonField[int]
-    nsfw: JsonField[bool]
-    parent_id: JsonField[Snowflake]
-    type: JsonField[ChannelType]
+    name: t.ClassVar[JsonField[str]]
+    guild_id: t.ClassVar[JsonField[Snowflake]]
+    position: t.ClassVar[JsonField[int]]
+    nsfw: t.ClassVar[JsonField[bool]]
+    parent_id: t.ClassVar[JsonField[Snowflake]]
+    type: t.ClassVar[JsonField[ChannelType]]
 
     state: ChannelState
     permissions: PermissionOverwriteState
@@ -59,8 +59,8 @@ class GuildChannel(BaseObject[Snowflake]):
 
 
 class FollowedChannel(JsonObject):
-    channel_id: JsonField[Snowflake]
-    webhook_id: JsonField[Snowflake]
+    channel_id: t.ClassVar[JsonField[Snowflake]]
+    webhook_id: t.ClassVar[JsonField[Snowflake]]
 
     state: ChannelState
 
@@ -71,9 +71,9 @@ class FollowedChannel(JsonObject):
 
 
 class TextChannel(BaseObject[Snowflake]):
-    topic: JsonField[str]
-    slowmode: JsonField[int]
-    last_message_id: JsonField[Snowflake]
+    topic: t.ClassVar[JsonField[str]]
+    slowmode: t.ClassVar[JsonField[int]]
+    last_message_id: t.ClassVar[JsonField[Snowflake]]
 
     last_pin_timestamp: datetime | None
     messages: MessageState
@@ -95,13 +95,13 @@ class CategoryChannel(GuildChannel):
 
 
 class VoiceChannel(GuildChannel):
-    bitrate: JsonField[int]
-    user_limit: JsonField[int]
+    bitrate: t.ClassVar[JsonField[int]]
+    user_limit: t.ClassVar[JsonField[int]]
 
 
 class DMChannel(BaseObject[Snowflake]):
-    last_message_id: JsonField[Snowflake]
-    type: JsonField[ChannelType]
+    last_message_id: t.ClassVar[JsonField[Snowflake]]
+    type: t.ClassVar[JsonField[ChannelType]]
 
     state: ChannelState
 

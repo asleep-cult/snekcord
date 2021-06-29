@@ -13,7 +13,7 @@ IDT = t.TypeVar('IDT')
 
 
 class BaseObject(t.Generic[IDT], JsonObject):
-    id: JsonField[IDT]
+    id: t.ClassVar[JsonField[IDT]]
 
     state: BaseState[t.Any, IDT, t.Any]
     cached: bool

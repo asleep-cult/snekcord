@@ -24,15 +24,15 @@ class IntegrationExpireBehavior(Enum[int]):
 
 
 class IntegrationAccount(JsonObject):
-    id: JsonField[Snowflake]
-    name: JsonField[str]
+    id: t.ClassVar[JsonField[Snowflake]]
+    name: t.ClassVar[JsonField[str]]
 
 
 class IntegrationApplication(JsonObject):
-    name: JsonField[str]
-    icon: JsonField[str]
-    description: JsonField[str]
-    summary: JsonField[str]
+    name: t.ClassVar[JsonField[str]]
+    icon: t.ClassVar[JsonField[str]]
+    description: t.ClassVar[JsonField[str]]
+    summary: t.ClassVar[JsonField[str]]
 
     bot: User | None
     integration: Integration
@@ -41,18 +41,18 @@ class IntegrationApplication(JsonObject):
 
 
 class Integration(JsonObject):
-    name: JsonField[str]
-    type: JsonField[IntegrationType]
-    enabled: JsonField[bool]
-    syncing: JsonField[bool]
-    role_id: JsonField[Snowflake]
-    enable_emoticons: JsonField[bool]
-    expire_behavior: JsonField[IntegrationExpireBehavior]
-    expire_grace_period: JsonField[int]
-    account: JsonField[IntegrationAccount]
-    synced_at: JsonField[datetime]
-    subscriber_count: JsonField[int]
-    revoked: JsonField[bool]
+    name: t.ClassVar[JsonField[str]]
+    type: t.ClassVar[JsonField[IntegrationType]]
+    enabled: t.ClassVar[JsonField[bool]]
+    syncing: t.ClassVar[JsonField[bool]]
+    role_id: t.ClassVar[JsonField[Snowflake]]
+    enable_emoticons: t.ClassVar[JsonField[bool]]
+    expire_behavior: t.ClassVar[JsonField[IntegrationExpireBehavior]]
+    expire_grace_period: t.ClassVar[JsonField[int]]
+    account: t.ClassVar[JsonField[IntegrationAccount]]
+    synced_at: t.ClassVar[JsonField[datetime]]
+    subscriber_count: t.ClassVar[JsonField[int]]
+    revoked: t.ClassVar[JsonField[bool]]
 
     state: IntegrationState
     user: User | None
