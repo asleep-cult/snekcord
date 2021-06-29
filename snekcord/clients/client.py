@@ -6,24 +6,46 @@ from ..utils.events import EventDispatcher
 __all__ = ('ClientClasses', 'Client',)
 
 
-class ClientClasses:
-    from ..rest import RestSession
-    from ..states.channelstate import ChannelState, GuildChannelState
-    from ..states.emojistate import GuildEmojiState
-    from ..states.guildstate import GuildBanState, GuildState
-    from ..states.integrationstate import IntegrationState
-    from ..states.invitestate import InviteState
-    from ..states.memberstate import GuildMemberState
-    from ..states.messagestate import MessageState
-    from ..states.overwritestate import PermissionOverwriteState
-    from ..states.reactionsstate import ReactionsState
-    from ..states.rolestate import GuildMemberRoleState, RoleState
-    from ..states.stagestate import StageInstanceState
-    from ..states.userstate import UserState
+class _ClientClasses:
+    _rest_classes_ = {
+        'RestSession',
+    }
 
-    @classmethod
-    def set_class(cls, name, klass):
-        setattr(cls, name, klass)
+    _state_classes_ = {
+        'ChannelState',
+        'GuildChannelState',
+        'GuildEmojiState',
+        'GuildBanState',
+        'GuildState',
+        'IntegrationState',
+        'InviteState',
+        'GuildMemberState',
+        'MessageState',
+        'PermissionOverwriteState',
+        'ReactionsState',
+        'GuildMemberRoleState',
+        'RoleState',
+        'StageInstanceState',
+        'UserState',
+    }
+
+    def __getattribute__(self, name):
+        if name in _ClientClasses._rest_classes_:
+            from .. import rest
+
+            return getattr(rest, name)
+        elif name in _ClientClasses._state_classes_:
+            from .. import states
+
+            return getattr(states, name)
+        else:
+            return super().__getattribute__(name)
+
+    def set_class(self, name, klass):
+        setattr(self, name, klass)
+
+
+ClientClasses = _ClientClasses()
 
 
 class Client(EventDispatcher):

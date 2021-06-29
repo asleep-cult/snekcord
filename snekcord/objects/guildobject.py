@@ -4,6 +4,7 @@ from .baseobject import BaseObject
 from .inviteobject import GuildVanityURL
 from .widgetobject import GuildWidget
 from .. import rest
+from ..clients.client import ClientClasses
 from ..enums import (
     ExplicitContentFilterLevel,
     GuildFeature,
@@ -85,8 +86,6 @@ class Guild(BaseObject):
     nsfw_level = JsonField('nsfw', GuildNSFWLevel.get_enum)
 
     def __init__(self, *, state):
-        from ..clients.client import ClientClasses
-
         super().__init__(state=state)
 
         self.unsynced = True

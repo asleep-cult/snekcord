@@ -2,6 +2,7 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
+from ..clients.client import ClientClasses
 from ..flags import Permissions
 from ..utils import _validate_keys
 from ..utils.json import JsonField
@@ -22,8 +23,6 @@ class GuildMember(BaseObject):
     _permissions = JsonField('permissions', Permissions.from_value)
 
     def __init__(self, *, state):
-        from ..clients.client import ClientClasses
-
         super().__init__(state=state)
 
         self.user = None

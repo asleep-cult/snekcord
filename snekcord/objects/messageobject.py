@@ -3,6 +3,7 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .embedobject import Embed
 from .. import rest
+from ..clients.client import ClientClasses
 from ..enums import MessageType
 from ..flags import MessageFlags
 from ..utils.json import JsonArray, JsonField
@@ -38,8 +39,6 @@ class Message(BaseObject):
     _interaction = JsonField('interaction')
 
     def __init__(self, *, state):
-        from ..clients.client import ClientClasses
-
         super().__init__(state=state)
 
         self.author = None

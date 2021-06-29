@@ -1,5 +1,6 @@
 from .baseobject import BaseObject
 from .. import rest
+from ..clients.client import ClientClasses
 from ..enums import ChannelType
 from ..utils import _validate_keys
 from ..utils.json import JsonArray, JsonField, JsonObject
@@ -58,8 +59,6 @@ class GuildChannel(BaseObject):
     type = JsonField('type', ChannelType.get_enum)
 
     def __init__(self, *, state):
-        from ..clients.client import ClientClasses
-
         super().__init__(state=state)
 
         self.permissions = ClientClasses.PermissionOverwriteState(
@@ -188,8 +187,6 @@ class TextChannel(GuildChannel):
     last_message_id = JsonField('last_message_id', Snowflake)
 
     def __init__(self, *, state):
-        from ..clients.client import ClientClasses
-
         super().__init__(state=state)
 
         self.last_pin_timestamp = None
