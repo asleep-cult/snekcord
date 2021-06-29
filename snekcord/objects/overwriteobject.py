@@ -5,7 +5,7 @@ from ..flags import Permissions
 from ..utils import _validate_keys
 from ..utils.json import JsonField
 
-__all__ = ('PermissionOverwrite')
+__all__ = ('PermissionOverwrite',)
 
 
 class PermissionOverwrite(BaseObject):

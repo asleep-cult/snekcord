@@ -1,6 +1,31 @@
 from .utils.bitset import Bitset, Flag
 
 
+class CacheFlags(Bitset):
+    guild_bans = Flag(0)
+    guild_integrations = Flag(1)
+    guild_invites = Flag(2)
+    guild_widget = Flag(3)
+
+
+class WebSocketIntents(Bitset):
+    guilds = Flag(0)
+    guild_members = Flag(1)
+    guild_bans = Flag(2)
+    guild_emojis = Flag(3)
+    guild_integrations = Flag(4)
+    guild_webhooks = Flag(5)
+    guild_invites = Flag(6)
+    guild_voice_states = Flag(7)
+    guild_presences = Flag(8)
+    guild_messages = Flag(9)
+    guild_message_reactions = Flag(10)
+    guild_message_typing = Flag(11)
+    direct_messages = Flag(12)
+    direct_message_reactions = Flag(13)
+    direct_message_typing = Flag(14)
+
+
 class Permissions(Bitset):
     create_instant_invite = Flag(0)
     kick_members = Flag(1)

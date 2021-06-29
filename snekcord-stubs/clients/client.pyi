@@ -6,20 +6,14 @@ import typing as t
 
 from .. import rest
 from .. import states
+from ..flags import CacheFlags
 from ..objects.emojiobject import GuildEmoji
 from ..objects.memberobject import GuildMember
 from ..objects.messageobject import Message
 from ..objects.roleobject import Role
-from ..utils import Bitset, EventDispatcher, Flag
+from ..utils.events import EventDispatcher
 
-__all__ = ('CacheFlags', 'Client')
-
-
-class CacheFlags(Bitset):
-    guild_bans = Flag(0)
-    guild_integrations = Flag(1)
-    guild_invites = Flag(2)
-    guild_widget = Flag(3)
+__all__ = ('Client',)
 
 
 class ClientClasses(t.TypedDict):

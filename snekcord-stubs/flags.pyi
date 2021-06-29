@@ -3,6 +3,31 @@ import typing as t
 from .utils.bitset import Bitset, Flag
 
 
+class CacheFlags(Bitset):
+    guild_bans = Flag(0)
+    guild_integrations = Flag(1)
+    guild_invites = Flag(2)
+    guild_widget = Flag(3)
+
+
+class WebSocketIntents(Bitset):
+    guilds: t.ClassVar[Flag]
+    guild_members: t.ClassVar[Flag]
+    guild_bans: t.ClassVar[Flag]
+    guild_emojis: t.ClassVar[Flag]
+    guild_integrations: t.ClassVar[Flag]
+    guild_webhooks: t.ClassVar[Flag]
+    guild_invites: t.ClassVar[Flag]
+    guild_voice_states: t.ClassVar[Flag]
+    guild_presences: t.ClassVar[Flag]
+    guild_messages: t.ClassVar[Flag]
+    guild_message_reactions: t.ClassVar[Flag]
+    guild_message_typing: t.ClassVar[Flag]
+    direct_messages: t.ClassVar[Flag]
+    direct_message_reactions: t.ClassVar[Flag]
+    direct_message_typing: t.ClassVar[Flag]
+
+
 class Permissions(Bitset):
     create_instant_invite: t.ClassVar[Flag]
     kick_members: t.ClassVar[Flag]

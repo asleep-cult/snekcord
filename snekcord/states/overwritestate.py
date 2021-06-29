@@ -1,10 +1,11 @@
 from .basestate import BaseState
 from .. import rest
+from ..flags import Permissions
 from ..objects.memberobject import GuildMember
 from ..objects.overwriteobject import (
-    PermissionOverwrite, PermissionOverwriteType)
+    PermissionOverwrite,
+    PermissionOverwriteType)
 from ..objects.roleobject import Role
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 __all__ = ('PermissionOverwriteState',)
