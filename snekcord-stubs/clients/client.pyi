@@ -4,15 +4,36 @@ import asyncio
 import signal
 import typing as t
 
+from typing_extensions import ParamSpec
+
 from .. import objects
 from .. import rest
 from .. import states
 from ..flags import CacheFlags
 from ..objects.emojiobject import GuildEmoji
 from ..objects.memberobject import GuildMember
-from ..utils.events import EventDispatcher
+from ..typedefs import AnyCallable, AnyCoroCallable
 
 __all__ = ('ClientClasses', 'Client',)
+
+T = t.TypeVar('T')
+P = ParamSpec('P')
+
+
+class _EventWaiter:
+    name: str
+    client: Client
+    timeout: float | None
+    filter: AnyCallable | None
+
+    def __init__(self, name: str, client: Client, timeout: float | None,
+                 filter: AnyCallable | None) -> None: ...
+
+    def __await__(self) -> t.Any: ...
+
+    def __aiter__(self) -> _EventWaiter: ...
+
+    def __anext__(self) -> t.Any: ...
 
 
 class ClientClasses:
@@ -60,9 +81,11 @@ class ClientClasses:
     def set_class(cls, name: str, klass: type) -> None: ...
 
 
-class Client(EventDispatcher):
+class Client:
+    _events_: t.ClassVar[dict[str, AnyCoroCallable] | None]
     _handled_signals_: t.ClassVar[list[signal.Signals]]
 
+    loop: asyncio.AbstractEventLoop
     rest: rest.RestSession
     channels: states.ChannelState
     guilds: states.GuildState
@@ -83,6 +106,27 @@ class Client(EventDispatcher):
 
     @property
     def emojis(self) -> t.Generator[GuildEmoji, None, None]: ...
+
+    def register_listener(self, name: str, callback: AnyCallable, *,
+                          persistent: bool = ...) -> None: ...
+
+    def remove_listener(self, name: str, callback: AnyCallable) -> None: ...
+
+    def register_waiter(self, *args: t.Any, **kwargs: t.Any) -> _EventWaiter: ...
+
+    wait = register_waiter
+
+    def remove_waiter(self, waiter: _EventWaiter) -> None: ...
+
+    def run_callbacks(self, name: str, *args: t.Any) -> None: ...
+
+    async def dispatch(self, name: str, *args: t.Any) -> None: ...
+
+    def on(self, name: str | None = ...) -> t.Callable[[t.Callable[P, T]],
+                                                       t.Callable[P, T]]: ...
+
+    def once(self, name: str | None = ...) -> t.Callable[[t.Callable[P, T]],
+                                                         t.Callable[P, T]]: ...
 
     async def close(self) -> None: ...
 

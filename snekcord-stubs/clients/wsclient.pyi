@@ -13,7 +13,6 @@ class WebSocketClient(Client):
     is_user: bool
     intents: WebSocketIntents | None
     timeouts: dict[str, float] | None
-    ws_version: str
     shards: dict[int, Shard]
 
     def __init__(self, *args: t.Any, user: bool = ...,
