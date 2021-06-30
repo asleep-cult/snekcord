@@ -109,7 +109,7 @@ class EventDispatcher:
         for subscriber in self.subscribers:
             subscriber.run_callbacks(name, *args)
 
-    async def dispatch(self, name: str, *args):
+    async def dispatch(self, name, *args):
         if self._events_ is not None:
             event = self._events_.get(name.lower())
             if event is not None:
@@ -131,12 +131,9 @@ class EventDispatcher:
 
     def once(self, name=None):
         def wrapped(func):
-            event_name = (name or func.__name__).lower()
-
             @functools.wraps(func)
             def callback(*args, **kwargs):
-                self.remove_listener(event_name, callback)
+                self.remove_listener((name or func.__name__).lower(), callback)
                 return ensure_future(func(*args, **kwargs))
-
             return callback
         return wrapped

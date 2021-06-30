@@ -27,17 +27,17 @@ class Bitset:
             setattr(self, key, value)
 
     def __init_subclass__(cls):
-        cls.__length__ = 0
-        cls.__bitset_flags__ = {}
+        cls._length_ = 0
+        cls._bitset_flags_ = {}
 
         for name, value in cls.__dict__.items():
             if isinstance(value, Flag):
-                cls.__bitset_flags__[name] = value
+                cls._bitset_flags_[name] = value
 
-                if value.position > cls.__length__:
-                    cls.__length__ = value.position
+                if value.position > cls._length_:
+                    cls._length_ = value.position
 
-        cls.__length__ += 1
+        cls._length_ += 1
 
     def __iter__(self):
         for flag in self.__bitset_flags__:
@@ -48,7 +48,7 @@ class Bitset:
 
     @classmethod
     def all(cls):
-        return cls.from_value((1 << cls.__length__) - 1)
+        return cls.from_value((1 << cls._length_) - 1)
 
     @classmethod
     def none(cls):
@@ -61,4 +61,4 @@ class Bitset:
         return self
 
     def to_dict(self):
-        return dict(zip(self.__bitset_flags__, self))
+        return dict(zip(self._bitset_flags_, self))

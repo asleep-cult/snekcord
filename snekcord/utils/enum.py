@@ -23,8 +23,7 @@ class Enum:
         return klass
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(name={self.name}, '
-                f'value={self.value!r})')
+        return (f'<{self.__class__.__name__} name={self.name}, value={self.value!r}>')
 
     def __eq__(self, value):
         if isinstance(value, self.__class__):
@@ -57,5 +56,4 @@ class Enum:
             return enum.value
         elif isinstance(enum, cls._enum_type_):
             return enum
-        raise ValueError(
-            f'{enum!r} is not a valid {cls.__name__}')
+        raise ValueError(f'{enum!r} is not a valid {cls.__name__}')

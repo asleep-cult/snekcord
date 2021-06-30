@@ -10,7 +10,8 @@ class HTTPEndpoint:
         headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
 
-        return await session.request(self.method, self.url, **kwargs)
+        data = await session.request(self.method, self.url, **kwargs)
+        return data
 
 
 BASE_API_URL = 'https://discord.com/api/v9/'
