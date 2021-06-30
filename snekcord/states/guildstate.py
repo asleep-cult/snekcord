@@ -8,10 +8,9 @@ __all__ = ('GuildState', 'GuildBanState')
 
 
 class GuildState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def upsert(self, data):
-        guild = self.get(data['id'])
+        guild = self.get(Snowflake(data['id']))
+
         if guild is not None:
             guild.update(data)
         else:
@@ -62,7 +61,7 @@ class GuildState(BaseState):
             session=self.client.rest,
             params=params)
 
-        return self.upsert_many(data)
+        return self.upsert_all(data)
 
     async def fetch_preview(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
@@ -121,7 +120,7 @@ class GuildBanState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_many(data)
+        return self.upsert_all(data)
 
     async def add(self, user, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.add',

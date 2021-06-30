@@ -188,7 +188,7 @@ class Guild(BaseObject):
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
-        return self.state.client.invites.upsert_many(data)
+        return self.state.client.invites.upsert_all(data)
 
     async def fetch_templates(self):
         data = await rest.get_guild_templates.request(
@@ -236,15 +236,16 @@ class Guild(BaseObject):
 
         emojis = data.get('emojis')
         if emojis is not None:
-            self.emojis.upsert_replace(emojis)
+            emojis = self.emojis.upsert_all(emojis)
+            self.emojis.mapping = {e.id: e for e in emojis}
 
         roles = data.get('roles')
         if roles is not None:
-            self.roles.upsert_many(roles)
+            self.roles.upsert_all(roles)
 
         members = data.get('members')
         if members is not None:
-            self.members.upsert_many(members)
+            self.members.upsert_all(members)
 
         welcome_screen = data.get('welcome_screen')
         if welcome_screen is not None:

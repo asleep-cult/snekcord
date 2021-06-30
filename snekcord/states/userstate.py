@@ -7,10 +7,9 @@ __all__ = ('UserState',)
 
 
 class UserState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def upsert(self, data):
-        user = self.get(data['id'])
+        user = self.get(Snowflake(data['id']))
+
         if user is not None:
             user.update(data)
         else:

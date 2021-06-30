@@ -17,7 +17,7 @@ class GuildRolePosition(t.TypedDict):
     position: int
 
 
-class RoleState(BaseState[SnowflakeConvertible, Snowflake, Role]):
+class RoleState(BaseState[Snowflake, Role]):
     guild: Guild
 
     def __init__(self, *, client: Client, guild: Guild) -> None: ...
@@ -34,8 +34,7 @@ class RoleState(BaseState[SnowflakeConvertible, Snowflake, Role]):
                                           GuildRolePosition]) -> None: ...
 
 
-class GuildMemberRoleState(
-        BaseSubState[SnowflakeConvertible, Snowflake, Role]):
+class GuildMemberRoleState(BaseSubState[Snowflake, Role]):
     superstate: RoleState
     member: GuildMember
 

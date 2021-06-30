@@ -12,7 +12,8 @@ class StageInstanceState(BaseState):
     __key_transformer__ = Snowflake.try_snowflake
 
     def upsert(self, data):
-        stage = self.get(data['id'])
+        stage = self.get(Snowflake(data['id']))
+
         if stage is not None:
             stage.update(data)
         else:

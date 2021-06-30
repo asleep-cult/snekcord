@@ -8,8 +8,6 @@ __all__ = ('GuildEmojiState',)
 
 
 class GuildEmojiState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
@@ -17,7 +15,7 @@ class GuildEmojiState(BaseState):
     def upsert(self, data):
         emoji_id = data['id']
         if emoji_id is not None:
-            emoji = self.get(emoji_id)
+            emoji = self.get(Snowflake(emoji_id))
             if emoji is not None:
                 emoji.update(data)
             else:
@@ -43,4 +41,4 @@ class GuildEmojiState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_many(data)
+        return self.upsert_all(data)

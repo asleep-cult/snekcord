@@ -8,7 +8,7 @@ from ..utils.snowflake import Snowflake
 __all__ = ('UserState',)
 
 
-class UserState(BaseState[SnowflakeConvertible, Snowflake, User]):
+class UserState(BaseState[Snowflake, User]):
     async def fetch(self, user: SnowflakeConvertible) -> User: ...
 
     async def fetch_self(self) -> User: ...

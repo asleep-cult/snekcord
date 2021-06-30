@@ -1,3 +1,5 @@
+from ..utils.snowflake import Snowflake
+
 __all__ = []
 
 WS_EVENTS = {}
@@ -74,8 +76,7 @@ class ChannelPinsUpdateEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, client, shard, payload):
-        channel = client.channels.get(
-            payload['channel_id'])
+        channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
             channel.last_pin_timestamp = payload['last_pin_timestamp']
@@ -155,7 +156,7 @@ class GuildBanAddEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         ban = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             ban = guild.bans.upsert(payload)
@@ -170,7 +171,7 @@ class GuildBanRemoveEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         ban = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             ban = guild.bans.upsert(payload)
@@ -185,10 +186,11 @@ class GuildEmojisUpdateEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, client, shard, payload):
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
-            guild.emojis.upsert_replace(payload['emojis'])
+            emojis = guild.emoji.upsert_all(payload['emojis'])
+            guild.emojis.mapping = {e.id: e for e in emojis}
 
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -205,7 +207,7 @@ class GuildMemberAddEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         member = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             member = guild.members.upsert(payload)
@@ -220,7 +222,7 @@ class GuildMemberUpdateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         member = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             member = guild.members.upsert(payload)
@@ -236,7 +238,7 @@ class GuildMemberRemoveEvent(BaseEvent):
     async def execute(cls, client, shard, payload):
         member = None
         user = client.users.upsert(payload['user'])
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             member = guild.members.get(user.id)
@@ -254,7 +256,7 @@ class GuildRoleCreateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         role = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             role = guild.roles.upsert(payload['role'])
@@ -269,7 +271,7 @@ class GuildRoleUpdateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         role = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
             role = guild.roles.upsert(payload['role'])
@@ -284,10 +286,10 @@ class GuildRoleDeleteEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         role = None
-        guild = client.guilds.get(payload['guild_id'])
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
-            role = guild.roles.get(payload['role_id'])
+            role = guild.roles.get(Snowflake(payload['role_id']))
             if role is not None:
                 role._delete()
 
@@ -340,7 +342,7 @@ class MessageCreateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         message = None
-        channel = client.channels.get(payload['channel_id'])
+        channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
             message = channel.messages.upsert(payload)
@@ -356,7 +358,7 @@ class MessageUpdateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         message = None
-        channel = client.channels.get(payload['channel_id'])
+        channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
             message = channel.messages.upsert(payload)
@@ -372,10 +374,10 @@ class MessageDeleteEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         message = None
-        channel = client.channels.get(payload['channel_id'])
+        channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
-            message = channel.messages.get(payload['id'])
+            message = channel.messages.get(Snowflake(payload['id']))
             if message is not None:
                 message._delete()
 
@@ -390,7 +392,7 @@ class MessageDeleteBulkEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         messages = []
-        channel = client.channels.get(payload['channel_id'])
+        channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
             for message in payload['id']:
@@ -410,11 +412,11 @@ class MessageReactionAddEvent(BaseEvent):
     async def execute(cls, client, shard, payload):
         message = None
         reactions = None
-        channel = client.channels.get(payload['channel_id'])
+        channel = client.channels.get(Snowflake(payload['channel_id']))
         user = client.users.get(payload['user_id'])
 
         if channel is not None:
-            message = channel.messages.get(payload['message_id'])
+            message = channel.messages.get(Snowflake(payload['message_id']))
             if message is not None:
                 reactions = message.reactions.upsert(payload)
 

@@ -12,8 +12,7 @@ from ..utils.snowflake import Snowflake
 __all__ = ('GuildMemberState',)
 
 
-class GuildMemberState(
-        BaseState[SnowflakeConvertible, Snowflake, GuildMember]):
+class GuildMemberState(BaseState[Snowflake, GuildMember]):
     guild: Guild
 
     def __init__(self, *, client: Client, guild: Guild) -> None: ...

@@ -8,8 +8,6 @@ __all__ = ('ChannelState', 'GuildChannelState')
 
 
 class ChannelState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def get_class(self, type):
         if type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
             return ClientClasses.TextChannel
@@ -23,7 +21,8 @@ class ChannelState(BaseState):
             return ClientClasses.GuildChannel
 
     def upsert(self, data):
-        channel = self.get(data['id'])
+        channel = self.get(Snowflake(data['id']))
+
         if channel is not None:
             channel.update(data)
         else:
@@ -76,7 +75,7 @@ class GuildChannelState(BaseSubState):
             session=self.superstate.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.superstate.upsert_many(data)
+        return self.superstate.upsert_all(data)
 
     async def create(self, **kwargs):
         required_keys = ('name',)

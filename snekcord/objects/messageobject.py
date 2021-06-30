@@ -81,5 +81,5 @@ class Message(BaseObject):
 
         reactions = data.get('reactions')
         if reactions is not None:
-            self.reactions.clear()
-            self.reactions.upsert_many(reactions)
+            reactions = self.reactions.upsert_all(reactions)
+            self.reactions.mapping = {r.emoji.id: r for r in reactions}

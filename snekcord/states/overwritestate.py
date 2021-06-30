@@ -9,8 +9,6 @@ __all__ = ('PermissionOverwriteState',)
 
 
 class PermissionOverwriteState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, channel):
         super().__init__(client=client)
         self.channel = channel
@@ -20,7 +18,8 @@ class PermissionOverwriteState(BaseState):
         return self.get(self.channel.guild_id)
 
     def upsert(self, data):
-        overwrite = self.get(data['id'])
+        overwrite = self.get(Snowflake(data['id']))
+
         if overwrite is not None:
             overwrite.update(data)
         else:

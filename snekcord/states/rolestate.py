@@ -8,8 +8,6 @@ __all__ = ('RoleState', 'GuildMemberRoleState')
 
 
 class RoleState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
@@ -19,7 +17,8 @@ class RoleState(BaseState):
         return self.get(self.guild.id)
 
     def upsert(self, data):
-        role = self.get(data['id'])
+        role = self.get(Snowflake(data['id']))
+
         if role is not None:
             role.update(data)
         else:
@@ -33,7 +32,7 @@ class RoleState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_many(data)
+        return self.upsert_all(data)
 
     async def create(self, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.create',

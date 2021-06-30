@@ -8,6 +8,7 @@ __all__ = ('InviteState',)
 class InviteState(BaseState):
     def upsert(self, data):
         invite = self.get(data['code'])
+
         if invite is not None:
             invite.update(data)
         else:

@@ -54,12 +54,12 @@ class BaseObject(JsonObject):
     def cache(self):
         """Stores the object in the state's cache"""
         self.cached = True
-        self.state[self.id] = self
+        self.state.mapping[self.id] = self
 
     def uncache(self):
         """Removes the object from the state's cache"""
         self.cached = False
-        self.state.pop(self.id, None)
+        del self.state.mapping[self.id]
 
     async def fetch(self):
         """Equivalent to `self.state.fetch(self.id)`"""

@@ -4,15 +4,14 @@ import typing as t
 
 from .basestate import BaseState
 from ..clients.client import Client
+from ..flags import Permissions
 from ..objects.channelobject import GuildChannel
 from ..objects.overwriteobject import PermissionOverwrie
 from ..typedefs import SnowflakeConvertible
-from ..utils.permissions import Permissions
 from ..utils.snowflake import Snowflake
 
 
-class PermissionOverwriteState(
-        BaseState[SnowflakeConvertible, Snowflake, PermissionOverwrie]):
+class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrie]):
     channel: GuildChannel
 
     def __init__(self, *, client: Client, channel: GuildChannel) -> None: ...

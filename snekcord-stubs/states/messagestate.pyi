@@ -11,7 +11,7 @@ from ..utils.snowflake import Snowflake
 __all__ = ('MessageState',)
 
 
-class MessageState(BaseState[SnowflakeConvertible, Snowflake, Message]):
+class MessageState(BaseState[Snowflake, Message]):
     channel: Channel
 
     def __init__(self, *, client: Client, channel: Channel) -> None: ...
@@ -25,5 +25,4 @@ class MessageState(BaseState[SnowflakeConvertible, Snowflake, Message]):
 
     async def create(self, **kwargs: t.Any) -> Message: ...
 
-    async def bulk_delete(self, messages: t.Iterable[SnowflakeConvertible]
-                          ) -> None: ...
+    async def bulk_delete(self, messages: t.Iterable[SnowflakeConvertible]) -> None: ...

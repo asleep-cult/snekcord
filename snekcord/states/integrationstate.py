@@ -7,14 +7,13 @@ __all__ = ('IntegrationState',)
 
 
 class IntegrationState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
 
     def upsert(self, data):
-        integration = self.get(data['id'])
+        integration = self.get(Snowflake(data['id']))
+
         if integration is not None:
             integration.update(data)
         else:
@@ -28,4 +27,4 @@ class IntegrationState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_many(data)
+        return self.upsert_all(data)

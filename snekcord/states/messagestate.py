@@ -8,14 +8,13 @@ __all__ = ('MessageState',)
 
 
 class MessageState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, channel):
         super().__init__(client=client)
         self.channel = channel
 
     def upsert(self, data):
-        message = self.get(data['id'])
+        message = self.get(Snowflake(data['id']))
+
         if message is not None:
             message.update(data)
         else:
@@ -54,7 +53,7 @@ class MessageState(BaseState):
             fmt=dict(channel_id=self.channel.id),
             params=params)
 
-        return self.upsert_many(data)
+        return self.upsert_all(data)
 
     async def create(self, **kwargs):
         try:

@@ -23,7 +23,7 @@ class Flag:
 
 class Bitset:
     _length_: t.ClassVar[int]
-    _bitset_flags_: t.ClassVar[dict[str, Flag]]
+    _flags_: t.ClassVar[dict[str, Flag]]
 
     def __init__(self, **kwargs: bool) -> None: ...
 

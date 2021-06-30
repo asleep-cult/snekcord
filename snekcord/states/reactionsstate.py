@@ -12,6 +12,7 @@ class ReactionsState(BaseState):
 
     def upsert(self, data):
         ident = self.message.guild.emojis.upsert(data['emoji']).id
+
         reactions = self.get(ident)
         if reactions is not None:
             reactions.update(data)

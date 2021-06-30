@@ -8,7 +8,7 @@ from ..typedefs import Json, SnowflakeConvertible
 from ..utils.snowflake import Snowflake
 
 
-class GuildState(BaseState[SnowflakeConvertible, Snowflake, Guild]):
+class GuildState(BaseState[Snowflake, Guild]):
     def new_template(self, data: Json) -> GuildTemplate: ...
 
     def new_template_many(self, values: list[Json]) -> set[GuildTemplate]: ...
@@ -29,7 +29,7 @@ class GuildState(BaseState[SnowflakeConvertible, Snowflake, Guild]):
     async def create(self, **kwargs: t.Any) -> Guild: ...
 
 
-class GuildBanState(BaseState[SnowflakeConvertible, Snowflake, GuildBan]):
+class GuildBanState(BaseState[Snowflake, GuildBan]):
     guild: Guild
 
     def __init__(self, *, client: Client, guild: Guild) -> None: ...

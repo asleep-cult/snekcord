@@ -102,4 +102,4 @@ class GuildMember(BaseObject):
 
         roles = data.get('roles')
         if roles is not None:
-            self.roles.set_keys(roles)
+            self.roles._keys = {Snowflake(r) for r in roles}

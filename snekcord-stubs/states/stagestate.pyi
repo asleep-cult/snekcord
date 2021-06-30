@@ -10,8 +10,7 @@ from ..utils.snowflake import Snowflake
 __all__ = ('StageInstanceState',)
 
 
-class StageInstanceState(
-        BaseState[SnowflakeConvertible, Snowflake, StageInstance]):
+class StageInstanceState(BaseState[Snowflake, StageInstance]):
     async def fetch(self, stage: SnowflakeConvertible) -> StageInstance: ...
 
     async def create(self, **kwargs: t.Any) -> StageInstance: ...
