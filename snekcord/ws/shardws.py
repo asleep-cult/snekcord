@@ -7,12 +7,12 @@ import time
 from wsaio import taskify
 
 from .basews import BaseWebSocket, WebSocketResponse
-from ..utils import Enum, Snowflake
+from ..utils.snowflake import Snowflake
 
 __all__ = ('ShardOpcode', 'ShardCloseCode', 'Shard', 'ShardWebSocket')
 
 
-class ShardOpcode(Enum[int]):
+class ShardOpcode:
     DISPATCH = 0  # Discord -> Shard
     HEARTBEAT = 1  # Discord <-> Shard
     IDENTIFY = 2  # Discord <- Shard
@@ -27,7 +27,7 @@ class ShardOpcode(Enum[int]):
     HEARTBEAT_ACK = 11  # Discord -> Shard
 
 
-class ShardCloseCode(Enum[int]):
+class ShardCloseCode:
     UNKNOWN_ERROR = 4000
     UNKNOWN_OPCODE = 4001
     DECODE_ERROR = 4002
@@ -263,13 +263,12 @@ class ShardWebSocket(BaseWebSocket):
     @taskify
     async def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
-        opcode = ShardOpcode.get_enum(response.opcode)
 
         if (response.sequence is not None
                 and response.sequence > self.sequence):
             self.sequence = response.sequence
 
-        if opcode == ShardOpcode.DISPATCH:
+        if response.opcode == ShardOpcode.DISPATCH:
             name = response.name
 
             if name == 'READY':
@@ -326,19 +325,19 @@ class ShardWebSocket(BaseWebSocket):
 
             await self.callbacks['DISPATCH'](name, response.data)
 
-        elif opcode == ShardOpcode.HEARTBEAT:
+        elif response.opcode == ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
 
-        elif opcode == ShardOpcode.RECONNECT:
+        elif response.opcode == ShardOpcode.RECONNECT:
             return
 
-        elif opcode == ShardOpcode.INVALID_SESSION:
+        elif response.opcode == ShardOpcode.INVALID_SESSION:
             return
 
-        elif opcode == ShardOpcode.HELLO:
+        elif response.opcode == ShardOpcode.HELLO:
             self.heartbeat_interval = response.data['heartbeat_interval']
             await self.callbacks['HELLO']()
             await self.identify()
 
-        elif opcode == ShardOpcode.HEARTBEAT_ACK:
+        elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.heartbeat_last_acked = time.perf_counter()

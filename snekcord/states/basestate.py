@@ -86,8 +86,7 @@ class BaseSubState(_StateCommon):
         return len(self._keys)
 
     def __repr__(self):
-        return (f'<{self.__class__.__name__} len({len(self)}),'
-                f' superstate={self.superstate!r}>')
+        return f'<{self.__class__.__name__} len({len(self)}), superstate={self.superstate!r}>'
 
     def get(self, key, default=None):
         if key not in self._keys:
