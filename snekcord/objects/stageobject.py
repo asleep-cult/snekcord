@@ -1,9 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..enums import StageInstancePrivacyLevel
-from ..utils import _validate_keys
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake, _validate_keys
 
 __all__ = ('StageInstance',)
 

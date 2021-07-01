@@ -12,8 +12,7 @@ from .userobject import User
 from ..enums import MessageType
 from ..flags import MessageFlags
 from ..states.messagestate import MessageState
-from ..utils.json import JsonArray, JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, Snowflake
 
 
 class Message(BaseObject[Snowflake]):

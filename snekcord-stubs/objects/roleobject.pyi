@@ -6,8 +6,7 @@ from .baseobject import BaseObject
 from .guildobject import Guild
 from ..flags import Permissions
 from ..states.rolestate import RoleState
-from ..utils.json import JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, JsonObject, Snowflake
 
 
 class RoleTags(JsonObject):

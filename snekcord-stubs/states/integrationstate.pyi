@@ -2,7 +2,7 @@ from .basestate import BaseState
 from ..clients.client import Client
 from ..objects.guildobject import Guild
 from ..objects.integrationobject import Integration
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 
 class IntegrationState(BaseState[Snowflake, Integration]):

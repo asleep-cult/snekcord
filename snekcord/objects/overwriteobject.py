@@ -2,8 +2,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..enums import PermissionOverwriteType
 from ..flags import Permissions
-from ..utils import _validate_keys
-from ..utils.json import JsonField
+from ..utils import JsonField, _validate_keys
 
 __all__ = ('PermissionOverwrite',)
 

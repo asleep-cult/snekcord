@@ -7,7 +7,7 @@ from ..clients.client import Client
 from ..objects.guildobject import Guild
 from ..objects.memberobject import GuildMember
 from ..typedefs import SnowflakeConvertible
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('GuildMemberState',)
 

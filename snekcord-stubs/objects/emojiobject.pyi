@@ -6,8 +6,7 @@ from .baseobject import BaseObject
 from .guildobject import Guild
 from .userobject import User
 from ..states.emojistate import EmojiState
-from ..utils.json import JsonArray, JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, Snowflake
 
 T = t.TypeVar('T')
 _Emoji = tuple[bytes, tuple[str], float, tuple['_Emoji', ...]]

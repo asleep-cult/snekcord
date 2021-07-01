@@ -6,7 +6,7 @@ from .basestate import BaseState
 from ..clients.client import Client
 from ..objects.messageobject import Message
 from ..typedefs import Channel, SnowflakeConvertible
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('MessageState',)
 

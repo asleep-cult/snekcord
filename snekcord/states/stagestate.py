@@ -2,8 +2,7 @@ from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.stageobject import StageInstancePrivacyLevel
-from ..utils import _validate_keys
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake, _validate_keys
 
 __all__ = ('StageInstanceState',)
 

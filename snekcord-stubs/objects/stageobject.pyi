@@ -7,8 +7,7 @@ from .channelobject import GuildChannel
 from .guildobject import Guild
 from ..enums import StageInstancePrivacyLevel
 from ..states.stagestate import StageInstanceState
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 
 class StageInstance(BaseObject[Snowflake]):

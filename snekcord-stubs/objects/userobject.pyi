@@ -4,8 +4,7 @@ from .baseobject import BaseObject
 from ..enums import PremiumType
 from ..flags import UserFlags
 from ..states.userstate import UserState
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 
 class User(BaseObject[Snowflake]):

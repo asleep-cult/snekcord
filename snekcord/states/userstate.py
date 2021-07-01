@@ -1,7 +1,7 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('UserState',)
 

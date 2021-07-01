@@ -1,8 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..states.basestate import BaseSubState
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 __all__ = ('Reactions',)
 

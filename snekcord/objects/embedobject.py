@@ -2,7 +2,7 @@ import copy
 from datetime import datetime
 
 from ..enums import EmbedType
-from ..utils.json import JsonArray, JsonField, JsonObject
+from ..utils import JsonArray, JsonField, JsonObject
 
 __all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage', 'EmbedProvider', 'EmbedAuthor',
            'EmbedFooter', 'EmbedField', 'Embed', 'EmbedBuilder')

@@ -6,8 +6,7 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import MessageType
 from ..flags import MessageFlags
-from ..utils.json import JsonArray, JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, Snowflake
 
 __all__ = ('MessageFlags', 'Message')
 

@@ -1,6 +1,5 @@
 from .. import rest
-from ..utils.json import JsonArray, JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake
 
 __all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson', 'GuildWidget')
 

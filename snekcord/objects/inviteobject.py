@@ -3,7 +3,7 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .. import rest
 from ..enums import InviteTargetType
-from ..utils.json import JsonField, JsonObject
+from ..utils import JsonField, JsonObject
 
 __all__ = ('Invite', 'GuildVanityURL')
 

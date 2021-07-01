@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from ..utils.json import JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, JsonObject, Snowflake
 
 __all__ = ('BaseObject',)
 

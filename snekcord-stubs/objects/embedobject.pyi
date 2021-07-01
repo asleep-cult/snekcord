@@ -6,7 +6,7 @@ from datetime import datetime
 from .channelobject import TextChannel
 from .messageobject import Message
 from ..enums import EmbedType
-from ..utils.json import JsonArray, JsonField, JsonObject
+from ..utils import JsonArray, JsonField, JsonObject
 
 
 class EmbedThumbnail(JsonObject):

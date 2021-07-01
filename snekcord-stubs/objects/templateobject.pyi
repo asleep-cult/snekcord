@@ -7,8 +7,7 @@ from .baseobject import BaseObject
 from .guildobject import Guild
 from ..states.guildstate import GuildState
 from ..typedefs import Json
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 
 class GuildTemplate(BaseObject[str]):

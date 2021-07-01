@@ -1,4 +1,4 @@
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = []
 

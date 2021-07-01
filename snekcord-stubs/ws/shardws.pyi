@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import typing as t
 
-from ..enums import Enum
 from ..clients.wsclient import WebSocketClient, WebSocketIntents
+from ..enums import Enum
 from ..objects.userobject import User
 from ..typedefs import Json, SnowflakeConvertible
 

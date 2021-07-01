@@ -3,7 +3,7 @@ from __future__ import annotations
 from .basestate import BaseState
 from ..objects.userobject import User
 from ..typedefs import SnowflakeConvertible
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('UserState',)
 

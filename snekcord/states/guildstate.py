@@ -1,8 +1,7 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..utils import _validate_keys
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake, _validate_keys
 
 __all__ = ('GuildState', 'GuildBanState')
 

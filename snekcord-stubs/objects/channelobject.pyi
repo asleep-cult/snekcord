@@ -11,8 +11,7 @@ from ..states.channelstate import ChannelState
 from ..states.messagestate import MessageState
 from ..states.overwritestate import PermissionOverwriteState
 from ..typedefs import SnowflakeConvertible
-from ..utils.json import JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, JsonObject, Snowflake
 
 T = t.TypeVar('T')
 

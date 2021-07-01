@@ -8,8 +8,7 @@ from .roleobject import Role
 from .userobject import User
 from ..enums import IntegrationExpireBehavior, IntegrationType
 from ..states.integrationstate import IntegrationState
-from ..utils.json import JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, JsonObject, Snowflake
 
 
 class IntegrationAccount(JsonObject):

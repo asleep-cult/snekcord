@@ -5,8 +5,7 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..flags import Permissions
 from ..utils import _validate_keys
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 __all__ = ('GuildMember',)
 

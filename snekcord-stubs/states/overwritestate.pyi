@@ -8,7 +8,7 @@ from ..flags import Permissions
 from ..objects.channelobject import GuildChannel
 from ..objects.overwriteobject import PermissionOverwrie
 from ..typedefs import SnowflakeConvertible
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 
 class PermissionOverwriteState(BaseState[Snowflake, PermissionOverwrie]):

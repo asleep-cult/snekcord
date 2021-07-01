@@ -9,8 +9,7 @@ from .userobject import User
 from ..flags import Permissions
 from ..states.memberstate import GuildMemberState
 from ..states.rolestate import GuildMemberRoleState
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 
 class GuildMember(BaseObject[Snowflake]):

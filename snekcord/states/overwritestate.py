@@ -3,7 +3,7 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..flags import Permissions
 from ..objects.overwriteobject import PermissionOverwriteType
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('PermissionOverwriteState',)
 

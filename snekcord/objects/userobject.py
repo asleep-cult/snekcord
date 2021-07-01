@@ -1,7 +1,7 @@
 from .baseobject import BaseObject
 from ..enums import PremiumType
 from ..flags import UserFlags
-from ..utils.json import JsonField
+from ..utils import JsonField
 
 __all__ = ('User',)
 

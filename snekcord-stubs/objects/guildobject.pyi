@@ -26,8 +26,7 @@ from ..states.integrationstate import GuildIntegrationState
 from ..states.memberstate import GuildMemberState
 from ..states.rolestate import RoleState
 from ..typedefs import Json
-from ..utils.json import JsonArray, JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake
 
 
 class Guild(BaseObject[Snowflake]):

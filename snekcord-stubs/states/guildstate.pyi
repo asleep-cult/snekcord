@@ -5,7 +5,7 @@ from ..clients.client import Client
 from ..objects.guildobject import Guild, GuildBan
 from ..objects.templateobject import GuildTemplate
 from ..typedefs import Json, SnowflakeConvertible
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 
 class GuildState(BaseState[Snowflake, Guild]):

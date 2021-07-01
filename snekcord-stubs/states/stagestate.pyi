@@ -5,7 +5,7 @@ import typing as t
 from .basestate import BaseState
 from ..objects.stageobject import StageInstance
 from ..typedefs import SnowflakeConvertible
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('StageInstanceState',)
 

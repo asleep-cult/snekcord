@@ -2,9 +2,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import ChannelType
-from ..utils import _validate_keys
-from ..utils.json import JsonArray, JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake, _validate_keys
 
 __all__ = ('GuildChannel', 'TextChannel', 'FollowedChannel', 'CategoryChannel',
            'VoiceChannel', 'DMChannel')

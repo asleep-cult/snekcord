@@ -9,7 +9,7 @@ from .guildobject import Guild
 from .userobject import User
 from ..enums import InviteTargetType
 from ..states.invitestate import InviteState
-from ..utils.json import JsonField, JsonObject
+from ..utils import JsonField, JsonObject
 
 
 class Invite(BaseObject[str]):

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import typing as t
+from datetime import datetime
 
-from ..typedefs import Json
+from .typedefs import Json, SnowflakeConvertible
 
-__all__ = ('JsonObject', 'JsonField', 'JsonArray')
+__all__ = ('JsonObject', 'JsonField', 'JsonArray', 'Snowflake', 'undefined')
 
 T = t.TypeVar('T')
 FT = t.TypeVar('FT')
@@ -53,3 +54,48 @@ class JsonArray(JsonField[FT]):
     def __get__(self, instance: JsonObject, owner: type[JsonObject]) -> list[FT] | None: ...
 
     def _unmsrshal_(self, value: list[t.Any]) -> list[FT]: ...
+
+
+class Snowflake(int):
+    SNOWFLAKE_EPOCH: t.ClassVar[int]
+
+    TIMESTAMP_SHIFT: t.ClassVar[int]
+    WORKER_ID_SHIFT: t.ClassVar[int]
+    PROCESS_ID_SHIFT: t.ClassVar[int]
+
+    WORKER_ID_MASK: t.ClassVar[int]
+    PROCESS_ID_MASK: t.ClassVar[int]
+    INCREMENT_MASK: t.ClassVar[int]
+
+    @classmethod
+    def build(cls, timestamp: datetime | float | None = ...,
+              worker_id: int = ..., process_id: int = ...,
+              increment: int = ...) -> Snowflake: ...
+
+    @classmethod
+    def try_snowflake(cls, obj: SnowflakeConvertible) -> Snowflake: ...
+
+    @classmethod
+    def try_snowflake_set(cls, objs: t.Iterable[SnowflakeConvertible]) -> set[Snowflake]: ...
+
+    @property
+    def timestamp(self) -> float: ...
+
+    @property
+    def worker_id(self) -> int: ...
+
+    @property
+    def process_id(self) -> int: ...
+
+    @property
+    def increment(self) -> int: ...
+
+    @property
+    def to_datetime(self) -> datetime: ...
+
+
+class Undefined:
+    def __bool__(self) -> t.Literal[False]: ...
+
+
+undefined: Undefined

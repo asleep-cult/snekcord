@@ -5,8 +5,7 @@ import typing as t
 from .channelobject import GuildChannel
 from .guildobject import Guild
 from ..typedefs import SnowflakeConvertible
-from ..utils.json import JsonArray, JsonField, JsonObject
-from ..utils.snowflake import Snowflake
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake
 
 
 class GuildWidgetChannel(JsonObject):

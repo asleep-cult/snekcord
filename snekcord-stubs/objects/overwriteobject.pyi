@@ -7,8 +7,7 @@ from .channelobject import GuildChannel
 from ..enums import PermissionOverwriteType
 from ..flags import Permissions
 from ..states.overwritestate import PermissionOverwriteState
-from ..utils.json import JsonField
-from ..utils.snowflake import Snowflake
+from ..utils import JsonField, Snowflake
 
 
 class PermissionOverwrie(BaseObject[Snowflake]):

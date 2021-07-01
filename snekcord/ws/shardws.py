@@ -7,7 +7,7 @@ import time
 from wsaio import taskify
 
 from .basews import BaseWebSocket, WebSocketResponse
-from ..utils.snowflake import Snowflake
+from ..utils import Snowflake
 
 __all__ = ('ShardOpcode', 'ShardCloseCode', 'Shard', 'ShardWebSocket')
 
