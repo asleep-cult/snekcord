@@ -53,7 +53,12 @@ class MessageState(BaseState):
             fmt=dict(channel_id=self.channel.id),
             params=params)
 
-        return self.upsert_all(data)
+        messages = []
+
+        for message in data:
+            messages.append(self.upsert(message))
+
+        return messages
 
     async def create(self, **kwargs):
         try:

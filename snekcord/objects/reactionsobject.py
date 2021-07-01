@@ -37,8 +37,11 @@ class Reactions(BaseSubState, BaseObject):
                      message_id=self.state.message.id,
                      emoji=self.emoji.to_reaction()))
 
-        users = self.superstate.upsert_all(data)
-        self._keys.update(Snowflake(u.id) for u in users)
+        users = []
+
+        for user in data:
+            users.append(self.superstate.upsert(user))
+            self._keys.add(Snowflake(user['id']))
 
         return users
 

@@ -69,17 +69,20 @@ class Message(BaseObject):
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
-        author = data.get('author')
-        if author is not None:
-            self.author = self.state.client.users.upsert(author)
+        if 'author' in data:
+            self.author = self.state.client.users.upsert(data['author'])
 
             guild = self.guild
             member = data.get('member')
             if member is not None and guild is not None:
-                member['user'] = author
+                member['user'] = data['author']
                 self.member = guild.members.upsert(member)
 
-        reactions = data.get('reactions')
-        if reactions is not None:
-            reactions = self.reactions.upsert_all(reactions)
-            self.reactions.mapping = {r.emoji.id: r for r in reactions}
+        if 'reactions' in data:
+            reactions = set()
+
+            for reaction in reactions:
+                reactions.add(self.reactions.upsert(reaction))
+
+            for emoji_id in set(self.reactions.keys()) - reactions:
+                del self.reactions.mapping[emoji_id]

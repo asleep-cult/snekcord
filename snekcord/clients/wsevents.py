@@ -189,8 +189,13 @@ class GuildEmojisUpdateEvent(BaseEvent):
         guild = client.guilds.get(Snowflake(payload['guild_id']))
 
         if guild is not None:
-            emojis = guild.emoji.upsert_all(payload['emojis'])
-            guild.emojis.mapping = {e.id: e for e in emojis}
+            emojis = set()
+
+            for emoji in payload['emojis']:
+                emojis.add(guild.emojis.upsert(emoji).id)
+
+            for emoji_id in set(guild.emojis.keys()) - emojis:
+                del guild.emojis.mapping[emoji_id]
 
         return cls(shard=shard, payload=payload, guild=guild)
 

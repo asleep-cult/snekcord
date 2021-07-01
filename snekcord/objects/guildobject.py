@@ -37,9 +37,8 @@ class Guild(BaseObject):
 
         members GuildMemberState: The guild's member state
     """
-    __slots__ = ('unsynced', 'widget', 'vanity_url', 'welcome_screen',
-                 'channels', 'emojis', 'roles', 'members', 'bans',
-                 'integrations')
+    __slots__ = ('unsynced', 'widget', 'vanity_url', 'welcome_screen', 'channels', 'emojis',
+                 'roles', 'members', 'bans', 'integrations')
 
     name = JsonField('name')
     icon = JsonField('icon')
@@ -57,10 +56,14 @@ class Guild(BaseObject):
     afk_channel_id = JsonField('afk_channel_id', Snowflake)
     afk_timeout = JsonField('afk_timeout')
     verification_level = JsonField('verification_level', VerificationLevel.get_enum)
-    default_message_notifications = JsonField('default_message_notifications',
-                                              MessageNotificationsLevel.get_enum)
-    explicit_content_filter = JsonField('explicit_content_filter',
-                                        ExplicitContentFilterLevel.get_enum)
+    default_message_notifications = JsonField(
+        'default_message_notifications',
+        MessageNotificationsLevel.get_enum
+    )
+    explicit_content_filter = JsonField(
+        'explicit_content_filter',
+        ExplicitContentFilterLevel.get_enum
+    )
     mfa_level = JsonField('mfa_level', MFALevel.get_enum)
     application_id = JsonField('application_id', Snowflake)
     system_channel_id = JsonField('system_channel_id', Snowflake)
@@ -188,7 +191,12 @@ class Guild(BaseObject):
             session=self.state.client.rest,
             fmt=dict(guild_id=self.id))
 
-        return self.state.client.invites.upsert_all(data)
+        invites = []
+
+        for invite in data:
+            invites.append(self.state.client.invites.upsert(invite))
+
+        return invites
 
     async def fetch_templates(self):
         data = await rest.get_guild_templates.request(
@@ -213,49 +221,52 @@ class Guild(BaseObject):
 
         widget_data = {}
 
-        widget_channel_id = data.get('widget_channel_id')
-        if widget_channel_id is not None:
-            widget_data['channel_id'] = widget_channel_id
+        if 'widget_channel_id' in data:
+            widget_data['channel_id'] = data['widget_channel_id']
 
-        widget_enabled = data.get('widget_enabled')
-        if widget_enabled is not None:
-            widget_data['enabled'] = widget_enabled
+        if 'widget_enabled' in data:
+            widget_data['enabled'] = data['widget_enabled']
 
         if widget_data:
             self.widget.update(widget_data)
 
-        vanity_url_code = data.get('vanity_url_code')
-        if vanity_url_code is None:
-            self.vanity_url.update({'code': vanity_url_code})
+        if 'vanity_url_code' in data:
+            self.vanity_url.update({'code': data['vanity_url_code']})
 
-        channels = data.get('channels')
-        if channels is not None:
-            for channel in channels:
+        if 'channels' in data:
+            for channel in data['channels']:
                 channel['guild_id'] = self.id
-                channel = self.state.client.channels.upsert(channel)
+                self.state.client.channels.upsert(channel)
 
-        emojis = data.get('emojis')
-        if emojis is not None:
-            emojis = self.emojis.upsert_all(emojis)
-            self.emojis.mapping = {e.id: e for e in emojis}
+        if 'emojis' in data:
+            emojis = set()
 
-        roles = data.get('roles')
-        if roles is not None:
-            self.roles.upsert_all(roles)
+            for emoji in data['emojis']:
+                emojis.add(self.emojis.upsert(emoji).id)
 
-        members = data.get('members')
-        if members is not None:
-            self.members.upsert_all(members)
+            for emoji_id in set(self.emojis.keys()) - emojis:
+                del self.emojis.mapping[emoji_id]
 
-        welcome_screen = data.get('welcome_screen')
-        if welcome_screen is not None:
-            self.welcome_screen.update(data)
+        if 'roles' in data:
+            roles = set()
 
-        stage_instances = data.get('stage_instances')
-        if stage_instances is not None:
-            for stage in stage_instances:
+            for role in data['roles']:
+                roles.add(self.roles.upsert(role).id)
+
+            for role_id in set(self.roles.keys()) - roles:
+                del self.emojis.mapping[role_id]
+
+        if 'members' in data:
+            for member in data['members']:
+                self.members.upsert(member)
+
+        if 'stage_instances' in data:
+            for stage in data['stage_instances']:
                 stage['guild_id'] = self.id
                 self.state.client.stages.upsert(stage)
+
+        if 'welcome_screen' in data:
+            self.welcome_screen.update(data['welcome_screen'])
 
 
 class GuildBan(BaseObject):

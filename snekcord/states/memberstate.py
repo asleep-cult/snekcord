@@ -52,7 +52,12 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
-        return self.upsert_all(data)
+        members = []
+
+        for member in data:
+            members.append(self.upsert(member))
+
+        return members
 
     async def search(self, query, limit=None):
         params = {'query': query}
@@ -65,7 +70,12 @@ class GuildMemberState(BaseState):
             fmt=dict(guild_id=self.guild.id),
             params=params)
 
-        return self.upsert_all(data)
+        members = []
+
+        for member in data:
+            members.append(self.upsert(member))
+
+        return members
 
     async def add(self, user, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.add',

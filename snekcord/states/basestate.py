@@ -49,9 +49,6 @@ class BaseState(_StateCommon):
     def upsert(self):
         raise NotImplementedError
 
-    def upsert_all(self, values, *args, **kwargs):
-        return {self.upsert(value, *args, **kwargs) for value in values}
-
     def clear(self):
         self.mapping.clear()
 

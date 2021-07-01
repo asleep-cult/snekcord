@@ -67,10 +67,10 @@ class RestSession(AsyncClient):
         if status_code >= 400:
             status = HTTPStatus(status_code)
 
-            messages = [f'{method} {url} responded with {status} {status.phrase}']
+            messages = [f'[{method} {url} => {status} {status.phrase}]']
 
             if isinstance(data, dict):
-                messages.append(f': {data["message"]} (code: {data["code"]})')
+                messages.append(f' {data["message"]} (code: {data["code"]})')
 
                 if 'errors' in data:
                     for name, msgs in self._format_error(data['errors']):

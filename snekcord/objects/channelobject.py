@@ -151,8 +151,13 @@ class GuildChannel(BaseObject):
 
         permission_overwrites = data.get('permission_overwrites')
         if permission_overwrites is not None:
-            overwrites = self.permissions.upsert_all(permission_overwrites)
-            self.permissions.mapping = {o.id: o for o in overwrites}
+            overwrites = set()
+
+            for overwrite in permission_overwrites:
+                overwrites.add(self.permissions.upsert(overwrite).id)
+
+            for overwrite_id in set(self.permissions.keys()) - overwrites:
+                del self.permissions.mapping[overwrite_id]
 
 
 class FollowedChannel(JsonObject):
@@ -235,7 +240,12 @@ class TextChannel(GuildChannel):
             session=self.state.client.rest,
             fmt=dict(channel_id=self.id))
 
-        return self.messages.upsert_all(data)
+        messages = []
+
+        for message in data:
+            messages.append(self.messages.upsert(message))
+
+        return messages
 
 
 class CategoryChannel(GuildChannel):

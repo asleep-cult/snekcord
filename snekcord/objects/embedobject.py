@@ -4,9 +4,8 @@ from datetime import datetime
 from ..enums import EmbedType
 from ..utils.json import JsonArray, JsonField, JsonObject
 
-__all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage',
-           'EmbedProvider', 'EmbedAuthor', 'EmbedFooter', 'EmbedField',
-           'Embed', 'EmbedBuilder')
+__all__ = ('EmbedThumbnail', 'EmbedVideo', 'EmbedImage', 'EmbedProvider', 'EmbedAuthor',
+           'EmbedFooter', 'EmbedField', 'Embed', 'EmbedBuilder')
 
 
 class EmbedThumbnail(JsonObject):
@@ -176,10 +175,11 @@ class EmbedBuilder:
         embed Embed: The underlying embed object
 
     note:
-        All methods in this class return the builder
+        All methods in this class return the builder except for `send_to`
     """
-    def __init__(self, title=None, type=None, description=None, url=None,
-                 timestamp=None, color=None):
+    def __init__(
+        self, title=None, type=None, description=None, url=None, timestamp=None, color=None
+    ):
         """
         Accepts `title`, `type`, `description`, `url`, `timestamp` and `color`
         keyword arguments, see the corresponding `set_*` methods for more
@@ -214,18 +214,15 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         if title is not None and not isinstance(title, str):
-            raise TypeError(
-                f'title should be a str or None, got'
-                f'{title.__class__.__name__!r}')
+            raise TypeError(f'title should be a str or None, got {title.__class__.__name__!r}')
 
-        self.embed.update({'title': title})
+        self.embed._json_data_['title'] = title
 
         return self
 
     def clear_title(self):
         """Clears the embed's title"""
-        self.embed.title = None
-        return self
+        return self.set_title(None)
 
     def set_type(self, type):
         """Sets the embed's type
@@ -233,13 +230,16 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        embed_type = EmbedType.get_enum(type) if type is not None else None
-        self.embed.update({'type': embed_type})
+        if type is not None:
+            type = EmbedType.get_enum(type)
+
+        self.embed._json_data_['type'] = type
+
         return self
 
     def clear_type(self):
         """Clears embed's type"""
-        self.embed.type = None
+        self.embed._json_fields_.pop('type', None)
         return self
 
     def set_description(self, description):
@@ -250,16 +250,16 @@ class EmbedBuilder:
         """
         if description is not None and not isinstance(description, str):
             raise TypeError(
-                f'description should be a str or None, got '
-                f'{description.__class__.__name__!r}')
+                f'description should be a str or None, got {description.__class__.__name__!r}'
+            )
 
-        self.embed.update({'description': description})
+        self.embed._json_data_['description'] = description
 
         return self
 
     def clear_description(self):
         """Clears the embed's description"""
-        self.embed.description = None
+        self.embed._json_fields_.pop('description', None)
         return self
 
     def set_url(self, url):
@@ -269,17 +269,15 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         if url is not None and not isinstance(url, str):
-            raise TypeError(
-                f'url should be a str or None, got '
-                f'{url.__class__.__name__!r}')
+            raise TypeError(f'url should be a str or None, got {url.__class__.__name__!r}')
 
-        self.embed.update({'url': url})
+        self.embed._json_data_['url'] = url
 
         return self
 
     def clear_url(self):
         """Clears the embed's url"""
-        self.embed.url = None
+        self.embed._json_fields_.pop('url', None)
         return self
 
     def set_timestamp(self, timestamp):
@@ -296,15 +294,16 @@ class EmbedBuilder:
         if timestamp is not None and not isinstance(timestamp, datetime):
             raise TypeError(
                 f'timestamp should be a str, int, float, datetime or None, ',
-                f'got {timestamp.__class__.__name__!r}')
+                f'got {timestamp.__class__.__name__!r}'
+            )
 
-        self.embed.update({'timestamp': timestamp})
+        self.embed._json_data_['timestamp'] = timestamp
 
         return self
 
     def clear_timestamp(self):
         """Clears the embed's timestamp"""
-        self.embed.timestamp = None
+        self.embed._json_fields_.pop('timestamp', None)
         return self
 
     def set_color(self, color):
@@ -314,17 +313,15 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         if color is not None and not isinstance(color, int):
-            raise TypeError(
-                f'color should be an int, got {color.__class__.__name__!r}')
+            raise TypeError(f'color should be an int, got {color.__class__.__name__!r}')
 
-        self.embed.update({'color': color})
+        self.embed._json_data_['color'] = color
 
         return self
 
     def clear_color(self):
         """Clears the embed's color"""
-        self.embed.color = None
-        return self
+        return self.set_color(None)
 
     def set_footer(self, text, icon_url=None, proxy_icon_url=None):
         """Sets the embed's footer
@@ -333,18 +330,17 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         if not isinstance(text, str):
-            raise TypeError(
-                f'text should be a str, got {text.__class__.__name__!r}')
+            raise TypeError(f'text should be a str, got {text.__class__.__name__!r}')
 
         if icon_url is not None and not isinstance(icon_url, str):
             raise TypeError(
-                f'icon_url should be a str or None, got '
-                f'{icon_url.__class__.__name__!r}')
+                f'icon_url should be a str or None, got {icon_url.__class__.__name__!r}'
+            )
 
         if proxy_icon_url is not None and not isinstance(proxy_icon_url, str):
             raise TypeError(
-                f'proxy_icon_url should be a str or None, got '
-                f'{proxy_icon_url.__class__.__name__!r}')
+                f'proxy_icon_url should be a str or None, got {proxy_icon_url.__class__.__name__!r}'
+            )
 
         self.embed.update({
             'footer': {
@@ -358,28 +354,23 @@ class EmbedBuilder:
 
     def clear_footer(self):
         """Clears the embed's footer"""
-        self.embed.footer = None
+        self.embed._json_data_['footer'] = None
         return self
 
     def _attachment(self, url=None, proxy_url=None, height=None, width=None):
         if url is not None and not isinstance(url, str):
-            raise TypeError(
-                f'url should be a str or None, got {url.__class__.__name__!r}')
+            raise TypeError(f'url should be a str or None, got {url.__class__.__name__!r}')
 
         if proxy_url is not None and not isinstance(proxy_url, str):
             raise TypeError(
-                f'proxy_url should be a str or None, got '
-                f'{proxy_url.__class__.__name__!r}')
+                f'proxy_url should be a str or None, got {proxy_url.__class__.__name__!r}'
+            )
 
         if height is not None and not isinstance(height, int):
-            raise TypeError(
-                f'height should be an int or None, got '
-                f'{height.__class__.__name__!r}')
+            raise TypeError(f'height should be an int or None, got {height.__class__.__name__!r}')
 
         if width is not None and not isinstance(width, int):
-            raise TypeError(
-                f'width should be an int or None, got '
-                f'{width.__class__.__name__!r}')
+            raise TypeError(f'width should be an int or None, got {width.__class__.__name__!r}')
 
         return {
             'url': url,
@@ -394,14 +385,13 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.update({
-            'image': self._attachment(url, proxy_url, height, width)
-        })
+        self.embed.update({'image': self._attachment(url, proxy_url, height, width)})
         return self
 
     def clear_image(self):
         """Clears the embed's image"""
-        self.embed.image = None
+        self.embed._json_data_.pop('image', None)
+        return self
 
     def set_thumbnail(self, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's thumbnail
@@ -409,14 +399,12 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.update({
-            'thumbnail': self._attachment(url, proxy_url, height, width)
-        })
+        self.embed.update({'thumbnail': self._attachment(url, proxy_url, height, width)})
         return self
 
     def clear_thumbnail(self):
         """Clears the embed's thumbnail"""
-        self.embed.thumbnail = None
+        self.embed._json_data_.pop('thumbnail', None)
         return self
 
     def set_video(self, url=None, proxy_url=None, height=None, width=None):
@@ -425,14 +413,12 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        self.embed.update({
-            'video': self._attachment(url, proxy_url, height, width)
-        })
+        self.embed.update({'video': self._attachment(url, proxy_url, height, width)})
         return self
 
     def clear_video(self):
         """Clears the embed's video"""
-        self.embed.video = None
+        self.embed._json_data_.pop('video', None)
         return self
 
     def set_provider(self, name=None, url=None):
@@ -442,25 +428,18 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         if name is not None and not isinstance(name, str):
-            raise TypeError(
-                f'name should be a str or None, got {name.__class__.__name__}')
+            raise TypeError(f'name should be a str or None, got {name.__class__.__name__}')
 
         if url is not None and not isinstance(url, str):
-            raise TypeError(
-                f'url should be a str or None, got {url.__class__.__name__}')
+            raise TypeError(f'url should be a str or None, got {url.__class__.__name__}')
 
-        self.embed.update({
-            'provider': {
-                'name': name,
-                'url': url
-            }
-        })
+        self.embed.update({'provider': {'name': name, 'url': url}})
 
         return self
 
     def clear_provider(self):
         """Clears the embed's provider"""
-        self.embed.provider = None
+        self.embed._json_data_['provider'] = None
         return self
 
     def set_author(self, name, icon_url=None, proxy_icon_url=None):
@@ -470,18 +449,17 @@ class EmbedBuilder:
             TypeError: Raised when an invalid argument type is provided
         """
         if not isinstance(name, str):
-            raise TypeError(
-                f'name should be a str, got {name.__class__.__name__!r}')
+            raise TypeError(f'name should be a str, got {name.__class__.__name__!r}')
 
         if icon_url is not None and not isinstance(icon_url, str):
             raise TypeError(
-                f'icon_url should be a str or None, got '
-                f'{icon_url.__class__.__name__!r}')
+                f'icon_url should be a str or None, got {icon_url.__class__.__name__!r}'
+            )
 
         if proxy_icon_url is not None and not isinstance(proxy_icon_url, str):
             raise TypeError(
-                f'proxy_icon_url should be a str or None, got '
-                f'{proxy_icon_url.__class__.__name__!r}')
+                f'proxy_icon_url should be a str or None, got {proxy_icon_url.__class__.__name__!r}'
+            )
 
         self.embed.update({
             'author': {
@@ -495,28 +473,20 @@ class EmbedBuilder:
 
     def clear_author(self):
         """Clears the embed's author"""
-        self.embed.author = None
+        self.embed._json_data_.pop('author', None)
         return self
 
     def _field(self, name, value, inline=None):
         if not isinstance(name, str):
-            raise TypeError(
-                f'name should be a str, got {name.__class__.__name__!r}')
+            raise TypeError(f'name should be a str, got {name.__class__.__name__!r}')
 
         if not isinstance(value, str):
-            raise TypeError(
-                f'value should be a str, got {value.__class__.__name__!r}')
+            raise TypeError(f'value should be a str, got {value.__class__.__name__!r}')
 
         if inline is not None and not isinstance(inline, bool):
-            raise TypeError(
-                f'inline should be a bool or None, got '
-                f'{inline.__class__.__name__!r}')
+            raise TypeError(f'inline should be a bool or None, got {inline.__class__.__name__!r}')
 
-        return EmbedField.unmarshal({
-            'name': name,
-            'value': value,
-            'inline': inline
-        })
+        return EmbedField.unmarshal({'name': name, 'value': value, 'inline': inline})
 
     def add_field(self, name, value, inline=None):
         """Adds a field to the embed
@@ -553,6 +523,7 @@ class EmbedBuilder:
         """
         for field in fields:
             self.add_field(*field)
+
         return self
 
     def clear_fields(self):
@@ -560,9 +531,9 @@ class EmbedBuilder:
         self.embed.fields.clear()
         return self
 
-    async def send_to(self, channel, **kwargs):
+    def send_to(self, channel, **kwargs):
         """Sends the embed to `channel` with `**kwargs`, equivalent to
         `await channel.messages.create(embed=self.embed)`
         """
         kwargs['embed'] = self.embed
-        return await channel.messages.create(**kwargs)
+        return channel.messages.create(**kwargs)

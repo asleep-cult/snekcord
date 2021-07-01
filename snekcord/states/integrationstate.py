@@ -27,4 +27,9 @@ class IntegrationState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_all(data)
+        integrations = []
+
+        for integration in data:
+            integrations.append(self.upsert(integration))
+
+        return integrations

@@ -75,7 +75,12 @@ class GuildChannelState(BaseSubState):
             session=self.superstate.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.superstate.upsert_all(data)
+        channels = []
+
+        for channel in data:
+            channels.append(self.superstate.upsert(channel))
+
+        return channels
 
     async def create(self, **kwargs):
         required_keys = ('name',)

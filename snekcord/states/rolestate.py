@@ -32,7 +32,12 @@ class RoleState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_all(data)
+        roles = []
+
+        for role in data:
+            roles.append(self.upsert(role).id)
+
+        return roles
 
     async def create(self, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.create',

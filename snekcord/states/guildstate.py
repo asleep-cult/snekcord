@@ -61,7 +61,12 @@ class GuildState(BaseState):
             session=self.client.rest,
             params=params)
 
-        return self.upsert_all(data)
+        guilds = []
+
+        for guild in data:
+            guilds.append(self.upsert(guild))
+
+        return guilds
 
     async def fetch_preview(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
@@ -120,7 +125,12 @@ class GuildBanState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        return self.upsert_all(data)
+        bans = []
+
+        for ban in data:
+            bans.append(self.upsert(ban))
+
+        return bans
 
     async def add(self, user, **kwargs):
         _validate_keys(f'{self.__class__.__name__}.add',

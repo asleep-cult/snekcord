@@ -13,8 +13,8 @@ class WebSocketClient(Client):
         self.shards = {}
         self.shard_id = kwargs.pop('shard_id', 0)
         self.shard_count = kwargs.pop('shard_count', 1)
-        self.intents = kwargs.pop('intents')
-        self.timeouts = kwargs.pop('timeouts')
+        self.intents = kwargs.pop('intents', None)
+        self.timeouts = kwargs.pop('timeouts', None)
 
         super().__init__(*args, **kwargs)
 
