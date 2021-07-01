@@ -9,39 +9,37 @@ __all__ = ('WebSocketClient',)
 class WebSocketClient(Client):
     _events_ = WS_EVENTS
 
-    def __init__(self, *args, user=True, intents=None, timeouts=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.is_user = user
-        self.intents = intents
-        self.timeouts = timeouts
+    def __init__(self, *args, **kwargs):
         self.shards = {}
+        self.shard_id = kwargs.pop('shard_id', 0)
+        self.shard_count = kwargs.pop('shard_count', 1)
+        self.intents = kwargs.pop('intents')
+        self.timeouts = kwargs.pop('timeouts')
+
+        super().__init__(*args, **kwargs)
 
     @property
     def user(self):
         if self.shards:
-            return next(iter(self.shards.values())).user
+            return self.shards[self.shard_id].user
         return None
 
-    async def fetch_gateway(self):
-        data = await rest.get_gateway.request(session=self.rest)
-        return data
+    def fetch_gateway(self):
+        return rest.get_gateway.request(session=self.rest)
 
-    async def fetch_gateway_bot(self):
-        data = await rest.get_gateway_bot.request(session=self.rest)
-        return data
+    def fetch_gateway_bot(self):
+        return rest.get_gateway_bot.request(session=self.rest)
 
     async def connect(self, *args, **kwargs):
-        if self.is_user or True:
-            shard_id = 0
-            self.shard_count = 1
+        gateway = await self.fetch_gateway_bot()
+        gateway_url = gateway['url'] + '?v=9'
 
-            gateway = await self.fetch_gateway()
-            gateway_url = gateway['url'] + '?v=9'
-
+        for shard_id in range(self.shard_count):
             shard = Shard(client=self, shard_id=shard_id)
-            await shard.connect(gateway_url, *args, **kwargs)
+            self.shards[shard_id] = shard
 
-            self.shards[shard.id] = shard
+        for shard in self.shards.values():
+            await shard.connect(gateway_url, *args, **kwargs)
 
     def run_forever(self, *args, **kwargs):
         self.loop.create_task(self.connect(*args, **kwargs))

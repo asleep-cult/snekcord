@@ -74,10 +74,8 @@ class RestSession(AsyncClient):
 
                 if 'errors' in data:
                     for name, msgs in self._format_error(data['errors']):
-                        messages.append(f'\n{name}: {msgs.pop(0)}')
-
                         for msg in msgs:
-                            messages.append((',\n' + ' ' * len(name)) + msg)
+                            messages.append(f'\n{name}: {msg}')
 
             message = ''.join(messages)
 

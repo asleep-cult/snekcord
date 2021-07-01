@@ -245,8 +245,7 @@ class GuildMemberRemoveEvent(BaseEvent):
             if member is not None:
                 member._delete()
 
-        return cls(shard=shard, payload=payload, user=user, guild=guild,
-                   member=member)
+        return cls(shard=shard, payload=payload, user=user, guild=guild, member=member)
 
 
 @register('GUILD_ROLE_CREATE')
@@ -347,8 +346,7 @@ class MessageCreateEvent(BaseEvent):
         if channel is not None:
             message = channel.messages.upsert(payload)
 
-        return cls(shard=shard, payload=payload, channel=channel,
-                   message=message)
+        return cls(shard=shard, payload=payload, channel=channel, message=message)
 
 
 @register('MESSAGE_UPDATE')
@@ -363,8 +361,7 @@ class MessageUpdateEvent(BaseEvent):
         if channel is not None:
             message = channel.messages.upsert(payload)
 
-        return cls(shard=shard, payload=payload, channel=channel,
-                   message=message)
+        return cls(shard=shard, payload=payload, channel=channel, message=message)
 
 
 @register('MESSAGE_DELETE')
@@ -400,8 +397,7 @@ class MessageDeleteBulkEvent(BaseEvent):
                 if message is not None:
                     messages.append(message)
 
-        return cls(shard=shard, payload=payload, channel=channel,
-                   messages=messages)
+        return cls(shard=shard, payload=payload, channel=channel, messages=messages)
 
 
 @register('MESSAGE_REACTION_ADD')

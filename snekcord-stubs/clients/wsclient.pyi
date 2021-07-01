@@ -10,15 +10,14 @@ __all__ = ('WebSocketClient',)
 
 
 class WebSocketClient(Client):
-    is_user: bool
+    shards: dict[int, Shard]
+    shard_id: int
+    shard_count: int
     intents: WebSocketIntents | None
     timeouts: dict[str, float] | None
     shards: dict[int, Shard]
 
-    def __init__(self, *args: t.Any, user: bool = ...,
-                 intents: WebSocketIntents | None = ...,
-                 timeouts: dict[str, float] | None = ...,
-                 **kwargs: t.Any) -> None: ...
+    def __init__(self, *args: t.Any, **kwargs: t.Any) -> None: ...
 
     @property
     def user(self) -> User | None: ...

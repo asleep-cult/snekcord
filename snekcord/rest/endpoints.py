@@ -6,12 +6,10 @@ class HTTPEndpoint:
         self.params = params
         self.json = json
 
-    async def request(self, *, session, **kwargs):
+    def request(self, *, session, **kwargs):
         headers = kwargs.setdefault('headers', {})
         headers.update(session.global_headers)
-
-        data = await session.request(self.method, self.url, **kwargs)
-        return data
+        return session.request(self.method, self.url, **kwargs)
 
 
 BASE_API_URL = 'https://discord.com/api/v9/'
