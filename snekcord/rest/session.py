@@ -33,7 +33,8 @@ class RestSession(AsyncClient):
             for error in data['_errors']:
                 messages.append(f'{error["message"]} (code: {error["code"]})')
 
-            name = keys.pop(0)
+            keys = iter(keys)
+            name = next(keys)
             for key in keys:
                 if key.isnumeric():
                     name += f'[{key}]'
@@ -43,13 +44,10 @@ class RestSession(AsyncClient):
             yield name, messages
         else:
             if keys is None:
-                keys = []
+                keys = ()
 
             for key, value in data.items():
-                new_keys = keys.copy()
-                new_keys.append(key)
-
-                yield from self._format_error(value, new_keys)
+                yield from self._format_error(value, keys + (key,))
 
     async def request(self, method, url, fmt=None, **kwargs):
         if fmt is not None:
