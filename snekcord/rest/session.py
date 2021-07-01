@@ -27,6 +27,30 @@ class RestSession(AsyncClient):
         kwargs['timeout'] = None
         super().__init__(*args, **kwargs)
 
+    def _format_error(self, data, keys=None):
+        if '_errors' in data:
+            messages = []
+            for error in data['_errors']:
+                messages.append(f'{error["message"]} (code: {error["code"]})')
+
+            name = keys.pop(0)
+            for key in keys:
+                if key.isnumeric():
+                    name += f'[{key}]'
+                else:
+                    name += f'.{key}'
+
+            yield name, messages
+        else:
+            if keys is None:
+                keys = []
+
+            for key, value in data.items():
+                new_keys = keys.copy()
+                new_keys.append(key)
+
+                yield from self._format_error(value, new_keys)
+
     async def request(self, method, url, fmt=None, **kwargs):
         if fmt is not None:
             url = url % fmt
@@ -44,8 +68,21 @@ class RestSession(AsyncClient):
         status_code = response.status_code
         if status_code >= 400:
             status = HTTPStatus(status_code)
-            raise HTTPError(
-                f'{method} {url} responded with {status} {status.phrase}: '
-                f'{data}', response)
+
+            messages = [f'{method} {url} responded with {status} {status.phrase}']
+
+            if isinstance(data, dict):
+                messages.append(f': {data["message"]} (code: {data["code"]})')
+
+                if 'errors' in data:
+                    for name, msgs in self._format_error(data['errors']):
+                        messages.append(f'\n{name}: {msgs.pop(0)}')
+
+                        for msg in msgs:
+                            messages.append((',\n' + ' ' * len(name)) + msg)
+
+            message = ''.join(messages)
+
+            raise HTTPError(message, response)
 
         return data
