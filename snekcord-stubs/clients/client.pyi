@@ -36,7 +36,7 @@ class _EventWaiter:
     def __anext__(self) -> t.Any: ...
 
 
-class ClientClasses:
+class _ClientClasses:
     GuildChannel: type[objects.GuildChannel]
     FollowedChannel: type[objects.FollowedChannel]
     TextChannel: type[objects.TextChannel]
@@ -77,8 +77,10 @@ class ClientClasses:
     StageInstanceState: type[states.StageInstanceState]
     UserState: type[states.UserState]
 
-    @classmethod
-    def set_class(cls, name: str, klass: type) -> None: ...
+    def set_class(self, name: str, klass: type) -> None: ...
+
+
+ClientClasses: _ClientClasses
 
 
 class Client:
