@@ -46,7 +46,7 @@ class BaseState(_StateCommon):
     def items(self):
         return self.mapping.items()
 
-    def upsert(self):
+    def upsert(self, *args, **kwargs):
         raise NotImplementedError
 
     def clear(self):

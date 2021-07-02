@@ -1,0 +1,2 @@
+class PartialObjectError(Exception):
+    pass

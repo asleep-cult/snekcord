@@ -1,7 +1,9 @@
 import json
 from datetime import datetime
 
-__all__ = ('JsonField', 'JsonArray', 'JsonObject', 'Snowflake', 'undefined')
+from .exceptions import PartialObjectError
+
+__all__ = ('undefined', 'JsonField', 'JsonArray', 'JsonObject', 'Snowflake')
 
 
 def _validate_keys(name, source, required, keys):
@@ -12,6 +14,17 @@ def _validate_keys(name, source, required, keys):
     for key in source:
         if key not in keys:
             raise ValueError(f'{name} received an unexpected key {key!r}')
+
+
+class Undefined:
+    def __bool__(self):
+        return False
+
+    def __repr__(self):
+        return '<undefined>'
+
+
+undefined = Undefined()
 
 
 class JsonObject:
@@ -42,7 +55,7 @@ class JsonObject:
 
 
 class JsonField:
-    def __init__(self, key, unmarshaler=None, object=None, default=None):
+    def __init__(self, key, unmarshaler=None, object=None, default=undefined):
         self.key = key
         self.object = object
         self.default = default
@@ -66,9 +79,15 @@ class JsonField:
         try:
             value = instance._json_data_[self.key]
         except KeyError:
+            if self.default is undefined:
+                raise PartialObjectError(
+                    f'{instance.__class__.__name__} object is missing field {self.name!r}'
+                )
+
             if callable(self.default):
-                return self.default()
-            return self.default
+                value = self.default()
+            else:
+                value = self.default
 
         if self._unmarshaler is not None:
             value = self._unmsrshal_(value)
@@ -167,14 +186,3 @@ class Snowflake(int):
 
     def as_datetime(self):
         return datetime.fromtimestamp(self.timestamp)
-
-
-class Undefined:
-    def __bool__(self):
-        return False
-
-    def __repr__(self):
-        return '<undefined>'
-
-
-undefined = Undefined()
