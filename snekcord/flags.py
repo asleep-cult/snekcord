@@ -57,6 +57,15 @@ class Bitset:
         self.value = value
         return self
 
+    @classmethod
+    def get_value(cls, bitset):
+        if isinstance(bitset, int):
+            return bitset
+        elif isinstance(bitset, Bitset):
+            raise bitset.value
+        else:
+            raise TypeError(f'{bitset!r} is not a valid {cls.__name__}')
+
     def to_dict(self):
         return dict(zip(self._flags_, self))
 

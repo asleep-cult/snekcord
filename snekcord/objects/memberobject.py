@@ -4,7 +4,6 @@ from .baseobject import BaseObject
 from .. import rest
 from ..clients.client import ClientClasses
 from ..flags import Permissions
-from ..utils import _validate_keys
 from ..utils import JsonField, Snowflake
 
 __all__ = ('GuildMember',)
@@ -13,7 +12,7 @@ __all__ = ('GuildMember',)
 class GuildMember(BaseObject):
     __slots__ = ('roles', 'user')
 
-    nick = JsonField('nick'),
+    nick = JsonField('nick')
     joined_at = JsonField('joined_at', datetime.fromisoformat)
     premium_since = JsonField('premium_since', datetime.fromisoformat)
     deaf = JsonField('deaf')
@@ -69,8 +68,7 @@ class GuildMember(BaseObject):
 
     async def modify(self, **kwargs):
         try:
-            kwargs['channel_id'] = Snowflake.try_snowflake(
-                kwargs.pop('voice_channel'))
+            kwargs['channel_id'] = Snowflake.try_snowflake(kwargs.pop('voice_channel'))
         except KeyError:
             pass
 
@@ -79,9 +77,6 @@ class GuildMember(BaseObject):
             kwargs['roles'] = tuple(roles)
         except KeyError:
             pass
-
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_guild_member.json)
 
         data = await rest.modify_guild_member.request(
             session=self.state.client.rest,

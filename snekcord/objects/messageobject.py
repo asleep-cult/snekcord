@@ -55,15 +55,14 @@ class Message(BaseObject):
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.channel.id, message_id=self.id))
+            self.state.client.rest,
+            dict(channel_id=self.channel.id, message_id=self.id)
+        )
 
         return self.state.upsert(data)
 
-    async def delete(self) -> None:
-        await rest.delete_message.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.channel.id, message_id=self.id))
+    def delete(self):
+        return self.state.delete(self.id)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)

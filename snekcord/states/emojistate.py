@@ -41,9 +41,4 @@ class GuildEmojiState(BaseState):
             session=self.client.rest,
             fmt=dict(guild_id=self.guild.id))
 
-        emojis = []
-
-        for emoji in data:
-            emojis.append(self.upsert(emoji))
-
-        return emojis
+        return [self.upsert(emoji) for emoji in data]

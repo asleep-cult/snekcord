@@ -38,6 +38,10 @@ class BaseEvent:
     async def execute(cls, client, shard, payload):
         raise NotImplementedError
 
+    @property
+    def partial(self):
+        return False
+
 
 @register('CHANNEL_CREATE')
 class ChannelCreateEvent(BaseEvent):
@@ -82,6 +86,10 @@ class ChannelPinsUpdateEvent(BaseEvent):
             channel.last_pin_timestamp = payload['last_pin_timestamp']
 
         return cls(shard=shard, payload=payload, channel=channel)
+
+    @property
+    def partial(self):
+        return self.channel is None
 
 
 @register('GUILD_RECEIVE')
@@ -163,6 +171,10 @@ class GuildBanAddEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, guild=guild, ban=ban)
 
+    @property
+    def partial(self):
+        return self.guild is None
+
 
 @register('GUILD_BAN_REMOVE')
 class GuildBanRemoveEvent(BaseEvent):
@@ -178,6 +190,10 @@ class GuildBanRemoveEvent(BaseEvent):
             ban._delete()
 
         return cls(shard=shard, payload=payload, guild=guild, ban=ban)
+
+    @property
+    def partial(self):
+        return self.guild is None
 
 
 @register('GUILD_EMOJIS_UPDATE')
@@ -199,6 +215,10 @@ class GuildEmojisUpdateEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, guild=guild)
 
+    @property
+    def partial(self):
+        return self.guild is None
+
 
 @register('GUILD_INTEGRATIONS_UPDATE')
 class GuildIntegrationsUpdateEvent(BaseEvent):
@@ -219,6 +239,10 @@ class GuildMemberAddEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, guild=guild, member=member)
 
+    @property
+    def partial(self):
+        return self.guild is None
+
 
 @register('GUILD_MEMBER_UPDATE')
 class GuildMemberUpdateEvent(BaseEvent):
@@ -233,6 +257,10 @@ class GuildMemberUpdateEvent(BaseEvent):
             member = guild.members.upsert(payload)
 
         return cls(shard=shard, payload=payload, guild=guild, member=member)
+
+    @property
+    def partial(self):
+        return self.guild is None
 
 
 @register('GUILD_MEMBER_REMOVE')
@@ -252,6 +280,10 @@ class GuildMemberRemoveEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, user=user, guild=guild, member=member)
 
+    @property
+    def partial(self):
+        return self.guild is None or self.member is None
+
 
 @register('GUILD_ROLE_CREATE')
 class GuildRoleCreateEvent(BaseEvent):
@@ -267,6 +299,10 @@ class GuildRoleCreateEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
 
+    @property
+    def partial(self):
+        return self.guild is None
+
 
 @register('GUILD_ROLE_UPDATE')
 class GuildRoleUpdateEvent(BaseEvent):
@@ -281,6 +317,10 @@ class GuildRoleUpdateEvent(BaseEvent):
             role = guild.roles.upsert(payload['role'])
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
+
+    @property
+    def pertial(self):
+        return self.guild is None
 
 
 @register('GUILD_ROLE_DELETE')
@@ -298,6 +338,10 @@ class GuildRoleDeleteEvent(BaseEvent):
                 role._delete()
 
         return cls(shard=shard, payload=payload, guild=guild, role=role)
+
+    @property
+    def partial(self):
+        return self.guild is None or self.role is None
 
 
 @register('INTEGRATION_CREATE')
@@ -338,6 +382,10 @@ class InviteDeleteEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, invite=invite)
 
+    @property
+    def partial(self):
+        return self.invite is None
+
 
 @register('MESSAGE_CREATE')
 class MessageCreateEvent(BaseEvent):
@@ -350,8 +398,13 @@ class MessageCreateEvent(BaseEvent):
 
         if channel is not None:
             message = channel.messages.upsert(payload)
+            channel._json_data_['last_message_id'] = message.id
 
         return cls(shard=shard, payload=payload, channel=channel, message=message)
+
+    @property
+    def partial(self):
+        return self.channel is None
 
 
 @register('MESSAGE_UPDATE')
@@ -368,6 +421,10 @@ class MessageUpdateEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, channel=channel, message=message)
 
+    @property
+    def partial(self):
+        return self.channel is None
+
 
 @register('MESSAGE_DELETE')
 class MessageDeleteEvent(BaseEvent):
@@ -383,8 +440,11 @@ class MessageDeleteEvent(BaseEvent):
             if message is not None:
                 message._delete()
 
-        return cls(shard=shard, payload=payload, channel=channel,
-                   message=message)
+        return cls(shard=shard, payload=payload, channel=channel, message=message)
+
+    @property
+    def partial(self):
+        return self.channel is None or self.message is None
 
 
 @register('MESSAGE_DELETE_BULK')
@@ -403,6 +463,10 @@ class MessageDeleteBulkEvent(BaseEvent):
                     messages.append(message)
 
         return cls(shard=shard, payload=payload, channel=channel, messages=messages)
+
+    @property
+    def partial(self):
+        return self.channel is None
 
 
 @register('MESSAGE_REACTION_ADD')
@@ -423,6 +487,10 @@ class MessageReactionAddEvent(BaseEvent):
 
         return cls(shard=shard, payload=payload, channel=channel,
                    message=message, reactions=reactions, user=user)
+
+    @property
+    def partial(self):
+        return self.channel is None or self.message is None or self.user is None
 
 
 @register('STAGE_INSTANCE_CREATE')

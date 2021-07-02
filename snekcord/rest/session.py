@@ -27,7 +27,7 @@ class RestSession(AsyncClient):
         kwargs['timeout'] = None
         super().__init__(*args, **kwargs)
 
-    def _format_error(self, data, keys=None):
+    def _iter_errors(self, data, keys=None):
         if '_errors' in data:
             messages = []
             for error in data['_errors']:
@@ -53,6 +53,9 @@ class RestSession(AsyncClient):
         if fmt is not None:
             url = url % fmt
 
+        headers = kwargs.setdefault('headers', {})
+        headers.update(self.global_headers)
+
         response = await super().request(method, url, **kwargs)
         await response.aclose()
 
@@ -73,7 +76,7 @@ class RestSession(AsyncClient):
                 messages.append(f' {data["message"]} (code: {data["code"]})')
 
                 if 'errors' in data:
-                    for name, msgs in self._format_error(data['errors']):
+                    for name, msgs in self._iter_errors(data['errors']):
                         for msg in msgs:
                             messages.append(f'\n{name}: {msg}')
 

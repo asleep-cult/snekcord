@@ -95,7 +95,8 @@ class Guild(BaseObject):
 
         self.bans = ClientClasses.GuildBanState(client=self.state.client, guild=self)
         self.channels = ClientClasses.GuildChannelState(
-            superstate=self.state.client.channels, guild=self)
+            superstate=self.state.client.channels, guild=self
+        )
         self.emojis = ClientClasses.GuildEmojiState(client=self.state.client, guild=self)
         self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
         self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)

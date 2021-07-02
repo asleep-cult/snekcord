@@ -73,7 +73,7 @@ class WebSocketEvents(t.TypedDict):
 WS_EVENTS: WebSocketEvents
 
 
-class BaseEvent:
+class BaseEvent():
     _event_name_: t.ClassVar[str]
     _fields_: t.ClassVar[tuple[str, ...]]
 
@@ -83,8 +83,10 @@ class BaseEvent:
     def __init__(self, **kwargs: t.Any) -> None: ...
 
     @classmethod
-    def execute(cls: type[T], client: WebSocketClient, shard: Shard,
-                data: Json) -> T: ...
+    def execute(cls: type[T], client: WebSocketClient, shard: Shard, data: Json) -> T: ...
+
+    @property
+    def partial(self) -> bool: ...
 
 
 class ChannelCreateEvent(BaseEvent):

@@ -1,30 +1,21 @@
-from datetime import datetime
-
 from ..utils import JsonField, JsonObject, Snowflake
 
 __all__ = ('BaseObject',)
 
 
 class BaseObject(JsonObject):
-    """The base class for all cachable Discord entities
+    """The base class for all Discord entities.
 
-    Attributes:
-        state BaseState: The state that the object belongs to
+    state BaseState: The state that the object belongs to.
 
-        id Optional[Snowflake|str]: The object's unique identifier
-            provided by Discord's API, the will be the object's `code`
-            for `GuildTemplate` and `Invite` objects
+    id Optional[Snowflake | str]: The object's unique identifier used
+        for caching and interacting with Discord's API.
 
-        cached bool: Whether or not the object is stored in its state's cache
+    cached bool: True if the object is currently stored in its state's
+        cache otherwise False.
 
-        deleted bool: Whether or not the object is deleted
-
-        deleted_at Optional[datetime]: The time at which the object was
-            marked as deleted
-
-    warning:
-        The `deleted` and `deleted_at` attributes will only be accurate
-        for objects maintained by a Discord WebSocket connection
+    deleted bool: True if a delete event has been fired for the object
+        otherwise False.
     """
     __slots__ = ('state', 'cached', 'deleted', 'deleted_at', '__weakref__')
 
@@ -34,11 +25,8 @@ class BaseObject(JsonObject):
         self.state = state
         self.cached = False
         self.deleted = False
-        self.deleted_at = None
 
     def __hash__(self):
-        if self.id is None:
-            raise ValueError(f'{self.__class__.__name__} is missing a valid id')
         return hash(self.id)
 
     def __repr__(self):
@@ -47,19 +35,18 @@ class BaseObject(JsonObject):
 
     def _delete(self):
         self.deleted = True
-        self.deleted_at = datetime.now()
         self.uncache()
 
     def cache(self):
-        """Stores the object in the state's cache"""
-        self.cached = True
+        """Stores the object in the states cache"""
         self.state.mapping[self.id] = self
+        self.cached = True
 
     def uncache(self):
-        """Removes the object from the state's cache"""
-        self.cached = False
+        """Removed the object from the states cache"""
         del self.state.mapping[self.id]
+        self.cached = False
 
-    async def fetch(self):
+    def fetch(self):
         """Equivalent to `self.state.fetch(self.id)`"""
-        return await self.state.fetch(self.id)
+        return self.state.fetch(self.id)

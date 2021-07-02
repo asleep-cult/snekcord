@@ -128,7 +128,7 @@ class Snowflake(int):
                    | increment)
 
     @classmethod
-    def try_snowflake(cls, obj):
+    def try_snowflake(cls, obj, *, allow_datetime=False):
         from .objects.baseobject import BaseObject
 
         if isinstance(obj, BaseObject):
@@ -136,6 +136,9 @@ class Snowflake(int):
                 return obj.id
             else:
                 raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
+        elif allow_datetime:
+            if isinstance(obj, datetime):
+                return cls.build(obj.timestamp())
 
         try:
             return cls(obj)
@@ -143,8 +146,8 @@ class Snowflake(int):
             raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
     @classmethod
-    def try_snowflake_set(cls, objs):
-        return {cls.try_snowflake(obj) for obj in objs}
+    def try_snowflake_set(cls, objs, *, allow_datetime=False):
+        return {cls.try_snowflake(obj, allow_datetime=allow_datetime) for obj in objs}
 
     @property
     def timestamp(self):

@@ -153,13 +153,11 @@ class Client:
     def add_handled_signal(cls, signo):
         cls._handled_signals_.append(signo)
 
-    @property
-    def members(self):
+    def itermembers(self):
         for guild in self.guilds:
             yield from guild.members
 
-    @property
-    def emojis(self):
+    def iteremojis(self):
         for guild in self.guilds:
             yield from guild.emojis
 

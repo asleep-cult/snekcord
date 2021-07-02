@@ -321,7 +321,8 @@ class EmbedBuilder:
 
     def clear_color(self):
         """Clears the embed's color"""
-        return self.set_color(None)
+        self.embed._json_data_.pop('color', None)
+        return self
 
     def set_footer(self, text, icon_url=None, proxy_icon_url=None):
         """Sets the embed's footer
