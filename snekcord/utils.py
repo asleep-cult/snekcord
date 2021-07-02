@@ -105,10 +105,6 @@ class JsonField:
             return self._unmarshaler(value)
         return value
 
-    def unmarshaler(self, func):
-        self._unmarshaler = func
-        return self
-
 
 class JsonArray(JsonField):
     def __init__(self, *args, **kwargs):
