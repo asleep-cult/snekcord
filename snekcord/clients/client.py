@@ -44,6 +44,7 @@ class _ClientClasses:
         'InviteState',
         'GuildMemberState',
         'MessageState',
+        'ChannelPinsState',
         'PermissionOverwriteState',
         'ReactionsState',
         'GuildMemberRoleState',

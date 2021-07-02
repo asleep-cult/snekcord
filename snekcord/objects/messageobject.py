@@ -43,7 +43,6 @@ class Message(BaseObject):
         super().__init__(state=state)
         self.author = None
         self.member = None
-
         self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
     @property
@@ -98,6 +97,12 @@ class Message(BaseObject):
         )
 
         return self.state.upsert(data)
+
+    def pin(self):
+        return self.channel.pins.add(self.id)
+
+    def unpin(self):
+        return self.channel.pins.remove(self.id)
 
     def delete(self):
         return self.state.delete(self.id)

@@ -28,6 +28,35 @@ class PermissionOverwriteState(BaseState):
 
         return overwrite
 
+    async def create(self, obj, *, allow, deny, type=None):
+        json = {}
+
+        obj_id = Snowflake.try_snowflake(obj)
+
+        if type is not None:
+            json['type'] = PermissionOverwriteType.get_value(type)
+        elif isinstance(obj, ClientClasses.GuildMember):
+            json['type'] = PermissionOverwriteType.MEMBER
+        elif isinstance(obj, ClientClasses.Role):
+            json['type'] = PermissionOverwriteType.ROLE
+
+        json['allow'] = Permissions.get_value(allow)
+        json['deny'] = Permissions.get_value(deny)
+
+        await rest.create_channel_permission_overwrite.request(
+            self.client.rest,
+            {'channel_id': self.channel.id, 'overwrite_id': obj_id},
+            json=json
+        )
+
+    async def delete(self, overwrite):
+        overwrite_id = Snowflake.try_snowflake(overwrite)
+
+        await rest.delete_channel_permission_overwrite.request(
+            self.client.rest,
+            {'channel_id': self.channel.id, 'overwrite_id': overwrite_id}
+        )
+
     def apply_to(self, member):
         if not isinstance(member, ClientClasses.GuildMember):
             guild = self.channel.guild
@@ -67,30 +96,3 @@ class PermissionOverwriteState(BaseState):
             value |= overwrite.allow.value
 
         return Permissions.from_value(value)
-
-    async def create(self, obj, **kwargs):
-        if isinstance(obj, ClientClasses.GuildMember):
-            obj_id = obj.id
-            kwargs['type'] = PermissionOverwriteType.MEMBER
-        if isinstance(obj, ClientClasses.Role):
-            obj_id = obj.id
-            kwargs['type'] = PermissionOverwriteType.ROLE
-        else:
-            obj_id = Snowflake.try_snowflake(obj)
-            kwargs['type'] = PermissionOverwriteType.get_value(
-                kwargs['type'])
-
-        try:
-            kwargs['allow'] = Permissions.get_value(kwargs['allow'])
-        except KeyError:
-            pass
-
-        try:
-            kwargs['deny'] = Permissions.get_value(kwargs['deny'])
-        except KeyError:
-            pass
-
-        await rest.create_channel_permission.request(
-            session=self.client.rest,
-            fmt=dict(channel_id=self.channel.id, overwrite_id=obj_id),
-            json=kwargs)

@@ -82,6 +82,7 @@ class TextChannel(GuildChannel):
 
         self.last_pin_timestamp = None
         self.messages = ClientClasses.MessageState(client=self.state.client, channel=self)
+        self.pins = ClientClasses.ChannelPinsState(superstate=self.messages, channel=self)
 
     def __str__(self):
         return f'#{self.name}'

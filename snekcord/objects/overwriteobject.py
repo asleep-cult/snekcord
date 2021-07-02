@@ -1,8 +1,7 @@
 from .baseobject import BaseObject
-from .. import rest
 from ..enums import PermissionOverwriteType
 from ..flags import Permissions
-from ..utils import JsonField, _validate_keys
+from ..utils import JsonField, undefined
 
 __all__ = ('PermissionOverwrite',)
 
@@ -16,28 +15,27 @@ class PermissionOverwrite(BaseObject):
     def channel(self):
         return self.state.channel
 
-    async def modify(self, **kwargs):
-        kwargs['type'] = PermissionOverwriteType.get_value(self.type)
+    @property
+    def target(self):
+        if self.type == PermissionOverwriteType.MEMBER:
+            return self.channel.guild.get(self.id)
+        elif self.type == PermissionOverwriteType.ROLE:
+            return self.channel.guild.get(self.id)
 
-        try:
-            kwargs['allow'] = Permissions.get_value(kwargs['allow'])
-        except KeyError:
-            pass
+    def modify(self, *, allow=undefined, deny=undefined):
+        if allow is undefined:
+            if allow is not None:
+                allow = Permissions.get_value(allow)
+            else:
+                allow = Permissions.none().value
 
-        try:
-            kwargs['deny'] = Permissions.get_value(kwargs['deny'])
-        except KeyError:
-            pass
+        if deny is undefined:
+            if deny is not None:
+                deny = Permissions.get_value(deny)
+            else:
+                deny = Permissions.none().value
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.create_channel_permission.json)
-
-        await rest.create_channel_permission.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.channel.id, overwrite_id=self.id),
-            json=kwargs)
+        return self.state.create(self.id, allow=allow, deny=deny, type=self.type.value)
 
     async def delete(self):
-        await rest.delete_channel_permission.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.channel.id, overwrite_id=self.id))
+        return self.state.delete(self.id)

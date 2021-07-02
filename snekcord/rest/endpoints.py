@@ -1,4 +1,3 @@
-
 class HTTPEndpoint:
     def __init__(self, method, url):
         self.method = method

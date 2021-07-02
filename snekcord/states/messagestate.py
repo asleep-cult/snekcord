@@ -1,4 +1,4 @@
-from .basestate import BaseState
+from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.embedobject import Embed, EmbedBuilder
@@ -118,3 +118,41 @@ class MessageState(BaseState):
         await rest.bulk_delete_messages.request(
             self.client.rest, {'channel_id': self.channel.id}, json={'message_ids': message_ids}
         )
+
+
+class ChannelPinsState(BaseSubState):
+    def __init__(self, *, superstate, channel):
+        super().__init__(superstate=superstate)
+        self.channel = channel
+
+    async def fetch_all(self):
+        data = await rest.get_pinned_messages.request(
+            self.superstate.client.rest, {'channel_id': self.channel.id}
+        )
+
+        messages = [self.superstate.upsert(message) for message in data]
+
+        for message in messages:
+            self._keys.add(message.id)
+
+        return messages
+
+    async def add(self, message):
+        message_id = Snowflake.try_snowflake(message)
+
+        await rest.add_pinned_message.request(
+            self.superstate.client.rest,
+            {'channel_id': self.channel.id, 'message_id': message_id}
+        )
+
+        self._keys.add(message_id)
+
+    async def remove(self, message):
+        message_id = Snowflake.try_snowflake(message)
+
+        await rest.remove_pinned_message.request(
+            self.superstate.client.rest,
+            {'channel_id': self.channel.id, 'message_id': message_id}
+        )
+
+        self._keys.remove(message_id)
