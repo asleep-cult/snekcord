@@ -7,7 +7,8 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import MessageType
 from ..flags import MessageFlags
-from ..utils import JsonArray, JsonField, Snowflake
+from ..states.messagestate import _embed_to_dict
+from ..utils import JsonArray, JsonField, Snowflake, undefined
 
 __all__ = ('Message',)
 
@@ -59,6 +60,41 @@ class Message(BaseObject):
         data = await rest.crosspost_message.request(
             self.state.client.rest,
             {'channel_id': self.channel.id, 'message_id': self.id}
+        )
+
+        return self.state.upsert(data)
+
+    async def modify(
+        self, *, content=undefined, embed=undefined, embeds=undefined, suppress_embeds=undefined,
+        # file=undefined, allowed_mentions, attachments, components,
+    ):
+        json = {'embeds': []}
+
+        if content is not undefined:
+            if content is not None:
+                json['content'] = str(content)
+            else:
+                json['content'] = None
+
+        if embed is not undefined:
+            if embed is not None:
+                json['embeds'].append(_embed_to_dict(embed))
+            else:
+                json['embeds'] = None
+
+        if embeds is not undefined:
+            if embeds is not None:
+                json['embeds'].extend(map(_embed_to_dict, embed))
+            else:
+                json['embeds'] = None
+
+        if suppress_embeds is not undefined:
+            json['flags'] = MessageFlags(suppress_embeds=suppress_embeds)
+
+        data = await rest.modify_message.request(
+            self.state.client.rest,
+            {'channel_id': self.channel.id, 'message_id': self.id},
+            json=json
         )
 
         return self.state.upsert(data)

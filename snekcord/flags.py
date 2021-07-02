@@ -66,6 +66,9 @@ class Bitset:
         else:
             raise TypeError(f'{bitset!r} is not a valid {cls.__name__}')
 
+    def copy(self):
+        return self.from_value(self.value)
+
     def to_dict(self):
         return dict(zip(self._flags_, self))
 

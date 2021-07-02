@@ -103,3 +103,18 @@ class MessageState(BaseState):
         )
 
         return self.upsert(data)
+
+    async def bulk_delete(self, messages):
+        message_ids = Snowflake.try_snowflake_set(messages)
+
+        if len(message_ids) == 0:
+            raise TypeError('bulk_delete requires at least 1 message')
+        elif len(message_ids) == 1:
+            message_id, = message_ids
+            return await self.delete(message_id)
+        elif len(message_ids) > 100:
+            raise TypeError('bulk_delete can\'t delete more than 100 messages')
+
+        await rest.bulk_delete_messages.request(
+            self.client.rest, {'channel_id': self.channel.id}, json={'message_ids': message_ids}
+        )

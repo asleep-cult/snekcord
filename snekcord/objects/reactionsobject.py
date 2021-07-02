@@ -26,47 +26,63 @@ class Reactions(BaseSubState, BaseObject):
         params = {}
 
         if after is not None:
-            params['after'] = Snowflake.try_snowflake(after)
+            params['after'] = Snowflake.try_snowflake(after, allow_datetime=True)
 
         if limit is not None:
-            params['limit'] = limit
+            params['limit'] = int(limit)
 
         data = await rest.get_reactions.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.state.message.channel_id,
-                     message_id=self.state.message.id,
-                     emoji=self.emoji.to_reaction()))
+            self.state.client.rest,
+            {
+                'channel_id': self.state.message.channel.id,
+                'message_id': self.state.message.id,
+                'emoji': self.emoji.to_reaction()
+            }
+        )
 
-        users = []
+        users = [self.superstate.upsert(user) for user in data]
 
         for user in data:
-            users.append(self.superstate.upsert(user))
-            self._keys.add(Snowflake(user['id']))
+            self._keys.add(user.id)
 
         return users
 
     async def add(self):
         await self.state.add(self.emoji)
 
-    async def remove(self, user=None):
-        if user is not None:
-            user_id = Snowflake.try_snowflake(user)
-        else:
-            user_id = '@me'
+    async def remove(self, user):
+        user_id = Snowflake.try_snowflake(user)
 
-        await rest.delete_reaction.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.state.message.channel_id,
-                     message_id=self.state.message.id,
-                     emoji=self.emoji.to_reaction(),
-                     user_id=user_id))
+        await rest.remove_reaction.request(
+            self.state.client.rest,
+            {
+                'channel_id': self.state.message.channel.id,
+                'message_id': self.state.message.id,
+                'emoji': self.emoji.to_reaction(),
+                'user_id': user_id
+            }
+        )
+
+    async def remove_me(self):
+        await rest.remove_reaction.request(
+            self.state.client.rest,
+            {
+                'channel_id': self.state.message.channel.id,
+                'message_id': self.state.message.id,
+                'emoji': self.emoji.to_reaction(),
+                'user_id': '@me'
+            }
+        )
 
     async def remove_all(self):
-        await rest.delete_reactions.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.state.message.channel_id,
-                     message_id=self.state.message.id,
-                     emoji=self.emoji.to_reaction()))
+        await rest.remove_reactions.request(
+            self.state.client.rest,
+            {
+                'channel_id': self.state.message.channel.id,
+                'message_id': self.state.message.id,
+                'emoji': self.emoji.to_reaction()
+            }
+        )
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
