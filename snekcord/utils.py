@@ -82,7 +82,7 @@ class JsonField:
             if self.default is undefined:
                 raise PartialObjectError(
                     f'{instance.__class__.__name__} object is missing field {self.name!r}'
-                )
+                ) from None
 
             if callable(self.default):
                 value = self.default()

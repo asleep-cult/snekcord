@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
@@ -61,10 +59,7 @@ class MessageState(BaseState):
             params['after'] = Snowflake.try_snowflake(after, allow_datetime=True)
 
         if limit is not undefined:
-            if not isinstance(limit, int):
-                raise TypeError(f'limit should be an int, got {limit.__class__.__name__!r}')
-
-            params['limit'] = limit
+            params['limit'] = int(limit)
 
         data = await rest.get_channel_messages.request(
             self.client.rest, dict(channel_id=self.channel.id), params=params
@@ -79,19 +74,12 @@ class MessageState(BaseState):
         json = {'embeds': []}
 
         if content is not undefined:
-            if not isinstance(content, str):
-                raise TypeError(f'content should be a str, got {content.__class__.__name__!r}')
-
-            json['content'] = content
+            json['content'] = str(content)
 
         if tts is not undefined:
-            if not isinstance(tts, bool):
-                raise TypeError(f'tts should be a bool, got {tts.__class__.__name__!r}')
+            json['tts'] = bool(tts)
 
         if embeds is not undefined:
-            if not isinstance(embeds, Iterable):
-                raise TypeError(f'embeds should be an iterable, got {embed.__class__.__name__!r}')
-
             json['embeds'].extend(map(_embed_to_dict, embeds))
 
         if embed is not undefined:

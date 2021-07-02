@@ -9,16 +9,13 @@ def _modify_helper(name, position, permission):
     json = {}
 
     if name is not None:
-        if not isinstance(name, str):
-            raise TypeError(f'name should be a str or None, got {name.__class__.__name__!r}')
-
-        json['name'] = name
+        json['name'] = str(name)
 
     if position is not undefined:
-        if not isinstance(position, int):
-            raise TypeError(f'position should be an int, got {position.__class__.__name__!r}')
-
-        json['position'] = position
+        if position is not None:
+            json['position'] = int(position)
+        else:
+            json['position'] = None
 
     return json
 
@@ -100,22 +97,22 @@ class TextChannel(GuildChannel):
             json['type'] = ChannelType.get_value(type)
 
         if topic is not undefined:
-            if topic is not None and not isinstance(topic, undefined):
-                raise TypeError(f'topic should be a str or None, got {topic.__class__.__name__!r}')
-
-            json['topic'] = topic
+            if topic is not None:
+                json['topic'] = str(topic)
+            else:
+                json['topic'] = None
 
         if nsfw is not undefined:
-            if nsfw is not None and not isinstance(nsfw, bool):
-                raise TypeError(f'nsfw should be a bool or None, got {nsfw.__class__.__name__!r}')
-
-            json['nsfw'] = nsfw
+            if nsfw is not None:
+                json['nsfw'] = bool(nsfw)
+            else:
+                json['nsfw'] = None
 
         if slowmode is not undefined:
-            if slowmode is not None and not isinstance(slowmode, int):
-                raise TypeError(
-                    f'slowmode should be an int or None, got {slowmode.__class__.__name__!r}'
-                )
+            if slowmode is not None:
+                json['slowmode'] = int(slowmode)
+            else:
+                json['slowmode'] = None
 
         if parent is not undefined:
             if parent is not None:
@@ -124,13 +121,10 @@ class TextChannel(GuildChannel):
                 json['parent_id'] = None
 
         if thread_archive_duration is not undefined:
-            if thread_archive_duration is not None and not isinstance(thread_archive_duration, int):
-                raise TypeError(
-                    f'thread_archive_duration should be an int or None, '
-                    f'got {thread_archive_duration.__class__.__name__!r}'
-                )
-
-            json['thread_archive_duration'] = thread_archive_duration
+            if thread_archive_duration is not None:
+                json['default_auto_archive_duration'] = int(thread_archive_duration)
+            else:
+                json['default_auto_archive_duration'] = None
 
         data = await rest.modify_channel.request(
             self.state.client.rest, dict(channel_id=self.id), json=json
@@ -194,20 +188,16 @@ class VoiceChannel(GuildChannel):
         json = _modify_helper(name, position, permissions)
 
         if bitrate is not undefined:
-            if bitrate is not None and not isinstance(bitrate, int):
-                raise TypeError(
-                    f'bitrate should be an int or None, got {bitrate.__class__.__name__!r}'
-                )
-
-            json['bitrate'] = bitrate
+            if bitrate is not None:
+                json['bitrate'] = int(bitrate)
+            else:
+                json['birtate'] = None
 
         if user_limit is not undefined:
-            if user_limit is not None and not isinstance(user_limit, int):
-                raise TypeError(
-                    f'user_limit should be an int or None, got {user_limit.__class__.__name__!r}'
-                )
-
-            json['user_limit'] = user_limit
+            if user_limit is not None:
+                json['user_limit'] = int(user_limit)
+            else:
+                json['user_limit'] = None
 
         if parent is not undefined:
             if parent is not None:
@@ -216,21 +206,16 @@ class VoiceChannel(GuildChannel):
                 json['parent_id'] = None
 
         if rtc_origin is not undefined:
-            if rtc_origin is not None and not isinstance(rtc_origin, str):
-                raise TypeError(
-                    f'rtc_origin should be a str or None, got {rtc_origin.__class__.__name__!r}'
-                )
-
-            json['rtc_origin'] = rtc_origin
+            if rtc_origin is not None:
+                json['rtc_origin'] = str(rtc_origin)
+            else:
+                json['rtc_origin'] = None
 
         if video_quality_mode is not None:
-            if video_quality_mode is not None and not isinstance(video_quality_mode, int):
-                raise TypeError(
-                    f'video_quality_mode should be an int or None, '
-                    f'got {video_quality_mode.__class__.__name__!r}'
-                )
-
-            json['video_quality_mode'] = video_quality_mode
+            if video_quality_mode is not None:
+                json['video_quality_mode'] = int(video_quality_mode)
+            else:
+                json['video_quality_mode'] = None
 
         data = await rest.modify_channel.request(
             self.state.client.rest, dict(channel_id=self.id), json=json

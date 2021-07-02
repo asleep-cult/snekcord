@@ -208,28 +208,17 @@ class EmbedBuilder:
         return self
 
     def set_title(self, title):
-        """Sets the embed's title
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
-        if title is not None and not isinstance(title, str):
-            raise TypeError(f'title should be a str or None, got {title.__class__.__name__!r}')
-
-        self.embed._json_data_['title'] = title
-
+        """Sets the embed's title"""
+        self.embed._json_data_['title'] = str(title)
         return self
 
     def clear_title(self):
         """Clears the embed's title"""
-        return self.set_title(None)
+        self.embed._json_data_.pop('type', None)
+        return self
 
     def set_type(self, type):
-        """Sets the embed's type
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
+        """Sets the embed's type"""
         if type is not None:
             type = EmbedType.get_enum(type)
 
@@ -243,17 +232,8 @@ class EmbedBuilder:
         return self
 
     def set_description(self, description):
-        """Sets the embed's description
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
-        if description is not None and not isinstance(description, str):
-            raise TypeError(
-                f'description should be a str or None, got {description.__class__.__name__!r}'
-            )
-
-        self.embed._json_data_['description'] = description
+        """Sets the embed's description"""
+        self.embed._json_data_['description'] = str(description)
 
         return self
 
@@ -263,16 +243,8 @@ class EmbedBuilder:
         return self
 
     def set_url(self, url):
-        """Sets the embed's url
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
-        if url is not None and not isinstance(url, str):
-            raise TypeError(f'url should be a str or None, got {url.__class__.__name__!r}')
-
-        self.embed._json_data_['url'] = url
-
+        """Sets the embed's url"""
+        self.embed._json_data_['url'] = str(url)
         return self
 
     def clear_url(self):
@@ -307,16 +279,8 @@ class EmbedBuilder:
         return self
 
     def set_color(self, color):
-        """Sets the embed's color
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
-        if color is not None and not isinstance(color, int):
-            raise TypeError(f'color should be an int, got {color.__class__.__name__!r}')
-
-        self.embed._json_data_['color'] = color
-
+        """Sets the embed's color"""
+        self.embed._json_data_['color'] = int(color)
         return self
 
     def clear_color(self):
@@ -325,31 +289,16 @@ class EmbedBuilder:
         return self
 
     def set_footer(self, text, icon_url=None, proxy_icon_url=None):
-        """Sets the embed's footer
+        """Sets the embed's footer"""
+        json = {'text': str(text)}
 
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
-        if not isinstance(text, str):
-            raise TypeError(f'text should be a str, got {text.__class__.__name__!r}')
+        if icon_url is not None:
+            json['icon_url'] = str(icon_url)
 
-        if icon_url is not None and not isinstance(icon_url, str):
-            raise TypeError(
-                f'icon_url should be a str or None, got {icon_url.__class__.__name__!r}'
-            )
+        if proxy_icon_url is not None:
+            json['proxy_icon_url'] = str(proxy_icon_url)
 
-        if proxy_icon_url is not None and not isinstance(proxy_icon_url, str):
-            raise TypeError(
-                f'proxy_icon_url should be a str or None, got {proxy_icon_url.__class__.__name__!r}'
-            )
-
-        self.embed.update({
-            'footer': {
-                'text': text,
-                'icon_url': icon_url,
-                'proxy_icon_url': proxy_icon_url
-            }
-        })
+        self.embed.update({'footer': json})
 
         return self
 
@@ -359,33 +308,24 @@ class EmbedBuilder:
         return self
 
     def _attachment(self, url=None, proxy_url=None, height=None, width=None):
-        if url is not None and not isinstance(url, str):
-            raise TypeError(f'url should be a str or None, got {url.__class__.__name__!r}')
+        json = {}
 
-        if proxy_url is not None and not isinstance(proxy_url, str):
-            raise TypeError(
-                f'proxy_url should be a str or None, got {proxy_url.__class__.__name__!r}'
-            )
+        if url is not None:
+            json['url'] = str(url)
 
-        if height is not None and not isinstance(height, int):
-            raise TypeError(f'height should be an int or None, got {height.__class__.__name__!r}')
+        if proxy_url is not None:
+            json['proxy_url'] = str(proxy_url)
 
-        if width is not None and not isinstance(width, int):
-            raise TypeError(f'width should be an int or None, got {width.__class__.__name__!r}')
+        if height is not None:
+            json['height'] = int(height)
 
-        return {
-            'url': url,
-            'proxy_url': proxy_url,
-            'height': height,
-            'width': width
-        }
+        if width is not None:
+            json['width'] = int(width)
+
+        return json
 
     def set_image(self, url=None, proxy_url=None, height=None, width=None):
-        """Sets the embed's image
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
+        """Sets the embed's image"""
         self.embed.update({'image': self._attachment(url, proxy_url, height, width)})
         return self
 
@@ -395,11 +335,7 @@ class EmbedBuilder:
         return self
 
     def set_thumbnail(self, url=None, proxy_url=None, height=None, width=None):
-        """Sets the embed's thumbnail
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
+        """Sets the embed's thumbnail"""
         self.embed.update({'thumbnail': self._attachment(url, proxy_url, height, width)})
         return self
 
@@ -409,11 +345,7 @@ class EmbedBuilder:
         return self
 
     def set_video(self, url=None, proxy_url=None, height=None, width=None):
-        """Sets the embed's video
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
+        """Sets the embed's video"""
         self.embed.update({'video': self._attachment(url, proxy_url, height, width)})
         return self
 
@@ -423,18 +355,16 @@ class EmbedBuilder:
         return self
 
     def set_provider(self, name=None, url=None):
-        """Sets the embed's provider
+        """Sets the embed's provider"""
+        json = {}
 
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
-        if name is not None and not isinstance(name, str):
-            raise TypeError(f'name should be a str or None, got {name.__class__.__name__}')
+        if name is not None:
+            json['name'] = str(name)
 
-        if url is not None and not isinstance(url, str):
-            raise TypeError(f'url should be a str or None, got {url.__class__.__name__}')
+        if url is not None:
+            json['url'] = str(url)
 
-        self.embed.update({'provider': {'name': name, 'url': url}})
+        self.embed.update({'provider': json})
 
         return self
 
@@ -449,26 +379,15 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        if not isinstance(name, str):
-            raise TypeError(f'name should be a str, got {name.__class__.__name__!r}')
+        json = {'name': str(name)}
 
-        if icon_url is not None and not isinstance(icon_url, str):
-            raise TypeError(
-                f'icon_url should be a str or None, got {icon_url.__class__.__name__!r}'
-            )
+        if icon_url is not None:
+            json['icon_url'] = str(icon_url)
 
-        if proxy_icon_url is not None and not isinstance(proxy_icon_url, str):
-            raise TypeError(
-                f'proxy_icon_url should be a str or None, got {proxy_icon_url.__class__.__name__!r}'
-            )
+        if proxy_icon_url is not None:
+            json['proxy_icon_url'] = proxy_icon_url
 
-        self.embed.update({
-            'author': {
-                'name': name,
-                'icon_url': icon_url,
-                'proxy_icon_url': proxy_icon_url
-            }
-        })
+        self.embed.update({'author': json})
 
         return self
 
@@ -478,32 +397,20 @@ class EmbedBuilder:
         return self
 
     def _field(self, name, value, inline=None):
-        if not isinstance(name, str):
-            raise TypeError(f'name should be a str, got {name.__class__.__name__!r}')
+        json = {'name': str(name), 'valiue': str(value)}
 
-        if not isinstance(value, str):
-            raise TypeError(f'value should be a str, got {value.__class__.__name__!r}')
-
-        if inline is not None and not isinstance(inline, bool):
-            raise TypeError(f'inline should be a bool or None, got {inline.__class__.__name__!r}')
+        if inline is not None:
+            json['inline'] = bool(inline)
 
         return EmbedField.unmarshal({'name': name, 'value': value, 'inline': inline})
 
     def add_field(self, name, value, inline=None):
-        """Adds a field to the embed
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
+        """Adds a field to the embed"""
         self.embed.fields.append(self._field(name, value, inline))
         return self
 
     def insert_field(self, index, name, value, inline=None):
-        """Inserts a field into the embed at `index`
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
-        """
+        """Inserts a field into the embed at `index`"""
         self.embed.fields.insert(index, self._field(name, value, inline))
         return self
 
@@ -518,9 +425,6 @@ class EmbedBuilder:
                 ('Goodbye', 'World', False),
             )
             ```
-
-        Raises:
-            TypeError: Raised when an invalid argument type is provided
         """
         for field in fields:
             self.add_field(*field)
