@@ -138,21 +138,24 @@ def _get_builtin_emoji(surrogates):
 
 
 def _resolve_emoji(state, emoji):
+    if isinstance(emoji, BaseEmoji):
+        return emoji
+
     if isinstance(emoji, int):
         return state.get(emoji)
 
     if isinstance(emoji, str):
         match = CUSTOM_EMOJI_RE.match(emoji)
         if match is not None:
-            groups = match.groupdict()
+            emoj_id = Snowflake(match.group('id'))
 
-            emoji = state.get(Snowflake(groups['id']))
+            emoji = state.get(emoj_id)
             if emoji is not None:
                 return emoji
 
             return PartialGuildEmoji(
-                client=state.client, id=Snowflake(groups['id']), name=groups['name'],
-                animated=bool(groups['animated'])
+                client=state.client, id=emoj_id, name=match.group('name'),
+                animated=bool(match.group('animated'))
             )
 
         builtin_emoji = BUILTIN_EMOJIS_BY_NAME.get(emoji)
