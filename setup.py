@@ -11,8 +11,7 @@ setuptools.setup(
         'snekcord.objects',
         'snekcord.rest',
         'snekcord.states',
-        'snekcord.utils',
-        'snekcord.ws'
+        'snekcord.ws',
     ],
     package_data={'snekcord-stubs': ['*.pyi', '**/*.pyi']},
     url='https://github.com/asleep-cult/snekcord',

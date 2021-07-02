@@ -99,7 +99,7 @@ class BuiltinEmoji(_BaseBuiltinEmoji):
 
         self.diversity_children = []
         for child in diversity_children:
-            self.diversity_children.append(BuiltinEmoji(category, child))
+            self.diversity_children.append(BuiltinEmoji(category=category, data=child))
 
     def __str__(self):
         return self.surrogates.decode()
