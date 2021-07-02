@@ -4,7 +4,7 @@ from ..clients.client import ClientClasses
 from ..objects.embedobject import Embed, EmbedBuilder
 from ..utils import Snowflake, undefined
 
-__all__ = ('MessageState',)
+__all__ = ('MessageState', 'ChannelPinsState')
 
 
 def _embed_to_dict(embed):

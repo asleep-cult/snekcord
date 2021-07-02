@@ -71,7 +71,7 @@ class GuildChannel(BaseObject):
 
 
 class TextChannel(GuildChannel):
-    __slots__ = ('messages', 'last_pin_timestamp')
+    __slots__ = ('last_pin_timestamp', 'messages', 'pins')
 
     topic = JsonField('topic')
     slowmode = JsonField('rate_limit_per_user')
