@@ -6,7 +6,7 @@ from .. import rest
 from ..utils import JsonArray, JsonField, Snowflake
 
 try:
-    import snekcord.emojis as _emojis
+    import snekcord.emojis as _emojis  # type: ignore
 except ImportError:
     _emojis = None
 
@@ -146,6 +146,7 @@ def _resolve_emoji(state, emoji):
 
     if isinstance(emoji, str):
         match = CUSTOM_EMOJI_RE.match(emoji)
+
         if match is not None:
             emoj_id = Snowflake(match.group('id'))
 
@@ -158,7 +159,7 @@ def _resolve_emoji(state, emoji):
                 animated=bool(match.group('animated'))
             )
 
-        builtin_emoji = BUILTIN_EMOJIS_BY_NAME.get(emoji)
+        builtin_emoji = BUILTIN_EMOJIS_BY_NAME.get(emoji.strip(':'))
 
         if builtin_emoji is not None:
             return builtin_emoji
