@@ -19,37 +19,6 @@ BUILTIN_EMOJIS_BY_SURROGATES = {}
 BUILTIN_EMOJIS_BY_NAME = {}
 
 
-def _resolve_emoji(state, emoji):
-    if isinstance(emoji, int):
-        return state.get(emoji)
-
-    if isinstance(emoji, str):
-        match = CUSTOM_EMOJI_RE.match(emoji)
-        if match is not None:
-            groups = match.groupdict()
-
-            emoji = state.get(Snowflake(groups['id']))
-            if emoji is not None:
-                return emoji
-
-            return PartialGuildEmoji(
-                client=state.client, id=Snowflake(groups['id']), name=groups['name'],
-                animated=bool(groups['animated'])
-            )
-
-        builtin_emoji = BUILTIN_EMOJIS_BY_NAME.get(emoji)
-
-        if builtin_emoji is not None:
-            return builtin_emoji
-
-        emoji = emoji.encode()
-
-    if isinstance(emoji, bytes):
-        return _get_builtin_emoji(emoji)
-
-    raise TypeError(f'{emoji!r} is not a valid emoji')
-
-
 class BaseEmoji:
     def to_reaction(self):
         raise NotImplementedError
@@ -166,6 +135,37 @@ def _get_builtin_emoji(surrogates):
     if emoji is None:
         emoji = PartialBuiltinEmoji(surrogates=surrogates)
     return emoji
+
+
+def _resolve_emoji(state, emoji):
+    if isinstance(emoji, int):
+        return state.get(emoji)
+
+    if isinstance(emoji, str):
+        match = CUSTOM_EMOJI_RE.match(emoji)
+        if match is not None:
+            groups = match.groupdict()
+
+            emoji = state.get(Snowflake(groups['id']))
+            if emoji is not None:
+                return emoji
+
+            return PartialGuildEmoji(
+                client=state.client, id=Snowflake(groups['id']), name=groups['name'],
+                animated=bool(groups['animated'])
+            )
+
+        builtin_emoji = BUILTIN_EMOJIS_BY_NAME.get(emoji)
+
+        if builtin_emoji is not None:
+            return builtin_emoji
+
+        emoji = emoji.encode()
+
+    if isinstance(emoji, bytes):
+        return _get_builtin_emoji(emoji)
+
+    raise TypeError(f'{emoji!r} is not a valid emoji')
 
 
 if _emojis is not None:
