@@ -1,111 +1,174 @@
+import re
 from urllib.parse import quote
 
 from .baseobject import BaseObject
 from .. import rest
-from ..utils import JsonArray, JsonField, Snowflake, _validate_keys
+from ..utils import JsonArray, JsonField, Snowflake
 
 try:
-    from snekcord.emojis import ALL_CATEGORIES  # type: ignore
+    import snekcord.emojis as _emojis
 except ImportError:
-    ALL_CATEGORIES = {}
+    _emojis = None
 
 
 __all__ = ('GuildEmoji', 'BuiltinEmoji')
 
+CUSTOM_EMOJI_RE = re.compile(r'<?(?P<animated>a)?:(?P<name>.{2,32}):(?P<id>\d{17,19})>?')
 
-class GuildEmoji(BaseObject):
+BUILTIN_EMOJIS_BY_SURROGATES = {}
+BUILTIN_EMOJIS_BY_NAME = {}
+
+
+def _resolve_emoji(state, emoji):
+    if isinstance(emoji, int):
+        return state.get(emoji)
+
+    if isinstance(emoji, str):
+        match = CUSTOM_EMOJI_RE.match(emoji)
+        if match is not None:
+            groups = match.groupdict()
+
+            emoji = state.get(Snowflake(groups['id']))
+            if emoji is not None:
+                return emoji
+
+            return PartialGuildEmoji(
+                client=state.client, id=Snowflake(groups['id']), name=groups['name'],
+                animated=bool(groups['animated'])
+            )
+
+        builtin_emoji = BUILTIN_EMOJIS_BY_NAME.get(emoji)
+
+        if builtin_emoji is not None:
+            return builtin_emoji
+
+        emoji = emoji.encode()
+
+    if isinstance(emoji, bytes):
+        return _get_builtin_emoji(emoji)
+
+    raise TypeError(f'{emoji!r} is not a valid emoji')
+
+
+class BaseEmoji:
+    def to_reaction(self):
+        raise NotImplementedError
+
+    def to_media(self):
+        raise NotImplementedError
+
+
+class _BaseGuildEmoji(BaseEmoji):
+    def __str__(self):
+        if self.animated:
+            return f'<a:{self.name}:{self.id}>'
+        return f'<:{self.name}:{self.id}>'
+
+    def to_reaction(self):
+        return quote(f'{self.name}:{self.id}')
+
+
+class PartialGuildEmoji(_BaseGuildEmoji):
+    def __init__(self, *, client, id, name, animated):
+        self.client = client
+        self.id = id
+        self.name = name
+        self.animated = animated
+
+
+class GuildEmoji(BaseObject, _BaseGuildEmoji):
     __slots__ = ('user',)
 
     name = JsonField('name')
-    role_ids = JsonArray('roles', Snowflake)
+    role_ids = JsonField('roles', Snowflake)
     required_colons = JsonField('required_colons')
     managed = JsonField('managed')
-    animages = JsonField('animated')
+    animated = JsonField('animated')
     available = JsonField('available')
 
     def __init__(self, *, state):
         super().__init__(state=state)
         self.user = None
 
-    def __str__(self):
-        if self.animated:
-            return f'<a:{self.name}:{self.id}>'
-        return f'<:{self.name}:{self.id}>'
-
     @property
     def guild(self):
         return self.state.guild
 
+    def iterroles(self):
+        for role_id in self.role_ids:
+            try:
+                yield self.guild.roles[role_id]
+            except KeyError:
+                continue
+
+    def to_partial(self):
+        return PartialGuildEmoji(
+            client=self.state.client, id=self.id, name=self.name, animated=self.animated
+        )
+
+    def update(self, data):
+        super().update(data)
+
+        if 'user' in data:
+            self.user = self.state.client.users.update(data['user'])
+
+
+class _BaseBuiltinEmoji(BaseEmoji):
     @property
-    def roles(self):
-        if self.role_ids is not None:
-            for role_id in self.role_ids:
-                yield self.guild.roles.get(role_id)
-
-    async def modify(self, **kwargs):
-        try:
-            roles = Snowflake.try_snowflake_set(kwargs['roles'])
-            kwargs['roles'] = tuple(roles)
-        except KeyError:
-            pass
-
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_guild_emoji.json)
-
-        data = await rest.modify_guild_emoji.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.guild.id, emoji_id=self.id),
-            json=kwargs)
-
-        self.update(data)
-
-        return self
-
-    async def delete(self):
-        await rest.delete_guild_emoji.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.guild.id, emoji_id=self.id))
+    def id(self):
+        return self.surrogates
 
     def to_reaction(self):
-        return quote(f'{self.name}:{self.id}')
-
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
-
-        user = data.get('user')
-        if user is not None:
-            self.user = self.state.client.users.upsert(user)
+        return quote(self.surrogates)
 
 
-class BuiltinEmoji:
-    def __init__(self, category, data):
+class BuiltinEmoji(_BaseBuiltinEmoji):
+    def __init__(self, *, category, data):
         self.category = category
 
-        self.surrogates = data[0]
-        self.names = data[1]
-        self.unicode_version = data[2]
+        self.surrogates, self.names, self.unicode_version, diversity_children = data
 
         self.diversity_children = []
-        for child in data[3]:
+        for child in diversity_children:
             self.diversity_children.append(BuiltinEmoji(category, child))
+
+    def __str__(self):
+        return self.surrogates.encode()
 
     @property
     def id(self):
         return self.surrogates
 
-    def _store(self, cache):
-        cache[self.surrogates] = self
+    @property
+    def name(self):
+        return self.names[0]
 
-        for child in self.diversity_children:
-            child._store(cache)
-
-    def to_reaction(self) -> str:
+    def to_reaction(self):
         return quote(self.surrogates)
 
+    def _store(self):
+        BUILTIN_EMOJIS_BY_SURROGATES[self.surrogates] = self
 
-BUILTIN_EMOJIS = {}
+        for name in self.names:
+            BUILTIN_EMOJIS_BY_NAME[name] = self
 
-for category, emojis in ALL_CATEGORIES.items():
-    for data in emojis:
-        emoji = BuiltinEmoji(category, data)
-        emoji._store(BUILTIN_EMOJIS)
+        for child in self.diversity_children:
+            child._store()
+
+
+class PartialBuiltinEmoji(_BaseBuiltinEmoji):
+    def __init__(self, *, surrogates):
+        self.surrogates = surrogates
+
+
+def _get_builtin_emoji(surrogates):
+    emoji = BUILTIN_EMOJIS_BY_SURROGATES.get(surrogates)
+    if emoji is None:
+        emoji = PartialBuiltinEmoji(surrogates=surrogates)
+    return emoji
+
+
+if _emojis is not None:
+    for category, emojis in _emojis.ALL_CATEGORIES.items():
+        for data in emojis:
+            BuiltinEmoji(category=category, data=data)._store()

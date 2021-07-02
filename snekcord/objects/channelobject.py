@@ -127,7 +127,7 @@ class TextChannel(GuildChannel):
                 json['default_auto_archive_duration'] = None
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, dict(channel_id=self.id), json=json
+            self.state.client.rest, {'channel_id': self.id}, json=json
         )
 
         return self.state.upsert(data)
@@ -136,21 +136,21 @@ class TextChannel(GuildChannel):
         channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.follow_news_channel.request(
-            session=self.state.client.rest, fmt=dict(channel_id=self.id),
-            params=dict(webhook_channel_id=channel_id)
+            self.state.client.rest, {'channel_id': self.id},
+            params={'webhook_channel_id': channel_id}
         )
 
         return Snowflake(data['webhook_id'])
 
     async def typing(self):
         await rest.trigger_typing_indicator.request(
-            session=self.state.client.rest, fmt=dict(channel_id=self.id)
+            self.state.client.rest, {'channel_id': self.id}
         )
 
     async def fetch_pins(self):
         data = await rest.get_pinned_messages.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.id))
+            self.state.client.rest, {'channel_id': self.id}
+        )
 
         return [self.messages.upsert(message) for message in data]
 
@@ -168,7 +168,7 @@ class CategoryChannel(GuildChannel):
         json = _modify_helper(name, position, permissions)
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, dict(channel_id=self.id), json=json
+            self.state.client.rest, {'channel_id': self.id}, json=json
         )
 
         return self.state.upsert(data)
@@ -218,7 +218,7 @@ class VoiceChannel(GuildChannel):
                 json['video_quality_mode'] = None
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, dict(channel_id=self.id), json=json
+            self.state.client.rest, {'channel_id': self.id}, json=json
         )
 
         return self.state.upsert(data)

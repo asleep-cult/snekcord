@@ -1,6 +1,7 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
+from ..objects.emojiobject import _resolve_emoji
 
 __all__ = ('ReactionsState',)
 
@@ -23,14 +24,19 @@ class ReactionsState(BaseState):
         return reactions
 
     async def add(self, emoji):
-        await rest.create_reaction.request(
-            session=self.client.rest,
-            fmt=dict(channel_id=self.message.channel_id,
-                     message_id=self.message.id,
-                     emoji=emoji.to_reaction()))
+        emoji = _resolve_emoji(self.message.guild.emojis, emoji)
+
+        await rest.add_reaction.request(
+            self.client.rest,
+            {
+                'channel_id': self.message.channel.id,
+                'message_id': self.message.id,
+                'emoji': emoji.to_reaction()
+            }
+        )
 
     async def remove_all(self):
-        await rest.delete_all_reactions.request(
-            session=self.client.rest,
-            fmt=dict(channel_id=self.message.channel_id,
-                     message_id=self.message.id))
+        await rest.remove_all_reactions.request(
+            self.client.rest,
+            {'channel_id': self.message.channel.id, 'message_id': self.message.id}
+        )

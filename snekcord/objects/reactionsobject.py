@@ -9,6 +9,7 @@ __all__ = ('Reactions',)
 class Reactions(BaseSubState, BaseObject):
     __slots__ = ('emoji',)
 
+    id = JsonField('id')
     count = JsonField('count')
     me = JsonField('mw')
 

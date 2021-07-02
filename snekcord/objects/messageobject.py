@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
+from .channelobject import GuildChannel
 from .embedobject import Embed
 from .. import rest
 from ..clients.client import ClientClasses
@@ -8,7 +9,7 @@ from ..enums import MessageType
 from ..flags import MessageFlags
 from ..utils import JsonArray, JsonField, Snowflake
 
-__all__ = ('MessageFlags', 'Message')
+__all__ = ('Message',)
 
 
 class Message(BaseObject):
@@ -39,7 +40,6 @@ class Message(BaseObject):
 
     def __init__(self, *, state):
         super().__init__(state=state)
-
         self.author = None
         self.member = None
 
@@ -51,12 +51,14 @@ class Message(BaseObject):
 
     @property
     def guild(self):
-        return getattr(self.channel, 'guild', None)
+        if isinstance(self.channel, GuildChannel):
+            return self.channel.guild
+        return None
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
             self.state.client.rest,
-            dict(channel_id=self.channel.id, message_id=self.id)
+            {'channel_id': self.channel.id, 'message_id': self.id}
         )
 
         return self.state.upsert(data)

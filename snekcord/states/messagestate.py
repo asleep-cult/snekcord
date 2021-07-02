@@ -39,7 +39,8 @@ class MessageState(BaseState):
         message_id = Snowflake.try_snowflake(message)
 
         data = await rest.get_channel_message.request(
-            self.client.rest, dict(channel_id=self.channel.id, message_id=message_id)
+            self.client.rest,
+            {'channel_id': self.channel.id, 'message_id': message_id}
         )
 
         return self.upsert(data)
@@ -62,7 +63,7 @@ class MessageState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.get_channel_messages.request(
-            self.client.rest, dict(channel_id=self.channel.id), params=params
+            self.client.rest, {'channel_id': self.channel.id}, params=params
         )
 
         return [self.upsert(message) for message in data]
@@ -89,7 +90,7 @@ class MessageState(BaseState):
             raise TypeError('None of (content, file, embed(s)) were provided')
 
         data = await rest.create_channel_message.request(
-            self.client.rest, dict(channel_id=self.channel.id), json=json
+            self.client.rest, {'channel_id': self.channel.id}, json=json
         )
 
         return self.upsert(data)
@@ -98,7 +99,7 @@ class MessageState(BaseState):
         message_id = Snowflake.try_snowflake(message)
 
         data = await rest.delete_message.request(
-            self.client.rest, dict(channel_id=self.channel.id, message_id=message_id)
+            self.client.rest, {'channel_id': self.channel.id, 'message_id': message_id}
         )
 
         return self.upsert(data)
