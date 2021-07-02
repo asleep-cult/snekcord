@@ -102,7 +102,7 @@ class BuiltinEmoji(_BaseBuiltinEmoji):
             self.diversity_children.append(BuiltinEmoji(category, child))
 
     def __str__(self):
-        return self.surrogates.encode()
+        return self.surrogates.decode()
 
     @property
     def id(self):
