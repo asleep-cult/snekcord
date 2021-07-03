@@ -130,12 +130,7 @@ class ChannelPinsState(BaseSubState):
             self.superstate.client.rest, {'channel_id': self.channel.id}
         )
 
-        messages = [self.superstate.upsert(message) for message in data]
-
-        for message in messages:
-            self._keys.add(message.id)
-
-        return messages
+        return [self.superstate.upsert(message) for message in data]
 
     async def add(self, message):
         message_id = Snowflake.try_snowflake(message)
@@ -145,8 +140,6 @@ class ChannelPinsState(BaseSubState):
             {'channel_id': self.channel.id, 'message_id': message_id}
         )
 
-        self._keys.add(message_id)
-
     async def remove(self, message):
         message_id = Snowflake.try_snowflake(message)
 
@@ -154,5 +147,3 @@ class ChannelPinsState(BaseSubState):
             self.superstate.client.rest,
             {'channel_id': self.channel.id, 'message_id': message_id}
         )
-
-        self._keys.remove(message_id)

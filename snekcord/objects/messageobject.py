@@ -8,13 +8,39 @@ from ..clients.client import ClientClasses
 from ..enums import MessageType
 from ..flags import MessageFlags
 from ..states.messagestate import _embed_to_dict
-from ..utils import JsonArray, JsonField, Snowflake, undefined
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
 __all__ = ('Message',)
 
 
+class MessageReference(JsonObject):
+    __slots__ = ('source_message', 'message_deleted')
+
+    message_id = JsonField('message_id', Snowflake)
+    channel_id = JsonField('channel_id', Snowflake)
+    guild_id = JsonField('guild_id')
+
+    def __init__(self, *, message):
+        self.source_message = message
+
+    @property
+    def guild(self):
+        return self.source_message.state.client.guilds.get(self.guild_id)
+
+    @property
+    def channel(self):
+        return self.source_message.state.client.channels.get(self.channel_id)
+
+    @property
+    def message(self):
+        channel = self.channel
+        if channel is not None:
+            return channel.messages.get(self.message_id)
+        return None
+
+
 class Message(BaseObject):
-    __slots__ = ('author', 'member', 'reactions')
+    __slots__ = ('author', 'member', 'reference', 'reactions')
 
     channel_id = JsonField('channel_id', Snowflake)
     guild_id = JsonField('guild_id', Snowflake)
@@ -33,16 +59,15 @@ class Message(BaseObject):
     type = JsonField('type', MessageType.get_enum)
     _activity = JsonField('activity')
     application = JsonField('application')
-    _message_reference = JsonField('message_reference')
     flags = JsonField('flags', MessageFlags.from_value)
     _stickers = JsonArray('stickers')
-    _referenced_message = JsonField('referenced_message')
     _interaction = JsonField('interaction')
 
     def __init__(self, *, state):
         super().__init__(state=state)
         self.author = None
         self.member = None
+        self.reference = None
         self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
     @property
@@ -127,3 +152,20 @@ class Message(BaseObject):
 
             for emoji_id in set(self.reactions.keys()) - reactions:
                 del self.reactions.mapping[emoji_id]
+
+        if 'message_reference' in data:
+            self.reference = MessageReference.unmarshal(data['message_reference'], message=self)
+
+            if 'referenced_message' in data:
+                referenced_message = data['referenced_message']
+
+                if referenced_message is not None:
+                    self.state.upsert(data['referenced_message'])
+
+        if self.pinned:
+            self.channel.pins._keys.add(self.id)
+        else:
+            try:
+                self.channel.pins._keys.remove(self.id)
+            except KeyError:
+                pass
