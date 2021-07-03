@@ -27,3 +27,26 @@ class GuildEmojiState(BaseState):
             emoji = _get_builtin_emoji(data['name'].encode())
 
         return emoji
+
+    async def fetch(self, emoji):
+        emoji_id = Snowflake.try_snowflake(emoji)
+
+        data = await rest.get_guild_emoji.request(
+            self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
+        )
+
+        return self.upsert(data)
+
+    async def fetch_all(self):
+        data = await rest.get_guild_emojis.request(
+            self.client.rest, {'guild_id': self.guild.id}
+        )
+
+        return [self.upsert(emoji) for emoji in data]
+
+    async def delete(self, emoji):
+        emoji_id = Snowflake.try_snowflake(emoji)
+
+        await rest.delete_guild_emoji.request(
+            self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
+        )

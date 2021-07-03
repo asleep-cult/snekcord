@@ -10,7 +10,7 @@ from ..flags import MessageFlags
 from ..states.messagestate import _embed_to_dict
 from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
-__all__ = ('Message',)
+__all__ = ('MessageReference', 'Message')
 
 
 class MessageReference(JsonObject):
