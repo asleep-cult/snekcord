@@ -18,9 +18,9 @@ class PermissionOverwrite(BaseObject):
     @property
     def target(self):
         if self.type == PermissionOverwriteType.MEMBER:
-            return self.channel.guild.get(self.id)
+            return self.channel.guild.members.get(self.id)
         elif self.type == PermissionOverwriteType.ROLE:
-            return self.channel.guild.get(self.id)
+            return self.channel.guild.roles.get(self.id)
 
     def modify(self, *, allow=undefined, deny=undefined):
         if allow is undefined:
