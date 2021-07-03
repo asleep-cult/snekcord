@@ -43,7 +43,7 @@ class Reactions(BaseSubState, BaseObject):
         users = [self.superstate.upsert(user) for user in data]
 
         for user in data:
-            self._keys.add(user.id)
+            self.add_key(user.id)
 
         return users
 

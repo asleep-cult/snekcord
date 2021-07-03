@@ -52,12 +52,18 @@ class GuildChannel(BaseObject):
     async def delete(self):
         return self.state.delete(self.id)
 
+    def _delete(self):
+        super()._delete()
+        guild = self.guild
+        if guild is not None:
+            guild.channels.remove_key(self.id)
+
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
         guild = self.guild
         if guild is not None:
-            guild.channels._keys.add(self.id)
+            guild.channels.add_key(self.id)
 
         permission_overwrites = data.get('permission_overwrites')
         if permission_overwrites is not None:

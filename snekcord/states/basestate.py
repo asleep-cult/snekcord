@@ -93,6 +93,15 @@ class BaseSubState(_StateCommon):
     def keys(self):
         yield from tuple(self._keys)
 
+    def add_key(self, key):
+        self._keys.add(key)
+
+    def remove_key(self, key):
+        try:
+            self._keys.remove(key)
+        except KeyError:
+            pass
+
     def values(self):
         yield from self
 

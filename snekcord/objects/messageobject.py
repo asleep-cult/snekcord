@@ -14,7 +14,7 @@ __all__ = ('Message',)
 
 
 class MessageReference(JsonObject):
-    __slots__ = ('source_message', 'message_deleted')
+    __slots__ = ('source_message',)
 
     message_id = JsonField('message_id', Snowflake)
     channel_id = JsonField('channel_id', Snowflake)
@@ -132,6 +132,11 @@ class Message(BaseObject):
     def delete(self):
         return self.state.delete(self.id)
 
+    def _delete(self):
+        super()._delete()
+        if self.pinned:
+            self.channel.pins.remove_key(self.id)
+
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
 
@@ -163,9 +168,6 @@ class Message(BaseObject):
                     self.state.upsert(data['referenced_message'])
 
         if self.pinned:
-            self.channel.pins._keys.add(self.id)
+            self.channel.pins.add_key(self.id)
         else:
-            try:
-                self.channel.pins._keys.remove(self.id)
-            except KeyError:
-                pass
+            self.channel.pins.remove_key(self.id)
