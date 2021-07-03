@@ -154,13 +154,6 @@ class TextChannel(GuildChannel):
             self.state.client.rest, {'channel_id': self.id}
         )
 
-    async def fetch_pins(self):
-        data = await rest.get_pinned_messages.request(
-            self.state.client.rest, {'channel_id': self.id}
-        )
-
-        return [self.messages.upsert(message) for message in data]
-
 
 class CategoryChannel(GuildChannel):
     def __str__(self):
