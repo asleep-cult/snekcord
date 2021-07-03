@@ -27,13 +27,13 @@ class PermissionOverwrite(BaseObject):
             if allow is not None:
                 allow = Permissions.get_value(allow)
             else:
-                allow = Permissions.none().value
+                allow = 0
 
         if deny is undefined:
             if deny is not None:
                 deny = Permissions.get_value(deny)
             else:
-                deny = Permissions.none().value
+                deny = 0
 
         return self.state.create(self.id, allow=allow, deny=deny, type=self.type.value)
 

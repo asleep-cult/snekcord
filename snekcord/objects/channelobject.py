@@ -5,21 +5,6 @@ from ..enums import ChannelType
 from ..utils import JsonArray, JsonField, Snowflake, undefined
 
 
-def _modify_helper(name, position, permission):
-    json = {}
-
-    if name is not None:
-        json['name'] = str(name)
-
-    if position is not undefined:
-        if position is not None:
-            json['position'] = int(position)
-        else:
-            json['position'] = None
-
-    return json
-
-
 class GuildChannel(BaseObject):
     __slots__ = ('permissions',)
 
@@ -49,14 +34,28 @@ class GuildChannel(BaseObject):
     def parent(self):
         return self.state.client.channels.get(self.parent_id)
 
-    async def delete(self):
-        return self.state.delete(self.id)
-
     def _delete(self):
         super()._delete()
         guild = self.guild
         if guild is not None:
             guild.channels.remove_key(self.id)
+
+    def _modify_helper(self, name, position, permission):
+        json = {}
+
+        if name is not None:
+            json['name'] = str(name)
+
+        if position is not undefined:
+            if position is not None:
+                json['position'] = int(position)
+            else:
+                json['position'] = None
+
+        return json
+
+    async def delete(self):
+        return self.state.delete(self.id)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)
@@ -98,7 +97,7 @@ class TextChannel(GuildChannel):
         slowmode=undefined, permissions=undefined, parent=undefined,
         thread_archive_duration=undefined
     ):
-        json = _modify_helper(name, position, permissions)
+        json = self._modify_helper(name, position, permissions)
 
         if type is not None:
             json['type'] = ChannelType.get_value(type)
@@ -165,7 +164,7 @@ class CategoryChannel(GuildChannel):
                 yield channel
 
     async def modify(self, *, name=None, position=undefined, permissions=undefined):
-        json = _modify_helper(name, position, permissions)
+        json = self._modify_helper(name, position, permissions)
 
         data = await rest.modify_channel.request(
             self.state.client.rest, {'channel_id': self.id}, json=json
@@ -185,7 +184,7 @@ class VoiceChannel(GuildChannel):
         self, *, name=None, position=undefined, bitrate=undefined, user_limit=undefined,
         permissions=undefined, parent=undefined, rtc_origin=undefined, video_quality_mode=undefined
     ):
-        json = _modify_helper(name, position, permissions)
+        json = self._modify_helper(name, position, permissions)
 
         if bitrate is not undefined:
             if bitrate is not None:

@@ -1,7 +1,6 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..objects.emojiobject import _resolve_emoji
 
 __all__ = ('ReactionsState',)
 
@@ -24,7 +23,7 @@ class ReactionsState(BaseState):
         return reactions
 
     async def add(self, emoji):
-        emoji = _resolve_emoji(self.message.guild.emojis, emoji)
+        emoji = self.message.guild.emojis.resolve(emoji)
 
         await rest.add_reaction.request(
             self.client.rest,
