@@ -234,7 +234,6 @@ class EmbedBuilder:
     def set_description(self, description):
         """Sets the embed's description"""
         self.embed._json_data_['description'] = str(description)
-
         return self
 
     def clear_description(self):
@@ -402,7 +401,7 @@ class EmbedBuilder:
         if inline is not None:
             json['inline'] = bool(inline)
 
-        return EmbedField.unmarshal({'name': name, 'value': value, 'inline': inline})
+        return EmbedField.unmarshal(json)
 
     def add_field(self, name, value, inline=None):
         """Adds a field to the embed"""
