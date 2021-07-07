@@ -64,11 +64,10 @@ class GuildChannel(BaseObject):
         if guild is not None:
             guild.channels.add_key(self.id)
 
-        permission_overwrites = data.get('permission_overwrites')
-        if permission_overwrites is not None:
+        if 'permission_overwrites' in data:
             overwrites = set()
 
-            for overwrite in permission_overwrites:
+            for overwrite in data['permission_overwrites']:
                 overwrites.add(self.permissions.upsert(overwrite).id)
 
             for overwrite_id in set(self.permissions.keys()) - overwrites:

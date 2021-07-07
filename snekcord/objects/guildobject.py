@@ -10,33 +10,20 @@ from ..enums import (
     MFALevel,
     MessageNotificationsLevel,
     PremiumTier,
-    VerificationLevel)
+    VerificationLevel
+)
 from ..flags import SystemChannelFlags
-from ..utils import JsonArray, JsonField, JsonObject, Snowflake, _validate_keys
+from ..resolvers import resolve_image_data
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
 __all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
 
 
 class Guild(BaseObject):
-    """Represents a Guild from Discord
-
-    Attributes:
-        widget GuildWidget: The guild's widget interface
-
-        vanity_url GuildVanityURL: The guild's vanity url interface
-
-        welcome_screen GuildWelcomeScreen: The guild's welcome screen interface
-
-        channels GuildChannelState: The guild's channel state
-
-        emojis GuildEmojiState: The guild's emoji state
-
-        roles RoleState: The guild's role state
-
-        members GuildMemberState: The guild's member state
-    """
-    __slots__ = ('unsynced', 'widget', 'vanity_url', 'welcome_screen', 'channels', 'emojis',
-                 'roles', 'members', 'bans', 'integrations')
+    __slots__ = (
+        'unsynced', 'widget', 'vanity_url', 'welcome_screen', 'channels', 'emojis', 'roles',
+        'members', 'bans', 'integrations'
+    )
 
     name = JsonField('name')
     icon = JsonField('icon')
@@ -125,95 +112,198 @@ class Guild(BaseObject):
 
         self.unsynced = False
 
-    async def modify(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_guild.json)
+    def fetch_preview(self):
+        return self.state.fetch_preview(self.id)
 
-        data = await rest.modify_guild.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.id),
-            json=kwargs)
-
-        return self.state.upsert(data)
-
-    async def delete(self):
-        await rest.delete_guild.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.id))
-
-    async def prune(self, **kwargs):
-        remove = kwargs.pop('remove', True)
-
-        try:
-            roles = Snowflake.try_snowflake_set(kwargs['roles'])
-
-            if remove:
-                kwargs['include_roles'] = tuple(roles)
-            else:
-                kwargs['include_roles'] = ','.join(map(str, roles))
-        except KeyError:
-            pass
-
-        if remove:
-            keys = rest.begin_guild_prune.json
-        else:
-            keys = rest.get_guild_prune_count.params
-
-        _validate_keys(f'{self.__class__.__name__}.prune',
-                       kwargs, (), keys)
-
-        if remove:
-            data = await rest.begin_guild_prune.request(
-                session=self.state.client.rest,
-                fmt=dict(guild_id=self.id),
-                json=kwargs)
-        else:
-            data = await rest.get_guild_prune_count.request(
-                session=self.state.client.rest,
-                fmt=dict(guild_id=self.id),
-                params=kwargs)
-
-        return data['pruned']
-
-    async def fetch_preview(self):
-        return await self.state.fetch_preview(self.id)
-
-    async def fetch_voice_regions(self):
-        data = await rest.get_guild_voice_regions.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.id))
-
-        return data
+    def fetch_voice_regions(self):
+        return rest.get_guild_voice_regions.request(
+            self.state.client.rest, {'guild_id': self.id}
+        )
 
     async def fetch_invites(self):
         data = await rest.get_guild_invites.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.id))
+            self.state.client.rest, {'guild_id': self.id}
+        )
 
-        invites = []
-
-        for invite in data:
-            invites.append(self.state.client.invites.upsert(invite))
-
-        return invites
+        return [self.state.client.invites.upsert(invite) for invite in data]
 
     async def fetch_templates(self):
         data = await rest.get_guild_templates.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.id))
+            self.state.client.rest, {'guild_id': self.id}
+        )
 
-        return self.state.new_template_many(data)
+        return [self.state.new_template(template) for template in data]
 
-    async def create_template(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.create_template',
-                       kwargs, ('name',), rest.create_guild_template.json)
+    async def create_template(self, *, name, description=undefined):
+        json = {'name': str(name)}
+
+        if description is not undefined:
+            if description is not None:
+                json['description'] = str(description)
+            else:
+                json['description'] = None
 
         data = await rest.create_guild_template.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.id),
-            json=kwargs)
+            self.state.client.rest, {'guild_id': self.id},
+            json=json
+        )
 
         return self.state.new_template(data)
+
+    async def modify(
+        self, *, name=None, verification_level=undefined,
+        default_message_notifications=undefined, explicit_content_filter=undefined,
+        afk_channel=undefined, afk_timeout=None, icon=undefined, owner=None,
+        splash=undefined, discovery_splash=undefined, banner=undefined, system_channel=undefined,
+        system_channel_flags=None, rules_channel=undefined, public_updates_channel=undefined,
+        preferred_locale=undefined, features=None, description=undefined
+    ):
+        json = {}
+
+        if name is not None:
+            json['name'] = str(name)
+
+        if verification_level is not undefined:
+            if verification_level is not None:
+                json['verification_level'] = VerificationLevel.get_value(verification_level)
+            else:
+                json['verification_level'] = None
+
+        if default_message_notifications is not undefined:
+            if default_message_notifications is not None:
+                json['default_message_notifications'] = (
+                    MessageNotificationsLevel.get_value(default_message_notifications)
+                )
+            else:
+                json['default_message_notifications'] = None
+
+        if explicit_content_filter is not undefined:
+            if explicit_content_filter is not None:
+                json['explicit_content_filter'] = (
+                    ExplicitContentFilterLevel.get_value(explicit_content_filter)
+                )
+            else:
+                json['explicit_content_filter'] = None
+
+        if afk_channel is not undefined:
+            if afk_channel is not None:
+                json['afk_channel_id'] = Snowflake.try_snowflake(afk_channel)
+            else:
+                json['afk_channel_id'] = None
+
+        if afk_timeout is not None:
+            json['afk_timeout'] = int(afk_timeout)
+
+        if icon is not undefined:
+            if icon is not None:
+                json['icon'] = resolve_image_data(icon)
+            else:
+                json['icon'] = None
+
+        if owner is not None:
+            json['owner_id'] = Snowflake.try_snowflake(owner)
+
+        if splash is not undefined:
+            if splash is not None:
+                json['splash'] = resolve_image_data(splash)
+            else:
+                json['splash'] = None
+
+        if discovery_splash is not undefined:
+            if discovery_splash is not None:
+                json['discovery_splash'] = resolve_image_data(discovery_splash)
+            else:
+                json['discovery_splash'] = None
+
+        if banner is not undefined:
+            if banner is not None:
+                json['banner'] = resolve_image_data(banner)
+            else:
+                json['banner'] = None
+
+        if system_channel is not undefined:
+            if system_channel is not None:
+                json['system_channel_id'] = Snowflake.try_snowflake(system_channel)
+            else:
+                json['system_channel_id'] = None
+
+        if system_channel_flags is not None:
+            json['system_channel_flags'] = SystemChannelFlags.get_value(system_channel_flags)
+
+        if rules_channel is not undefined:
+            if rules_channel is not None:
+                json['rules_channel_id'] = Snowflake.try_snowflake(rules_channel)
+            else:
+                json['rules_channel_id'] = None
+
+        if public_updates_channel is not undefined:
+            if public_updates_channel is not None:
+                json['public_updates_channel_id'] = Snowflake.try_snowflake(public_updates_channel)
+            else:
+                json['public_updates_channel_id'] = None
+
+        if preferred_locale is not undefined:
+            if preferred_locale is not undefined:
+                json['preferred_locale'] = str(preferred_locale)
+            else:
+                json['preferred_locale'] = None
+
+        if features is not None:
+            json['features'] = [GuildFeature.get_value(feature) for feature in features]
+
+        if description is not undefined:
+            if description is not None:
+                json['description'] = str(description)
+            else:
+                json['description'] = None
+
+        data = await rest.modify_guild.request(
+            self.client.rest, {'guild_id': self.id}, json=json
+        )
+
+        return self.state.upsert(data)
+
+    async def fetch_prune_count(self, *, days=None, roles=None):
+        params = {}
+
+        if days is not None:
+            params['days'] = int(days)
+
+        if roles is not None:
+            params['include_roles'] = ','.join(str(r) for r in Snowflake.try_snowflake_set(roles))
+
+        data = await rest.get_guild_prune_count.request(
+            self.state.client.rest, {'guild_id': self.guild.id}, params=params
+        )
+
+        return data['pruned']
+
+    async def begin_prune(self, *, days=None, compute_count=None, roles=None, reason=None):
+        json = {}
+
+        if days is not None:
+            json['days'] = int(days)
+
+        if compute_count is not None:
+            json['compute_count'] = bool(compute_count)
+
+        if roles is not None:
+            json['roles'] = Snowflake.try_snowflake_set(roles)
+
+        if reason is not None:
+            json['reason'] = str(reason)
+
+        data = await rest.begin_guild_prune.request(
+            self.state.client.rest, {'guild_id': self.id}, json=json
+        )
+
+        return data['pruned']
+
+    async def leave(self):
+        return self.state.leave(self.id)
+
+    async def delete(self):
+        return self.state.delete(self.id)
 
     def update(self, data, *args, **kwargs):
         super().update(data, *args, **kwargs)

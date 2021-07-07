@@ -1,7 +1,10 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..utils import Snowflake, _validate_keys
+from ..enums import ExplicitContentFilterLevel, MessageNotificationsLevel
+from ..flags import SystemChannelFlags
+from ..resolvers import resolve_image_data
+from ..utils import Snowflake
 
 __all__ = ('GuildState', 'GuildBanState')
 
@@ -21,21 +24,17 @@ class GuildState(BaseState):
     def new_template(self, data):
         return ClientClasses.GuildTemplate.unmarshal(data, state=self)
 
-    def new_template_many(self, values):
-        return {self.new_template(value) for value in values}
-
     async def fetch(self, guild, *, with_counts=None, sync=True):
+        guild_id = Snowflake.try_snowflake(guild)
+
         params = {}
 
         if with_counts is not None:
             params['with_counts'] = with_counts
 
-        guild_id = Snowflake.try_snowflake(guild)
-
         data = await rest.get_guild.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=guild_id),
-            params=params)
+            self.client.rest, {'guild_id': guild_id}
+        )
 
         guild = self.upsert(data)
 
@@ -44,26 +43,25 @@ class GuildState(BaseState):
 
         return guild
 
-    async def fetch_many(self, *, before=None, after=None, limit=None):
+    async def fetch_many(self, *, before=None, after=None, limit=None, sync=True):
         params = {}
 
         if before is not None:
-            params['before'] = Snowflake.try_snowflake(before)
+            params['before'] = Snowflake.try_snowflake(before, allow_datetime=True)
 
         if after is not None:
-            params['after'] = Snowflake.try_snowflake(after)
+            params['after'] = Snowflake.try_snowflake(after, allow_datetime=True)
 
         if limit is not None:
             params['limit'] = int(limit)
 
-        data = await rest.get_user_client_guilds.request(
-            session=self.client.rest,
-            params=params)
+        data = await rest.get_my_guilds.request(self.client.rest)
 
-        guilds = []
+        guilds = [self.upsert(guild) for guild in data]
 
-        for guild in data:
-            guilds.append(self.upsert(guild))
+        if sync:
+            for guild in guilds:
+                await guild.sync()
 
         return guilds
 
@@ -71,37 +69,71 @@ class GuildState(BaseState):
         guild_id = Snowflake.try_snowflake(guild)
 
         data = await rest.get_guild_preview.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=guild_id))
+            self.client.rest, {'guild_id': guild_id}
+        )
 
         return self.upsert(data)
 
     async def fetch_template(self, code):
         data = await rest.get_template.request(
-            session=self.client.rest,
-            fmt=dict(code=code))
+            self.client.rest, {'code': code}
+        )
 
         return self.new_template(data)
 
-    async def create(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, ('name',), rest.create_guild.json)
+    async def create(
+        self, *, name, icon=None, verification_level=None, default_message_notifications=None,
+        explicit_content_filter=None,  # roles, channels, afk_channel_id, system_channel_id
+        afk_timeout=None, system_channel_flags=None,
+    ):
+        json = {'name': str(name)}
 
-        data = await rest.create_guild.request(
-            session=self.client.rest, json=kwargs)
+        if icon is not None:
+            json['icon'] = resolve_image_data(icon)
+
+        if verification_level is not None:
+            json['default_message_notifications'] = (
+                MessageNotificationsLevel.get_value(default_message_notifications)
+            )
+
+        if explicit_content_filter is not None:
+            json['explicit_content_filter'] = (
+                ExplicitContentFilterLevel.get_value(explicit_content_filter)
+            )
+
+        if afk_timeout is not None:
+            json['afk_timeout'] = int(afk_timeout)
+
+        if system_channel_flags is not None:
+            json['system_channel_flags'] = SystemChannelFlags.get_value(system_channel_flags)
+
+        data = await rest.create_guild.request(self.client.rest, json=json)
 
         return self.upsert(data)
 
+    async def leave(self, guild):
+        guild_id = Snowflake.try_snowflake(guild)
+
+        await rest.leave_guild.request(
+            self.client.rest, {'guild_id': guild_id}
+        )
+
+    async def delete(self, guild):
+        guild_id = Snowflake.try_snowflake(guild)
+
+        await rest.delete_guild.request(
+            self.client.rest, {'guild_id': guild_id}
+        )
+
 
 class GuildBanState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
 
     def upsert(self, data):
-        ban = self.get(data['user']['id'])
+        ban = self.get(Snowflake(data['user']['id']))
+
         if ban is not None:
             ban.update(data)
         else:
@@ -114,37 +146,39 @@ class GuildBanState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_ban.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id, user_id=user_id))
+            self.client.rest,
+            {'guild_id': self.guild.id, 'user_id': user_id}
+        )
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_bans.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id))
+            self.client.rest, {'guild_id': self.guild.id}
+        )
 
-        bans = []
+        return [self.upsert(ban) for ban in data]
 
-        for ban in data:
-            bans.append(self.upsert(ban))
+    async def add(self, user, *, delete_message_days=None, reason=None):
+        json = {}
 
-        return bans
+        if delete_message_days is not None:
+            json['delete_message_days'] = int(delete_message_days)
 
-    async def add(self, user, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.add',
-                       kwargs, (), rest.create_guild_ban.json)
+        if reason is not None:
+            json['reason'] = str(reason)
 
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.create_guild_ban.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id, user_id=user_id),
-            json=kwargs)
+        await rest.get_guild_ban.request(
+            self.client.rest,
+            {'guild_id': self.guild.id, 'user_id': user_id}
+        )
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_ban.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id, user_id=user_id))
+            self.client.rest,
+            {'guild_id': self.guild.id, 'user_id': user_id}
+        )

@@ -454,7 +454,7 @@ modify_self = HTTPEndpoint(
     BASE_API_URL + 'users/@me',
 )
 
-get_self_guilds = HTTPEndpoint(
+get_my_guilds = HTTPEndpoint(
     'GET',
     BASE_API_URL + 'users/@me/guilds',
 )
