@@ -115,17 +115,17 @@ class Guild(BaseObject):
     def fetch_preview(self):
         return self.state.fetch_preview(self.id)
 
-    def fetch_voice_regions(self):
-        return rest.get_guild_voice_regions.request(
-            self.state.client.rest, {'guild_id': self.id}
-        )
-
     async def fetch_invites(self):
         data = await rest.get_guild_invites.request(
             self.state.client.rest, {'guild_id': self.id}
         )
 
         return [self.state.client.invites.upsert(invite) for invite in data]
+
+    def fetch_voice_regions(self):
+        return rest.get_guild_voice_regions.request(
+            self.state.client.rest, {'guild_id': self.id}
+        )
 
     async def fetch_templates(self):
         data = await rest.get_guild_templates.request(

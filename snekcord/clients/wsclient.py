@@ -31,7 +31,9 @@ class WebSocketClient(Client):
         return rest.get_gateway_bot.request(session=self.rest)
 
     async def connect(self, *args, **kwargs):
-        gateway = await self.fetch_gateway_bot()
+        print('Getting gateway')
+        gateway = await self.fetch_gateway()
+        print('Got gateway')
         gateway_url = gateway['url'] + '?v=9'
 
         for shard_id in range(self.shard_count):
@@ -39,7 +41,9 @@ class WebSocketClient(Client):
             self.shards[shard_id] = shard
 
         for shard in self.shards.values():
+            print('connecting to ', gateway_url)
             await shard.connect(gateway_url, *args, **kwargs)
+            print('connected')
 
     def run_forever(self, *args, **kwargs):
         self.loop.create_task(self.connect(*args, **kwargs))

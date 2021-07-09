@@ -485,8 +485,10 @@ class MessageReactionAddEvent(BaseEvent):
             if message is not None:
                 reactions = message.reactions.upsert(payload)
 
-        return cls(shard=shard, payload=payload, channel=channel,
-                   message=message, reactions=reactions, user=user)
+        return cls(
+            shard=shard, payload=payload, channel=channel, message=message,
+            reactions=reactions, user=user
+        )
 
     @property
     def partial(self):
