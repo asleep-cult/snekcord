@@ -38,6 +38,7 @@ class JsonObject:
 
     def update(self, data):
         self._json_data_.update(data)
+        return self
 
     def to_dict(self):
         return self._json_data_

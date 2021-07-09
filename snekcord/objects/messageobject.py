@@ -137,14 +137,15 @@ class Message(BaseObject):
         if self.pinned:
             self.channel.pins.remove_key(self.id)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
         if 'author' in data:
             self.author = self.state.client.users.upsert(data['author'])
 
             guild = self.guild
             member = data.get('member')
+
             if member is not None and guild is not None:
                 member['user'] = data['author']
                 self.member = guild.members.upsert(member)

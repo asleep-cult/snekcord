@@ -57,8 +57,8 @@ class GuildChannel(BaseObject):
     async def delete(self):
         return self.state.delete(self.id)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
         guild = self.guild
         if guild is not None:
@@ -72,6 +72,8 @@ class GuildChannel(BaseObject):
 
             for overwrite_id in set(self.permissions.keys()) - overwrites:
                 del self.permissions.mapping[overwrite_id]
+
+        return self
 
 
 class TextChannel(GuildChannel):

@@ -305,8 +305,8 @@ class Guild(BaseObject):
     async def delete(self):
         return self.state.delete(self.id)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
         widget_data = {}
 
@@ -357,6 +357,8 @@ class Guild(BaseObject):
         if 'welcome_screen' in data:
             self.welcome_screen.update(data['welcome_screen'])
 
+        return self
+
 
 class GuildBan(BaseObject):
     __slots__ = ('user',)
@@ -367,34 +369,21 @@ class GuildBan(BaseObject):
     def guild(self):
         return self.state.guild
 
-    async def revoke(self):
-        await self.state.remove(self.user)
+    def revoke(self):
+        return self.state.remove(self.user)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
         user = data.get('user')
         if user is not None:
             self.user = self.state.client.users.upsert(user)
             self._json_data_['id'] = self.user.id
 
+        return self
+
 
 class WelcomeScreenChannel(JsonObject):
-    """Represents a channel in a `WelcomeScreen`
-
-    Attributes:
-        channel_id Snowflake: The id of the channel that this welcome channel
-            refers to
-
-        description str: The welcome channel's description
-
-        emoji_id Snowflake: The id of the welcome channel's emoji
-
-        emoji_name str: The name of the welcome channel's emoji
-
-        welcome_screen WelcomeScreen: The welcome screen associated with the
-            welcome channel
-    """
     __slots__ = ('welcome_screen',)
 
     channel_id = JsonField('channel_id', Snowflake)
@@ -407,135 +396,102 @@ class WelcomeScreenChannel(JsonObject):
 
     @property
     def channel(self):
-        """The channel that this welcome channel refers to
-
-        warning:
-            This property relies on the channel cache so it could return None
-        """
         return self.welcome_screen.guild.channels.get(self.channel_id)
 
     @property
     def emoji(self):
-        """The welcome channel's emoji
-
-        warning:
-            This property relies on the emoji cache so it could return None
-        """
         return self.welcome_screen.guild.emojis.get(self.emoji_id)
 
 
 class WelcomeScreen(JsonObject):
-    """Represents a `Guild`'s welcome screen
-
-    Attributes:
-        description str: The welcome screen's description
-
-        guild Guild: The guild associated with the welcome screen
-
-        welcome_channels list[WelcomeChannel]: The welcome screen's channels
-    """
     __slots__ = ('guild', 'welcome_channels')
 
     channel_id = JsonField('channel_id', Snowflake)
 
     def __init__(self, *, guild):
         self.guild = guild
-        self.welcome_channels = []
+        self.welcome_channels = {}
 
     async def fetch(self):
-        """Invokes an API request to get the welcome screen
-
-        Returns:
-            WelcomeScreen: The updated welcome screen
-        """
         data = await rest.get_guild_welcome_screen.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id))
+            self.guild.state.client.rest, {'guild_id': self.guild.id}
+        )
 
-        self.update(data)
+        return self.update(data)
 
-        return self
+    async def modify(self, *, enabled=undefined, welcome_channels=undefined, description=undefined):
+        json = {}
 
-    async def modify(self, **kwargs):
-        """Invokes an API request to modify the welcome screen
+        if enabled is not undefined:
+            if enabled is not None:
+                json['enabled'] = bool(enabled)
+            else:
+                json['enabled'] = None
 
-        **Parameters:**
+        if welcome_channels is not undefined:
+            if welcome_channels is not None:
+                json['welcome_channels'] = []
 
-        | Name             | Type | Description                                   |
-        | ---------------- | ---- | --------------------------------------------- |
-        | enabled          | bool | Whether or not the welcome screen is enabled  |
-        | welcome_channels | dict | The new welcome channels `{channel: options}` |
-        | description      | str  | The welcome screen's new description          |
+                for channel, data in welcome_channels.items():
+                    welcome_channel = {'channel': Snowflake.try_snowflake(channel)}
 
-        **Welcome Channel Options:**
+                    if 'description' in data:
+                        description = data['description']
 
-        | Name        | Description                       |
-        | ----------- | --------------------------------- |
-        | description | The welcome channel's description |
-        | emoji       | The welcome channel's emoji       |
+                        if description is not None:
+                            welcome_channel['description'] = str(description)
+                        else:
+                            welcome_channel['description'] = None
 
-        Returns:
-            WelcomeScreen: The modified welcome screen
+                    if 'emoji' in data:
+                        emoji = self.guild.emojis.resolve(data['emoji'])
 
-        Examples:
-            ```py
-            await guild.welcome_screen.modify(
-                description='Welcome to this fantastic guild',
-                enabled=True,
-                welcome_channels={
-                    8235356323523452: {
-                        'description': 'Get roles here',
-                        'emoji': some_emoji
-                    },
-                    7583857293758372: {
-                        'description': 'Use bot commands here',
-                        emoji: another_emoji
-                    }
-                }
-            )
-            ```
-        """  # noqa: E501
-        try:
-            welcome_channels = []
+                        if isinstance(
+                            emoji, (ClientClasses.UnicodeEmoji, ClientClasses.PartialUnicodeEmoji)
+                        ):
+                            welcome_channel['emoji_name'] = emoji.unicode
 
-            for key, value in kwargs['welcome_channels'].items():
-                value['channel_id'] = Snowflake.try_snowflake(key)
+                        elif isinstance(
+                            emoji, (ClientClasses.GuildEmoji, ClientClasses.PartialGuildEmoji)
+                        ):
+                            welcome_channel['emoji_name'] = emoji.name
+                            welcome_channel['emoji_id'] = emoji.id
 
-                try:
-                    emoji = value.pop('emoji')
-                    value['emoji_id'] = emoji.id
-                    value['emoji_name'] = emoji.name
-                except KeyError:
-                    pass
+                    json['welcome_channels'].append(welcome_channel)
+            else:
+                json['welcome_channels'] = None
 
-                _validate_keys(f'welcome_channels[{key}]', value, (),
-                               ('channel_id', 'description', 'emoji_id', 'emoji_name'))
+        if 'description' in data:
+            description = data['description']
 
-                welcome_channels.append(value)
-
-            kwargs['welcome_channels'] = welcome_channels
-        except KeyError:
-            pass
-
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_guild_welcome_screen.json)
+            if description is not None:
+                json['description'] = str(description)
+            else:
+                json['description'] = None
 
         data = await rest.modify_guild_welcome_screen.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            json=kwargs)
+            self.guild.state.client.rest, {'guild_id': self.guild.id}, json=json
+        )
 
-        self.update(data)
+        return self.update(data)
+
+    def update(self, data):
+        super().update(data)
+
+        if 'welcome_channels' in data:
+            welcome_channels = set()
+
+            for welcome_channel in data['welcome_channels']:
+                channel = self.welcome_channels.get(welcome_channel['channel_id'])
+
+                if channel is not None:
+                    channel.update(welcome_channel)
+                else:
+                    channel = WelcomeScreenChannel.unmarshal(welcome_channel, welcome_screen=self)
+
+                welcome_channels.add(channel.channel_id)
+
+            for channel_id in set(self.welcome_channels.keys()) - welcome_channels:
+                del self.welcome_channels[channel_id]
 
         return self
-
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
-
-        welcome_channels = data.get('welcome_channels')
-        if welcome_channels is not None:
-            self.welcome_channels.clear()
-
-            for channel in welcome_channels:
-                channel = WelcomeScreenChannel.unmarshal(channel, welcome_screen=self)
-                self.welcome_channels.append(channel)

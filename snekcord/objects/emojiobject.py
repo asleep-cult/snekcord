@@ -93,6 +93,8 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
         if 'user' in data:
             self.user = self.state.client.users.update(data['user'])
 
+        return self
+
 
 class _BaseUnicodeEmoji(BaseEmoji):
     @property
@@ -114,7 +116,11 @@ class UnicodeEmoji(_BaseUnicodeEmoji):
             self.diversity_children.append(UnicodeEmoji(category=category, data=child))
 
     def __str__(self):
-        return self.surrogates.decode()
+        return self.unicode
+
+    @property
+    def unicode(self):
+        return self.surrogates.encode()
 
     @property
     def id(self):

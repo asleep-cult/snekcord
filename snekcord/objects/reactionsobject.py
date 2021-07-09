@@ -84,10 +84,9 @@ class Reactions(BaseSubState, BaseObject):
             }
         )
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
-        emoji = data.get('emoji')
-        if emoji is not None:
-            self.emoji = self.state.message.guild.emojis.upsert(emoji)
+        if 'emoji' in data:
+            self.emoji = self.state.message.guild.emojis.upsert(data['emoji'])
             self._json_data_['id'] = self.emoji.id
