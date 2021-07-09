@@ -90,23 +90,17 @@ class _EventWaiter:
         self.client = client
         self.timeout = timeout
         self.filter = filter
-        self._lock = asyncio.Lock()
-        self._create_future()
-
-    def _create_future(self):
-        self._future = self.client.loop.create_future()
+        self._queue = asyncio.Queue()
 
     async def _put(self, args):
-        if not self.filter(*args):
-            return
+        if self.filter is not None:
+            if not self.filter(*args):
+                return
 
-        async with self._lock:
-            self._future.set_result(args)
-            self._create_future()
+        await self._queue.put(args)
 
     async def _get(self):
-        async with self._lock:
-            args = await asyncio.wait_for(self._future, self.timeout)
+        args = await asyncio.wait_for(self._queue.get(), self.timeout)
 
         if len(args) == 1:
             args = args[0]
