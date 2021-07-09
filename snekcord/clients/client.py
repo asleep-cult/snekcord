@@ -90,23 +90,28 @@ class _EventWaiter:
         self.client = client
         self.timeout = timeout
         self.filter = filter
-        self._queue = asyncio.Queue()
+        self._lock = asyncio.Lock()
+        self._create_future()
 
-    def _put(self, args):
-        if self.filter is not None:
-            if not self.filter(*args):
-                return
+    def _create_future(self):
+        self._future = self.client.loop.create_future()
 
-        self._queue.put_nowait(args)
+    async def _put(self, args):
+        if not self.filter(*args):
+            return
+
+        async with self._lock:
+            self._future.set_result(args)
+            self._create_future()
 
     async def _get(self):
-        coro = self._queue.get()
-        args = await asyncio.wait_for(coro, timeout=self.timeout)
+        async with self._lock:
+            args = await asyncio.wait_for(self._future, self.timeout)
 
         if len(args) == 1:
-            return args[0]
-        else:
-            return args
+            args = args[0]
+
+        return args
 
     def __await__(self):
         return self._get().__await__()
@@ -114,14 +119,38 @@ class _EventWaiter:
     def __aiter__(self):
         return self
 
-    async def __anext__(self):
-        return await self._get()
+    def __anext__(self):
+        return self._get()
 
-    def __del__(self):
+
+class _EventListener:
+    def __init__(self, name, client, callback, sync, persistent):
+        self.name = name
+        self.client = client
+        self.callback = callback
+        self.sync = sync
+        self.persistent = persistent
+
+        if self.sync:
+            self._lock = asyncio.Lock()
+
+    async def _do_put(self, args):
+        if self.sync:
+            await self._lock.acquire()
+
         try:
-            self.client.remove_waiter(self)
-        except KeyError:
+            result = self.callback(*args)
+
+            if asyncio.iscoroutinefunction(self.callback):
+                await result
+        except Exception:
             pass
+
+        if self.sync:
+            self._lock.release()
+
+    async def _put(self, args):
+        self.client.loop.create_task(self._do_put(args))
 
 
 class Client:
@@ -165,26 +194,30 @@ class Client:
         for guild in self.guilds:
             yield from guild.emojis
 
-    def register_listener(self, name, callback, *, persistent=True):
+    def register_listener(self, name, callback, *, sync=False, persistent=True):
         name = name.lower()
-
         listeners = self._listeners.get(name.lower())
+
         if listeners is None:
             listeners = self._listeners[name] = []
 
-        listeners.append((callback, persistent))
+        listeners.append(_EventListener(name, self, callback, sync, persistent))
 
     def remove_listener(self, name, callback):
         listeners = self._listeners.get(name.lower())
-        for i, (listener, _) in enumerate(listeners):
-            if listener is callback:
-                listeners.pop(i)
+
+        if listeners is not None:
+            for i, listener in enumerate(listeners):
+                if listener.callback is callback:
+                    listeners.pop(i)
+
+        return listener
 
     def register_waiter(self, name, *, timeout=None, filter=None):
         name = name.lower()
+        waiters = self._waiters.get(name)
         waiter = _EventWaiter(name, self, timeout, filter)
 
-        waiters = self._waiters.get(name)
         if waiters is None:
             waiters = self._waiters[name] = weakref.WeakSet()
 
@@ -196,27 +229,26 @@ class Client:
 
     def remove_waiter(self, waiter):
         waiters = self._waiters.get(waiter.name)
+
         if waiters is not None:
             waiters.remove(waiter)
 
-    def run_callbacks(self, name, *args):
+    async def _run_callbacks(self, name, *args):
         name = name.lower()
 
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
 
         if listeners is not None:
-            for listener, persistent in listeners:
-                ret = listener(*args)
-                if asyncio.iscoroutinefunction(listener):
-                    self.loop.create_task(ret)
+            for listener in tuple(listeners):
+                await listener._put(args)
 
-                if not persistent:
-                    listeners.remove((listener, persistent))
+                if not listener.persistent:
+                    listeners.remove(listener)
 
         if waiters is not None:
             for waiter in tuple(waiters):
-                waiter._put(args)
+                await waiter._put(args)
 
     async def dispatch(self, name, *args):
         if self._events_ is not None:
@@ -226,17 +258,17 @@ class Client:
                 evt = await event(self, *args)
                 args = (evt,)
 
-        self.run_callbacks(name, *args)
+        await self._run_callbacks(name, *args)
 
-    def on(self, name=None):
+    def on(self, name=None, *, sync=False):
         def wrapped(func):
-            self.register_listener(name or func.__name__, func)
+            self.register_listener(name or func.__name__, func, sync=sync)
             return func
         return wrapped
 
     def once(self, name=None):
         def wrapped(func):
-            self.register_listener(name or func.__name__, func, persistent=False)
+            self.register_listener(name or func.__name__, func, persistent=True)
             return func
         return wrapped
 
