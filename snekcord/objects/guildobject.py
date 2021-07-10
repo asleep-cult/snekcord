@@ -12,6 +12,7 @@ from ..enums import (
     PremiumTier,
     VerificationLevel
 )
+from ..fetchables import GuildBanner, GuildDiscoverySplash, GuildIcon, GuildSplash
 from ..flags import SystemChannelFlags
 from ..resolvers import resolve_image_data
 from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
@@ -26,14 +27,10 @@ class Guild(BaseObject):
     )
 
     name = JsonField('name')
-    icon = JsonField('icon')
-    splash = JsonField('splash')
-    discovery_splash = JsonField('discovery_splash')
     features = JsonArray('features', GuildFeature.get_enum)
     member_count = JsonField('approximate_member_count')
     presence_count = JsonField('approximate_presence_count')
     description = JsonField('description')
-    icon_hash = JsonField('icon_hash')
     owner = JsonField('owner')
     owner_id = JsonField('owner_id', Snowflake)
     permissions = JsonField('permissions')
@@ -63,7 +60,6 @@ class Guild(BaseObject):
     _presences = JsonArray('presences')
     max_presences = JsonField('max_presences')
     max_members = JsonField('max_members')
-    banner = JsonField('banner')
     premium_tier = JsonField('permium_tier', PremiumTier.get_enum)
     premium_subscription_count = JsonField('premium_subscription_count')
     preferred_locale = JsonField('preferred_locale')
@@ -91,6 +87,41 @@ class Guild(BaseObject):
 
     def __str__(self):
         return self.name
+
+    @property
+    def icon(self):
+        if 'icon' in self._json_data_:
+            return GuildIcon(
+                rest=self.state.client.rest, guild_id=self.id, guild_icon=self._json_data_['icon']
+            )
+        return None
+
+    @property
+    def splash(self):
+        if 'splash' in self._json_data_:
+            return GuildSplash(
+                rest=self.state.client.rest, guild_id=self.id,
+                guild_splash=self._json_data_['splash']
+            )
+        return None
+
+    @property
+    def discovery_splash(self):
+        if 'discovery_splash' in self._json_data_:
+            return GuildDiscoverySplash(
+                rest=self.state.client.rest, guild_id=self.id,
+                guild_discovery_splash=self._json_data_['discovery_splash']
+            )
+        return None
+
+    @property
+    def banner(self):
+        if 'banner' in self._json_data_:
+            return GuildBanner(
+                rest=self.state.client.rest, guild_id=self.id,
+                guild_banner=self._json_data_['banner']
+            )
+        return None
 
     async def sync(self, payload):
         cache_flags = self.state.client.cache_flags

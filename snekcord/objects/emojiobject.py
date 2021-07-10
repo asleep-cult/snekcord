@@ -98,6 +98,10 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
 
 class _BaseUnicodeEmoji(BaseEmoji):
     @property
+    def unicode(self):
+        return self.surrogates.encode()
+
+    @property
     def id(self):
         return self.surrogates
 
@@ -116,15 +120,7 @@ class UnicodeEmoji(_BaseUnicodeEmoji):
             self.diversity_children.append(UnicodeEmoji(category=category, data=child))
 
     def __str__(self):
-        return self.unicode
-
-    @property
-    def unicode(self):
-        return self.surrogates.encode()
-
-    @property
-    def id(self):
-        return self.surrogates
+        return f':{self.name}:'
 
     @property
     def name(self):
@@ -146,3 +142,6 @@ class UnicodeEmoji(_BaseUnicodeEmoji):
 class PartialUnicodeEmoji(_BaseUnicodeEmoji):
     def __init__(self, *, surrogates):
         self.surrogates = surrogates
+
+    def __str__(self):
+        return self.unicode

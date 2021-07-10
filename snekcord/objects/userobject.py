@@ -1,5 +1,6 @@
 from .baseobject import BaseObject
 from ..enums import PremiumType
+from ..fetchables import DefaultUserAvatar, UserAvatar
 from ..flags import UserFlags
 from ..utils import JsonField
 
@@ -9,7 +10,6 @@ __all__ = ('User',)
 class User(BaseObject):
     name = JsonField('username')
     discriminator = JsonField('discriminator')
-    avatar = JsonField('avatar')
     bot = JsonField('bot')
     system = JsonField('system')
     mfa_enabled = JsonField('mfa_enabled')
@@ -30,3 +30,18 @@ class User(BaseObject):
     @property
     def mention(self):
         return f'<@{self.id}>'
+
+    @property
+    def avatar(self):
+        if 'avatar' in self._json_data_:
+            return UserAvatar(
+                rest=self.state.client.rest, user_id=self.id,
+                user_avatar=self._json_data_['avatar']
+            )
+        return self.default_avatar
+
+    @property
+    def default_avatar(self):
+        return DefaultUserAvatar(
+            rest=self.state.client.rest, user_discriminator=int(self.discriminator)
+        )

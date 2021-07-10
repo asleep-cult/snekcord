@@ -295,8 +295,7 @@ class Client:
     async def finalize(self):
         await self.close()
 
-        tasks = asyncio.all_tasks(loop=self.loop)
-        for task in tasks:
+        for task in asyncio.all_tasks(loop=self.loop):
             if task is not asyncio.current_task() and not task.done():
                 task.cancel()
 

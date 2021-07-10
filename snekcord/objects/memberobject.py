@@ -18,7 +18,6 @@ class GuildMember(BaseObject):
     deaf = JsonField('deaf')
     mute = JsonField('mute')
     pending = JsonField('pending')
-    _permissions = JsonField('permissions', Permissions.from_value)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -31,8 +30,8 @@ class GuildMember(BaseObject):
 
     @property
     def permissions(self):
-        if self._permissions is not None:
-            return self._permissions
+        if 'permissions' in self._json_data_:
+            return Permissions.from_value(self._json_data_['permissions'])
 
         guild = self.guild
 
