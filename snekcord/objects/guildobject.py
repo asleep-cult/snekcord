@@ -144,8 +144,7 @@ class Guild(BaseObject):
                 json['description'] = None
 
         data = await rest.create_guild_template.request(
-            self.state.client.rest, {'guild_id': self.id},
-            json=json
+            self.state.client.rest, {'guild_id': self.id}, json=json
         )
 
         return self.state.new_template(data)

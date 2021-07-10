@@ -95,6 +95,12 @@ class GuildMember(BaseObject):
             else:
                 json['deaf'] = None
 
+        if voice_channel is not undefined:
+            if voice_channel is not None:
+                json['channel_id'] = Snowflake.try_snowflake(voice_channel)
+            else:
+                json['channel_id'] = None
+
         data = await rest.modify_guild_member.request(
             self.state.client.rest,
             {'guild_id': self.guild.id, 'user_id': self.id},
