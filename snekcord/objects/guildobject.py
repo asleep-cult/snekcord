@@ -90,37 +90,33 @@ class Guild(BaseObject):
 
     @property
     def icon(self):
-        if 'icon' in self._json_data_:
-            return GuildIcon(
-                rest=self.state.client.rest, guild_id=self.id, guild_icon=self._json_data_['icon']
-            )
+        icon = self._json_data_.get('icon')
+        if icon is not None:
+            return GuildIcon(rest=self.state.client.rest, guild_id=self.id, guild_icon=icon)
         return None
 
     @property
     def splash(self):
-        if 'splash' in self._json_data_:
-            return GuildSplash(
-                rest=self.state.client.rest, guild_id=self.id,
-                guild_splash=self._json_data_['splash']
-            )
+        splash = self._json_data_.get('splash')
+        if splash is not None:
+            return GuildSplash(rest=self.state.client.rest, guild_id=self.id, guild_splash=splash)
         return None
 
     @property
     def discovery_splash(self):
-        if 'discovery_splash' in self._json_data_:
+        discovery_splash = self._json_data_.get('discovery_splash')
+        if discovery_splash is not None:
             return GuildDiscoverySplash(
                 rest=self.state.client.rest, guild_id=self.id,
-                guild_discovery_splash=self._json_data_['discovery_splash']
+                guild_discovery_splash=discovery_splash
             )
         return None
 
     @property
     def banner(self):
-        if 'banner' in self._json_data_:
-            return GuildBanner(
-                rest=self.state.client.rest, guild_id=self.id,
-                guild_banner=self._json_data_['banner']
-            )
+        banner = self._json_data_.get('banner')
+        if banner is not None:
+            return GuildBanner(rest=self.state.client.rest, guild_id=self.id, guild_banner=banner)
         return None
 
     async def sync(self, payload):
