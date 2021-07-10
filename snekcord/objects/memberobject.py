@@ -4,7 +4,7 @@ from .baseobject import BaseObject
 from .. import rest
 from ..clients.client import ClientClasses
 from ..flags import Permissions
-from ..utils import JsonField, Snowflake
+from ..utils import JsonField, Snowflake, undefined
 
 __all__ = ('GuildMember',)
 
@@ -22,7 +22,6 @@ class GuildMember(BaseObject):
 
     def __init__(self, *, state):
         super().__init__(state=state)
-
         self.user = None
         self.roles = ClientClasses.GuildMemberRoleState(superstate=self.guild.roles, member=self)
 
@@ -66,34 +65,54 @@ class GuildMember(BaseObject):
     def removed_at(self):
         return self.deleted_at
 
-    async def modify(self, **kwargs):
-        try:
-            kwargs['channel_id'] = Snowflake.try_snowflake(kwargs.pop('voice_channel'))
-        except KeyError:
-            pass
+    async def modify(
+        self, *, nick=undefined, roles=undefined, mute=undefined, deaf=undefined,
+        voice_channel=undefined
+    ):
+        json = {}
 
-        try:
-            roles = Snowflake.try_snowflake_set(kwargs['roles'])
-            kwargs['roles'] = tuple(roles)
-        except KeyError:
-            pass
+        if nick is not undefined:
+            if nick is not None:
+                json['nick'] = str(nick)
+            else:
+                json['nick'] = None
+
+        if roles is not undefined:
+            if roles is not None:
+                json['roles'] = Snowflake.try_snowflake_many(roles)
+            else:
+                json['roles'] = None
+
+        if mute is not undefined:
+            if mute is not None:
+                json['mute'] = bool(mute)
+            else:
+                json['mute'] = None
+
+        if deaf is not undefined:
+            if deaf is not None:
+                json['deaf'] = bool(deaf)
+            else:
+                json['deaf'] = None
 
         data = await rest.modify_guild_member.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.guild.id,
-                     user_id=self.id),
-            json=kwargs)
+            self.state.client.rest,
+            {'guild_id': self.guild.id, 'user_id': self.id},
+            json=json
+        )
 
         return self.state.upsert(data)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def remove(self):
+        return self.state.remove(self.id)
 
-        user = data.get('user')
-        if user is not None:
-            self.user = self.state.client.users.upsert(user)
+    def update(self, data):
+        super().update(data)
+
+        if 'user' in data:
+            self.user = self.state.client.users.upsert(data['user'])
             self._json_data_['id'] = self.user.id
 
-        roles = data.get('roles')
-        if roles is not None:
-            self.roles._keys = {Snowflake(r) for r in roles}
+        if 'roles' in data:
+            for role in data['roles']:
+                self.roles.add_key(Snowflake(role))

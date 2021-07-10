@@ -87,7 +87,7 @@ class GuildEmojiState(BaseState):
         json = {'name': str(name), 'image': resolve_image_data(image)}
 
         if roles is not None:
-            json['roles'] = Snowflake.try_snowflake_set(roles)
+            json['roles'] = Snowflake.try_snowflake_many(roles)
 
         data = await rest.create_guild_emoji.request(
             self.client.rest, {'guild_id': self.guild.id}, json=json

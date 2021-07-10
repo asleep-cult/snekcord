@@ -67,7 +67,7 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
 
         if roles is not undefined:
             if roles is not None:
-                json['roles'] = Snowflake.try_snowflake_set(roles)
+                json['roles'] = Snowflake.try_snowflake_many(roles)
             else:
                 json['roles'] = None
 

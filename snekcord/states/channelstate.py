@@ -79,3 +79,46 @@ class GuildChannelState(BaseSubState):
     @property
     def public_updates(self):
         return self.get(self.guild.public_updates_channel_id)
+
+    async def fetch_all(self):
+        data = await rest.get_guild_channels.request(
+            self.superstate.client.rest, {'guild_id': self.guild.id}
+        )
+
+        return [self.superstate.upsert(channel) for channel in data]
+
+    async def modify_many(self, channels):
+        json = []
+
+        for channel, data in channels.items():
+            channel = {'channel': Snowflake.try_snowflake(channel)}
+
+            if 'position' in data:
+                position = data['position']
+
+                if position is not None:
+                    channel['position'] = position
+                else:
+                    channel['position'] = None
+
+            if 'lock_permissions' in data:
+                lock_permissions = data['lock_permissions']
+
+                if lock_permissions is not None:
+                    channel['lock_permissions'] = bool(lock_permissions)
+                else:
+                    channel['lock_permissions'] = None
+
+            if 'parent' in data:
+                parent = data['parent']
+
+                if parent is not None:
+                    channel['parent'] = Snowflake.try_snowflake(parent)
+                else:
+                    channel['parent'] = None
+
+            json.append(channel)
+
+        await rest.modify_guild_channels.request(
+            self.superstate.client.rest, {'guild_id': self.guild.id}, json=json
+        )

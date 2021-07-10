@@ -8,8 +8,7 @@ class Enum:
         cls._enum_values_ = {}
 
         for key, value in cls.__dict__.items():
-            if (not key.startswith('_')
-                    and isinstance(value, cls._enum_type_)):
+            if not key.startswith('_') and isinstance(value, cls._enum_type_):
                 enum = cls(key, value)
                 cls._enum_names_[key] = enum
                 cls._enum_values_[value] = enum

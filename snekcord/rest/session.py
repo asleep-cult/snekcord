@@ -35,6 +35,7 @@ class RestSession(AsyncClient):
 
             keys = iter(keys)
             name = next(keys)
+
             for key in keys:
                 if key.isnumeric():
                     name += f'[{key}]'
@@ -62,8 +63,7 @@ class RestSession(AsyncClient):
         data = response.content
 
         content_type = response.headers.get('content-type')
-        if (content_type is not None
-                and content_type.lower() == 'application/json'):
+        if content_type is not None and content_type.lower() == 'application/json':
             data = json.loads(data)
 
         status_code = response.status_code
@@ -73,7 +73,7 @@ class RestSession(AsyncClient):
             messages = [f'[{method} {url} => {status} {status.phrase}]']
 
             if isinstance(data, dict):
-                messages.append(f' {data["message"]} (code: {data["code"]})')
+                messages.append(f' {data.get("message")} (code: {data.get("code")})')
 
                 if 'errors' in data:
                     for name, msgs in self._iter_errors(data['errors']):

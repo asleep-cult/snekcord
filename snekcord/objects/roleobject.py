@@ -1,7 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..flags import Permissions
-from ..utils import JsonField, JsonObject, Snowflake, _validate_keys
+from ..utils import JsonField, JsonObject, Snowflake, undefined
 
 __all__ = ('RoleTags', 'Role')
 
@@ -46,18 +46,49 @@ class Role(BaseObject):
             return '@everyone'
         return f'<@&{self.id}>'
 
-    async def modify(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_guild_role_positions.json)
+    async def modify(
+        self, *, name=undefined, permissions=undefined, color=undefined, hoist=undefined,
+        mentionable=undefined
+    ):
+        json = {}
 
-        data = await rest.modify_guild_role_positions.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.guild.id, role_id=self.id),
-            json=kwargs)
+        if name is not undefined:
+            if name is not None:
+                json['name'] = str(name)
+            else:
+                json['name'] = None
+
+        if permissions is not undefined:
+            if permissions is not None:
+                json['permissions'] = Permissions.get_value(permissions)
+            else:
+                json['permissions'] = None
+
+        if color is not undefined:
+            if color is not None:
+                json['color'] = int(color)
+            else:
+                json['color'] = None
+
+        if hoist is not undefined:
+            if hoist is not None:
+                json['hoist'] = bool(hoist)
+            else:
+                json['hoist'] = None
+
+        if mentionable is not undefined:
+            if mentionable is not None:
+                json['mentionable'] = bool(mentionable)
+            else:
+                json['mentionable'] = None
+
+        data = await rest.modify_guild_role.request(
+            self.state.client.rest,
+            {'guild_id': self.guild.id, 'role_id': self.id},
+            json=json
+        )
 
         return self.state.upsert(data)
 
-    async def delete(self):
-        await rest.delete_guild_role.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.guild.id, role_id=self.id))
+    def delete(self):
+        return self.state.delete(self.id)

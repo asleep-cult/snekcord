@@ -105,13 +105,15 @@ class MessageState(BaseState):
         return self.upsert(data)
 
     async def bulk_delete(self, messages):
-        message_ids = Snowflake.try_snowflake_set(messages)
+        message_ids = Snowflake.try_snowflake_many(messages)
 
         if len(message_ids) == 0:
             raise TypeError('bulk_delete requires at least 1 message')
+
         elif len(message_ids) == 1:
             message_id, = message_ids
             return await self.delete(message_id)
+
         elif len(message_ids) > 100:
             raise TypeError('bulk_delete can\'t delete more than 100 messages')
 

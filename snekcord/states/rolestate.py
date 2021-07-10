@@ -1,7 +1,8 @@
 from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..utils import Snowflake, _validate_keys
+from ..flags import Permissions
+from ..utils import Snowflake
 
 __all__ = ('RoleState', 'GuildMemberRoleState')
 
@@ -28,43 +29,63 @@ class RoleState(BaseState):
 
     async def fetch_all(self):
         data = await rest.get_guild_roles.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id))
+            self.client.rest, {'guild_id': self.guild.id}
+        )
 
-        roles = []
+        return [self.upsert(role) for role in data]
 
-        for role in data:
-            roles.append(self.upsert(role).id)
+    async def create(
+        self, *, name=None, permissions=None, color=None, hoist=None, mentionable=None
+    ):
+        json = {}
 
-        return roles
+        if name is not None:
+            json['name'] = str(name)
 
-    async def create(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, (), rest.create_guild_role.json)
+        if permissions is not None:
+            json['permissions'] = Permissions.get_value(permissions)
+
+        if color is not None:
+            json['color'] = int(color)
+
+        if hoist is not None:
+            json['hoist'] = bool(hoist)
+
+        if mentionable is not None:
+            json['mentionable'] = bool(mentionable)
 
         data = await rest.create_guild_role.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            json=kwargs)
+            self.client.rest, {'guild_id': self.guild.id}, json=json
+        )
 
         return self.upsert(data)
 
-    async def modify_many(self, positions):
+    async def modify_many(self, roles):
         json = []
 
-        for key, value in positions.items():
-            value['id'] = Snowflake.try_snowflake(key)
+        for role, data in roles.items():
+            role = {'id': Snowflake.try_snowflake(role)}
 
-            _validate_keys(f'positions[{key}]',
-                           value, ('id',),
-                           rest.modify_guild_role_positions.json)
+            if 'position' in data:
+                position = data['position']
 
-            json.append(value)
+                if position is not None:
+                    role['position'] = int(position)
+                else:
+                    role['position'] = None
 
-        await rest.modify_guild_role_positions.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            json=json)
+            json.append(role)
+
+        await rest.modify_guild_roles.request(
+            self.client.rest, {'guild_id': self.guild.id}, json=json
+        )
+
+    async def delete(self, role):
+        role_id = Snowflake.try_snowflake(role)
+
+        await rest.delete_guild_role.request(
+            self.client.rest, {'guild_id': self.guild.id, 'role_id': role_id}
+        )
 
 
 class GuildMemberRoleState(BaseSubState):
@@ -76,16 +97,22 @@ class GuildMemberRoleState(BaseSubState):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.add_guild_member_role.request(
-            session=self.superstate.client.rest,
-            fmt=dict(guild_id=self.member.guild.id,
-                     user_id=self.member.user.id,
-                     role_id=role_id))
+            self.superstate.client.rest,
+            {
+                'guild_id': self.member.guild.id,
+                'user_id': self.member.id,
+                'role_id': role_id
+            }
+        )
 
     async def remove(self, role):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.remove_guild_member_role.request(
-            session=self.superstate.client.rest,
-            fmt=dict(guild_id=self.member.guild.id,
-                     user_id=self.member.user.id,
-                     role_id=role_id))
+            self.superstate.client.rest,
+            {
+                'guild_id': self.member.guild.id,
+                'user_id': self.member.id,
+                'role_id': role_id
+            }
+        )

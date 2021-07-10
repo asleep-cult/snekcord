@@ -1,14 +1,12 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..utils import Snowflake, _validate_keys
+from ..utils import Snowflake
 
 __all__ = ('GuildMemberState',)
 
 
 class GuildMemberState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
@@ -28,68 +26,62 @@ class GuildMemberState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_member.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id,
-                     user_id=user_id))
+            self.client.rest, {'guild_id': self.guild.id, 'user_id': user_id}
+        )
 
         return self.upsert(data)
 
-    async def fetch_many(self, *, before=None, after=None, limit=None):
+    async def fetch_many(self, *, after=None, limit=None):
         params = {}
 
-        if before is not None:
-            params['before'] = Snowflake.try_snowflake(before)
-
         if after is not None:
-            params['after'] = Snowflake.try_snowflake(after)
+            params['after'] = Snowflake.try_snowflake(after, allow_datetime=True)
 
         if limit is not None:
-            params['limit'] = limit
+            params['limit'] = int(limit)
 
         data = await rest.get_guild_members.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            params=params)
+            self.client.rest, {'guild_id': self.guild.id}, params=params
+        )
 
-        members = []
+        return [self.upsert(member) for member in data]
 
-        for member in data:
-            members.append(self.upsert(member))
-
-        return members
-
-    async def search(self, query, limit=None):
-        params = {'query': query}
+    async def search(self, query, *, limit=None):
+        params = {'query': str(query)}
 
         if limit is not None:
-            params['limit'] = limit
+            params['limit'] = int(limit)
 
         data = await rest.search_guild_members.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            params=params)
+            self.client.rest, {'guild_id': self.guild.id}, params=params
+        )
 
-        members = []
+        return [self.upsert(member) for member in data]
 
-        for member in data:
-            members.append(self.upsert(member))
+    async def add(self, user, access_token, *, nick=None, roles=None, mute=None, deaf=None):
+        json = {'access_token': str(access_token)}
 
-        return members
+        if nick is not None:
+            json['nick'] = str(nick)
 
-    async def add(self, user, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.add',
-                       kwargs, ('access_token',), rest.add_guild_member.json)
+        if roles is not None:
+            json['roles'] = Snowflake.try_snowflake_many(roles)
+
+        if mute is not None:
+            json['mute'] = bool(mute)
+
+        if deaf is not None:
+            json['deaf'] = bool(deaf)
 
         user_id = Snowflake.try_snowflake(user)
 
         await rest.add_guild_member.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id, user_id=user_id),
-            json=kwargs)
+            self.client.rest, {'guild_id': self.guild.id, 'user_id': user_id}, json=json
+        )
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_member.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id, user_id=user_id))
+            self.client.rest, {'guild_id': self.guild.id, 'user_id': user_id}
+        )

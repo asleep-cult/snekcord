@@ -270,7 +270,7 @@ class Guild(BaseObject):
             params['days'] = int(days)
 
         if roles is not None:
-            params['include_roles'] = ','.join(str(r) for r in Snowflake.try_snowflake_set(roles))
+            params['include_roles'] = ','.join(str(r) for r in Snowflake.try_snowflake_many(roles))
 
         data = await rest.get_guild_prune_count.request(
             self.state.client.rest, {'guild_id': self.guild.id}, params=params
@@ -288,7 +288,7 @@ class Guild(BaseObject):
             json['compute_count'] = bool(compute_count)
 
         if roles is not None:
-            json['roles'] = Snowflake.try_snowflake_set(roles)
+            json['roles'] = Snowflake.try_snowflake_many(roles)
 
         if reason is not None:
             json['reason'] = str(reason)

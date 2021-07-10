@@ -245,7 +245,7 @@ class ShardWebSocket(BaseWebSocket):
             else:
                 payload['limit'] = 0
         elif users is not None:
-            payload['user_ids'] = tuple(Snowflake.try_snowflake_set(users))
+            payload['user_ids'] = Snowflake.try_snowflake_many(users)
 
             if limit is not None:
                 payload['limit'] = limit

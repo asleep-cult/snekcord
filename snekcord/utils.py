@@ -154,8 +154,8 @@ class Snowflake(int):
             raise ValueError(f'Failed to convert {obj!r} to a Snowflake')
 
     @classmethod
-    def try_snowflake_set(cls, objs, *, allow_datetime=False):
-        return {cls.try_snowflake(obj, allow_datetime=allow_datetime) for obj in objs}
+    def try_snowflake_many(cls, objs, *, allow_datetime=False):
+        return tuple({cls.try_snowflake(obj, allow_datetime=allow_datetime) for obj in objs})
 
     @property
     def timestamp(self):
