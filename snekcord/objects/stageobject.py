@@ -1,7 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..enums import StageInstancePrivacyLevel
-from ..utils import JsonField, Snowflake, _validate_keys
+from ..utils import JsonField, Snowflake
 
 __all__ = ('StageInstance',)
 
@@ -21,26 +21,23 @@ class StageInstance(BaseObject):
     def channel(self):
         return self.state.client.channels.get(self.channel_id)
 
-    async def fetch(self):
-        return await self.state.fetch(self.channel_id)
+    def fetch(self):
+        return self.state.fetch(self.channel_id)
 
-    async def modify(self, **kwargs):
-        try:
-            kwargs['privacy_level'] = StageInstancePrivacyLevel.get_value(kwargs['privacy_level'])
-        except KeyError:
-            pass
+    async def modify(self, *, topic=None, privacy_level=None):
+        json = {}
 
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_stage_instance.json)
+        if topic is not None:
+            json['topic'] = str(topic)
+
+        if privacy_level is not None:
+            json['privacy_level'] = StageInstancePrivacyLevel.get_value(privacy_level)
 
         data = await rest.modify_stage_instance.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.channel_id),
-            json=kwargs)
+            self.state.client.rest, {'channel_id': self.channel_id}, json=json
+        )
 
         return self.state.upsert(data)
 
     async def delete(self):
-        await rest.delete_stage_instance.request(
-            session=self.state.client.rest,
-            fmt=dict(channel_id=self.channel_id))
+        return self.state.delete(self.channel_id)

@@ -8,7 +8,6 @@ __all__ = ('ClientClasses', 'Client',)
 class _ClientClasses:
     _object_classes_ = {
         'GuildChannel',
-        'FollowedChannel',
         'TextChannel',
         'CategoryChannel',
         'VoiceChannel',
@@ -18,6 +17,7 @@ class _ClientClasses:
         'UnicodeEmoji',
         'PartialUnicodeEmoji',
         'Guild',
+        'GuildBan',
         'Integration',
         'Invite',
         'GuildVanityURL',
@@ -56,12 +56,8 @@ class _ClientClasses:
         'UserState',
     }
 
-    _local_classes_ = set()
-
     def __getattribute__(self, name):
-        if name in _ClientClasses._local_classes_:
-            return super().__getattribute__(name)
-        elif name in _ClientClasses._object_classes_:
+        if name in _ClientClasses._object_classes_:
             from .. import objects
 
             return getattr(objects, name)
@@ -75,10 +71,6 @@ class _ClientClasses:
             return getattr(states, name)
         else:
             return super().__getattribute__(name)
-
-    def set_class(self, name, klass):
-        _ClientClasses._local_classes_.add(name)
-        setattr(self, name, klass)
 
 
 ClientClasses = _ClientClasses()

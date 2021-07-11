@@ -172,3 +172,5 @@ class Message(BaseObject):
             self.channel.pins.add_key(self.id)
         else:
             self.channel.pins.remove_key(self.id)
+
+        return self

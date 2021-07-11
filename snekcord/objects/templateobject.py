@@ -2,7 +2,8 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..utils import JsonField, Snowflake, _validate_keys
+from ..resolvers import resolve_image_data
+from ..utils import JsonField, Snowflake, undefined
 
 __all__ = ('GuildTemplate',)
 
@@ -35,57 +36,61 @@ class GuildTemplate(BaseObject):
 
     async def fetch(self):
         data = await rest.get_template.request(
-            session=self.state.client.rest,
-            fmt=dict(code=self.code))
+            self.state.client.rest, {'template_code': self.code}
+        )
 
-        self.update(data)
+        return self.update(data)
 
-        return self
+    async def create_guild(self, *, name, icon=None):
+        json = {'name': str(name)}
 
-    async def create_guild(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.create_guild',
-                       kwargs, ('name',), rest.create_guild_from_template.json)
+        if icon is not None:
+            json['icon'] = resolve_image_data(icon)
 
         data = await rest.create_guild_from_template.request(
-            session=self.state.client.rest,
-            fmt=dict(template_code=self.code),
-            json=kwargs)
+            self.state.client.rest, {'template_code': self.code}, json=json
+        )
 
-        return self.state.client.guilds.upsert(data)
+        return self.state.upsert(data)
 
     async def sync(self):
         data = await rest.sync_guild_template.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.source_guild_id,
-                     template_code=self.code))
+            self.state.client.rest,
+            {'guild_id': self.source_guild_id, 'template_code': self.code}
+        )
 
-        self.update(data)
+        return self.update(data)
 
-        return self
+    async def modify(self, *, name=None, description=undefined):
+        json = {}
 
-    async def modify(self, **kwargs):
-        _validate_keys(f'{self.__class__.__name__}.modify',
-                       kwargs, (), rest.modify_guild_template.json)
+        if name is not None:
+            json['name'] = str(name)
+
+        if description is not undefined:
+            if description is not None:
+                json['description'] = str(description)
+            else:
+                json['description'] = None
 
         data = await rest.modify_guild_template.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.source_guild_id,
-                     template_code=self.code),
-            json=kwargs)
+            self.state.client.rest,
+            {'guild_id': self.source_guild_id, 'template_code': self.code},
+            json=json
+        )
 
-        self.update(data)
+        return self.update(data)
+
+    async def delete(self):
+        await rest.delete_guild_template.request(
+            self.state.client.rest,
+            {'guild_id': self.source_guild_id, 'template_code': self.code}
+        )
+
+    def update(self, data):
+        super().update(data)
+
+        if 'creator' in data:
+            self.state.client.users.upsert(data['creator'])
 
         return self
-
-    async def delete(self) -> None:
-        await rest.delete_guild_template.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.source_guild_id,
-                     template_code=self.code))
-
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
-
-        creator = data.get('creator')
-        if creator is not None:
-            self.state.client.users.upsert(creator)

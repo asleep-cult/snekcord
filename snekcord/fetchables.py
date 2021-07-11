@@ -1,22 +1,20 @@
+from .rest.endpoints import BASE_API_URL
+
 BASE_CDN_URL = 'https://cdn.discordapp.com'
 
 VALID_SIZES = tuple(sqrt ** 2 for sqrt in range(4, 64))
 
 
-def _get_size(size):
+def _form_url(url, format, size):
     if size not in VALID_SIZES:
         raise ValueError(
             f'{size!r} is not a valid size (sizes must be a power of 2 between 16 and 4096)'
         )
 
-    return size
-
-
-def _get_url(url, format, size):
     url += f'.{format}'
 
     if size is not None:
-        url += f'?size={_get_size(size)}'
+        url += f'?size={size}'
 
     return url
 
@@ -42,9 +40,6 @@ class GuildIcon(Fetchable):
         self.guild_icon = guild_icon
 
     def url(self, *, format=None, size=None):
-        if size is not None:
-            size = _get_size(size)
-
         if format is not None:
             format = format.lower()
 
@@ -56,7 +51,7 @@ class GuildIcon(Fetchable):
             else:
                 format = 'png'
 
-        return _get_url(f'{BASE_CDN_URL}/icons/{self.guild_id}/{self.guild_icon}', format, size)
+        return _form_url(f'{BASE_CDN_URL}/icons/{self.guild_id}/{self.guild_icon}', format, size)
 
 
 class GuildSplash(Fetchable):
@@ -74,7 +69,7 @@ class GuildSplash(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(
+        return _form_url(
             f'{BASE_CDN_URL}/splashes/{self.guild_id}/{self.guild_splash}', format, size
         )
 
@@ -94,7 +89,7 @@ class GuildDiscoverySplash(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(
+        return _form_url(
             f'{BASE_CDN_URL}/discovery-splashes/{self.guild_id}/{self.guild_discovery_splash}',
             format, size
         )
@@ -115,7 +110,9 @@ class GuildBanner(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(f'{BASE_CDN_URL}/banners/{self.guild_id}/{self.guild_banner}', format, size)
+        return _form_url(
+            f'{BASE_CDN_URL}/banners/{self.guild_id}/{self.guild_banner}', format, size
+        )
 
 
 class DefaultUserAvatar(Fetchable):
@@ -124,7 +121,7 @@ class DefaultUserAvatar(Fetchable):
         self.user_discriminator = user_discriminator
 
     def url(self):
-        return _get_url(f'{BASE_CDN_URL}/embed/avatars/{self.user_discriminator % 5}', 'png', None)
+        return _form_url(f'{BASE_CDN_URL}/embed/avatars/{self.user_discriminator % 5}', 'png', None)
 
 
 class UserAvatar(Fetchable):
@@ -142,7 +139,7 @@ class UserAvatar(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(f'{BASE_CDN_URL}/avatars/{self.user_id}/{self.user_avatar}', format, size)
+        return _form_url(f'{BASE_CDN_URL}/avatars/{self.user_id}/{self.user_avatar}', format, size)
 
 
 class ApplicationIcon(Fetchable):
@@ -160,7 +157,7 @@ class ApplicationIcon(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(
+        return _form_url(
             f'{BASE_CDN_URL}/app-icons/{self.application_id}/{self.application_icon}', format, size
         )
 
@@ -180,7 +177,7 @@ class ApplicationCover(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(
+        return _form_url(
             f'{BASE_CDN_URL}/app-icons/{self.application_id}/{self.application_cover_image}',
             format, size
         )
@@ -201,7 +198,7 @@ class ApplicationAsset(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(
+        return _form_url(
             f'{BASE_CDN_URL}/app-icons/{self.application_id}/{self.application_asset}',
             format, size
         )
@@ -223,7 +220,7 @@ class AchievementIcon(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(
+        return _form_url(
             f'{BASE_CDN_URL}/app-icons/{self.application_id}/achievements/'
             f'{self.achievement_id}/icons/{self.achievement_icon}',
             format, size
@@ -245,4 +242,24 @@ class TeamIcon(Fetchable):
         else:
             format = 'png'
 
-        return _get_url(f'{BASE_CDN_URL}/team-icons/{self.team_id}/{self.team_icon}', format, size)
+        return _form_url(f'{BASE_CDN_URL}/team-icons/{self.team_id}/{self.team_icon}', format, size)
+
+
+class GuildWidgetImage(Fetchable):
+    def __init__(self, *, rest, guild_id):
+        super().__init__(rest=rest)
+        self.guild_id = guild_id
+
+    def url(self, *, style=None):
+        if style is not None:
+            style = style.lower()
+
+            if style not in ('shield', 'banner1', 'banner2', 'banner3', 'banner4'):
+                raise ValueError(f'{style!r} is not a valid guild widget image style')
+
+        url = f'{BASE_API_URL}/guilds/{self.guild_id}/widget.png'
+
+        if style is not None:
+            url += f'?style={style}'
+
+        return url

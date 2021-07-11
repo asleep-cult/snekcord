@@ -1,5 +1,6 @@
 from .. import rest
-from ..utils import JsonArray, JsonField, JsonObject, Snowflake
+from ..fetchables import GuildWidgetImage
+from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
 __all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson', 'GuildWidget')
 
@@ -41,53 +42,35 @@ class GuildWidget(JsonObject):
     def channel(self):
         return self.guild.channels.get(self.channel_id)
 
+    @property
+    def image(self):
+        return GuildWidgetImage(
+            rest=self.guild.state.client.rest, guild_id=self.guild.id
+        )
+
     async def fetch(self):
-        data = await rest.get_guild_widget_settings.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id))
+        data = await rest.get_guild_widget.request(
+            self.guild.state.client.rest, {'guild_id': self.guild.id}
+        )
 
-        self.update(data)
+        return self.update(data)
 
-        return self
-
-    async def modify(self, enabled=None, channel=None):
+    async def modify(self, *, enabled=None, channel=undefined):
         json = {}
 
         if enabled is not None:
             json['enabled'] = enabled
 
-        if channel is not None:
-            json['channel_id'] = Snowflake.try_snowflake(channel)
+        if channel is not undefined:
+            if channel is not None:
+                json['channel_id'] = Snowflake.try_snowflake(channel)
+            else:
+                json['channel_id'] = None
 
         data = await rest.modify_guild_widget_settings.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            json=json)
+            self.guild.state.client.rest,
+            {'guild_id': self.guild.id},
+            json=json
+        )
 
-        self.update(data)
-
-        return self
-
-    async def fetch_json(self):
-        data = await rest.get_guild_widget.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id))
-
-        return GuildWidgetJson.unmarshal(data)
-
-    async def fetch_shield(self):
-        data = await rest.get_guild_widget_image.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id))
-
-        return data
-
-    async def fetch_banner(self, style='1'):
-        style = f'banner{style}'
-
-        data = await rest.get_guild_widget_image.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id),
-            params=dict(style=style))
-
-        return data
+        return self.update(data)

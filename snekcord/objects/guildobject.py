@@ -299,7 +299,7 @@ class Guild(BaseObject):
             params['include_roles'] = ','.join(str(r) for r in Snowflake.try_snowflake_many(roles))
 
         data = await rest.get_guild_prune_count.request(
-            self.state.client.rest, {'guild_id': self.guild.id}, params=params
+            self.state.client.rest, {'guild_id': self.id}, params=params
         )
 
         return data['pruned']
@@ -401,9 +401,8 @@ class GuildBan(BaseObject):
     def update(self, data):
         super().update(data)
 
-        user = data.get('user')
-        if user is not None:
-            self.user = self.state.client.users.upsert(user)
+        if 'user' in data:
+            self.user = self.state.client.users.upsert(data['user'])
             self._json_data_['id'] = self.user.id
 
         return self

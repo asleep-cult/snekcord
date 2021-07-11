@@ -24,6 +24,9 @@ class GuildMember(BaseObject):
         self.user = None
         self.roles = ClientClasses.GuildMemberRoleState(superstate=self.guild.roles, member=self)
 
+    def __str__(self):
+        return str(self.user)
+
     @property
     def guild(self):
         return self.state.guild
@@ -121,3 +124,5 @@ class GuildMember(BaseObject):
         if 'roles' in data:
             for role in data['roles']:
                 self.roles.add_key(Snowflake(role))
+
+        return self

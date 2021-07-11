@@ -2,14 +2,12 @@ from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.stageobject import StageInstancePrivacyLevel
-from ..utils import Snowflake, _validate_keys
+from ..utils import Snowflake
 
 __all__ = ('StageInstanceState',)
 
 
 class StageInstanceState(BaseState):
-    __key_transformer__ = Snowflake.try_snowflake
-
     def upsert(self, data):
         stage = self.get(Snowflake(data['id']))
 
@@ -21,34 +19,32 @@ class StageInstanceState(BaseState):
 
         return stage
 
-    async def fetch(self, stage):
-        stage_id = Snowflake.try_snowflake(stage)
+    async def fetch(self, channel):
+        channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.get_stage_instance.request(
-            session=self.client.rest,
-            fmt=dict(stage_id=stage_id))
+            self.client.rest, {'channel_id': channel_id}
+        )
 
         return self.upsert(data)
 
-    async def create(self, **kwargs):
-        try:
-            kwargs['channel_id'] = Snowflake.try_snowflake(
-                kwargs.pop('channel'))
-        except KeyError:
-            pass
+    async def create(self, *, channel, topic, privacy_level=None):
+        json = {}
 
-        try:
-            kwargs['privacy_level'] = StageInstancePrivacyLevel.get_value(
-                kwargs['privacy_level'])
-        except KeyError:
-            pass
+        json['channel_id'] = Snowflake.try_snowflake(channel)
 
-        _validate_keys(f'{self.__class__.__name__}.create',
-                       kwargs, ('channel_id', 'topic'),
-                       rest.create_stage_instance.json)
+        json['topic'] = str(topic)
 
-        data = await rest.create_stage_instance.request(
-            session=self.client.rest,
-            json=kwargs)
+        if privacy_level is not None:
+            json['privacy_level'] = StageInstancePrivacyLevel.get_value(privacy_level)
+
+        data = await rest.create_stage_instance.request(self.client.rest, json=json)
 
         return self.upsert(data)
+
+    async def delete(self, channel):
+        channel_id = Snowflake.try_snowflake(channel)
+
+        await rest.delete_stage_instance.request(
+            self.client.rest, {'channel_id': channel_id}
+        )

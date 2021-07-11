@@ -275,6 +275,7 @@ class GuildMemberRemoveEvent(BaseEvent):
 
         if guild is not None:
             member = guild.members.get(user.id)
+
             if member is not None:
                 member._delete()
 
@@ -334,6 +335,7 @@ class GuildRoleDeleteEvent(BaseEvent):
 
         if guild is not None:
             role = guild.roles.get(Snowflake(payload['role_id']))
+
             if role is not None:
                 role._delete()
 
@@ -437,6 +439,7 @@ class MessageDeleteEvent(BaseEvent):
 
         if channel is not None:
             message = channel.messages.get(Snowflake(payload['id']))
+
             if message is not None:
                 message._delete()
 
@@ -459,6 +462,7 @@ class MessageDeleteBulkEvent(BaseEvent):
         if channel is not None:
             for message in payload['id']:
                 message = channel.messages.get(message)
+
                 if message is not None:
                     messages.append(message)
 

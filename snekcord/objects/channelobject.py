@@ -36,9 +36,8 @@ class GuildChannel(BaseObject):
 
     def _delete(self):
         super()._delete()
-        guild = self.guild
-        if guild is not None:
-            guild.channels.remove_key(self.id)
+        if self.guild is not None:
+            self.guild.channels.remove_key(self.id)
 
     def _modify_helper(self, name, position, permission):
         json = {}
@@ -85,7 +84,6 @@ class TextChannel(GuildChannel):
 
     def __init__(self, *, state):
         super().__init__(state=state)
-
         self.last_pin_timestamp = None
         self.messages = ClientClasses.MessageState(client=self.state.client, channel=self)
         self.pins = ClientClasses.ChannelPinsState(superstate=self.messages, channel=self)

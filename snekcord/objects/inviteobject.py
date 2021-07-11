@@ -36,34 +36,31 @@ class Invite(BaseObject):
         return self.id
 
     async def delete(self):
-        await rest.delete_invite.request(
-                session=self.state.client.rest,
-                fmt=dict(code=self.code))
+        return self.state.delete(self.code)
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
-        guild = data.get('guild')
-        if guild is not None:
-            self.guild = self.state.client.guilds.upsert(guild)
+        if 'guild' in data:
+            self.guild = self.state.client.guilds.upsert(data['guild'])
 
-        channel = data.get('channel')
-        if channel is not None:
-            self.channel = self.state.client.channels.upsert(channel)
+        if 'channel' in data:
+            self.channel = self.state.client.channels.upsert(data['channel'])
 
-        inviter = data.get('inviter')
-        if inviter is not None:
-            self.inviter = self.state.client.users.upsert(inviter)
+        if 'inviter' in data:
+            self.inviter = self.state.client.users.upsert(data['inviter'])
 
-        target_user = data.get('target_user')
-        if target_user is not None:
-            self.target_user = self.state.client.users.upsert(target_user)
+        if 'target_user' in data:
+            self.target_user = self.state.client.users.upsert(data['target_user'])
+
+        return self
 
 
 class GuildVanityURL(JsonObject):
     __slots__ = ('guild',)
 
     code = JsonField('code')
+    uses = JsonField('uses')
 
     def __init__(self, *, guild):
         self.guild = guild
@@ -74,16 +71,16 @@ class GuildVanityURL(JsonObject):
 
     async def fetch(self):
         data = await rest.get_guild_vanity_url.request(
-            session=self.guild.state.client.rest,
-            fmt=dict(guild_id=self.guild.id))
+            self.guild.state.client.rest, {'guild_id': self.guild.id}
+        )
 
-        self.update(data)
+        return self.update(data)
 
-        return self
-
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
         if 'code' in data:
             invite = self.guild.state.client.invites.upsert(data)
             invite.guild = self.guild
+
+        return self

@@ -11,12 +11,17 @@ class Reactions(BaseSubState, BaseObject):
 
     id = JsonField('id')
     count = JsonField('count')
-    me = JsonField('mw')
+    me = JsonField('me')
 
     def __init__(self, *, state):
         BaseSubState.__init__(self, superstate=state.client.users)
         BaseObject.__init__(self, state=state)
         self.emoji = None
+
+    def upsert(self, data):
+        user = self.superstate.upsert(data)
+        self.add_key(user.id)
+        return user
 
     @property
     def message(self):
@@ -40,12 +45,7 @@ class Reactions(BaseSubState, BaseObject):
             }
         )
 
-        users = [self.superstate.upsert(user) for user in data]
-
-        for user in data:
-            self.add_key(user.id)
-
-        return users
+        return [self.upsert(user) for user in data]
 
     async def add(self):
         await self.state.add(self.emoji)
@@ -90,3 +90,5 @@ class Reactions(BaseSubState, BaseObject):
         if 'emoji' in data:
             self.emoji = self.state.message.guild.emojis.upsert(data['emoji'])
             self._json_data_['id'] = self.emoji.id
+
+        return self

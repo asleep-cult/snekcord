@@ -25,12 +25,13 @@ class IntegrationApplication(JsonObject):
         self.integration = integration
         self.bot = None
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
-        bot = data.get('bot')
-        if bot is not None:
-            self.bot = self.integration.state.client.users.upsert(bot)
+        if 'bot' in data:
+            self.bot = self.integration.state.client.users.upsert(data['bot'])
+
+        return self
 
 
 class Integration(BaseObject):
@@ -64,16 +65,17 @@ class Integration(BaseObject):
 
     async def delete(self):
         await rest.delete_guild_integration.request(
-            session=self.state.client.rest,
-            fmt=dict(guild_id=self.guild.id, integration_id=self.id))
+            self.state.client.rest,
+            {'guild_id': self.guild.id, 'integration_id': self.id}
+        )
 
-    def update(self, data, *args, **kwargs):
-        super().update(data, *args, **kwargs)
+    def update(self, data):
+        super().update(data)
 
-        user = data.get('user')
-        if user is not None:
-            self.user = self.state.client.users.upsert(user)
+        if 'user' in data:
+            self.user = self.state.client.users.upsert(data['user'])
 
-        application = data.get('application')
-        if application is not None:
-            self.application.update(application)
+        if 'application' in data:
+            self.application.update(data['application'])
+
+        return self

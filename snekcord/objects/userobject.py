@@ -21,7 +21,7 @@ class User(BaseObject):
     public_flags = JsonField('public_flags', UserFlags.from_value)
 
     def __str__(self):
-        return f'@{self.name}'
+        return f'@\u200b{self.name}'  # Escape it just in case their name is 'everyone'
 
     @property
     def tag(self):

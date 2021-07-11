@@ -24,12 +24,7 @@ class IntegrationState(BaseState):
 
     async def fetch_all(self):
         data = await rest.get_guild_integrations.request(
-            session=self.client.rest,
-            fmt=dict(guild_id=self.guild.id))
+            self.client.rest, {'guild_id': self.guild.id}
+        )
 
-        integrations = []
-
-        for integration in data:
-            integrations.append(self.upsert(integration))
-
-        return integrations
+        return [self.upsert(guild) for guild in data]
