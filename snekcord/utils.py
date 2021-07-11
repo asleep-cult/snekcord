@@ -5,8 +5,6 @@ from .exceptions import PartialObjectError
 
 __all__ = ('undefined', 'JsonField', 'JsonArray', 'JsonObject', 'Snowflake')
 
-_validate_keys = None
-
 
 class Undefined:
     def __bool__(self):
