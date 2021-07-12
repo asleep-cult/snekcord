@@ -52,7 +52,7 @@ class Shard:
         self.count = self.client.shard_count
 
         self.loop = self.client.loop
-        self.token = self.client.token
+        self.token = self.client.authorization.token
         self.intents = self.client.intents
 
         self.callbacks = {

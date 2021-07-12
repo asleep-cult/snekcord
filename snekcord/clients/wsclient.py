@@ -18,6 +18,9 @@ class WebSocketClient(Client):
 
         super().__init__(*args, **kwargs)
 
+        if not self.authorization.gateway_allowed():
+            raise TypeError(f'{self.authorization.type.value} tokens cannot connect to the gateway')
+
     @property
     def user(self):
         if self.shards:
@@ -25,10 +28,7 @@ class WebSocketClient(Client):
         return None
 
     def fetch_gateway(self):
-        return rest.get_gateway.request(session=self.rest)
-
-    def fetch_gateway_bot(self):
-        return rest.get_gateway_bot.request(session=self.rest)
+        return rest.get_gateway.request(self.rest)
 
     async def connect(self, *args, **kwargs):
         gateway = await self.fetch_gateway()

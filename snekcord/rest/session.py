@@ -17,11 +17,11 @@ class RestSession(AsyncClient):
         self.loop = client.loop
         self.client = client
 
-        self.authorization = self.client.token
+        self.authorization = self.client.authorization
 
         self.global_headers = kwargs.pop('global_headers', {})
         self.global_headers.update({
-            'Authorization': self.authorization,
+            'Authorization': self.authorization.to_string(),
         })
 
         kwargs['timeout'] = None

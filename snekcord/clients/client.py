@@ -2,6 +2,8 @@ import asyncio
 import signal
 import weakref
 
+from ..auth import Authorization
+
 __all__ = ('ClientClasses', 'Client',)
 
 
@@ -150,7 +152,11 @@ class Client:
         else:
             self.loop = asyncio.get_event_loop()
 
-        self.token = token
+        if isinstance(token, str):
+            self.authorization = Authorization.from_string(token)
+        elif isinstance(token, tuple):
+            pass  # (username, password)
+
         self.cache_flags = cache_flags
 
         self.rest = ClientClasses.RestSession(client=self)
