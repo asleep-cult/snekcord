@@ -61,7 +61,7 @@ class GuildState(BaseState):
 
         if sync:
             for guild in guilds:
-                await guild.sync()
+                await guild.sync(data)
 
         return guilds
 

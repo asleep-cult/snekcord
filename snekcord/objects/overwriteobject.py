@@ -23,19 +23,19 @@ class PermissionOverwrite(BaseObject):
             return self.channel.guild.roles.get(self.id)
 
     def modify(self, *, allow=undefined, deny=undefined):
-        if allow is undefined:
+        if allow is not undefined:
             if allow is not None:
                 allow = Permissions.get_value(allow)
             else:
                 allow = 0
 
-        if deny is undefined:
+        if deny is not undefined:
             if deny is not None:
                 deny = Permissions.get_value(deny)
             else:
                 deny = 0
 
-        return self.state.create(self.id, allow=allow, deny=deny, type=self.type.value)
+        return self.state.create(self.id, allow=allow, deny=deny, type=self.type)
 
-    async def delete(self):
+    def delete(self):
         return self.state.delete(self.id)

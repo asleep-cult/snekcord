@@ -35,7 +35,7 @@ class Invite(BaseObject):
     def code(self):
         return self.id
 
-    async def delete(self):
+    def delete(self):
         return self.state.delete(self.code)
 
     def update(self, data):

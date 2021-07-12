@@ -188,12 +188,24 @@ class EmbedBuilder:
         information
         """
         self.embed = Embed.unmarshal({'fields': []})
-        self.set_title(title)
-        self.set_type(type)
-        self.set_description(description)
-        self.set_url(url)
-        self.set_timestamp(timestamp)
-        self.set_color(color)
+
+        if title is not None:
+            self.set_title(title)
+
+        if type is not None:
+            self.set_type(type)
+
+        if description is not None:
+            self.set_description(description)
+
+        if url is not None:
+            self.set_url(url)
+
+        if timestamp is not None:
+            self.set_timestamp(timestamp)
+
+        if color is not None:
+            self.set_color(color)
 
     @classmethod
     def from_embed(cls, embed):
@@ -270,7 +282,7 @@ class EmbedBuilder:
                 f'got {timestamp.__class__.__name__!r}'
             )
 
-        self.embed._json_data_['timestamp'] = timestamp
+        self.embed._json_data_['timestamp'] = timestamp.isoformat()
 
         return self
 
@@ -289,7 +301,7 @@ class EmbedBuilder:
         self.embed._json_data_.pop('color', None)
         return self
 
-    def set_footer(self, text, icon_url=None, proxy_icon_url=None):
+    def set_footer(self, text, *, icon_url=None, proxy_icon_url=None):
         """Sets the embed's footer"""
         json = {'text': str(text)}
 
@@ -325,7 +337,7 @@ class EmbedBuilder:
 
         return json
 
-    def set_image(self, url=None, proxy_url=None, height=None, width=None):
+    def set_image(self, *, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's image"""
         self.embed.update({'image': self._attachment(url, proxy_url, height, width)})
         return self
@@ -335,7 +347,7 @@ class EmbedBuilder:
         self.embed._json_data_.pop('image', None)
         return self
 
-    def set_thumbnail(self, url=None, proxy_url=None, height=None, width=None):
+    def set_thumbnail(self, *, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's thumbnail"""
         self.embed.update({'thumbnail': self._attachment(url, proxy_url, height, width)})
         return self
@@ -345,7 +357,7 @@ class EmbedBuilder:
         self.embed._json_data_.pop('thumbnail', None)
         return self
 
-    def set_video(self, url=None, proxy_url=None, height=None, width=None):
+    def set_video(self, *, url=None, proxy_url=None, height=None, width=None):
         """Sets the embed's video"""
         self.embed.update({'video': self._attachment(url, proxy_url, height, width)})
         return self
@@ -355,7 +367,7 @@ class EmbedBuilder:
         self.embed._json_data_.pop('video', None)
         return self
 
-    def set_provider(self, name=None, url=None):
+    def set_provider(self, *, name=None, url=None):
         """Sets the embed's provider"""
         json = {}
 
@@ -374,7 +386,7 @@ class EmbedBuilder:
         self.embed._json_data_['provider'] = None
         return self
 
-    def set_author(self, name, icon_url=None, proxy_icon_url=None):
+    def set_author(self, name, *, icon_url=None, proxy_icon_url=None):
         """Sets the embed's author
 
         Raises:
@@ -405,12 +417,12 @@ class EmbedBuilder:
 
         return EmbedField.unmarshal(json)
 
-    def add_field(self, name, value, inline=None):
+    def add_field(self, name, value, *, inline=None):
         """Adds a field to the embed"""
         self.embed.fields.append(self._field(name, value, inline))
         return self
 
-    def insert_field(self, index, name, value, inline=None):
+    def insert_field(self, index, name, value, *, inline=None):
         """Inserts a field into the embed at `index`"""
         self.embed.fields.insert(index, self._field(name, value, inline))
         return self

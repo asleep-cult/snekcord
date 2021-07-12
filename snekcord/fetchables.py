@@ -2,14 +2,15 @@ from .rest.endpoints import BASE_API_URL
 
 BASE_CDN_URL = 'https://cdn.discordapp.com'
 
-VALID_SIZES = tuple(sqrt ** 2 for sqrt in range(4, 64))
+VALID_SIZES = tuple(sqrt ** 2 for sqrt in range(4, 65))
 
 
 def _form_url(url, format, size):
-    if size not in VALID_SIZES:
-        raise ValueError(
-            f'{size!r} is not a valid size (sizes must be a power of 2 between 16 and 4096)'
-        )
+    if size is not None:
+        if size not in VALID_SIZES:
+            raise ValueError(
+                f'{size!r} is not a valid size (sizes must be a power of 2 between 16 and 4096)'
+            )
 
     url += f'.{format}'
 
@@ -30,7 +31,7 @@ class Fetchable:
         raise NotImplementedError
 
     def fetch(self, **kwargs):
-        return self.rest.request(self.url(**kwargs))
+        return self.rest.request('GET', self.url(**kwargs))
 
 
 class GuildIcon(Fetchable):

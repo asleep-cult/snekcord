@@ -62,7 +62,7 @@ class Bitset:
         if isinstance(bitset, int):
             return bitset
         elif isinstance(bitset, Bitset):
-            raise bitset.value
+            return bitset.value
         else:
             raise TypeError(f'{bitset!r} is not a valid {cls.__name__}')
 

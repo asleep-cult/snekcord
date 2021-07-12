@@ -115,9 +115,9 @@ class TextChannel(GuildChannel):
 
         if slowmode is not undefined:
             if slowmode is not None:
-                json['slowmode'] = int(slowmode)
+                json['rate_limit_per_user'] = int(slowmode)
             else:
-                json['slowmode'] = None
+                json['rate_limit_per_user'] = None
 
         if parent is not undefined:
             if parent is not None:
@@ -140,7 +140,7 @@ class TextChannel(GuildChannel):
     async def add_follower(self, channel):
         channel_id = Snowflake.try_snowflake(channel)
 
-        data = await rest.follow_news_channel.request(
+        data = await rest.add_news_channel_follower.request(
             self.state.client.rest, {'channel_id': self.id},
             params={'webhook_channel_id': channel_id}
         )

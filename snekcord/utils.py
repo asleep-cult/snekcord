@@ -80,10 +80,7 @@ class JsonField:
             else:
                 value = self.default
 
-        if self._unmarshaler is not None:
-            value = self._unmsrshal_(value)
-
-        return value
+        return self._unmarshal_(value)
 
     def __set__(self, instance, value):
         raise AttributeError(f'Cannot set attribute {self.name!r}')
@@ -91,7 +88,7 @@ class JsonField:
     def __delete__(self, instance):
         raise AttributeError(f'Cannot delete attribute {self.name!r}')
 
-    def _unmsrshal_(self, value):
+    def _unmarshal_(self, value):
         if self._unmarshaler is not None:
             return self._unmarshaler(value)
         return value
@@ -103,7 +100,7 @@ class JsonArray(JsonField):
         super().__init__(*args, **kwargs)
 
     def _unmarshal_(self, values):
-        return [super(JsonArray, self).unmarshal(value) for value in values]
+        return [super(JsonArray, self)._unmarshal_(value) for value in values]
 
 
 class Snowflake(int):

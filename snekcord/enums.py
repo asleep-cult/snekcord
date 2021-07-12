@@ -42,7 +42,7 @@ class Enum:
     @classmethod
     def get_enum(cls, value):
         try:
-            return cls._enum_names_[value]
+            return cls._enum_values_[value]
         except KeyError:
             return cls('undefined', value)
 
@@ -178,9 +178,9 @@ class MessageType(Enum[int]):
     GUILD_INVITE_REMINDER = 22
 
 
-class PermissionOverwriteType(Enum[int]):
-    ROLE = 0
-    MEMBER = 1
+class PermissionOverwriteType(Enum[str]):
+    ROLE = 'role'
+    MEMBER = 'member'
 
 
 class StageInstancePrivacyLevel(Enum[int]):

@@ -31,7 +31,7 @@ class BaseObject(JsonObject):
 
     def __repr__(self):
         return (
-            f'<{self.__class__.__name__} id={self.id!r}, cached={self.cached}, '
+            f'<{self.__class__.__name__} id={self.id!r}, cached={self.cached},'
             f' deleted={self.deleted}>'
         )
 

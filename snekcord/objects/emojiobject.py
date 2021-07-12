@@ -9,10 +9,11 @@ __all__ = ('GuildEmoji', 'PartialGuildEmoji', 'UnicodeEmoji', 'PartialUnicodeEmo
 
 
 class BaseEmoji:
-    def to_reaction(self):
+    @property
+    def image(self):
         raise NotImplementedError
 
-    def to_media(self):
+    def to_reaction(self):
         raise NotImplementedError
 
 
