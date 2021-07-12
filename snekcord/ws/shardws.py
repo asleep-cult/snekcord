@@ -4,8 +4,6 @@ import platform
 import random
 import time
 
-from wsaio import taskify
-
 from .basews import BaseWebSocket, WebSocketResponse
 from ..utils import Snowflake
 
@@ -45,64 +43,47 @@ class ShardCloseCode:
 
 
 class Shard:
-    def __init__(self, *, client, shard_id):
+    def __init__(self, *, shard_id, client):
+        self.id = shard_id
         self.client = client
 
-        self.id = shard_id
-        self.count = self.client.shard_count
-
-        self.loop = self.client.loop
-        self.token = self.client.authorization.token
-        self.intents = self.client.intents
-
-        self.callbacks = {
+        self._callbacks = {
             'HELLO': self.on_hello,
             'READY': self.on_ready,
-            'DISPATCH': self.on_dispatch,
             'GUILDS_RECEIVED': self.on_guilds_received,
+            'DISPATCH': self.on_dispatch,
             'CLOSED': self.on_closed,
             'CLOSING': self.on_closing,
-            'CONNECTION_LOST': self.on_connection_lost
+            'CONNECTION_LOST': self.on_connection_lost,
         }
 
-        self.create_ws(reconnect=False)
-
-    def create_ws(self, *, reconnect=True):
-        if not reconnect:
-            self.session_id = None
-            self.sequence = -1
-            self.available_guilds = set()
-            self.unavailable_guilds = set()
-            self.user = None
-        else:
-            self.session_id = self.ws.session_id
-            self.sequence = self.ws.sequence
-
-        self.ws = ShardWebSocket(self.id, self.count, loop=self.loop,
-                                 token=self.token, intents=self.intents,
-                                 callbacks=self.callbacks,
-                                 session_id=self.session_id,
-                                 available_guilds=self.available_guilds,
-                                 unavailable_guilds=self.unavailable_guilds,
-                                 sequence=self.sequence)
-
-        self.heartbeater_task = None
+        self.create_ws()
 
     @property
     def latency(self):
         return self.ws.latency
 
+    def create_ws(self):
+        self.ws = ShardWebSocket(
+            self.id, self.client.shard_count, loop=self.client.loop,
+            token=self.client.authorization.token, intents=self.client.intents,
+            callbacks=self._callbacks
+        )
+
+        self.user = None
+        self.heartbeater_task = None
+
     async def on_hello(self):
-        self.heartbeater_task = self.loop.create_task(self.heartbeater())
+        self.heartbeater_task = self.client.loop.create_task(self._heartbeater())
 
     async def on_ready(self, data):
         self.user = self.client.users.upsert(data['user'])
 
-    async def on_dispatch(self, name, data):
-        await self.client.dispatch(name, self, data)
-
     async def on_guilds_received(self):
         await self.client.dispatch('SHARD_READY', self)
+
+    async def on_dispatch(self, name, data):
+        await self.client.dispatch(name, self, data)
 
     async def on_closed(self, code, data):
         print(f'SHARD {self.id} DIED. {code}, {data}')
@@ -113,78 +94,102 @@ class Shard:
     async def on_connection_lost(self, exc):
         print(f'SHARD {self.id} LOST CONNECTION. {exc}')
 
-    async def heartbeater(self):
-        delay = (random.random() * self.ws.heartbeat_interval) / 1000
-        await asyncio.sleep(delay)
+    async def on_connection_lost(self, exc):
+        print(f'SHARD {self.id} LOST CONNECTION. {exc}')
 
+    async def _heartbeater(self):
         heartbeat_interval = self.ws.heartbeat_interval / 1000
+
+        await asyncio.sleep(random.random() * heartbeat_interval)
+
         while True:
             await self.ws.send_heartbeat()
             await asyncio.sleep(heartbeat_interval)
 
-    async def connect(self, *args, **kwargs):
-        await self.ws.connect(*args, **kwargs)
-
 
 class ShardWebSocket(BaseWebSocket):
-    def __init__(self, shard_id, shard_count, *, loop=None, token, intents,
-                 callbacks, session_id=None, available_guilds=None,
-                 unavailable_guilds=None, sequence=-1):
+    def __init__(self, shard_id, shard_count, *, loop=None, token, intents, callbacks):
         super().__init__(loop=loop)
-        self.id = shard_id
-        self.count = shard_count
+        self.shard_id = shard_id
+        self.shard_count = shard_count
         self.token = token
         self.intents = intents
-        self.callbacks = callbacks
+        self.callbcks = callbacks
 
-        self.v = None
-        self.info = None
-        self.session_id = session_id
+        self.version = None
+        self.shard_info = None
+        self.session_id = None
+
         self.startup_guilds = set()
+        self.available_guilds = set()
+        self.unavailable_guilds = set()
 
-        if unavailable_guilds is not None:
-            self.unavailable_guilds = unavailable_guilds
-        else:
-            self.unavailable_guilds = set()
+        self.sequence = -1
 
-        if available_guilds is not None:
-            self.available_guilds = available_guilds
-        else:
-            self.available_guilds = set()
+        self._ready = False
+        self._guilds_received = False
 
-        self.sequence = sequence
-        self._chunk_nonce = -1
-
-    @property
-    def shard(self):
-        if self.count is not None:
-            return (self.id, self.count)
-        return None
-
-    @taskify
-    async def closing_connection(self, exc):
+    def closing_connection(self, exc):
         super().closing_connection(exc)
-        await self.callbacks['CLOSING'](exc)
+        self.loop.create_task(self.callbcks['CLOSING'](exc))
 
-    @taskify
-    async def ws_close_received(self, code, data):
+    def ws_close_received(self, code, data):
         super().ws_close_received(code, data)
-        await self.callbacks['CLOSED'](code, data)
+        self.loop.create_task(self.callbcks['CLOSED'](code, data))
 
-    @taskify
-    async def connection_lost(self, exc):
+    def connection_lost(self, exc):
         super().connection_lost(exc)
-        await self.callbacks['CONNECTION_LOST'](exc)
+        self.loop.create_task(self.callbcks['CONNECTION_LOST'](exc))
 
-    async def _remove_startup_guild(self, guild_id):
+    def _remove_startup_guild(self, guild_id):
         try:
             self.startup_guilds.remove(guild_id)
         except KeyError:
             pass
 
-        if self.ready.is_set():
-            if not self.startup_guilds:
-                await self.callbacks['GUILDS_RECEIVED']()
+        if self._ready and not self._guilds_received and not self.startup_guilds:
+            self.loop.create_task(self.callbcks['GUILDS_RECEIVED']())
+
+    def _add_available_guild(self, guild_id):
+        self._remove_startup_guild(guild_id)
+
+        try:
+            self.unavailable_guilds.remove(guild_id)
+        except KeyError:
+            pass
+
+        self.unavailable_guilds.add(guild_id)
+
+    def _add_unavailable_guild(self, guild_id):
+        self._remove_startup_guild(guild_id)
+
+        try:
+            self.available_guilds.remove(guild_id)
+        except KeyError:
+            pass
+
+        self.available_guilds.add(guild_id)
+
+    def _purge_guild(self, guild_id):
+        self._remove_startup_guild(guild_id)
+
+        try:
+            self.available_guilds.remove(guild_id)
+        except KeyError:
+            pass
+
+        try:
+            self.unavailable_guilds.remove(guild_id)
+        except KeyError:
+            pass
+
+    async def send_heartbeat(self):
+        payload = {
+            'op': ShardOpcode.HEARTBEAT,
+            'd': None
+        }
+
+        await self.send_str(json.dumps(payload))
 
     async def identify(self):
         payload = {
@@ -202,9 +207,8 @@ class ShardWebSocket(BaseWebSocket):
         if self.intents is not None:
             payload['intents'] = int(self.intents)
 
-        shard = self.shard
-        if shard is not None:
-            payload['shard'] = shard
+        if self.shard_count != 1:
+            payload['shard'] = (self.shard_id, self.shard_count)
 
         await self.send_str(json.dumps(payload))
 
@@ -214,130 +218,101 @@ class ShardWebSocket(BaseWebSocket):
             'd': {
                 'token': self.token,
                 'session_id': self.session_id,
-                'seq': self.sequence
+                'seq': self.sequence,
             }
         }
+
         await self.send_str(json.dumps(payload))
 
-    async def send_heartbeat(self):
-        payload = {
-            'op': ShardOpcode.HEARTBEAT,
-            'd': None
-        }
-        await self.send_str(json.dumps(payload))
         self.heartbeat_last_sent = time.perf_counter()
 
-    async def request_guild_members(self, guild, presences=None, limit=None,
-                                    users=None, query=None):
+    async def resuest_guild_members(
+        self, guild, presences=None, limit=None, users=None, query=None
+    ):
         payload = {
             'op': ShardOpcode.REQUEST_GUILD_MEMBERS,
             'guild_id': Snowflake.try_snowflake(guild)
         }
 
         if presences is not None:
-            payload['presences'] = presences
+            payload['presences'] = int(presences)
 
         if query is not None:
-            payload['query'] = query
+            payload['query'] = str(query)
 
             if limit is not None:
-                payload['limit'] = limit
+                payload['limit'] = int(limit)
             else:
                 payload['limit'] = 0
         elif users is not None:
             payload['user_ids'] = Snowflake.try_snowflake_many(users)
 
             if limit is not None:
-                payload['limit'] = limit
-
-        self._chunk_nonce += 1
-
-        if self._chunk_nonce >= 1 << 32:
-            # nonce counts up to a 32 bit integer
-            self._chunk_nonce = 0
-
-        payload['nonce'] = str(self._chunk_nonce)
+                payload['limit'] = int(limit)
 
         await self.send_str(json.dumps(payload))
 
-    @taskify
-    async def ws_text_received(self, data):
+    def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
 
-        if (response.sequence is not None
-                and response.sequence > self.sequence):
+        if response.sequence is not None and response.sequence > self.sequence:
             self.sequence = response.sequence
 
         if response.opcode == ShardOpcode.DISPATCH:
             name = response.name
 
             if name == 'READY':
-                self.v = response.data['v']
+                self.version = response.data['v']
                 self.session_id = response.data['session_id']
-                self.info = response.data.get('shard')
+                self.shard_info = response.data.get('shard')
 
                 for guild in response.data['guilds']:
                     guild_id = guild['id']
+
                     self.startup_guilds.add(guild_id)
-                    self.available_guilds.add(guild_id)
 
-                await self.callbacks['READY'](response.data)
-                return
-            elif name == 'GUILD_DELETE':
-                guild_id = response.data['id']
+                self._ready = True
 
-                await self._remove_startup_guild(guild_id)
-
-                if data['unavailable']:
-                    try:
-                        self.available_guilds.remove(guild_id)
-                    except KeyError:
-                        pass
-
-                    self.unavailable_guilds.add(guild_id)
-
-                    name = 'GUILD_UNAVAILABLE'
-                else:
-                    try:
-                        self.available_guilds.remove(guild_id)
-                    except KeyError:
-                        pass
-
-                    try:
-                        self.unavailable_guilds.remove(guild_id)
-                    except KeyError:
-                        pass
+                self.loop.create_task(self.callbcks['READY'](response.data))
             elif name == 'GUILD_CREATE':
                 guild_id = response.data['id']
 
-                await self._remove_startup_guild(guild_id)
+                from_unavailable = guild_id in self.unavailable_guilds
+                joined = (
+                    not from_unavailable
+                    and guild_id not in self.startup_guilds
+                    and guild_id not in self.available_guilds
+                )
 
-                if guild_id in self.available_guilds:
-                    name = 'GUILD_RECEIVE'
+                response.data['_from_unavailable_'] = from_unavailable
+                response.data['_joined_'] = joined
+
+                self._add_available_guild(guild_id)
+            elif name == 'GUILD_DELETE':
+                guild_id = response.data['id']
+
+                if response.data.get('unavailable', False):
+                    name = 'GUILD_UNAVAILABLE'
+                    self._add_available_guild(guild_id)
                 else:
-                    self.available_guilds.add(guild_id)
+                    self._purge_guild(guild_id)
 
-                    if guild_id in self.unavailable_guilds:
-                        self.unavailable_guilds.remove(guild_id)
-                        name = 'GUILD_AVAILABLE'
-                    else:
-                        name = 'GUILD_JOIN'
-
-            await self.callbacks['DISPATCH'](name, response.data)
+            self.loop.create_task(self.callbcks['DISPATCH'](name, response.data))
 
         elif response.opcode == ShardOpcode.HEARTBEAT:
-            await self.send_heartbeat()
+            self.loop.create_task(self.send_heartbeat())
 
         elif response.opcode == ShardOpcode.RECONNECT:
-            return
+            pass
 
         elif response.opcode == ShardOpcode.INVALID_SESSION:
-            return
+            pass
 
         elif response.opcode == ShardOpcode.HELLO:
             self.heartbeat_interval = response.data['heartbeat_interval']
-            await self.callbacks['HELLO']()
-            await self.identify()
+
+            self.loop.create_task(self.identify())
+            self.loop.create_task(self.callbcks['HELLO']())
 
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.heartbeat_last_acked = time.perf_counter()

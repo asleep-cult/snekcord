@@ -35,11 +35,11 @@ class WebSocketClient(Client):
         gateway_url = gateway['url'] + '?v=9'
 
         for shard_id in range(self.shard_count):
-            shard = Shard(client=self, shard_id=shard_id)
+            shard = Shard(shard_id=shard_id, client=self)
             self.shards[shard_id] = shard
 
         for shard in self.shards.values():
-            await shard.connect(gateway_url, *args, **kwargs)
+            await shard.ws.connect(gateway_url, *args, **kwargs)
 
     def run_forever(self, *args, **kwargs):
         self.loop.create_task(self.connect(*args, **kwargs))

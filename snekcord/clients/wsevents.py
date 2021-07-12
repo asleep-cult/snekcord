@@ -92,37 +92,18 @@ class ChannelPinsUpdateEvent(BaseEvent):
         return self.channel is None
 
 
-@register('GUILD_RECEIVE')
+@register('GUILD_CREATE')
 class GuildReceiveEvent(BaseEvent):
-    _fields_ = ('guild',)
+    _fields_ = ('guild', 'from_unavailable', 'joined')
 
     @classmethod
     async def execute(cls, client, shard, payload):
         guild = client.guilds.upsert(payload)
         await guild.sync(payload)
-        return cls(shard=shard, payload=payload, guild=guild)
-
-
-@register('GUILD_RECEIVE')
-class GuildAvailableEvent(BaseEvent):
-    _fields_ = ('guild',)
-
-    @classmethod
-    async def execute(cls, client, shard, payload):
-        guild = client.guilds.upsert(payload)
-        await guild.sync(payload)
-        return cls(shard=shard, payload=payload, guild=guild)
-
-
-@register('GUILD_JOIN')
-class GuildJoinEvent(BaseEvent):
-    _fields_ = ('guild',)
-
-    @classmethod
-    async def execute(cls, client, shard, payload):
-        guild = client.guilds.upsert(payload)
-        await guild.sync(payload)
-        return cls(shard=shard, payload=payload, guild=guild)
+        return cls(
+            shard=shard, payload=payload, guild=guild,
+            from_unavailable=payload['_from_unavailable_'], joined=payload['_joined_']
+        )
 
 
 @register('GUILD_UPDATE')
@@ -220,7 +201,7 @@ class GuildEmojisUpdateEvent(BaseEvent):
         return self.guild is None
 
 
-@register('GUILD_INTEGRATIONS_UPDATE')
+# @register('GUILD_INTEGRATIONS_UPDATE')
 class GuildIntegrationsUpdateEvent(BaseEvent):
     _fields_ = ('guild',)
 
@@ -346,17 +327,17 @@ class GuildRoleDeleteEvent(BaseEvent):
         return self.guild is None or self.role is None
 
 
-@register('INTEGRATION_CREATE')
+# @register('INTEGRATION_CREATE')
 class IntegrationCreateEvent(BaseEvent):
     pass
 
 
-@register('INTEGRATION_UPDATE')
+# @register('INTEGRATION_UPDATE')
 class IntegrationUpdateEvent(BaseEvent):
     pass
 
 
-@register('INTEGRATION_DELETE')
+# @register('INTEGRATION_DELETE')
 class IntegrationDeleteEvent(BaseEvent):
     pass
 
