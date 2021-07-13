@@ -89,7 +89,7 @@ class GuildState(BaseState):
         json = {'name': str(name)}
 
         if icon is not None:
-            json['icon'] = resolve_image_data(icon)
+            json['icon'] = await resolve_image_data(icon)
 
         if verification_level is not None:
             json['default_message_notifications'] = (

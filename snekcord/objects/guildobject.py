@@ -222,7 +222,7 @@ class Guild(BaseObject):
 
         if icon is not undefined:
             if icon is not None:
-                json['icon'] = resolve_image_data(icon)
+                json['icon'] = await resolve_image_data(icon)
             else:
                 json['icon'] = None
 
@@ -231,19 +231,19 @@ class Guild(BaseObject):
 
         if splash is not undefined:
             if splash is not None:
-                json['splash'] = resolve_image_data(splash)
+                json['splash'] = await resolve_image_data(splash)
             else:
                 json['splash'] = None
 
         if discovery_splash is not undefined:
             if discovery_splash is not None:
-                json['discovery_splash'] = resolve_image_data(discovery_splash)
+                json['discovery_splash'] = await resolve_image_data(discovery_splash)
             else:
                 json['discovery_splash'] = None
 
         if banner is not undefined:
             if banner is not None:
-                json['banner'] = resolve_image_data(banner)
+                json['banner'] = await resolve_image_data(banner)
             else:
                 json['banner'] = None
 

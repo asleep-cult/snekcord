@@ -2,6 +2,7 @@ import base64
 import io
 import re
 
+from .fetchables import Fetchable
 from .utils import Snowflake
 
 CHANNEL_MENTION_RE = re.compile(r'<#(?P<id>\d{17,19})>')
@@ -12,8 +13,11 @@ USER_MENTION_RE = re.compile(r'<@!?(?P<id>\d{17,19})>')
 IMAGE_DATA_FORMATS = ('data:image/jpeg;base64,', 'data:image/png;base64,', 'data:image/gif;base64,')
 
 
-def resolve_image_data(image):
+async def resolve_image_data(image):
     # https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5
+
+    if isinstance(image, Fetchable):
+        image = await image.fetch()
 
     if isinstance(image, str):
         try:

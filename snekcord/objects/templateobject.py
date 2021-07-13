@@ -45,7 +45,7 @@ class GuildTemplate(BaseObject):
         json = {'name': str(name)}
 
         if icon is not None:
-            json['icon'] = resolve_image_data(icon)
+            json['icon'] = await resolve_image_data(icon)
 
         data = await rest.create_guild_from_template.request(
             self.state.client.rest, {'template_code': self.code}, json=json

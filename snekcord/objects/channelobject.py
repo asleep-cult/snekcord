@@ -17,7 +17,6 @@ class GuildChannel(BaseObject):
 
     def __init__(self, *, state):
         super().__init__(state=state)
-
         self.permissions = ClientClasses.PermissionOverwriteState(
             client=self.state.client, channel=self
         )
@@ -147,7 +146,7 @@ class TextChannel(GuildChannel):
 
         return Snowflake(data['webhook_id'])
 
-    async def typing(self):
+    async def trigger_typing(self):
         await rest.trigger_typing_indicator.request(
             self.state.client.rest, {'channel_id': self.id}
         )

@@ -84,7 +84,9 @@ class GuildEmojiState(BaseState):
         return [self.upsert(emoji) for emoji in data]
 
     async def create(self, *, name, image, roles=None):
-        json = {'name': str(name), 'image': resolve_image_data(image)}
+        json = {'name': str(name)}
+
+        json['image'] = await resolve_image_data(image)
 
         if roles is not None:
             json['roles'] = Snowflake.try_snowflake_many(roles)
