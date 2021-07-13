@@ -191,6 +191,8 @@ class ShardWebSocket(BaseWebSocket):
 
         await self.send_str(json.dumps(payload))
 
+        self.heartbeat_last_sent = time.perf_counter()
+
     async def identify(self):
         payload = {
             'op': ShardOpcode.IDENTIFY,
@@ -223,8 +225,6 @@ class ShardWebSocket(BaseWebSocket):
         }
 
         await self.send_str(json.dumps(payload))
-
-        self.heartbeat_last_sent = time.perf_counter()
 
     async def resuest_guild_members(
         self, guild, presences=None, limit=None, users=None, query=None
