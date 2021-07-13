@@ -178,9 +178,9 @@ class MessageType(Enum[int]):
     GUILD_INVITE_REMINDER = 22
 
 
-class PermissionOverwriteType(Enum[str]):
-    ROLE = 'role'
-    MEMBER = 'member'
+class PermissionOverwriteType(Enum[int]):
+    ROLE = 0
+    MEMBER = 1
 
 
 class StageInstancePrivacyLevel(Enum[int]):

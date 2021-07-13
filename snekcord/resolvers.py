@@ -23,7 +23,7 @@ async def resolve_image_data(image):
         try:
             image = open(image, 'rb')
         except FileNotFoundError:
-            image = image.encode()
+            pass
 
     if isinstance(image, io.IOBase):
         if image.seekable():

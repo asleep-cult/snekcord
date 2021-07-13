@@ -47,7 +47,7 @@ class GuildIcon(Fetchable):
             if format not in ('png', 'jpg', 'jpeg', 'webp', 'gif'):
                 raise ValueError(f'{format!r} is not a valid guild icon format')
         else:
-            if self.hash.startswith('a_'):
+            if self.guild_icon.startswith('a_'):
                 format = 'gif'
             else:
                 format = 'png'
