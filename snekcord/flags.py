@@ -37,7 +37,7 @@ class Bitset:
         cls._length_ += 1
 
     def __iter__(self):
-        for flag in self._flags__:
+        for flag in self._flags_:
             yield getattr(self, flag)
 
     def __index__(self):

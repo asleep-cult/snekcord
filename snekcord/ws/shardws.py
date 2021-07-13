@@ -107,6 +107,40 @@ class Shard:
             await asyncio.sleep(heartbeat_interval)
 
 
+_MESSAGE_RENAME_TABLE = {
+    'CHANNEL_PINS_UDPATE': (
+        'DM_CHANNEL_PINS_UPDATE', 'GUILD_CHANNEL_PINS_UPDATE'
+    ),
+    'MESSAGE_CREATE': (
+        'DIRECT_MESSAGE_CREATE', 'GUILD_MESSAGE_CREATE'
+    ),
+    'MESSAGE_UPDATE': (
+        'DIRECT_MESSAGE_UPDATE', 'GUILD_MESSAGE_UPDATE'
+    ),
+    'MESSAGE_DELETE': (
+        'DIRECT_MESSAGE_DELETE', 'GUILD_MESSAGE_DELETE'
+    ),
+    'MESSAGE_DELETE_BULK': (
+        None, 'GUILD_MESSAGE_DELETE_BULK'
+    ),
+    'MESSAGE_REACTION_ADD': (
+        'DIRECT_MESSAGE_REACTION_ADD', 'GUILD_MESSAGE_REACTION_ADD'
+    ),
+    'MESSAGE_REACTION_REMOVE': (
+        'DIRECT_MESSAGE_REACTION_REMOVE', 'GUILD_MESSAGE_REACTION_REMOVE'
+    ),
+    'MESSAGE_REACTION_REMOVE_ALL': (
+        'DIRECT_MESSAGE_REACTION_REMOVE_ALL', 'GUILD_MESSAGE_REACTION_REMOVE_EMOJI'
+    ),
+    'MESSAGE_REACTION_REMOVE_EMOJI': (
+        'DIRECT_MESSAGE_REACTION_REMOVE_EMOJI', 'GUILD_MESSAGE_REACTION_REMOVE_EMOJI'
+    ),
+    'TYPING_START': (
+        'DM_CHANNEL_TYPING_START', 'GUILD_CHANNEL_TYPING_START'
+    ),
+}
+
+
 class ShardWebSocket(BaseWebSocket):
     def __init__(self, shard_id, shard_count, *, loop=None, token, intents, callbacks):
         super().__init__(loop=loop)
@@ -284,6 +318,11 @@ class ShardWebSocket(BaseWebSocket):
                     self._add_available_guild(guild_id)
                 else:
                     self._purge_guild(guild_id)
+
+            names = _MESSAGE_RENAME_TABLE.get(name)
+
+            if names is not None:
+                name = names[response.data.get('guild_id') is not None]
 
             await self.callbcks['DISPATCH'](name, response.data)
 

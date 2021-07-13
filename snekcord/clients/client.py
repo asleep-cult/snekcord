@@ -189,11 +189,14 @@ class Client:
     def register_listener(self, name, callback, *, sync=False, persistent=True):
         name = name.lower()
         listeners = self._listeners.get(name.lower())
+        listener = _EventListener(name, self, callback, sync, persistent)
 
         if listeners is None:
             listeners = self._listeners[name] = []
 
-        listeners.append(_EventListener(name, self, callback, sync, persistent))
+        listeners.append(listener)
+
+        return listener
 
     def remove_listener(self, name, callback):
         listeners = self._listeners.get(name.lower())
@@ -217,7 +220,8 @@ class Client:
 
         return waiter
 
-    wait = register_waiter
+    def wait(self, name, *, timeout=None, filter=None):
+        return self.register_waiter(name, timeout=timeout, filter=filter)
 
     def remove_waiter(self, waiter):
         waiters = self._waiters.get(waiter.name)

@@ -13,7 +13,7 @@ client = snekcord.WebSocketClient(TOKEN)
 
 
 @client.on()
-async def message_create(evt):
+async def guild_message_create(evt):
     message = evt.message
     channel = evt.channel
     if message.content == '.ping':
