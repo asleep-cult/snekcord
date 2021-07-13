@@ -28,3 +28,11 @@ class IntegrationState(BaseState):
         )
 
         return [self.upsert(guild) for guild in data]
+
+    async def delete(self, integration):
+        integration_id = Snowflake.try_snowflake(integration)
+
+        await rest.delete_guild_integration.request(
+            self.client.rest,
+            {'guild_id': self.guild.id, 'integration_id': integration_id}
+        )

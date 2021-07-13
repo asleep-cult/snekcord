@@ -35,7 +35,7 @@ class ChannelState(BaseState):
         channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.get_channel.request(
-            self.client.rest, dict(channel_id=channel_id),
+            self.client.rest, {'channel_id': channel_id},
         )
 
         return self.upsert(data)

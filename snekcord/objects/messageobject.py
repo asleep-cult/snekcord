@@ -18,7 +18,7 @@ class MessageReference(JsonObject):
 
     message_id = JsonField('message_id', Snowflake)
     channel_id = JsonField('channel_id', Snowflake)
-    guild_id = JsonField('guild_id')
+    guild_id = JsonField('guild_id', Snowflake)
 
     def __init__(self, *, message):
         self.source_message = message

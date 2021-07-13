@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .. import rest
 from ..enums import IntegrationExpireBehavior, IntegrationType
 from ..utils import JsonField, JsonObject, Snowflake
 
@@ -63,11 +62,8 @@ class Integration(BaseObject):
     def role(self):
         return self.guild.roles.get(self.role_id)
 
-    async def delete(self):
-        await rest.delete_guild_integration.request(
-            self.state.client.rest,
-            {'guild_id': self.guild.id, 'integration_id': self.id}
-        )
+    def delete(self):
+        return self.state.delete(self.id)
 
     def update(self, data):
         super().update(data)

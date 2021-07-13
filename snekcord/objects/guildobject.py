@@ -284,7 +284,7 @@ class Guild(BaseObject):
                 json['description'] = None
 
         data = await rest.modify_guild.request(
-            self.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, {'guild_id': self.id}, json=json
         )
 
         return self.state.upsert(data)

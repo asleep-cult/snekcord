@@ -158,7 +158,7 @@ class ShardWebSocket(BaseWebSocket):
         except KeyError:
             pass
 
-        self.unavailable_guilds.add(guild_id)
+        self.available_guilds.add(guild_id)
 
     def _add_unavailable_guild(self, guild_id):
         self._remove_startup_guild(guild_id)
@@ -168,7 +168,7 @@ class ShardWebSocket(BaseWebSocket):
         except KeyError:
             pass
 
-        self.available_guilds.add(guild_id)
+        self.unavailable_guilds.add(guild_id)
 
     def _purge_guild(self, guild_id):
         self._remove_startup_guild(guild_id)

@@ -33,7 +33,7 @@ class GuildWidget(JsonObject):
     __slots__ = ('guild',)
 
     enabled = JsonField('enabled')
-    channel_id = JsonField('channel_id')
+    channel_id = JsonField('channel_id', Snowflake)
 
     def __init__(self, *, guild):
         self.guild = guild
