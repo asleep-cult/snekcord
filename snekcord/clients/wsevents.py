@@ -102,7 +102,7 @@ class GuildReceiveEvent(BaseEvent):
         await guild.sync(payload)
         return cls(
             shard=shard, payload=payload, guild=guild,
-            from_unavailable=payload['_from_unavailable_'], joined=payload['_joined_']
+            from_unavailable=payload.pop('_from_unavailable_'), joined=payload.pop('_joined_')
         )
 
 

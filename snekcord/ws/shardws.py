@@ -205,10 +205,10 @@ class ShardWebSocket(BaseWebSocket):
         }
 
         if self.intents is not None:
-            payload['intents'] = int(self.intents)
+            payload['d']['intents'] = int(self.intents)
 
         if self.shard_count != 1:
-            payload['shard'] = (self.shard_id, self.shard_count)
+            payload['d']['shard'] = (self.shard_id, self.shard_count)
 
         await self.send_str(json.dumps(payload))
 
