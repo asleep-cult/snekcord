@@ -129,18 +129,6 @@ class ShardWebSocket(BaseWebSocket):
         self._ready = False
         self._guilds_received = False
 
-    def closing_connection(self, exc):
-        super().closing_connection(exc)
-        self.loop.create_task(self.callbcks['CLOSING'](exc))
-
-    def ws_close_received(self, code, data):
-        super().ws_close_received(code, data)
-        self.loop.create_task(self.callbcks['CLOSED'](code, data))
-
-    def connection_lost(self, exc):
-        super().connection_lost(exc)
-        self.loop.create_task(self.callbcks['CONNECTION_LOST'](exc))
-
     def _remove_startup_guild(self, guild_id):
         try:
             self.startup_guilds.remove(guild_id)
@@ -252,7 +240,7 @@ class ShardWebSocket(BaseWebSocket):
 
         await self.send_str(json.dumps(payload))
 
-    def ws_text_received(self, data):
+    async def ws_text_received(self, data):
         response = WebSocketResponse.unmarshal(data)
 
         if response.sequence is not None and response.sequence > self.sequence:
@@ -273,7 +261,7 @@ class ShardWebSocket(BaseWebSocket):
 
                 self._ready = True
 
-                self.loop.create_task(self.callbcks['READY'](response.data))
+                await self.callbcks['READY'](response.data)
             elif name == 'GUILD_CREATE':
                 guild_id = response.data['id']
 
@@ -297,10 +285,10 @@ class ShardWebSocket(BaseWebSocket):
                 else:
                     self._purge_guild(guild_id)
 
-            self.loop.create_task(self.callbcks['DISPATCH'](name, response.data))
+            await self.callbcks['DISPATCH'](name, response.data)
 
         elif response.opcode == ShardOpcode.HEARTBEAT:
-            self.loop.create_task(self.send_heartbeat())
+            await self.send_heartbeat()
 
         elif response.opcode == ShardOpcode.RECONNECT:
             pass
@@ -311,8 +299,17 @@ class ShardWebSocket(BaseWebSocket):
         elif response.opcode == ShardOpcode.HELLO:
             self.heartbeat_interval = response.data['heartbeat_interval']
 
-            self.loop.create_task(self.identify())
-            self.loop.create_task(self.callbcks['HELLO']())
+            await self.identify()
+            await self.callbcks['HELLO']()
 
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.heartbeat_last_acked = time.perf_counter()
+
+    async def closing_connection(self, exc):
+        await self.callbcks['CLOSING'](exc)
+
+    async def ws_close_received(self, code, data):
+        await self.callbcks['CLOSED'](code, data)
+
+    async def connection_lost(self, exc):
+        await self.callbcks['CONNECTION_LOST'](exc)
