@@ -148,7 +148,7 @@ class ShardWebSocket(BaseWebSocket):
         self.shard_count = shard_count
         self.token = token
         self.intents = intents
-        self.callbcks = callbacks
+        self.callbacks = callbacks
 
         self.version = None
         self.shard_info = None
@@ -170,7 +170,7 @@ class ShardWebSocket(BaseWebSocket):
             pass
 
         if self._ready and not self._guilds_received and not self.startup_guilds:
-            self.loop.create_task(self.callbcks['GUILDS_RECEIVED']())
+            self.loop.create_task(self.callbacks['GUILDS_RECEIVED']())
 
     def _add_available_guild(self, guild_id):
         self._remove_startup_guild(guild_id)
@@ -295,7 +295,7 @@ class ShardWebSocket(BaseWebSocket):
 
                 self._ready = True
 
-                await self.callbcks['READY'](response.data)
+                await self.callbacks['READY'](response.data)
             elif name == 'GUILD_CREATE':
                 guild_id = response.data['id']
 
@@ -324,7 +324,7 @@ class ShardWebSocket(BaseWebSocket):
             if names is not None:
                 name = names[response.data.get('guild_id') is not None]
 
-            await self.callbcks['DISPATCH'](name, response.data)
+            await self.callbacks['DISPATCH'](name, response.data)
 
         elif response.opcode == ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
@@ -339,16 +339,16 @@ class ShardWebSocket(BaseWebSocket):
             self.heartbeat_interval = response.data['heartbeat_interval']
 
             await self.identify()
-            await self.callbcks['HELLO']()
+            await self.callbacks['HELLO']()
 
         elif response.opcode == ShardOpcode.HEARTBEAT_ACK:
             self.heartbeat_last_acked = time.perf_counter()
 
     async def closing_connection(self, exc):
-        await self.callbcks['CLOSING'](exc)
+        await self.callbacks['CLOSING'](exc)
 
     async def ws_close_received(self, code, data):
-        await self.callbcks['CLOSED'](code, data)
+        await self.callbacks['CLOSED'](code, data)
 
     async def connection_lost(self, exc):
-        await self.callbcks['CONNECTION_LOST'](exc)
+        await self.callbacks['CONNECTION_LOST'](exc)
