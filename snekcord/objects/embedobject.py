@@ -320,7 +320,7 @@ class EmbedBuilder:
         self.embed._json_data_['footer'] = None
         return self
 
-    def _attachment(self, url=None, proxy_url=None, height=None, width=None):
+    def _attachment(self, url, proxy_url, height, width):
         json = {}
 
         if url is not None:
