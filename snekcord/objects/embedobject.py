@@ -409,34 +409,33 @@ class EmbedBuilder:
         self.embed._json_data_.pop('author', None)
         return self
 
-    def _field(self, name, value, inline=None):
+    def _field(self, name, value, inline):
         json = {'name': str(name), 'valiue': str(value)}
 
         if inline is not None:
             json['inline'] = bool(inline)
 
-        return EmbedField.unmarshal(json)
+        return json
 
     def add_field(self, name, value, *, inline=None):
         """Adds a field to the embed"""
-        self.embed.fields.append(self._field(name, value, inline))
+        self.embed._json_data_['fields'].append(self._field(name, value, inline))
+        return self
+
+    def add_fields(self, *fields):
+        """Adds multiple fields of to the embed"""
+        for field in fields:
+            self.add_field(*field)
         return self
 
     def insert_field(self, index, name, value, *, inline=None):
         """Inserts a field into the embed at `index`"""
-        self.embed.fields.insert(index, self._field(name, value, inline))
-        return self
-
-    def extend_fields(self, *fields):
-        """Adds multiple fields of to the embed"""
-        for field in fields:
-            self.add_field(*field)
-
+        self.embed._json_data_['fields'].insert(index, self._field(name, value, inline))
         return self
 
     def clear_fields(self):
         """Clears the fields of the embed"""
-        self.embed.fields.clear()
+        self.embed._json_data_['fields'].clear()
         return self
 
     def send_to(self, channel, **kwargs):
