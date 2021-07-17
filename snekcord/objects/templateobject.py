@@ -17,9 +17,9 @@ class GuildTemplate(BaseObject):
     created_at = JsonField('created_at', datetime.fromisoformat)
     updated_at = JsonField('updated_at', datetime.fromisoformat)
     source_guild_id = JsonField('source_guild_id', Snowflake)
-    serialized_source_guild = JsonField('serialized_source_guild')
     # if someone actually needs this field to be more user friendly...
     # ever... make an issue https://github.com/asleep-cult/snekcord/issues
+    serialized_source_guild = JsonField('serialized_source_guild')
     is_dirty = JsonField('is_dirty')
 
     @property

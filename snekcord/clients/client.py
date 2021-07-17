@@ -178,14 +178,6 @@ class Client:
     def add_handled_signal(cls, signo):
         cls._handled_signals_.append(signo)
 
-    def itermembers(self):
-        for guild in self.guilds:
-            yield from guild.members
-
-    def iteremojis(self):
-        for guild in self.guilds:
-            yield from guild.emojis
-
     def register_listener(self, name, callback, *, sync=False, persistent=True):
         name = name.lower()
         listeners = self._listeners.get(name.lower())

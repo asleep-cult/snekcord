@@ -13,4 +13,5 @@ from .roleobject import *
 from .stageobject import *
 from .templateobject import *
 from .userobject import *
+from .welcomescreenobject import *
 from .widgetobject import *

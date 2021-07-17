@@ -52,7 +52,7 @@ class Integration(BaseObject):
     def __init__(self, *, state):
         super().__init__(state=state)
         self.user = None
-        self.application = IntegrationApplication.unmarshal(integration=self)
+        self.application = IntegrationApplication(integration=self)
 
     @property
     def guild(self):

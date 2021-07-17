@@ -17,7 +17,14 @@ class Undefined:
 undefined = Undefined()
 
 
-class JsonObject:
+class JsonObjectMeta(type):
+    def __call__(cls, *args, **kwargs):
+        self = super().__call__(*args, **kwargs)
+        self._json_data_ = {}
+        return self
+
+
+class JsonObject(metaclass=JsonObjectMeta):
     __slots__ = ('_json_data_',)
 
     @classmethod
@@ -25,9 +32,7 @@ class JsonObject:
         if isinstance(data, (bytes, bytearray, memoryview, str)):
             data = json.loads(data)
 
-        self = cls.__new__(cls)
-        self._json_data_ = {}
-        cls.__init__(self, **kwargs)
+        self = cls(**kwargs)
 
         if data is not None:
             self.update(data)

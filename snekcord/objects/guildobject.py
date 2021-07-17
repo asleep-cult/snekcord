@@ -15,9 +15,9 @@ from ..enums import (
 from ..fetchables import GuildBanner, GuildDiscoverySplash, GuildIcon, GuildSplash
 from ..flags import SystemChannelFlags
 from ..resolvers import resolve_image_data
-from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
+from ..utils import JsonArray, JsonField, Snowflake, undefined
 
-__all__ = ('Guild', 'GuildBan', 'WelcomeScreen', 'WelcomeScreenChannel')
+__all__ = ('Guild', 'GuildBan',)
 
 
 class Guild(BaseObject):
@@ -72,9 +72,9 @@ class Guild(BaseObject):
 
         self.unsynced = True
 
-        self.widget = ClientClasses.GuildWidget.unmarshal(guild=self)
-        self.vanity_url = ClientClasses.GuildVanityURL.unmarshal(guild=self)
-        self.welcome_screen = ClientClasses.WelcomeScreen.unmarshal(guild=self)
+        self.widget = ClientClasses.GuildWidget(guild=self)
+        self.vanity_url = ClientClasses.GuildVanityURL(guild=self)
+        self.welcome_screen = ClientClasses.WelcomeScreen(guild=self)
 
         self.bans = ClientClasses.GuildBanState(client=self.state.client, guild=self)
         self.channels = ClientClasses.GuildChannelState(
@@ -404,119 +404,5 @@ class GuildBan(BaseObject):
         if 'user' in data:
             self.user = self.state.client.users.upsert(data['user'])
             self._json_data_['id'] = self.user.id
-
-        return self
-
-
-class WelcomeScreenChannel(JsonObject):
-    __slots__ = ('welcome_screen',)
-
-    channel_id = JsonField('channel_id', Snowflake)
-    description = JsonField('description')
-    emoji_id = JsonField('emoji', Snowflake)
-    emoji_name = JsonField('emoji_name')
-
-    def __init__(self, *, welcome_screen):
-        self.welcome_screen = welcome_screen
-
-    @property
-    def channel(self):
-        return self.welcome_screen.guild.channels.get(self.channel_id)
-
-    @property
-    def emoji(self):
-        return self.welcome_screen.guild.emojis.get(self.emoji_id)
-
-
-class WelcomeScreen(JsonObject):
-    __slots__ = ('guild', 'welcome_channels')
-
-    channel_id = JsonField('channel_id', Snowflake)
-
-    def __init__(self, *, guild):
-        self.guild = guild
-        self.welcome_channels = {}
-
-    async def fetch(self):
-        data = await rest.get_guild_welcome_screen.request(
-            self.guild.state.client.rest, {'guild_id': self.guild.id}
-        )
-
-        return self.update(data)
-
-    async def modify(self, *, enabled=undefined, welcome_channels=undefined, description=undefined):
-        json = {}
-
-        if enabled is not undefined:
-            if enabled is not None:
-                json['enabled'] = bool(enabled)
-            else:
-                json['enabled'] = None
-
-        if welcome_channels is not undefined:
-            if welcome_channels is not None:
-                json['welcome_channels'] = []
-
-                for channel, data in welcome_channels.items():
-                    welcome_channel = {'channel': Snowflake.try_snowflake(channel)}
-
-                    if 'description' in data:
-                        description = data['description']
-
-                        if description is not None:
-                            welcome_channel['description'] = str(description)
-                        else:
-                            welcome_channel['description'] = None
-
-                    if 'emoji' in data:
-                        emoji = self.guild.emojis.resolve(data['emoji'])
-
-                        if isinstance(
-                            emoji, (ClientClasses.UnicodeEmoji, ClientClasses.PartialUnicodeEmoji)
-                        ):
-                            welcome_channel['emoji_name'] = emoji.unicode
-
-                        elif isinstance(
-                            emoji, (ClientClasses.GuildEmoji, ClientClasses.PartialGuildEmoji)
-                        ):
-                            welcome_channel['emoji_name'] = emoji.name
-                            welcome_channel['emoji_id'] = emoji.id
-
-                    json['welcome_channels'].append(welcome_channel)
-            else:
-                json['welcome_channels'] = None
-
-        if 'description' in data:
-            description = data['description']
-
-            if description is not None:
-                json['description'] = str(description)
-            else:
-                json['description'] = None
-
-        data = await rest.modify_guild_welcome_screen.request(
-            self.guild.state.client.rest, {'guild_id': self.guild.id}, json=json
-        )
-
-        return self.update(data)
-
-    def update(self, data):
-        super().update(data)
-
-        if 'welcome_channels' in data:
-            welcome_channels = set()
-
-            for welcome_channel in data['welcome_channels']:
-                channel = self.welcome_channels.get(welcome_channel['channel_id'])
-
-                if channel is not None:
-                    channel.update(welcome_channel)
-                else:
-                    channel = WelcomeScreenChannel.unmarshal(welcome_channel, welcome_screen=self)
-
-                welcome_channels.add(channel.channel_id)
-
-            for channel_id in set(self.welcome_channels.keys()) - welcome_channels:
-                del self.welcome_channels[channel_id]
 
         return self

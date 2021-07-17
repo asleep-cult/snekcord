@@ -52,7 +52,7 @@ class GuildChannel(BaseObject):
 
         return json
 
-    async def delete(self):
+    def delete(self):
         return self.state.delete(self.id)
 
     def update(self, data):
@@ -156,7 +156,7 @@ class CategoryChannel(GuildChannel):
     def __str__(self):
         return f'#{self.name}'
 
-    def iterchildren(self):
+    def get_children(self):
         for channel in self.guild.channels:
             if channel.parent_id == self.id:
                 yield channel
@@ -226,5 +226,5 @@ class DMChannel(BaseObject):
     type = JsonField('type', ChannelType.get_enum)
     _recipients = JsonArray('recipients')
 
-    async def close(self):
+    def close(self):
         return self.state.close(self.id)

@@ -510,6 +510,7 @@ class MessageReactionAddEvent(BaseEvent):
 
         if channel is not None:
             message = channel.messages.get(Snowflake(payload['message_id']))
+
             if message is not None:
                 reactions = message.reactions.upsert(payload)
 

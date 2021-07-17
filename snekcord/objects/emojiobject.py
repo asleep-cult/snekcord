@@ -53,7 +53,7 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
     def guild(self):
         return self.state.guild
 
-    def iterroles(self):
+    def get_roles(self):
         for role_id in self.role_ids:
             try:
                 yield self.guild.roles[role_id]

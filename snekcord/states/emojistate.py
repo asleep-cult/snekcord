@@ -5,28 +5,23 @@ from ..objects.emojiobject import BaseEmoji, UnicodeEmoji
 from ..resolvers import resolve_emoji, resolve_image_data
 from ..utils import Snowflake
 
+UNICODE_EMOJIS_BY_SURROGATES = {}
+UNICODE_EMOJIS_BY_NAME = {}
+
 try:
     import snekcord.emojis as _emojis  # type: ignore
+
+    for category, emojis in _emojis.ALL_CATEGORIES.items():
+        for data in emojis:
+            emoji = UnicodeEmoji(category=category, data=data)
+            emoji._store(UNICODE_EMOJIS_BY_SURROGATES, UNICODE_EMOJIS_BY_NAME)
 except ImportError:
     _emojis = None
 
 __all__ = ('GuildEmojiState',)
 
 
-def _class_init_(surrogates, name):
-    if _emojis is not None:
-        for category, emojis in _emojis.ALL_CATEGORIES.items():
-            for data in emojis:
-                emoji = UnicodeEmoji(category=category, data=data)
-                emoji._store(surrogates, name)
-
-
 class GuildEmojiState(BaseState):
-    UNICODE_EMOJIS_BY_SURROGATES = {}
-    UNICODE_EMOJIS_BY_NAME = {}
-
-    _class_init_(UNICODE_EMOJIS_BY_SURROGATES, UNICODE_EMOJIS_BY_NAME)
-
     def __init__(self, *, client, guild):
         super().__init__(client=client)
         self.guild = guild
@@ -34,7 +29,7 @@ class GuildEmojiState(BaseState):
     @classmethod
     def get_unicode_emoji(cls, data, default=None):
         if isinstance(data, str):
-            emoji = cls.UNICODE_EMOJIS_BY_NAME.get(data.strip(':'))
+            emoji = UNICODE_EMOJIS_BY_NAME.get(data.strip(':'))
 
             if emoji is not None:
                 return emoji
@@ -42,7 +37,7 @@ class GuildEmojiState(BaseState):
             data = data.encode()
 
         if isinstance(data, bytes):
-            emoji = cls.UNICODE_EMOJIS_BY_SURROGATES.get(data)
+            emoji = UNICODE_EMOJIS_BY_SURROGATES.get(data)
 
             if emoji is not None:
                 return emoji
