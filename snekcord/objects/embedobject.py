@@ -410,7 +410,7 @@ class EmbedBuilder:
         return self
 
     def _field(self, name, value, inline):
-        json = {'name': str(name), 'valiue': str(value)}
+        json = {'name': str(name), 'value': str(value)}
 
         if inline is not None:
             json['inline'] = bool(inline)
