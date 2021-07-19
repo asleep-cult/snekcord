@@ -72,7 +72,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
         )
 
         guild = self.state.client.guilds.upsert(data)
-        self._json_data_['guild_id'] = guild.id
+        self._json_data_['guild_id'] = guild._json_data_['id']
         return guild
 
     def get_roles(self):

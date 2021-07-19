@@ -46,7 +46,7 @@ class WelcomeScreen(JsonObject):
                             welcome_channel['description'] = None
 
                     if 'emoji' in data:
-                        emoji = self.guild.emojis.resolve(data['emoji'])
+                        emoji = self.guild.state.client.emojis.resolve(data['emoji'])
 
                         if isinstance(
                             emoji, (ClientClasses.UnicodeEmoji, ClientClasses.PartialUnicodeEmoji)

@@ -119,7 +119,7 @@ class GuildMember(BaseObject):
 
         if 'user' in data:
             self.user = self.state.client.users.upsert(data['user'])
-            self._json_data_['id'] = self.user.id
+            self._json_data_['id'] = self.user._json_data_['id']
 
         if 'roles' in data:
             for role in data['roles']:

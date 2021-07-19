@@ -88,7 +88,7 @@ class Reactions(BaseSubState, BaseObject):
         super().update(data)
 
         if 'emoji' in data:
-            self.emoji = self.state.message.guild.emojis.upsert(data['emoji'])
+            self.emoji = self.state.client.emojis.upsert(data['emoji'])
             self._json_data_['id'] = self.emoji.id
 
         return self

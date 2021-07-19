@@ -11,7 +11,7 @@ class ReactionsState(BaseState):
         self.message = message
 
     def upsert(self, data):
-        ident = self.message.guild.emojis.upsert(data['emoji']).id
+        ident = self.client.emojis.upsert(data['emoji']).id
         reactions = self.get(ident)
 
         if reactions is not None:
@@ -23,7 +23,7 @@ class ReactionsState(BaseState):
         return reactions
 
     async def add(self, emoji):
-        emoji = self.message.guild.emojis.resolve(emoji)
+        emoji = self.client.emojis.resolve(emoji)
 
         await rest.add_reaction.request(
             self.client.rest,

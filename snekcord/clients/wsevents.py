@@ -397,7 +397,7 @@ class MessageCreateEvent(BaseEvent):
 
         if channel is not None:
             message = channel.messages.upsert(payload)
-            channel._json_data_['last_message_id'] = message.id
+            channel._json_data_['last_message_id'] = message._json_data_['id']
 
         return cls(shard=shard, payload=payload, channel=channel, message=message)
 
