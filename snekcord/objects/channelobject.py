@@ -35,6 +35,7 @@ class GuildChannel(BaseObject):
 
     def _delete(self):
         super()._delete()
+
         if self.guild is not None:
             self.guild.channels.remove_key(self.id)
 
@@ -57,10 +58,6 @@ class GuildChannel(BaseObject):
 
     def update(self, data):
         super().update(data)
-
-        guild = self.guild
-        if guild is not None:
-            guild.channels.add_key(self.id)
 
         if 'permission_overwrites' in data:
             overwrites = set()

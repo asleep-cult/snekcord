@@ -80,7 +80,7 @@ class Guild(BaseObject):
         self.channels = ClientClasses.GuildChannelState(
             superstate=self.state.client.channels, guild=self
         )
-        self.emojis = ClientClasses.GuildEmojiState(client=self.state.client, guild=self)
+        self.emojis = ClientClasses.GuildEmojiState(superstate=self.state.client.emojis, guild=self)
         self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
         self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
         self.integrations = ClientClasses.IntegrationState(client=self.state.client, guild=self)
@@ -350,8 +350,7 @@ class Guild(BaseObject):
 
         if 'channels' in data:
             for channel in data['channels']:
-                channel['guild_id'] = self.id
-                self.state.client.channels.upsert(channel)
+                self.channels.upsert(channel)
 
         if 'emojis' in data:
             emojis = set()
@@ -369,7 +368,7 @@ class Guild(BaseObject):
                 roles.add(self.roles.upsert(role).id)
 
             for role_id in set(self.roles.keys()) - roles:
-                del self.emojis.mapping[role_id]
+                del self.roles.mapping[role_id]
 
         if 'members' in data:
             for member in data['members']:

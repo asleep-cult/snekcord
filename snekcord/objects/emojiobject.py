@@ -2,10 +2,11 @@ from urllib.parse import quote
 
 from .baseobject import BaseObject
 from .. import rest
+from ..clients.client import ClientClasses
 from ..utils import JsonArray, JsonField, Snowflake, undefined
 
 
-__all__ = ('GuildEmoji', 'PartialGuildEmoji', 'UnicodeEmoji', 'PartialUnicodeEmoji')
+__all__ = ('CustomEmoji', 'PartialCustomEmoji', 'UnicodeEmoji', 'PartialUnicodeEmoji')
 
 
 class BaseEmoji:
@@ -17,7 +18,7 @@ class BaseEmoji:
         raise NotImplementedError
 
 
-class _BaseGuildEmoji(BaseEmoji):
+class _BaseCustomEmoji(BaseEmoji):
     def __str__(self):
         if self.animated:
             return f'<a:{self.name}:{self.id}>'
@@ -27,15 +28,22 @@ class _BaseGuildEmoji(BaseEmoji):
         return quote(f'{self.name}:{self.id}')
 
 
-class PartialGuildEmoji(_BaseGuildEmoji):
+class PartialCustomEmoji(_BaseCustomEmoji):
     def __init__(self, *, client, id, name, animated):
         self.client = client
         self.id = id
         self.name = name
         self.animated = animated
 
+    async def fetch_guild(self):
+        data = await rest.get_emoji_guild.request(
+            self.client.rest, {'emoji_id': self.id}
+        )
 
-class GuildEmoji(BaseObject, _BaseGuildEmoji):
+        return self.client.guilds.upsert(data)
+
+
+class CustomEmoji(BaseObject, _BaseCustomEmoji):
     __slots__ = ('user',)
 
     name = JsonField('name')
@@ -44,6 +52,8 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
     managed = JsonField('managed')
     animated = JsonField('animated')
     available = JsonField('available')
+    # This field will never come from Discord, it is injected into the object by the library.
+    guild_id = JsonField('guild_id', Snowflake)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -51,7 +61,19 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
 
     @property
     def guild(self):
-        return self.state.guild
+        return self.state.client.guilds.get(self.guild_id)
+
+    async def fetch_guild(self):
+        if self.guild is not None:
+            return await self.guild.fetch()
+
+        data = await rest.get_emoji_guild.request(
+            self.state.client.rest, {'emoji_id': self.id}
+        )
+
+        guild = self.state.client.guilds.upsert(data)
+        self._json_data_['guild_id'] = guild.id
+        return guild
 
     def get_roles(self):
         for role_id in self.role_ids:
@@ -84,9 +106,15 @@ class GuildEmoji(BaseObject, _BaseGuildEmoji):
         return self.state.delete(self.id)
 
     def to_partial(self):
-        return PartialGuildEmoji(
+        return PartialCustomEmoji(
             client=self.state.client, id=self.id, name=self.name, animated=self.animated
         )
+
+    def _delete(self):
+        super()._delete()
+
+        if self.guild is not None:
+            self.guild.emojis.remove_key(self.id)
 
     def update(self, data):
         super().update(data)
@@ -117,8 +145,11 @@ class UnicodeEmoji(_BaseUnicodeEmoji):
         self.surrogates, self.names, self.unicode_version, diversity_children = data
 
         self.diversity_children = []
+
         for child in diversity_children:
-            self.diversity_children.append(UnicodeEmoji(category=category, data=child))
+            self.diversity_children.append(
+                ClientClasses.UnicodeEmoji(category=category, data=child)
+            )
 
     def __str__(self):
         return f':{self.name}:'

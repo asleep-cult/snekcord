@@ -54,7 +54,7 @@ class WelcomeScreen(JsonObject):
                             welcome_channel['emoji_name'] = emoji.unicode
 
                         elif isinstance(
-                            emoji, (ClientClasses.GuildEmoji, ClientClasses.PartialGuildEmoji)
+                            emoji, (ClientClasses.CustomEmoji, ClientClasses.PartialCustomEmoji)
                         ):
                             welcome_channel['emoji_name'] = emoji.name
                             welcome_channel['emoji_id'] = emoji.id

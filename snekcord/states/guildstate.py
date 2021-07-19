@@ -170,7 +170,7 @@ class GuildBanState(BaseState):
 
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.get_guild_ban.request(
+        await rest.create_guild_ban.request(
             self.client.rest,
             {'guild_id': self.guild.id, 'user_id': user_id}
         )

@@ -155,6 +155,11 @@ get_guild_emoji = HTTPEndpoint(
     BASE_API_URL + '/guilds/%(guild_id)s/emojis/%(emoji)s',
 )
 
+get_emoji_guild = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/emojis/%(emoji_id)s/guild'
+)
+
 create_guild_emoji = HTTPEndpoint(
     'POST',
     BASE_API_URL + '/guilds/%(guild_id)s/emojis',

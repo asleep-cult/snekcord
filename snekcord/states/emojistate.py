@@ -1,4 +1,4 @@
-from .basestate import BaseState
+from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.emojiobject import BaseEmoji, UnicodeEmoji
@@ -18,16 +18,12 @@ try:
 except ImportError:
     _emojis = None
 
-__all__ = ('GuildEmojiState',)
+__all__ = ('EmojiState', 'GuildEmojiState')
 
 
-class GuildEmojiState(BaseState):
-    def __init__(self, *, client, guild):
-        super().__init__(client=client)
-        self.guild = guild
-
+class EmojiState(BaseState):
     @classmethod
-    def get_unicode_emoji(cls, data, default=None):
+    def get_unicode(cls, data, default=None):
         if isinstance(data, str):
             emoji = UNICODE_EMOJIS_BY_NAME.get(data.strip(':'))
 
@@ -55,11 +51,43 @@ class GuildEmojiState(BaseState):
             if emoji is not None:
                 emoji.update(data)
             else:
-                emoji = ClientClasses.GuildEmoji.unmarshal(data, state=self)
+                emoji = ClientClasses.CustomEmoji.unmarshal(data, state=self)
                 emoji.cache()
         else:
-            emoji = self.get_unicode_emoji(data['name'].encode())
+            emoji = self.client.emojis.get_unicode(data['name'].encode())
 
+        return emoji
+
+    def resolve(self, emoji):
+        if isinstance(emoji, BaseEmoji):
+            return emoji
+
+        if isinstance(emoji, int):
+            return self.get(emoji)
+
+        if isinstance(emoji, str):
+            data = resolve_emoji(emoji)
+
+            if data is not None:
+                emoji = self.get(data['id'])
+
+                if emoji is not None:
+                    return emoji
+
+                return ClientClasses.PartialCustomEmoji(client=self.client, **data)
+
+        return self.get_unicode(emoji)
+
+
+class GuildEmojiState(BaseSubState):
+    def __init__(self, *, superstate, guild):
+        super().__init__(superstate=superstate)
+        self.guild = guild
+
+    def upsert(self, data):
+        data['guild_id'] = self.guild.id
+        emoji = self.superstate.upsert(data)
+        self.add_key(emoji.id)
         return emoji
 
     async def fetch(self, emoji):
@@ -90,7 +118,7 @@ class GuildEmojiState(BaseState):
             self.client.rest, {'guild_id': self.guild.id}, json=json
         )
 
-        return self.upsert(data)
+        return self.superstate.upsert(data)
 
     async def delete(self, emoji):
         emoji_id = Snowflake.try_snowflake(emoji)
@@ -98,23 +126,3 @@ class GuildEmojiState(BaseState):
         await rest.delete_guild_emoji.request(
             self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
         )
-
-    def resolve(self, emoji):
-        if isinstance(emoji, BaseEmoji):
-            return emoji
-
-        if isinstance(emoji, int):
-            return self.get(emoji)
-
-        if isinstance(emoji, str):
-            data = resolve_emoji(emoji)
-
-            if data is not None:
-                emoji = self.get(data['id'])
-
-                if emoji is not None:
-                    return emoji
-
-                return ClientClasses.PartialGuildEmoji(client=self.client, **data)
-
-        return self.get_unicode_emoji(emoji)

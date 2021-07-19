@@ -134,6 +134,7 @@ class Message(BaseObject):
 
     def _delete(self):
         super()._delete()
+
         if self.pinned:
             self.channel.pins.remove_key(self.id)
 

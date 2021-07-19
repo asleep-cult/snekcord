@@ -14,8 +14,8 @@ class _ClientClasses:
         'CategoryChannel',
         'VoiceChannel',
         'DMChannel',
-        'GuildEmoji',
-        'PartialGuildEmoji',
+        'CustomEmoji',
+        'PartialCustomEmoji',
         'UnicodeEmoji',
         'PartialUnicodeEmoji',
         'Guild',
@@ -42,6 +42,7 @@ class _ClientClasses:
     _state_classes_ = {
         'ChannelState',
         'GuildChannelState',
+        'EmojiState',
         'GuildEmojiState',
         'GuildBanState',
         'GuildState',
@@ -161,6 +162,7 @@ class Client:
 
         self.rest = ClientClasses.RestSession(client=self)
         self.channels = ClientClasses.ChannelState(client=self)
+        self.emojis = ClientClasses.EmojiState(client=self)
         self.guilds = ClientClasses.GuildState(client=self)
         self.invites = ClientClasses.InviteState(client=self)
         self.stages = ClientClasses.StageInstanceState(client=self)

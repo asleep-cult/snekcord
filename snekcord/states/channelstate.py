@@ -80,12 +80,18 @@ class GuildChannelState(BaseSubState):
     def public_updates(self):
         return self.get(self.guild.public_updates_channel_id)
 
+    def upsert(self, data):
+        data['guild_id'] = self.guild.id
+        channel = self.superstate.upsert(data)
+        self.add_key(channel.id)
+        return channel
+
     async def fetch_all(self):
         data = await rest.get_guild_channels.request(
             self.superstate.client.rest, {'guild_id': self.guild.id}
         )
 
-        return [self.superstate.upsert(channel) for channel in data]
+        return [self.upsert(channel) for channel in data]
 
     async def modify_many(self, channels):
         json = []
