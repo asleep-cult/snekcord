@@ -20,6 +20,7 @@ class WebSocketClient(Client):
 
         intents = int(kwargs.pop('intents', 0))
         self.intents = WebSocketIntents.from_value(intents)
+        self.intents.guilds = True
 
         self.auto_intents = kwargs.pop('auto_intents', True)
 
