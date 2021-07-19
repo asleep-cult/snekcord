@@ -2,6 +2,7 @@ from urllib.parse import quote
 
 from .baseobject import BaseObject
 from .. import rest
+from ..exceptions import PartialObjectError
 from ..clients.client import ClientClasses
 from ..utils import JsonArray, JsonField, Snowflake, undefined
 
@@ -61,7 +62,10 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
 
     @property
     def guild(self):
-        return self.state.client.guilds.get(self.guild_id)
+        try:
+            return self.state.client.guilds.get(self.guild_id)
+        except PartialObjectError:
+            return None
 
     async def fetch_guild(self):
         if self.guild is not None:

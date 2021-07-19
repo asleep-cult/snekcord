@@ -108,7 +108,7 @@ class Message(BaseObject):
 
         if embeds is not undefined:
             if embeds is not None:
-                json['embeds'].extend(map(_embed_to_dict, embed))
+                json['embeds'].extend([_embed_to_dict(embed) for embed in embeds])
             else:
                 json['embeds'] = None
 
@@ -173,5 +173,11 @@ class Message(BaseObject):
             self.channel.pins.add_key(self.id)
         else:
             self.channel.pins.remove_key(self.id)
+
+        if self.type == MessageType.CHANNEL_PINNED_MESSAGE:
+            self.channel.pins.add_key(self.reference.message_id)
+
+            if self.reference.message is not None:
+                self.reference.message._json_data_['pinned'] = True
 
         return self

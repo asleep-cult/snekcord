@@ -8,10 +8,9 @@ WS_EVENTS_INTENTS = {}
 
 def register(name, *, intent=None):
     def wrapped(cls):
-        nonlocal name
-
         __all__.append(cls.__name__)
 
+        nonlocal name
         name = name.lower()
 
         WS_EVENTS[name] = cls.execute
@@ -439,7 +438,7 @@ class DirectMessageUpdateEvent(MessageUpdateEvent):
     pass
 
 
-@register('GUILD_MESSAGE_CREATE', intent='GUILD_MESSAGES')
+@register('GUILD_MESSAGE_UPDATE', intent='GUILD_MESSAGES')
 class GuildMessageCreateEvent(MessageUpdateEvent):
     pass
 

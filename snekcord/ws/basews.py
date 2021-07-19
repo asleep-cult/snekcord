@@ -1,5 +1,3 @@
-import asyncio
-
 from wsaio import WebSocketClient
 
 from ..utils import JsonField, JsonObject
@@ -22,8 +20,6 @@ class BaseWebSocket(WebSocketClient):
 
         self.heartbeat_last_sent = float('inf')
         self.heartbeat_last_acked = float('inf')
-
-        self.ready = asyncio.Event()
 
     @property
     def latency(self):
