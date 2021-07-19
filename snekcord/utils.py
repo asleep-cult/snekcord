@@ -44,7 +44,7 @@ class JsonObject(metaclass=JsonObjectMeta):
         return self
 
     def to_dict(self):
-        return self._json_data_
+        return self._json_data_.copy()
 
     def marshal(self, *args, **kwargs):
         return json.dumps(self._json_data_, *args, **kwargs)
