@@ -74,16 +74,15 @@ class MessageMentions:
         self.channel_ids = tuple(Snowflake(channel['id']) for channel in channels)
 
         for user in users:
-            if 'member' in user:
-                if message.guild is not None:
-                    try:
-                        member = user.pop('member')
-                    except KeyError:
-                        pass
-                    else:
-                        member['user'] = user
-                        message.guild.members.upsert(member)
-                        continue
+            if message.guild is not None:
+                try:
+                    member = user.pop('member')
+                except KeyError:
+                    pass
+                else:
+                    member['user'] = user
+                    message.guild.members.upsert(member)
+                    continue
 
             message.state.client.users.upsert(user)
 
