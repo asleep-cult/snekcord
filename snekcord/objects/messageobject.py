@@ -36,7 +36,8 @@ class AllowedMentions:
         else:
             self.users = None
 
-        self.replied_user = bool(replied_user)
+        if replied_user is not None:
+            self.replied_user = bool(replied_user)
 
     def to_dict(self):
         json = {}
