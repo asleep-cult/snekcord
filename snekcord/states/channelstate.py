@@ -17,6 +17,8 @@ class ChannelState(BaseState):
             return ClientClasses.VoiceChannel
         elif type == ChannelType.GUILD_CATEGORY:
             return ClientClasses.CategoryChannel
+        elif type == ChannelType.GUILD_STORE:
+            return ClientClasses.StorChannel
         else:
             return ClientClasses.GuildChannel
 

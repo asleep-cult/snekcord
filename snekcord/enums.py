@@ -69,6 +69,11 @@ class ChannelType(Enum[int]):
     GUILD_STAGE_VOICE = 13
 
 
+class VideoQualityMode(Enum[int]):
+    AUTO = 1
+    FULL = 2
+
+
 class EmbedType(Enum[str]):
     RICH = 'rich'
     IMAGE = 'image'

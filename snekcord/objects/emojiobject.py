@@ -2,8 +2,8 @@ from urllib.parse import quote
 
 from .baseobject import BaseObject
 from .. import rest
-from ..exceptions import PartialObjectError
 from ..clients.client import ClientClasses
+from ..exceptions import PartialObjectError
 from ..utils import JsonArray, JsonField, Snowflake, undefined
 
 
@@ -45,7 +45,7 @@ class PartialCustomEmoji(_BaseCustomEmoji):
 
 
 class CustomEmoji(BaseObject, _BaseCustomEmoji):
-    __slots__ = ('user',)
+    __slots__ = ('creator',)
 
     name = JsonField('name')
     role_ids = JsonArray('roles', Snowflake)
@@ -58,7 +58,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
 
     def __init__(self, *, state):
         super().__init__(state=state)
-        self.user = None
+        self.creator = None
 
     @property
     def guild(self):
@@ -124,7 +124,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
         super().update(data)
 
         if 'user' in data:
-            self.user = self.state.client.users.update(data['user'])
+            self.creator = self.state.client.users.update(data['user'])
 
         return self
 

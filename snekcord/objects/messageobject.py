@@ -45,6 +45,7 @@ class Message(BaseObject):
     channel_id = JsonField('channel_id', Snowflake)
     guild_id = JsonField('guild_id', Snowflake)
     content = JsonField('content')
+    created_at = JsonField('timestamp', datetime.fromisoformat)
     edited_at = JsonField('edited_timestamp', datetime.fromisoformat)
     tts = JsonField('tts')
     mention_everyone = JsonField('mention_everyone')
@@ -58,16 +59,21 @@ class Message(BaseObject):
     webhook_id = JsonField('webhook_id', Snowflake)
     type = JsonField('type', MessageType.get_enum)
     _activity = JsonField('activity')
-    application = JsonField('application')
+    _application = JsonField('application')
+    application_id = JsonField('application_id', Snowflake)
     flags = JsonField('flags', MessageFlags.from_value)
-    _stickers = JsonArray('stickers')
     _interaction = JsonField('interaction')
+    _thread = JsonField('thread')
+    _components = JsonArray('components')
+    _stickers = JsonField('sticker_items')
 
     def __init__(self, *, state):
         super().__init__(state=state)
+
         self.author = None
         self.member = None
         self.reference = None
+
         self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
     @property

@@ -13,6 +13,7 @@ class _ClientClasses:
         'TextChannel',
         'CategoryChannel',
         'VoiceChannel',
+        'StoreChannel',
         'DMChannel',
         'CustomEmoji',
         'PartialCustomEmoji',

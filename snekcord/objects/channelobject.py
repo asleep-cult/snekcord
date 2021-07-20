@@ -1,7 +1,7 @@
 from .baseobject import BaseObject
 from .. import rest
 from ..clients.client import ClientClasses
-from ..enums import ChannelType
+from ..enums import ChannelType, VideoQualityMode
 from ..utils import JsonArray, JsonField, Snowflake, undefined
 
 
@@ -17,6 +17,7 @@ class GuildChannel(BaseObject):
 
     def __init__(self, *, state):
         super().__init__(state=state)
+
         self.permissions = ClientClasses.PermissionOverwriteState(
             client=self.state.client, channel=self
         )
@@ -80,7 +81,9 @@ class TextChannel(GuildChannel):
 
     def __init__(self, *, state):
         super().__init__(state=state)
+
         self.last_pin_timestamp = None
+
         self.messages = ClientClasses.MessageState(client=self.state.client, channel=self)
         self.pins = ClientClasses.ChannelPinsState(superstate=self.messages, channel=self)
 
@@ -171,6 +174,7 @@ class CategoryChannel(GuildChannel):
 class VoiceChannel(GuildChannel):
     bitrate = JsonField('bitrate')
     user_limit = JsonField('user_limit')
+    video_quality_mode = JsonField('video_quality_mode', VideoQualityMode.get_enum)
 
     def __str__(self):
         return f'#!{self.name}'
@@ -207,9 +211,38 @@ class VoiceChannel(GuildChannel):
 
         if video_quality_mode is not None:
             if video_quality_mode is not None:
-                json['video_quality_mode'] = int(video_quality_mode)
+                json['video_quality_mode'] = VideoQualityMode.get_value(video_quality_mode)
             else:
                 json['video_quality_mode'] = None
+
+        data = await rest.modify_channel.request(
+            self.state.client.rest, {'channel_id': self.id}, json=json
+        )
+
+        return self.state.upsert(data)
+
+
+class StoreChannel(GuildChannel):
+    def __str__(self):
+        return f'#{self.name}'  # hm?
+
+    async def modify(
+        self, *, name=None, position=undefined, nsfw=undefined, permissions=undefined,
+        parent=undefined
+    ):
+        json = self._modify_helper(name, position, permissions)
+
+        if nsfw is not undefined:
+            if nsfw is not None:
+                json['nsfw'] = bool(nsfw)
+            else:
+                json['nsfw'] = None
+
+        if parent is not undefined:
+            if parent is not None:
+                json['parent'] = Snowflake.try_snowflake(parent)
+            else:
+                json['parent'] = None
 
         data = await rest.modify_channel.request(
             self.state.client.rest, {'channel_id': self.id}, json=json
