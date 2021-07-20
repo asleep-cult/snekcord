@@ -328,7 +328,7 @@ class Guild(BaseObject):
     async def leave(self):
         return self.state.leave(self.id)
 
-    async def delete(self):
+    def delete(self):
         return self.state.delete(self.id)
 
     def update(self, data):

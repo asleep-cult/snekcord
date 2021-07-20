@@ -11,7 +11,46 @@ from ..flags import MessageFlags
 from ..states.messagestate import _embed_to_dict
 from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
-__all__ = ('MessageMentions', 'MessageReference', 'Message')
+__all__ = ('AllowedMentions', 'MessageMentions', 'MessageReference', 'Message')
+
+
+class AllowedMentions:
+    def __init__(self, *, roles=None, users=None, replied_user=None):
+        self.parse = []
+
+        if roles is not None:
+            if isinstance(roles, bool):
+                self.roles = roles
+                self.parse.append('roles')
+            else:
+                self.roles = Snowflake.try_snowflake_many(roles)
+        else:
+            self.roles = None
+
+        if users is not None:
+            if isinstance(users, bool):
+                self.users = users
+                self.parse.append('users')
+            else:
+                self.users = Snowflake.try_snowflake_many(users)
+        else:
+            self.users = None
+
+        self.replied_user = bool(replied_user)
+
+    def to_dict(self):
+        json = {}
+
+        if self.roles is not None:
+            json['roles'] = self.roles
+
+        if self.users is not None:
+            json['users'] = self.users
+
+        if self.replied_user is not None:
+            json['replied_user'] = self.replied_user
+
+        return json
 
 
 class MessageMentions:
@@ -152,7 +191,7 @@ class Message(BaseObject):
 
     async def modify(
         self, *, content=undefined, embed=undefined, embeds=undefined, suppress_embeds=undefined,
-        # file=undefined, allowed_mentions, attachments, components,
+        allowed_mentions=undefined,  # file=undefined, allowed_mentions, attachments, components,
     ):
         json = {'embeds': []}
 
@@ -170,12 +209,18 @@ class Message(BaseObject):
 
         if embeds is not undefined:
             if embeds is not None:
-                json['embeds'].extend([_embed_to_dict(embed) for embed in embeds])
+                json['embeds'].extend(_embed_to_dict(embed) for embed in embeds)
             else:
                 json['embeds'] = None
 
         if suppress_embeds is not undefined:
             json['flags'] = MessageFlags(suppress_embeds=suppress_embeds)
+
+        if allowed_mentions is not undefined:
+            if allowed_mentions is not None:
+                json['mentions'] = allowed_mentions.to_dict()
+            else:
+                json['mentions'] = None
 
         data = await rest.modify_message.request(
             self.state.client.rest,

@@ -39,5 +39,5 @@ class StageInstance(BaseObject):
 
         return self.state.upsert(data)
 
-    async def delete(self):
+    def delete(self):
         return self.state.delete(self.channel_id)

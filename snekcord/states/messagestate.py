@@ -69,22 +69,25 @@ class MessageState(BaseState):
         return [self.upsert(message) for message in data]
 
     async def create(
-        self, *, content=undefined, tts=undefined, file=undefined, embed=undefined, embeds=undefined
-        # allowed mentions, message_reference, components
+        self, *, content=None, tts=None, file=None, embed=None,
+        embeds=None, allowed_mentions=None,  # message_reference, components
     ):
         json = {'embeds': []}
 
-        if content is not undefined:
+        if content is not None:
             json['content'] = str(content)
 
-        if tts is not undefined:
+        if tts is not None:
             json['tts'] = bool(tts)
 
-        if embeds is not undefined:
-            json['embeds'].extend(map(_embed_to_dict, embeds))
-
-        if embed is not undefined:
+        if embed is not None:
             json['embeds'].append(_embed_to_dict(embed))
+
+        if embeds is not None:
+            json['embeds'].extend(_embed_to_dict(embed) for embed in embeds)
+
+        if allowed_mentions is not None:
+            json['allowed_mentions'] = allowed_mentions.to_dict()
 
         if not any((json.get('content'), json.get('file'), json.get('embeds'))):
             raise TypeError('None of (content, file, embed(s)) were provided')
