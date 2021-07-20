@@ -34,8 +34,9 @@ class MessageMentions:
                     member = user['member']
                     member['user'] = user
                     message.guild.members.upsert(member)
-            else:
-                message.state.client.users.upsert(user)
+                    continue
+
+            message.state.client.users.upsert(user)
 
         for channel in channels:
             message.state.client.channels.upsert(channel)
