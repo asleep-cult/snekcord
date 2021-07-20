@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 
 from .baseobject import BaseObject
@@ -10,7 +11,64 @@ from ..flags import MessageFlags
 from ..states.messagestate import _embed_to_dict
 from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
-__all__ = ('MessageReference', 'Message')
+__all__ = ('MessageMentions', 'MessageReference', 'Message')
+
+
+class MessageMentions:
+    def __init__(self, *, message, everyone, users, roles, channels):
+        self.message = message
+
+        self.everyone = everyone
+
+        self.raw_users = copy.deepcopy(users)
+        self.raw_roles = copy.deepcopy(roles)
+        self.raw_channels = copy.deepcopy(channels)
+
+        self.user_ids = tuple(Snowflake(user['id']) for user in users)
+        self.role_ids = tuple(Snowflake(role_id) for role_id in roles)
+        self.channel_ids = tuple(Snowflake(channel['id']) for channel in channels)
+
+        for user in users:
+            if 'member' in user:
+                if message.guild is not None:
+                    member = user['member']
+                    member['user'] = user
+                    message.guild.members.upsert(member)
+            else:
+                message.state.client.users.upsert(user)
+
+        for channel in channels:
+            message.state.client.channels.upsert(channel)
+
+    def get_members(self):
+        if self.message.guild is not None:
+            for user_id in self.user_ids:
+                try:
+                    yield self.message.guild.members[user_id]
+                except KeyError:
+                    continue
+
+    def get_users(self):
+        for user_id in self.user_ids:
+            try:
+                yield self.message.state.client.users[user_id]
+            except KeyError:
+                continue
+
+    def get_roles(self):
+        if self.message.guild is not None:
+            for role_id in self.role_ids:
+                try:
+                    yield self.message.guild.roles[role_id]
+                except KeyError:
+                    continue
+
+    def get_channels(self):
+        for channel_id in self.channel_ids:
+            try:
+                yield self.message.state.client.channels[channel_id]
+            except KeyError:
+                continue
 
 
 class MessageReference(JsonObject):
@@ -40,7 +98,7 @@ class MessageReference(JsonObject):
 
 
 class Message(BaseObject):
-    __slots__ = ('author', 'member', 'reference', 'reactions')
+    __slots__ = ('author', 'member', 'reference', 'reactions', 'mentions')
 
     channel_id = JsonField('channel_id', Snowflake)
     guild_id = JsonField('guild_id', Snowflake)
@@ -48,10 +106,6 @@ class Message(BaseObject):
     created_at = JsonField('timestamp', datetime.fromisoformat)
     edited_at = JsonField('edited_timestamp', datetime.fromisoformat)
     tts = JsonField('tts')
-    mention_everyone = JsonField('mention_everyone')
-    _mentions = JsonArray('mentions')
-    _mention_roles = JsonArray('mention_roles')
-    _mention_channels = JsonArray('mention_channels')
     _attachments = JsonArray('attachments')
     embeds = JsonArray('embeds', object=Embed)
     nonce = JsonField('nonce')
@@ -73,6 +127,7 @@ class Message(BaseObject):
         self.author = None
         self.member = None
         self.reference = None
+        self.mentions = None
 
         self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
@@ -146,6 +201,11 @@ class Message(BaseObject):
 
     def update(self, data):
         super().update(data)
+
+        self.mentions = MessageMentions(
+            message=self, everyone=data['mention_everyone'], users=data.get('mentions', ()),
+            roles=data.get('mention_roles', ()), channels=data.get('mention_channels', ())
+        )
 
         if 'author' in data:
             self.author = self.state.client.users.upsert(data['author'])
