@@ -80,11 +80,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
         return guild
 
     def get_roles(self):
-        for role_id in self.role_ids:
-            try:
-                yield self.guild.roles[role_id]
-            except KeyError:
-                continue
+        yield from self.guild.roles.get_all(self.role_ids)
 
     async def modify(self, *, name=None, roles=undefined):
         json = {}

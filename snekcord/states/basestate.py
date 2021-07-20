@@ -5,6 +5,14 @@ class _StateCommon:
     def __contains__(self, value):
         raise NotImplementedError
 
+    def get_all(self, keys, fail=False):
+        for key in keys:
+            try:
+                yield self[key]
+            except KeyError:
+                if fail:
+                    raise
+
     def first(self, func=None):
         for value in self:
             if func is None or func(value):

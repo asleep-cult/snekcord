@@ -38,9 +38,14 @@ class AllowedMentions:
 
         if replied_user is not None:
             self.replied_user = bool(replied_user)
+        else:
+            self.replied_user = None
 
     def to_dict(self):
         json = {}
+
+        if self.parse:
+            json['parse'] = self.parse
 
         if self.roles is not None:
             json['roles'] = self.roles
@@ -71,45 +76,30 @@ class MessageMentions:
         for user in users:
             if 'member' in user:
                 if message.guild is not None:
-                    member = user['member']
-                    member['user'] = user
-                    message.guild.members.upsert(member)
-                    continue
+                    try:
+                        member = user.pop('member')
+                    except KeyError:
+                        pass
+                    else:
+                        member['user'] = user
+                        message.guild.members.upsert(member)
+                        continue
 
             message.state.client.users.upsert(user)
 
-        for channel in channels:
-            message.state.client.channels.upsert(channel)
-
     def get_members(self):
         if self.message.guild is not None:
-            for user_id in self.user_ids:
-                try:
-                    yield self.message.guild.members[user_id]
-                except KeyError:
-                    continue
+            yield from self.message.guild.members.get_all(self.user_ids)
 
     def get_users(self):
-        for user_id in self.user_ids:
-            try:
-                yield self.message.state.client.users[user_id]
-            except KeyError:
-                continue
+        yield from self.message.state.client.users.get_all(self.user_ids)
 
     def get_roles(self):
         if self.message.guild is not None:
-            for role_id in self.role_ids:
-                try:
-                    yield self.message.guild.roles[role_id]
-                except KeyError:
-                    continue
+            yield from self.message.guild.roles.get_all(self.role_ids)
 
     def get_channels(self):
-        for channel_id in self.channel_ids:
-            try:
-                yield self.message.state.client.channels[channel_id]
-            except KeyError:
-                continue
+        yield from self.message.state.client.channels.get_all(self.channel_ids)
 
 
 class MessageReference(JsonObject):
