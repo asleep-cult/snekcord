@@ -82,7 +82,7 @@ class MessageReference:
         return data
 
 
-class MessageMentions:
+class MessageMentionsData:
     def __init__(self, message, everyone, users, roles, channels):
         self.message = message
 
@@ -268,7 +268,7 @@ class Message(BaseObject):
     def update(self, data):
         super().update(data)
 
-        self.mentions = MessageMentions(
+        self.mentions = MessageMentionsData(
             self, data.get('mention_everyone'), data.get('mentions', ()),
             data.get('mention_roles', ()), data.get('mention_channels', ())
         )
