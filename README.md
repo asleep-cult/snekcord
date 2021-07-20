@@ -1,5 +1,5 @@
 # snekcord
-A work-in-progress Discord API wrapper written in Python.
+A work-in-progress Discord API wrapper written in Python that aims to cover the full API.
 
 ![Python: >= 3.7](https://img.shields.io/static/v1?label=Python&message=%3E=%203.7&color=yellow)
 
