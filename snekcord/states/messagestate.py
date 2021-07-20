@@ -1,22 +1,10 @@
 from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..objects.embedobject import Embed, EmbedBuilder
+from ..resolvers import resolve_embed_data
 from ..utils import Snowflake, undefined
 
 __all__ = ('MessageState', 'ChannelPinsState')
-
-
-def _embed_to_dict(embed):
-    if isinstance(embed, EmbedBuilder):
-        embed = embed.embed
-
-    if isinstance(embed, Embed):
-        return embed.to_dict()
-
-    raise TypeError(
-        f'embed should be an Embed or EmbedBuilder, got {embed.__class__.__name__!r}'
-    )
 
 
 class MessageState(BaseState):
@@ -69,8 +57,8 @@ class MessageState(BaseState):
         return [self.upsert(message) for message in data]
 
     async def create(
-        self, *, content=None, tts=None, file=None, embed=None,
-        embeds=None, allowed_mentions=None,  # message_reference, components
+        self, *, content=None, tts=None, file=None, embed=None, embeds=None, allowed_mentions=None,
+        message_reference=None,  # components
     ):
         json = {'embeds': []}
 
@@ -81,13 +69,16 @@ class MessageState(BaseState):
             json['tts'] = bool(tts)
 
         if embed is not None:
-            json['embeds'].append(_embed_to_dict(embed))
+            json['embeds'].append(resolve_embed_data(embed))
 
         if embeds is not None:
-            json['embeds'].extend(_embed_to_dict(embed) for embed in embeds)
+            json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
 
         if allowed_mentions is not None:
             json['allowed_mentions'] = allowed_mentions.to_dict()
+
+        if message_reference is not None:
+            json['message_reference'] = message_reference.to_dict()
 
         if not any((json.get('content'), json.get('file'), json.get('embeds'))):
             raise TypeError('None of (content, file, embed(s)) were provided')

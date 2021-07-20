@@ -128,7 +128,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
 class _BaseUnicodeEmoji(BaseEmoji):
     @property
     def unicode(self):
-        return self.surrogates.encode()
+        return self.surrogates.decode()
 
     @property
     def id(self):

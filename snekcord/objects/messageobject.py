@@ -8,10 +8,10 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import MessageType
 from ..flags import MessageFlags
-from ..states.messagestate import _embed_to_dict
+from ..resolvers import resolve_embed_data
 from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
 
-__all__ = ('AllowedMentions', 'MessageMentions', 'MessageReference', 'Message')
+__all__ = ('AllowedMentions', 'MessageReference', 'Message')
 
 
 class AllowedMentions:
@@ -42,25 +42,48 @@ class AllowedMentions:
             self.replied_user = None
 
     def to_dict(self):
-        json = {}
+        data = {}
 
         if self.parse:
-            json['parse'] = self.parse
+            data['parse'] = self.parse
 
         if self.roles is not None:
-            json['roles'] = self.roles
+            data['roles'] = self.roles
 
         if self.users is not None:
-            json['users'] = self.users
+            data['users'] = self.users
 
         if self.replied_user is not None:
-            json['replied_user'] = self.replied_user
+            data['replied_user'] = self.replied_user
 
-        return json
+        return data
+
+
+class MessageReference:
+    def __init__(self, message, *, ensure_exists=None):
+        self.message = message
+
+        if ensure_exists is not None:
+            self.ensure_exists = bool(ensure_exists)
+        else:
+            self.ensure_exists = None
+
+    def to_dict(self):
+        data = {
+            'message_id': self.message.id
+        }
+
+        if self.message.guild is not None:
+            data['guild_id'] = self.message.guild.id
+
+        if self.ensure_exists is not None:
+            data['fail_if_not_exists'] = self.ensure_exists
+
+        return data
 
 
 class MessageMentions:
-    def __init__(self, *, message, everyone, users, roles, channels):
+    def __init__(self, message, everyone, users, roles, channels):
         self.message = message
 
         self.everyone = everyone
@@ -101,7 +124,7 @@ class MessageMentions:
         yield from self.message.state.client.channels.get_all(self.channel_ids)
 
 
-class MessageReference(JsonObject):
+class MessageReferenceData(JsonObject):
     __slots__ = ('source_message',)
 
     message_id = JsonField('message_id', Snowflake)
@@ -121,9 +144,8 @@ class MessageReference(JsonObject):
 
     @property
     def message(self):
-        channel = self.channel
-        if channel is not None:
-            return channel.messages.get(self.message_id)
+        if self.channel is not None:
+            return self.channel.messages.get(self.message_id)
         return None
 
 
@@ -193,13 +215,13 @@ class Message(BaseObject):
 
         if embed is not undefined:
             if embed is not None:
-                json['embeds'].append(_embed_to_dict(embed))
+                json['embeds'].append(resolve_embed_data(embed))
             else:
                 json['embeds'] = None
 
         if embeds is not undefined:
             if embeds is not None:
-                json['embeds'].extend(_embed_to_dict(embed) for embed in embeds)
+                json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
             else:
                 json['embeds'] = None
 
@@ -220,6 +242,14 @@ class Message(BaseObject):
 
         return self.state.upsert(data)
 
+    def reply(self, *, ensure_exists=None, mention=None, **kwargs):
+        kwargs['message_reference'] = MessageReference(self, ensure_exists=ensure_exists)
+
+        if mention is not None:
+            kwargs['allowed_mentions'] = AllowedMentions(replied_user=mention)
+
+        return self.state.create(**kwargs)
+
     def pin(self):
         return self.channel.pins.add(self.id)
 
@@ -239,8 +269,8 @@ class Message(BaseObject):
         super().update(data)
 
         self.mentions = MessageMentions(
-            message=self, everyone=data['mention_everyone'], users=data.get('mentions', ()),
-            roles=data.get('mention_roles', ()), channels=data.get('mention_channels', ())
+            self, data.get('mention_everyone'), data.get('mentions', ()),
+            data.get('mention_roles', ()), data.get('mention_channels', ())
         )
 
         if 'author' in data:
@@ -263,7 +293,7 @@ class Message(BaseObject):
                 del self.reactions.mapping[emoji_id]
 
         if 'message_reference' in data:
-            self.reference = MessageReference.unmarshal(data['message_reference'], message=self)
+            self.reference = MessageReferenceData.unmarshal(data['message_reference'], message=self)
 
             if 'referenced_message' in data:
                 referenced_message = data['referenced_message']

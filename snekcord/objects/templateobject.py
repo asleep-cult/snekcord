@@ -20,7 +20,7 @@ class GuildTemplate(BaseObject):
     # if someone actually needs this field to be more user friendly...
     # ever... make an issue https://github.com/asleep-cult/snekcord/issues
     serialized_source_guild = JsonField('serialized_source_guild')
-    is_dirty = JsonField('is_dirty')
+    dirty = JsonField('is_dirty')
 
     @property
     def code(self):

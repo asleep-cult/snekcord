@@ -21,7 +21,9 @@ class GuildMember(BaseObject):
 
     def __init__(self, *, state):
         super().__init__(state=state)
+
         self.user = None
+
         self.roles = ClientClasses.GuildMemberRoleState(superstate=self.guild.roles, member=self)
 
     def __str__(self):

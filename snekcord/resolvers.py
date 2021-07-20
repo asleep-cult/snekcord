@@ -3,6 +3,7 @@ import io
 import re
 
 from .fetchables import Fetchable
+from .objects.embedobject import Embed, EmbedBuilder
 from .utils import Snowflake
 
 CHANNEL_MENTION_RE = re.compile(r'<#(?P<id>\d{17,19})>')
@@ -52,7 +53,17 @@ async def resolve_image_data(image):
         if image.startswith(IMAGE_DATA_FORMATS):
             return image
 
-    raise TypeError(f'Failed to resolve image data')
+    raise TypeError('Failed to resolve image data')
+
+
+def resolve_embed_data(embed):
+    if isinstance(embed, EmbedBuilder):
+        embed = embed.embed
+
+    if isinstance(embed, Embed):
+        return embed.to_dict()
+
+    raise TypeError('Failed to resolve embed data')
 
 
 def resolve_channel_mentions(string):
