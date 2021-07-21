@@ -44,17 +44,14 @@ class PermissionOverwriteState(BaseState):
         json['deny'] = Permissions.get_value(deny)
 
         await rest.create_channel_permission_overwrite.request(
-            self.client.rest,
-            {'channel_id': self.channel.id, 'overwrite_id': obj_id},
-            json=json
+            self.client.rest, channel_id=self.channel.id, overwrite_id=obj_id, json=json
         )
 
     async def delete(self, overwrite):
         overwrite_id = Snowflake.try_snowflake(overwrite)
 
         await rest.delete_channel_permission_overwrite.request(
-            self.client.rest,
-            {'channel_id': self.channel.id, 'overwrite_id': overwrite_id}
+            self.client.rest, channel_id=self.channel.id, overwrite_id=overwrite_id
         )
 
     def apply_to(self, member):

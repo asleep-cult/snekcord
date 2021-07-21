@@ -34,7 +34,7 @@ class StageInstance(BaseObject):
             json['privacy_level'] = StageInstancePrivacyLevel.get_value(privacy_level)
 
         data = await rest.modify_stage_instance.request(
-            self.state.client.rest, {'channel_id': self.channel_id}, json=json
+            self.state.client.rest, channel_id=self.channel_id, json=json
         )
 
         return self.state.upsert(data)

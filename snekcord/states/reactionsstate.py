@@ -26,16 +26,11 @@ class ReactionsState(BaseState):
         emoji = self.client.emojis.resolve(emoji)
 
         await rest.add_reaction.request(
-            self.client.rest,
-            {
-                'channel_id': self.message.channel.id,
-                'message_id': self.message.id,
-                'emoji': emoji.to_reaction()
-            }
+            self.client.rest, channel_id=self.message.channel.id, message_id=self.message.id,
+            emoji=emoji.to_reaction()
         )
 
     async def remove_all(self):
         await rest.remove_all_reactions.request(
-            self.client.rest,
-            {'channel_id': self.message.channel.id, 'message_id': self.message.id}
+            self.client.rest, channel_id=self.message.channel.id, message_id=self.message.id
         )

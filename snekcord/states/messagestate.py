@@ -28,7 +28,7 @@ class MessageState(BaseState):
 
         data = await rest.get_channel_message.request(
             self.client.rest,
-            {'channel_id': self.channel.id, 'message_id': message_id}
+            channel_id=self.channel.id, message_id=message_id
         )
 
         return self.upsert(data)
@@ -51,16 +51,16 @@ class MessageState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.get_channel_messages.request(
-            self.client.rest, {'channel_id': self.channel.id}, params=params
+            self.client.rest, channel_id=self.channel.id, params=params
         )
 
         return [self.upsert(message) for message in data]
 
     async def create(
-        self, *, content=None, tts=None, file=None, embed=None, embeds=None, allowed_mentions=None,
-        message_reference=None,  # components
+        self, *, content=None, tts=None, file=None, embed=None, embeds=None, sticker=None,
+        stickers=None, allowed_mentions=None, message_reference=None,  # components
     ):
-        json = {'embeds': []}
+        json = {}
 
         if content is not None:
             json['content'] = str(content)
@@ -69,10 +69,22 @@ class MessageState(BaseState):
             json['tts'] = bool(tts)
 
         if embed is not None:
-            json['embeds'].append(resolve_embed_data(embed))
+            json['embeds'] = [resolve_embed_data(embed)]
 
         if embeds is not None:
+            if 'embeds' not in json:
+                json['embeds'] = []
+
             json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
+
+        if sticker is not None:
+            json['sticker_ids'] = [Snowflake.try_snowflake(sticker)]
+
+        if stickers is not None:
+            if 'sticker_ids' not in json:
+                json['sticker_ids'] = []
+
+            json['sticker_ids'].extend(Snowflake.try_snowflake_many(stickers))
 
         if allowed_mentions is not None:
             json['allowed_mentions'] = allowed_mentions.to_dict()
@@ -84,7 +96,7 @@ class MessageState(BaseState):
             raise TypeError('None of (content, file, embed(s)) were provided')
 
         data = await rest.create_channel_message.request(
-            self.client.rest, {'channel_id': self.channel.id}, json=json
+            self.client.rest, channel_id=self.channel.id, json=json
         )
 
         return self.upsert(data)
@@ -93,7 +105,7 @@ class MessageState(BaseState):
         message_id = Snowflake.try_snowflake(message)
 
         data = await rest.delete_message.request(
-            self.client.rest, {'channel_id': self.channel.id, 'message_id': message_id}
+            self.client.rest, channel_id=self.channel.id, message_id=message_id
         )
 
         return self.upsert(data)
@@ -112,7 +124,7 @@ class MessageState(BaseState):
             raise TypeError('bulk_delete can\'t delete more than 100 messages')
 
         await rest.bulk_delete_messages.request(
-            self.client.rest, {'channel_id': self.channel.id}, json={'message_ids': message_ids}
+            self.client.rest, channel_id=self.channel.id, json={'message_ids': message_ids}
         )
 
 
@@ -123,7 +135,7 @@ class ChannelPinsState(BaseSubState):
 
     async def fetch_all(self):
         data = await rest.get_pinned_messages.request(
-            self.superstate.client.rest, {'channel_id': self.channel.id}
+            self.superstate.client.rest, channel_id=self.channel.id
         )
 
         return [self.superstate.upsert(message) for message in data]
@@ -132,14 +144,12 @@ class ChannelPinsState(BaseSubState):
         message_id = Snowflake.try_snowflake(message)
 
         await rest.add_pinned_message.request(
-            self.superstate.client.rest,
-            {'channel_id': self.channel.id, 'message_id': message_id}
+            self.superstate.client.rest, channel_id=self.channel.id, message_id=message_id
         )
 
     async def remove(self, message):
         message_id = Snowflake.try_snowflake(message)
 
         await rest.remove_pinned_message.request(
-            self.superstate.client.rest,
-            {'channel_id': self.channel.id, 'message_id': message_id}
+            self.superstate.client.rest, channel_id=self.channel.id, message_id=message_id
         )

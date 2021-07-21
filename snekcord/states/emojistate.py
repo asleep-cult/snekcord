@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.emojiobject import BaseEmoji, UnicodeEmoji
-from ..resolvers import resolve_emoji, resolve_image_data
+from ..resolvers import resolve_data_uri, resolve_emoji
 from ..utils import Snowflake
 
 UNICODE_EMOJIS_BY_SURROGATES = {}
@@ -85,23 +85,25 @@ class GuildEmojiState(BaseSubState):
         self.guild = guild
 
     def upsert(self, data):
-        data['guild_id'] = self.guild.id
+        data['guild_id'] = self.guild._json_data_['id']
         emoji = self.superstate.upsert(data)
+
         self.add_key(emoji.id)
+
         return emoji
 
     async def fetch(self, emoji):
         emoji_id = Snowflake.try_snowflake(emoji)
 
         data = await rest.get_guild_emoji.request(
-            self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
+            self.client.rest, guild_id=self.guild.id, emoji_id=emoji_id
         )
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
-            self.client.rest, {'guild_id': self.guild.id}
+            self.client.rest, guild_id=self.guild.id
         )
 
         return [self.upsert(emoji) for emoji in data]
@@ -109,13 +111,13 @@ class GuildEmojiState(BaseSubState):
     async def create(self, *, name, image, roles=None):
         json = {'name': str(name)}
 
-        json['image'] = await resolve_image_data(image)
+        json['image'] = await resolve_data_uri(image)
 
         if roles is not None:
             json['roles'] = Snowflake.try_snowflake_many(roles)
 
         data = await rest.create_guild_emoji.request(
-            self.client.rest, {'guild_id': self.guild.id}, json=json
+            self.client.rest, guild_id=self.guild.id, json=json
         )
 
         return self.superstate.upsert(data)
@@ -124,5 +126,5 @@ class GuildEmojiState(BaseSubState):
         emoji_id = Snowflake.try_snowflake(emoji)
 
         await rest.delete_guild_emoji.request(
-            self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
+            self.client.rest, guild_id=self.guild.id, emoji_id=emoji_id
         )

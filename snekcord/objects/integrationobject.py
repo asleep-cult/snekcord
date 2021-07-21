@@ -51,7 +51,9 @@ class Integration(BaseObject):
 
     def __init__(self, *, state):
         super().__init__(state=state)
+
         self.user = None
+
         self.application = IntegrationApplication(integration=self)
 
     @property

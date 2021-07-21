@@ -23,7 +23,7 @@ class StageInstanceState(BaseState):
         channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.get_stage_instance.request(
-            self.client.rest, {'channel_id': channel_id}
+            self.client.rest, channel_id=channel_id
         )
 
         return self.upsert(data)
@@ -46,5 +46,5 @@ class StageInstanceState(BaseState):
         channel_id = Snowflake.try_snowflake(channel)
 
         await rest.delete_stage_instance.request(
-            self.client.rest, {'channel_id': channel_id}
+            self.client.rest, channel_id=channel_id
         )

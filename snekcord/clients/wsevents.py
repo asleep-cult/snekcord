@@ -186,7 +186,7 @@ class GuildBanRemoveEvent(BaseEvent):
         return self.guild is None
 
 
-@register('GUILD_EMOJIS_UPDATE', intent='GUILD_EMOJIS')
+@register('GUILD_EMOJIS_UPDATE', intent='GUILD_EMOJIS_AND_STICKERS')
 class GuildEmojisUpdateEvent(BaseEvent):
     _fields_ = ('guild',)
 
@@ -201,7 +201,31 @@ class GuildEmojisUpdateEvent(BaseEvent):
                 emojis.add(guild.emojis.upsert(emoji).id)
 
             for emoji_id in set(guild.emojis.keys()) - emojis:
-                del guild.emojis.mapping[emoji_id]
+                guild.emojis[emoji_id]._delete()
+
+        return cls(shard=shard, payload=payload, guild=guild)
+
+    @property
+    def partial(self):
+        return self.guild is None
+
+
+@register('GUILD_STICKERS_UPDATE', intent='GUILD_EMOJIS_AND_STICKERS')
+class GuildStickersUpdate(BaseEvent):
+    _fields_ = ('guild',)
+
+    @classmethod
+    async def execute(cls, client, shard, payload):
+        guild = client.guilds.get(Snowflake(payload['guild_id']))
+
+        if guild is not None:
+            stickers = set()
+
+            for sticker in payload['stickers']:
+                stickers.add(guild.stickers.upsert(sticker).id)
+
+            for sticker_id in set(guild.stickers.keys()) - stickers:
+                guild.stickers[sticker_id]._delete()
 
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -477,7 +501,7 @@ class GuildMessageDeleteBulkEvent(BaseEvent):
         channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
-            for message in payload['id']:
+            for message in payload['ids']:
                 message = channel.messages.get(message)
 
                 if message is not None:

@@ -109,12 +109,14 @@ class JsonArray(JsonField):
 
 
 class ReprHelper:
-    _repr_fields_ = ()
+    _repr_fields_ = set()
 
     def __init_subclass__(cls):
+        cls._repr_fields_ = set(cls._repr_fields_)
+
         for base in cls.__bases__:
             if issubclass(base, ReprHelper):
-                cls._repr_fields_ += base._repr_fields_
+                cls._repr_fields_ |= set(base._repr_fields_)
 
     def __repr__(self):
         fields = ['<', self.__class__.__name__]

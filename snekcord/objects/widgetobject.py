@@ -68,9 +68,7 @@ class GuildWidget(JsonObject):
                 json['channel_id'] = None
 
         data = await rest.modify_guild_widget_settings.request(
-            self.guild.state.client.rest,
-            {'guild_id': self.guild.id},
-            json=json
+            self.guild.state.client.rest, guild_id=self.guild.id, json=json
         )
 
         return self.update(data)

@@ -33,6 +33,5 @@ class IntegrationState(BaseState):
         integration_id = Snowflake.try_snowflake(integration)
 
         await rest.delete_guild_integration.request(
-            self.client.rest,
-            {'guild_id': self.guild.id, 'integration_id': integration_id}
+            self.client.rest, guild_id=self.guild.id, integration_id=integration_id
         )

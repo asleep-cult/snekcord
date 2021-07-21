@@ -22,7 +22,7 @@ class UserState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_user.request(
-            self.client.rest, {'user_id': user_id}
+            self.client.rest, user_id=user_id
         )
 
         return self.upsert(data)

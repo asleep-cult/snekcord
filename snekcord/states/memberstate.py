@@ -26,7 +26,7 @@ class GuildMemberState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         data = await rest.get_guild_member.request(
-            self.client.rest, {'guild_id': self.guild.id, 'user_id': user_id}
+            self.client.rest, guild_id=self.guild.id, user_id=user_id
         )
 
         return self.upsert(data)
@@ -41,7 +41,7 @@ class GuildMemberState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.get_guild_members.request(
-            self.client.rest, {'guild_id': self.guild.id}, params=params
+            self.client.rest, guild_id=self.guild.id, params=params
         )
 
         return [self.upsert(member) for member in data]
@@ -53,7 +53,7 @@ class GuildMemberState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.search_guild_members.request(
-            self.client.rest, {'guild_id': self.guild.id}, params=params
+            self.client.rest, guild_id=self.guild.id, params=params
         )
 
         return [self.upsert(member) for member in data]
@@ -76,12 +76,12 @@ class GuildMemberState(BaseState):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.add_guild_member.request(
-            self.client.rest, {'guild_id': self.guild.id, 'user_id': user_id}, json=json
+            self.client.rest, guild_id=self.guild.id, user_id=user_id, json=json
         )
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_guild_member.request(
-            self.client.rest, {'guild_id': self.guild.id, 'user_id': user_id}
+            self.client.rest, guild_id=self.guild.id, user_id=user_id
         )

@@ -37,7 +37,7 @@ class ChannelState(BaseState):
         channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.get_channel.request(
-            self.client.rest, {'channel_id': channel_id},
+            self.client.rest, channel_id=channel_id,
         )
 
         return self.upsert(data)
@@ -46,7 +46,7 @@ class ChannelState(BaseState):
         channel_id = Snowflake.try_snowflake(channel)
 
         await rest.delete_channel.request(
-            self.client.rest, {'channel_id': channel_id}
+            self.client.rest, channel_id=channel_id,
         )
 
     async def close(self, channel):
@@ -83,14 +83,16 @@ class GuildChannelState(BaseSubState):
         return self.get(self.guild.public_updates_channel_id)
 
     def upsert(self, data):
-        data['guild_id'] = self.guild.id
         channel = self.superstate.upsert(data)
+        channel._json_data_['guild_id'] = self.guild._json_data_['id']
+
         self.add_key(channel.id)
+
         return channel
 
     async def fetch_all(self):
         data = await rest.get_guild_channels.request(
-            self.superstate.client.rest, {'guild_id': self.guild.id}
+            self.superstate.client.rest, guild_id=self.guild.id
         )
 
         return [self.upsert(channel) for channel in data]
@@ -128,5 +130,5 @@ class GuildChannelState(BaseSubState):
             json.append(channel)
 
         await rest.modify_guild_channels.request(
-            self.superstate.client.rest, {'guild_id': self.guild.id}, json=json
+            self.superstate.client.rest, guild_id=self.guild.id, json=json
         )

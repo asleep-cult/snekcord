@@ -84,7 +84,7 @@ class WebSocketIntents(Bitset):
     guilds = Flag(0)
     guild_members = Flag(1)
     guild_bans = Flag(2)
-    guild_emojis = Flag(3)
+    guild_emojis_and_stickers = Flag(3)
     guild_integrations = Flag(4)
     guild_webhooks = Flag(5)
     guild_invites = Flag(6)

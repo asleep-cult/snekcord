@@ -37,12 +37,8 @@ class Reactions(BaseSubState, BaseObject):
             params['limit'] = int(limit)
 
         data = await rest.get_reactions.request(
-            self.state.client.rest,
-            {
-                'channel_id': self.state.message.channel.id,
-                'message_id': self.state.message.id,
-                'emoji': self.emoji.to_reaction()
-            }
+            self.state.client.rest, channel_id=self.state.message.channel.id,
+            message_id=self.state.message.id, emoji=self.emoji.to_reaction()
         )
 
         return [self.upsert(user) for user in data]
@@ -54,34 +50,22 @@ class Reactions(BaseSubState, BaseObject):
         user_id = Snowflake.try_snowflake(user)
 
         await rest.remove_reaction.request(
-            self.state.client.rest,
-            {
-                'channel_id': self.state.message.channel.id,
-                'message_id': self.state.message.id,
-                'emoji': self.emoji.to_reaction(),
-                'user_id': user_id
-            }
+            self.state.client.rest, channel_id=self.state.message.channel.id,
+            message_id=self.state.message.id, emoji=self.emoji.to_reaction(),
+            user_id=user_id
         )
 
     async def remove_me(self):
         await rest.remove_reaction.request(
-            self.state.client.rest,
-            {
-                'channel_id': self.state.message.channel.id,
-                'message_id': self.state.message.id,
-                'emoji': self.emoji.to_reaction(),
-                'user_id': '@me'
-            }
+            self.state.client.rest, channel_id=self.state.message.channel.id,
+            message_id=self.state.message.id, emoji=self.emoji.to_reaction(),
+            user_id='@me'
         )
 
     async def remove_all(self):
         await rest.remove_reactions.request(
-            self.state.client.rest,
-            {
-                'channel_id': self.state.message.channel.id,
-                'message_id': self.state.message.id,
-                'emoji': self.emoji.to_reaction()
-            }
+            self.state.client.rest, channel_id=self.state.message.channel.id,
+            message_id=self.state.message.id, emoji=self.emoji.to_reaction()
         )
 
     def update(self, data):

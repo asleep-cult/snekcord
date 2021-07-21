@@ -2,7 +2,7 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..resolvers import resolve_image_data
+from ..resolvers import resolve_data_uri
 from ..utils import JsonField, Snowflake, undefined
 
 __all__ = ('GuildTemplate',)
@@ -36,7 +36,7 @@ class GuildTemplate(BaseObject):
 
     async def fetch(self):
         data = await rest.get_template.request(
-            self.state.client.rest, {'template_code': self.code}
+            self.state.client.rest, template_code=self.code
         )
 
         return self.update(data)
@@ -45,18 +45,17 @@ class GuildTemplate(BaseObject):
         json = {'name': str(name)}
 
         if icon is not None:
-            json['icon'] = await resolve_image_data(icon)
+            json['icon'] = await resolve_data_uri(icon)
 
         data = await rest.create_guild_from_template.request(
-            self.state.client.rest, {'template_code': self.code}, json=json
+            self.state.client.rest, template_code=self.code, json=json
         )
 
         return self.state.upsert(data)
 
     async def sync(self):
         data = await rest.sync_guild_template.request(
-            self.state.client.rest,
-            {'guild_id': self.source_guild_id, 'template_code': self.code}
+            self.state.client.rest, guild_id=self.source_guild_id, template_code=self.code
         )
 
         return self.update(data)
@@ -74,8 +73,7 @@ class GuildTemplate(BaseObject):
                 json['description'] = None
 
         data = await rest.modify_guild_template.request(
-            self.state.client.rest,
-            {'guild_id': self.source_guild_id, 'template_code': self.code},
+            self.state.client.rest, guild_id=self.source_guild_id, template_code=self.code,
             json=json
         )
 

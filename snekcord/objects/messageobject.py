@@ -189,7 +189,6 @@ class Message(BaseObject):
     _interaction = JsonField('interaction')
     _thread = JsonField('thread')
     _components = JsonArray('components')
-    _stickers = JsonField('sticker_items')
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -197,6 +196,7 @@ class Message(BaseObject):
         self.author = None
         self.member = None
         self.reference = None
+        self.sticker_items = {}
 
         self.mentions = MessageMentionsData(message=self)
 
@@ -214,8 +214,7 @@ class Message(BaseObject):
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
-            self.state.client.rest,
-            {'channel_id': self.channel.id, 'message_id': self.id}
+            self.state.client.rest, channel_id=self.channel.id, message_id=self.id
         )
 
         return self.state.upsert(data)
@@ -254,9 +253,7 @@ class Message(BaseObject):
                 json['mentions'] = None
 
         data = await rest.modify_message.request(
-            self.state.client.rest,
-            {'channel_id': self.channel.id, 'message_id': self.id},
-            json=json
+            self.state.client.rest, channel_id=self.channel.id, message_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -326,6 +323,19 @@ class Message(BaseObject):
 
                 if referenced_message is not None:
                     self.state.upsert(data['referenced_message'])
+
+        if 'stickers' in data:
+            for sticker in data['stickers']:
+                self.state.client.stickers.upsert(sticker)
+
+        if 'sticker_items' in data:
+            self.sticker_items.clear()
+
+            for sticker_item in data['sticker_items']:
+                sticker_item = ClientClasses.StickerItem.unmarshal(
+                    sticker_item, state=self.state.client.stickers
+                )
+                self.sticker_items[sticker_item.id] = sticker_item
 
         if self.pinned:
             self.channel.pins.add_key(self.id)

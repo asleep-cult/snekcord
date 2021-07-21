@@ -14,7 +14,7 @@ from ..enums import (
 )
 from ..fetchables import GuildBanner, GuildDiscoverySplash, GuildIcon, GuildSplash
 from ..flags import SystemChannelFlags
-from ..resolvers import resolve_image_data
+from ..resolvers import resolve_data_uri
 from ..utils import JsonArray, JsonField, Snowflake, undefined
 
 __all__ = ('Guild', 'GuildBan',)
@@ -81,9 +81,12 @@ class Guild(BaseObject):
             superstate=self.state.client.channels, guild=self
         )
         self.emojis = ClientClasses.GuildEmojiState(superstate=self.state.client.emojis, guild=self)
-        self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
-        self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
         self.integrations = ClientClasses.IntegrationState(client=self.state.client, guild=self)
+        self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
+        self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
+        self.stickers = ClientClasses.GuildStickerState(
+            superstate=self.state.client.stickers, guild=self
+        )
 
     def __str__(self):
         return self.name
@@ -144,7 +147,7 @@ class Guild(BaseObject):
 
     async def fetch_invites(self):
         data = await rest.get_guild_invites.request(
-            self.state.client.rest, {'guild_id': self.id}
+            self.state.client.rest, guild_id=self.id
         )
 
         return [self.state.client.invites.upsert(invite) for invite in data]
@@ -156,7 +159,7 @@ class Guild(BaseObject):
 
     async def fetch_templates(self):
         data = await rest.get_guild_templates.request(
-            self.state.client.rest, {'guild_id': self.id}
+            self.state.client.rest, guild_id=self.id
         )
 
         return [self.state.new_template(template) for template in data]
@@ -171,7 +174,7 @@ class Guild(BaseObject):
                 json['description'] = None
 
         data = await rest.create_guild_template.request(
-            self.state.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, guild_id=self.id, json=json
         )
 
         return self.state.new_template(data)
@@ -222,7 +225,7 @@ class Guild(BaseObject):
 
         if icon is not undefined:
             if icon is not None:
-                json['icon'] = await resolve_image_data(icon)
+                json['icon'] = await resolve_data_uri(icon)
             else:
                 json['icon'] = None
 
@@ -231,19 +234,19 @@ class Guild(BaseObject):
 
         if splash is not undefined:
             if splash is not None:
-                json['splash'] = await resolve_image_data(splash)
+                json['splash'] = await resolve_data_uri(splash)
             else:
                 json['splash'] = None
 
         if discovery_splash is not undefined:
             if discovery_splash is not None:
-                json['discovery_splash'] = await resolve_image_data(discovery_splash)
+                json['discovery_splash'] = await resolve_data_uri(discovery_splash)
             else:
                 json['discovery_splash'] = None
 
         if banner is not undefined:
             if banner is not None:
-                json['banner'] = await resolve_image_data(banner)
+                json['banner'] = await resolve_data_uri(banner)
             else:
                 json['banner'] = None
 
@@ -284,7 +287,7 @@ class Guild(BaseObject):
                 json['description'] = None
 
         data = await rest.modify_guild.request(
-            self.state.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, guild_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -320,7 +323,7 @@ class Guild(BaseObject):
             json['reason'] = str(reason)
 
         data = await rest.begin_guild_prune.request(
-            self.state.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, guild_id=self.id, json=json
         )
 
         return data['pruned']
@@ -373,6 +376,10 @@ class Guild(BaseObject):
         if 'members' in data:
             for member in data['members']:
                 self.members.upsert(member)
+
+        if 'stickers' in data:
+            for sticker in data['stickers']:
+                self.stickers.upsert(sticker)
 
         if 'stage_instances' in data:
             for stage in data['stage_instances']:
