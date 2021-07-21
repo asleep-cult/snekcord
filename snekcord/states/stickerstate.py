@@ -83,7 +83,7 @@ class GuildStickerState(BaseSubState):
         mimetype, ext = resolve_mimetype(image)
 
         data = await rest.create_guild_sticker.request(
-            self.superstate.client.rest, {'guild_id': self.guild.id},
+            self.superstate.client.rest, guild_id=self.guild.id,
             data=data, files={'file': (f'file{ext}', image, mimetype)},
         )
 
