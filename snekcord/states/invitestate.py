@@ -27,12 +27,12 @@ class InviteState(BaseState):
             params['with_exipration'] = with_expiration
 
         data = await rest.get_invite.request(
-            self.client.rest, {'invite_code': code}, params=params
+            self.client.rest, invite_code=code, params=params
         )
 
         return self.upsert(data)
 
     async def delete(self, code):
         await rest.delete_invite.request(
-            self.client.rest, {'invite_code': code}
+            self.client.rest, invite_code=code
         )

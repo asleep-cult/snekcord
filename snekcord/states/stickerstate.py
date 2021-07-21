@@ -31,7 +31,7 @@ class StickerState(BaseState):
         sticker_id = Snowflake.try_snowflake(sticker)
 
         data = await rest.get_sticker.request(
-            self.client.rest, {'sticker_id': sticker_id}
+            self.client.rest, sticker_id=sticker_id
         )
 
         return self.upsert(data)
@@ -59,15 +59,14 @@ class GuildStickerState(BaseSubState):
         sticker_id = Snowflake.try_snowflake(sticker)
 
         data = await rest.get_guild_sticker.request(
-            self.superstate.client.rest,
-            {'guild_id': self.guild.id, 'sticker_id': sticker_id}
+            self.superstate.client.rest, guild_id=self.guild.id, sticker_id=sticker_id
         )
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_stickers.request(
-            self.superstate.client.rest, {'guild_id': self.guild.id}
+            self.superstate.client.rest, guild_id=self.guild.id
         )
 
         return [self.upsert(sticker) for sticker in data]
@@ -94,6 +93,5 @@ class GuildStickerState(BaseSubState):
         sticker_id = Snowflake.try_snowflake(sticker)
 
         await rest.delete_guild_sticker.request(
-            self.superstate.client.rest,
-            {'guild_id': self.guild.id, 'sticker_id': sticker_id}
+            self.superstate.client.rest, guild_id=self.guild.id, sticker_id=sticker_id
         )

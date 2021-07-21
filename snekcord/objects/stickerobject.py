@@ -81,7 +81,7 @@ class GuildSticker(_BaseSticker):
             return await self.guild.fetch()
 
         data = await rest.get_sticker_guild.request(
-            self.state.client.rest, {'sticker_id': self.id}
+            self.state.client.rest, sticker_id=self.id
         )
 
         guild = self.state.client.guilds.upsert(data)
@@ -105,7 +105,7 @@ class GuildSticker(_BaseSticker):
 
         data = await rest.modify_guild_sticker.request(
             self.state.client.rest,
-            {'guild_id': self.guild.id, 'sticker_id': self.id},
+            guild_id=self.guild.id, sticker_id=self.id,
             json=json
         )
 

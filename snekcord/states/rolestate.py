@@ -29,7 +29,7 @@ class RoleState(BaseState):
 
     async def fetch_all(self):
         data = await rest.get_guild_roles.request(
-            self.client.rest, {'guild_id': self.guild.id}
+            self.client.rest, guild_id=self.guild.id
         )
 
         return [self.upsert(role) for role in data]
@@ -55,7 +55,7 @@ class RoleState(BaseState):
             json['mentionable'] = bool(mentionable)
 
         data = await rest.create_guild_role.request(
-            self.client.rest, {'guild_id': self.guild.id}, json=json
+            self.client.rest, guild_id=self.guild.id, json=json
         )
 
         return self.upsert(data)
@@ -77,14 +77,14 @@ class RoleState(BaseState):
             json.append(role)
 
         await rest.modify_guild_roles.request(
-            self.client.rest, {'guild_id': self.guild.id}, json=json
+            self.client.rest, guild_id=self.guild.id, json=json
         )
 
     async def delete(self, role):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.delete_guild_role.request(
-            self.client.rest, {'guild_id': self.guild.id, 'role_id': role_id}
+            self.client.rest, guild_id=self.guild.id, role_id=role_id
         )
 
 
@@ -97,22 +97,14 @@ class GuildMemberRoleState(BaseSubState):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.add_guild_member_role.request(
-            self.superstate.client.rest,
-            {
-                'guild_id': self.member.guild.id,
-                'user_id': self.member.id,
-                'role_id': role_id
-            }
+            self.superstate.client.rest, guild_id=self.member.guild.id, user_id=self.member.id,
+            role_id=role_id
         )
 
     async def remove(self, role):
         role_id = Snowflake.try_snowflake(role)
 
         await rest.remove_guild_member_role.request(
-            self.superstate.client.rest,
-            {
-                'guild_id': self.member.guild.id,
-                'user_id': self.member.id,
-                'role_id': role_id
-            }
+            self.superstate.client.rest, guild_id=self.member.guild.id, user_id=self.member.id,
+            role_id=role_id
         )

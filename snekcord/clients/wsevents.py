@@ -501,7 +501,7 @@ class GuildMessageDeleteBulkEvent(BaseEvent):
         channel = client.channels.get(Snowflake(payload['channel_id']))
 
         if channel is not None:
-            for message in payload['id']:
+            for message in payload['ids']:
                 message = channel.messages.get(message)
 
                 if message is not None:

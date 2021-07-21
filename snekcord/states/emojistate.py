@@ -96,14 +96,14 @@ class GuildEmojiState(BaseSubState):
         emoji_id = Snowflake.try_snowflake(emoji)
 
         data = await rest.get_guild_emoji.request(
-            self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
+            self.client.rest, guild_id=self.guild.id, emoji_id=emoji_id
         )
 
         return self.upsert(data)
 
     async def fetch_all(self):
         data = await rest.get_guild_emojis.request(
-            self.client.rest, {'guild_id': self.guild.id}
+            self.client.rest, guild_id=self.guild.id
         )
 
         return [self.upsert(emoji) for emoji in data]
@@ -117,7 +117,7 @@ class GuildEmojiState(BaseSubState):
             json['roles'] = Snowflake.try_snowflake_many(roles)
 
         data = await rest.create_guild_emoji.request(
-            self.client.rest, {'guild_id': self.guild.id}, json=json
+            self.client.rest, guild_id=self.guild.id, json=json
         )
 
         return self.superstate.upsert(data)
@@ -126,5 +126,5 @@ class GuildEmojiState(BaseSubState):
         emoji_id = Snowflake.try_snowflake(emoji)
 
         await rest.delete_guild_emoji.request(
-            self.client.rest, {'guild_id': self.guild.id, 'emoji_id': emoji_id}
+            self.client.rest, guild_id=self.guild.id, emoji_id=emoji_id
         )

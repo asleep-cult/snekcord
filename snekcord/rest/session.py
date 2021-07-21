@@ -50,9 +50,8 @@ class RestSession(AsyncClient):
             for key, value in data.items():
                 yield from self._iter_errors(value, keys + (key,))
 
-    async def request(self, method, url, fmt=None, **kwargs):
-        if fmt is not None:
-            url = url % fmt
+    async def request(self, method, url, *, keywords, **kwargs):
+        url = url.format(**keywords)
 
         headers = kwargs.setdefault('headers', {})
         headers.update(self.global_headers)

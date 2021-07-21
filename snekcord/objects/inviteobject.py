@@ -71,7 +71,7 @@ class GuildVanityURL(JsonObject):
 
     async def fetch(self):
         data = await rest.get_guild_vanity_url.request(
-            self.guild.state.client.rest, {'guild_id': self.guild.id}
+            self.guild.state.client.rest, guild_id=self.guild.id
         )
 
         return self.update(data)

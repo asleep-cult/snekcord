@@ -16,7 +16,7 @@ class WelcomeScreen(JsonObject):
 
     async def fetch(self):
         data = await rest.get_guild_welcome_screen.request(
-            self.guild.state.client.rest, {'guild_id': self.guild.id}
+            self.guild.state.client.rest, guild_id=self.guild.id
         )
 
         return self.update(data)
@@ -72,7 +72,7 @@ class WelcomeScreen(JsonObject):
                 json['description'] = None
 
         data = await rest.modify_guild_welcome_screen.request(
-            self.guild.state.client.rest, {'guild_id': self.guild.id}, json=json
+            self.guild.state.client.rest, guild_id=self.guild.id, json=json
         )
 
         return self.update(data)

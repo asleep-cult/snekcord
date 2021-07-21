@@ -147,7 +147,7 @@ class Guild(BaseObject):
 
     async def fetch_invites(self):
         data = await rest.get_guild_invites.request(
-            self.state.client.rest, {'guild_id': self.id}
+            self.state.client.rest, guild_id=self.id
         )
 
         return [self.state.client.invites.upsert(invite) for invite in data]
@@ -159,7 +159,7 @@ class Guild(BaseObject):
 
     async def fetch_templates(self):
         data = await rest.get_guild_templates.request(
-            self.state.client.rest, {'guild_id': self.id}
+            self.state.client.rest, guild_id=self.id
         )
 
         return [self.state.new_template(template) for template in data]
@@ -174,7 +174,7 @@ class Guild(BaseObject):
                 json['description'] = None
 
         data = await rest.create_guild_template.request(
-            self.state.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, guild_id=self.id, json=json
         )
 
         return self.state.new_template(data)
@@ -287,7 +287,7 @@ class Guild(BaseObject):
                 json['description'] = None
 
         data = await rest.modify_guild.request(
-            self.state.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, guild_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -323,7 +323,7 @@ class Guild(BaseObject):
             json['reason'] = str(reason)
 
         data = await rest.begin_guild_prune.request(
-            self.state.client.rest, {'guild_id': self.id}, json=json
+            self.state.client.rest, guild_id=self.id, json=json
         )
 
         return data['pruned']

@@ -38,7 +38,7 @@ class PartialCustomEmoji(_BaseCustomEmoji):
 
     async def fetch_guild(self):
         data = await rest.get_emoji_guild.request(
-            self.client.rest, {'emoji_id': self.id}
+            self.client.rest, emoji_id=self.id
         )
 
         return self.client.guilds.upsert(data)
@@ -72,7 +72,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
             return await self.guild.fetch()
 
         data = await rest.get_emoji_guild.request(
-            self.state.client.rest, {'emoji_id': self.id}
+            self.state.client.rest, emoji_id=self.id
         )
 
         guild = self.state.client.guilds.upsert(data)
@@ -95,9 +95,7 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
                 json['roles'] = None
 
         data = await rest.modify_guild_emoji.request(
-            self.state.client.rest,
-            {'guild_id': self.guild.id, 'emoji_id': self.id},
-            json=json
+            self.state.client.rest, guild_id=self.guild.id, emoji_id=self.id, json=json
         )
 
         return self.state.upsert(data)

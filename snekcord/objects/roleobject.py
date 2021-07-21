@@ -83,9 +83,7 @@ class Role(BaseObject):
                 json['mentionable'] = None
 
         data = await rest.modify_guild_role.request(
-            self.state.client.rest,
-            {'guild_id': self.guild.id, 'role_id': self.id},
-            json=json
+            self.state.client.rest, guild_id=self.guild.id, role_id=self.id, json=json
         )
 
         return self.state.upsert(data)

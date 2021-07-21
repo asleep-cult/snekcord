@@ -28,7 +28,7 @@ class MessageState(BaseState):
 
         data = await rest.get_channel_message.request(
             self.client.rest,
-            {'channel_id': self.channel.id, 'message_id': message_id}
+            channel_id=self.channel.id, message_id=message_id
         )
 
         return self.upsert(data)
@@ -51,7 +51,7 @@ class MessageState(BaseState):
             params['limit'] = int(limit)
 
         data = await rest.get_channel_messages.request(
-            self.client.rest, {'channel_id': self.channel.id}, params=params
+            self.client.rest, channel_id=self.channel.id, params=params
         )
 
         return [self.upsert(message) for message in data]
@@ -102,7 +102,7 @@ class MessageState(BaseState):
             raise TypeError('None of (content, file, embed(s)) were provided')
 
         data = await rest.create_channel_message.request(
-            self.client.rest, {'channel_id': self.channel.id}, json=json
+            self.client.rest, channel_id=self.channel.id, json=json
         )
 
         return self.upsert(data)
@@ -111,7 +111,7 @@ class MessageState(BaseState):
         message_id = Snowflake.try_snowflake(message)
 
         data = await rest.delete_message.request(
-            self.client.rest, {'channel_id': self.channel.id, 'message_id': message_id}
+            self.client.rest, channel_id=self.channel.id, message_id=message_id
         )
 
         return self.upsert(data)
@@ -130,7 +130,7 @@ class MessageState(BaseState):
             raise TypeError('bulk_delete can\'t delete more than 100 messages')
 
         await rest.bulk_delete_messages.request(
-            self.client.rest, {'channel_id': self.channel.id}, json={'message_ids': message_ids}
+            self.client.rest, channel_id=self.channel.id, json={'message_ids': message_ids}
         )
 
 
@@ -141,7 +141,7 @@ class ChannelPinsState(BaseSubState):
 
     async def fetch_all(self):
         data = await rest.get_pinned_messages.request(
-            self.superstate.client.rest, {'channel_id': self.channel.id}
+            self.superstate.client.rest, channel_id=self.channel.id
         )
 
         return [self.superstate.upsert(message) for message in data]
@@ -150,14 +150,12 @@ class ChannelPinsState(BaseSubState):
         message_id = Snowflake.try_snowflake(message)
 
         await rest.add_pinned_message.request(
-            self.superstate.client.rest,
-            {'channel_id': self.channel.id, 'message_id': message_id}
+            self.superstate.client.rest, channel_id=self.channel.id, message_id=message_id
         )
 
     async def remove(self, message):
         message_id = Snowflake.try_snowflake(message)
 
         await rest.remove_pinned_message.request(
-            self.superstate.client.rest,
-            {'channel_id': self.channel.id, 'message_id': message_id}
+            self.superstate.client.rest, channel_id=self.channel.id, message_id=message_id
         )

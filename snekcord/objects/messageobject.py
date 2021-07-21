@@ -214,8 +214,7 @@ class Message(BaseObject):
 
     async def crosspost(self):
         data = await rest.crosspost_message.request(
-            self.state.client.rest,
-            {'channel_id': self.channel.id, 'message_id': self.id}
+            self.state.client.rest, channel_id=self.channel.id, message_id=self.id
         )
 
         return self.state.upsert(data)
@@ -254,9 +253,7 @@ class Message(BaseObject):
                 json['mentions'] = None
 
         data = await rest.modify_message.request(
-            self.state.client.rest,
-            {'channel_id': self.channel.id, 'message_id': self.id},
-            json=json
+            self.state.client.rest, channel_id=self.channel.id, message_id=self.id, json=json
         )
 
         return self.state.upsert(data)

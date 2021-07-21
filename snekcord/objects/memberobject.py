@@ -106,9 +106,7 @@ class GuildMember(BaseObject):
                 json['channel_id'] = None
 
         data = await rest.modify_guild_member.request(
-            self.state.client.rest,
-            {'guild_id': self.guild.id, 'user_id': self.id},
-            json=json
+            self.state.client.rest, guild_id=self.guild.id, user_id=self.id, json=json
         )
 
         return self.state.upsert(data)

@@ -131,7 +131,7 @@ class TextChannel(GuildChannel):
                 json['default_auto_archive_duration'] = None
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, {'channel_id': self.id}, json=json
+            self.state.client.rest, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -140,7 +140,7 @@ class TextChannel(GuildChannel):
         channel_id = Snowflake.try_snowflake(channel)
 
         data = await rest.add_news_channel_follower.request(
-            self.state.client.rest, {'channel_id': self.id},
+            self.state.client.rest, channel_id=self.id,
             params={'webhook_channel_id': channel_id}
         )
 
@@ -148,7 +148,7 @@ class TextChannel(GuildChannel):
 
     async def trigger_typing(self):
         await rest.trigger_typing_indicator.request(
-            self.state.client.rest, {'channel_id': self.id}
+            self.state.client.rest, channel_id=self.id
         )
 
 
@@ -165,7 +165,7 @@ class CategoryChannel(GuildChannel):
         json = self._modify_helper(name, position, permissions)
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, {'channel_id': self.id}, json=json
+            self.state.client.rest, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -216,7 +216,7 @@ class VoiceChannel(GuildChannel):
                 json['video_quality_mode'] = None
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, {'channel_id': self.id}, json=json
+            self.state.client.rest, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -245,7 +245,7 @@ class StoreChannel(GuildChannel):
                 json['parent'] = None
 
         data = await rest.modify_channel.request(
-            self.state.client.rest, {'channel_id': self.id}, json=json
+            self.state.client.rest, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
