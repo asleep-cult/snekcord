@@ -11,37 +11,60 @@ class StickerPack(JsonObject):
     sku_id = JsonField('sku_id', Snowflake)
     cover_sticker_id = JsonField('cover_sticker_id', Snowflake)
     description = JsonField('description')
-    banner_id = JsonField('banner_id', Snowflake)
+    banner_asset_id = JsonField('banner_asset_id', Snowflake)
 
     def __init__(self, *, state):
         self.state = state
-        self.sticker_ids = set()
+        self.sticker_ids = []
 
     def get_stickers(self):
-        yield from self.state.get_all(self.sticker_ids)
+        yield from self.state.client.stickers.get_all(self.sticker_ids)
 
     def update(self, data):
         super().update(data)
 
         if 'stickers' in data:
-            for sticker in data:
-                self.sticker_ids.add(self.state.upsert(sticker).id)
+            self.sticker_ids.clear()
+
+            for sticker in data['stickers']:
+                self.sticker_ids.append(self.state.client.stickers.upsert(sticker).id)
 
         return self
 
 
-class Sticker(BaseObject):
-    __slots__ = ('creator',)
+class StickerItem(JsonObject):
+    id = JsonField('id', Snowflake)
+    name = JsonField('name')
+    format = JsonField('format_type', StickerFormatType.get_enum)
 
+    def __init__(self, *, state):
+        self.state = state
+
+    @property
+    def sticker(self):
+        return self.state.get(self.id)
+
+
+class _BaseSticker(BaseObject):
+    id = JsonField('id')
+    name = JsonField('name')
     description = JsonField('description')
     type = JsonField('type', StickerType.get_enum)
-    format = JsonField('format_type', StickerFormatType.get_enum)
-    name = JsonField('name')
+    format = JsonField('format', StickerFormatType.get_enum)
+
+
+class StandardSticker(_BaseSticker):
     pack_id = JsonField('pack_id', Snowflake)
     tags = JsonField('tags', lambda tags: tags.split(', '))
-    available = JsonField('available')
-    guild_id = JsonField('guild_id')
     sort_value = JsonField('sort_value')
+
+
+class GuildSticker(_BaseSticker):
+    __slots__ = ('creator',)
+
+    tags = JsonField('tags')
+    available = JsonField('available')
+    guild_id = JsonField('guild_id', Snowflake)
 
     def __init__(self, *, state):
         super().__init__(state=state)

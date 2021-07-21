@@ -1,18 +1,25 @@
 from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
+from ..enums import StickerType
 from ..resolvers import resolve_image_data
 from ..utils import Snowflake
 
 
 class StickerState(BaseState):
+    def get_class(self, type):
+        if type == StickerType.GUILD:
+            return ClientClasses.GuildSticker
+        elif type == StickerType.STANDARD:
+            return ClientClasses.StandardSticker
+
     def upsert(self, data):
         sticker = self.get(Snowflake(data['id']))
 
         if sticker is not None:
             sticker.update(data)
         else:
-            sticker = ClientClasses.Sticker.unmarshal(data, state=self)
+            sticker = self.get_class(data['type']).unmarshal(data, state=self)
             sticker.cache()
 
         return sticker
@@ -32,7 +39,7 @@ class StickerState(BaseState):
     async def fetch_packs(self):
         data = await rest.get_sticker_packs.request(self.client.rest)
 
-        return [self.new_pack(pack) for pack in data]
+        return [self.new_pack(pack) for pack in data['sticker_packs']]
 
 
 class GuildStickerState(BaseSubState):
