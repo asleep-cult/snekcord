@@ -196,7 +196,7 @@ class Message(BaseObject):
         self.author = None
         self.member = None
         self.reference = None
-        self.sticker_items = {}
+        self.sticker_items = []
 
         self.mentions = MessageMentionsData(message=self)
 
@@ -335,7 +335,7 @@ class Message(BaseObject):
                 sticker_item = ClientClasses.StickerItem.unmarshal(
                     sticker_item, state=self.state.client.stickers
                 )
-                self.sticker_items[sticker_item.id] = sticker_item
+                self.sticker_items.append(sticker_item)
 
         if self.pinned:
             self.channel.pins.add_key(self.id)

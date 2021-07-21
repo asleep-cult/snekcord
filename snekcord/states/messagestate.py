@@ -92,8 +92,10 @@ class MessageState(BaseState):
         if message_reference is not None:
             json['message_reference'] = message_reference.to_dict()
 
-        if not any((json.get('content'), json.get('file'), json.get('embeds'))):
-            raise TypeError('None of (content, file, embed(s)) were provided')
+        if not any(
+            (json.get('content'), json.get('file'), json.get('embeds'), json.get('sticker_ids'))
+        ):
+            raise TypeError('None of (content, file, embed(s), sticker(s)) were provided')
 
         data = await rest.create_channel_message.request(
             self.client.rest, channel_id=self.channel.id, json=json

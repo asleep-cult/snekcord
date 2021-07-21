@@ -44,6 +44,9 @@ class StickerItem(JsonObject):
     def sticker(self):
         return self.state.get(self.id)
 
+    def fetch_sticker(self):
+        return self.state.fetch(self.id)
+
 
 class _BaseSticker(BaseObject):
     name = JsonField('name')
@@ -51,17 +54,26 @@ class _BaseSticker(BaseObject):
     type = JsonField('type', StickerType.get_enum)
     format = JsonField('format', StickerFormatType.get_enum)
 
+    def __str__(self):
+        return f':{self.tag}:'
+
 
 class StandardSticker(_BaseSticker):
+    _cache_ = False
+
     pack_id = JsonField('pack_id', Snowflake)
     tags = JsonField('tags', lambda tags: tags.split(', '))
     sort_value = JsonField('sort_value')
+
+    @property
+    def tag(self):
+        return self.tags[0]
 
 
 class GuildSticker(_BaseSticker):
     __slots__ = ('creator',)
 
-    tags = JsonField('tags')
+    tag = JsonField('tags')
     available = JsonField('available')
     guild_id = JsonField('guild_id', Snowflake)
 
@@ -104,9 +116,7 @@ class GuildSticker(_BaseSticker):
             json['tags'] = str(tag)
 
         data = await rest.modify_guild_sticker.request(
-            self.state.client.rest,
-            guild_id=self.guild.id, sticker_id=self.id,
-            json=json
+            self.state.client.rest, guild_id=self.guild.id, sticker_id=self.id, json=json
         )
 
         return self.state.upsert(data)
