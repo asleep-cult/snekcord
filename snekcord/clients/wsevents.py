@@ -556,7 +556,7 @@ class StageInstanceCreateEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, client, shard, payload):
-        stage = client.stages.upsert(payload)
+        stage = client.stage_instances.upsert(payload)
         return cls(shard=shard, payload=payload, stage=stage)
 
 
@@ -566,7 +566,7 @@ class StageInstanceUpdateEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, client, shard, payload):
-        stage = client.stages.upsert(payload)
+        stage = client.stage_instances.upsert(payload)
         return cls(shard=shard, payload=payload, stage=stage)
 
 
@@ -576,6 +576,6 @@ class StageInstanceDeleteEvent(BaseEvent):
 
     @classmethod
     async def execute(cls, client, shard, payload):
-        stage = client.stages.upsert(payload)
+        stage = client.stage_instances.upsert(payload)
         stage._delete()
         return cls(shard=shard, payload=payload, stage=stage)

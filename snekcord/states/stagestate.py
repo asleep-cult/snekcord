@@ -19,8 +19,8 @@ class StageInstanceState(BaseState):
 
         return stage
 
-    async def fetch(self, channel):
-        channel_id = Snowflake.try_snowflake(channel)
+    async def fetch(self, stage):
+        channel_id = Snowflake.try_snowflake(stage)
 
         data = await rest.get_stage_instance.request(
             self.client.rest, channel_id=channel_id
@@ -42,8 +42,8 @@ class StageInstanceState(BaseState):
 
         return self.upsert(data)
 
-    async def delete(self, channel):
-        channel_id = Snowflake.try_snowflake(channel)
+    async def delete(self, stage):
+        channel_id = Snowflake.try_snowflake(stage)
 
         await rest.delete_stage_instance.request(
             self.client.rest, channel_id=channel_id

@@ -13,6 +13,7 @@ class _ClientClasses:
         'TextChannel',
         'CategoryChannel',
         'VoiceChannel',
+        'StageChannel',
         'StoreChannel',
         'DMChannel',
         'CustomEmoji',
@@ -172,7 +173,7 @@ class Client:
         self.emojis = ClientClasses.EmojiState(client=self)
         self.guilds = ClientClasses.GuildState(client=self)
         self.invites = ClientClasses.InviteState(client=self)
-        self.stages = ClientClasses.StageInstanceState(client=self)
+        self.stage_instances = ClientClasses.StageInstanceState(client=self)
         self.stickers = ClientClasses.StickerState(client=self)
         self.users = ClientClasses.UserState(client=self)
 

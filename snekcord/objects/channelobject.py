@@ -34,7 +34,7 @@ class GuildChannel(BaseObject):
     def parent(self):
         return self.state.client.channels.get(self.parent_id)
 
-    def _modify_helper(self, name, position, permission):
+    def _modify_helper(self, name, position, permissions):
         json = {}
 
         if name is not None:
@@ -220,6 +220,22 @@ class VoiceChannel(GuildChannel):
         )
 
         return self.state.upsert(data)
+
+
+class StageChannel(VoiceChannel):
+    topic = JsonField('topic')
+
+    @property
+    def stage_instance(self):
+        return self.state.client.stage_instances.get(self.id)
+
+    def fetch_stage_instance(self):
+        return self.state.client.stage_instances.fetch(self.id)
+
+    def create_stage_instance(self, *, topic, privacy_level=None):
+        return self.state.client.stage_instances.create(
+            channel=self.id, topic=topic, privacy_level=privacy_level
+        )
 
 
 class StoreChannel(GuildChannel):

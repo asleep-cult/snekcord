@@ -7,11 +7,16 @@ __all__ = ('StageInstance',)
 
 
 class StageInstance(BaseObject):
+    id = JsonField('channel_id', Snowflake)
+    raw_id = JsonField('id', Snowflake)
     guild_id = JsonField('guild_id', Snowflake)
-    channel_id = JsonField('channel_id', Snowflake)
     topic = JsonField('topic')
     privacy_level = JsonField('privacy_level', StageInstancePrivacyLevel.get_enum)
     discoverable_disabled = JsonField('discoverable_disabled')
+
+    @property
+    def channel_id(self):
+        return self.id
 
     @property
     def guild(self):
@@ -19,10 +24,10 @@ class StageInstance(BaseObject):
 
     @property
     def channel(self):
-        return self.state.client.channels.get(self.channel_id)
+        return self.state.client.channels.get(self.id)
 
     def fetch(self):
-        return self.state.fetch(self.channel_id)
+        return self.state.fetch(self.id)
 
     async def modify(self, *, topic=None, privacy_level=None):
         json = {}
@@ -34,10 +39,10 @@ class StageInstance(BaseObject):
             json['privacy_level'] = StageInstancePrivacyLevel.get_value(privacy_level)
 
         data = await rest.modify_stage_instance.request(
-            self.state.client.rest, channel_id=self.channel_id, json=json
+            self.state.client.rest, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
 
     def delete(self):
-        return self.state.delete(self.channel_id)
+        return self.state.delete(self.id)

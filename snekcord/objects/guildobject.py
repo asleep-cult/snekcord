@@ -384,7 +384,7 @@ class Guild(BaseObject):
         if 'stage_instances' in data:
             for stage in data['stage_instances']:
                 stage['guild_id'] = self.id
-                self.state.client.stages.upsert(stage)
+                self.state.client.stage_instances.upsert(stage)
 
         if 'welcome_screen' in data:
             self.welcome_screen.update(data['welcome_screen'])
