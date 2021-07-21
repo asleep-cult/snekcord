@@ -6,7 +6,7 @@ from .channelobject import GuildChannel
 from .embedobject import Embed
 from .. import rest
 from ..clients.client import ClientClasses
-from ..enums import MessageType
+from ..enums import MessageActivityType, MessageType
 from ..flags import MessageFlags
 from ..resolvers import resolve_embed_data
 from ..utils import JsonArray, JsonField, JsonObject, ReprHelper, Snowflake, undefined
@@ -167,6 +167,11 @@ class MessageReferenceData(JsonObject):
         return None
 
 
+class MessageActivity(JsonObject):
+    type = JsonField('type', MessageActivityType.get_enum)
+    party_id = JsonField('party_id', Snowflake)
+
+
 class Message(BaseObject):
     __slots__ = ('author', 'member', 'reference', 'reactions', 'mentions')
 
@@ -182,7 +187,7 @@ class Message(BaseObject):
     pinned = JsonField('pinned')
     webhook_id = JsonField('webhook_id', Snowflake)
     type = JsonField('type', MessageType.get_enum)
-    _activity = JsonField('activity')
+    activity = JsonField('activity', object=MessageActivity)
     _application = JsonField('application')
     application_id = JsonField('application_id', Snowflake)
     flags = JsonField('flags', MessageFlags.from_value)

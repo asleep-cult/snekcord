@@ -208,3 +208,10 @@ class StickerFormatType(Enum[int]):
     PNG = 1
     APNG = 2
     LOTTIE = 3
+
+
+class MessageActivityType(Enum[int]):
+    JOIN = 1
+    SPECTATE = 2
+    LISTEN = 3
+    JOIN_REQUEST = 5
