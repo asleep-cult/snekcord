@@ -7,6 +7,7 @@ from .embedobject import Embed
 from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import MessageActivityType, MessageType
+from ..fetchables import Fetchable
 from ..flags import MessageFlags
 from ..resolvers import resolve_embed_data
 from ..utils import JsonArray, JsonField, JsonObject, ReprHelper, Snowflake, undefined
@@ -172,6 +173,21 @@ class MessageActivity(JsonObject):
     party_id = JsonField('party_id', Snowflake)
 
 
+class Attachment(Fetchable, JsonObject):
+    id = JsonField('id', Snowflake)
+    filename = JsonField('filename')
+    content_type = JsonField('content_type')
+    size = JsonField('size')
+    height = JsonField('height')
+    width = JsonField('width')
+
+    def url(self, *, proxy=False):
+        if proxy:
+            return self._json_data_['proxy_url']
+        else:
+            return self._json_data_['url']
+
+
 class Message(BaseObject):
     __slots__ = ('author', 'member', 'reference', 'reactions', 'mentions')
 
@@ -181,7 +197,6 @@ class Message(BaseObject):
     created_at = JsonField('timestamp', datetime.fromisoformat)
     edited_at = JsonField('edited_timestamp', datetime.fromisoformat)
     tts = JsonField('tts')
-    _attachments = JsonArray('attachments')
     embeds = JsonArray('embeds', object=Embed)
     nonce = JsonField('nonce')
     pinned = JsonField('pinned')
@@ -201,6 +216,7 @@ class Message(BaseObject):
         self.author = None
         self.member = None
         self.reference = None
+        self.attachments = []
         self.sticker_items = []
 
         self.mentions = MessageMentionsData(message=self)
@@ -328,6 +344,13 @@ class Message(BaseObject):
 
                 if referenced_message is not None:
                     self.state.upsert(data['referenced_message'])
+
+        if 'attachments' in data:
+            self.attachments.clear()
+
+            for attachment in data['attachments']:
+                attachment = Attachment.unmarshal(attachment, rest=self.state.client.rest)
+                self.attachments.append(attachment)
 
         if 'stickers' in data:
             for sticker in data['stickers']:
