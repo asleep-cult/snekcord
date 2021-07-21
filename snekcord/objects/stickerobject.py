@@ -35,7 +35,7 @@ class Sticker(BaseObject):
 
     description = JsonField('description')
     type = JsonField('type', StickerType.get_enum)
-    format = JsonField('format', StickerFormatType.get_enum)
+    format = JsonField('format_type', StickerFormatType.get_enum)
     name = JsonField('name')
     pack_id = JsonField('pack_id', Snowflake)
     tags = JsonField('tags', lambda tags: tags.split(', '))
