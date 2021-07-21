@@ -69,10 +69,7 @@ class MessageState(BaseState):
             json['tts'] = bool(tts)
 
         if embed is not None:
-            if 'embeds' not in json:
-                json['embeds'] = []
-
-            json['embeds'].append(resolve_embed_data(embed))
+            json['embeds'] = [resolve_embed_data(embed)]
 
         if embeds is not None:
             if 'embeds' not in json:
@@ -81,10 +78,7 @@ class MessageState(BaseState):
             json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
 
         if sticker is not None:
-            if 'sticker_ids' not in json:
-                json['sticker_ids'] = []
-
-            json['sticker_ids'].append(Snowflake.try_snowflake(sticker))
+            json['sticker_ids'] = [Snowflake.try_snowflake(sticker)]
 
         if stickers is not None:
             if 'sticker_ids' not in json:
