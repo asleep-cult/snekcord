@@ -88,7 +88,7 @@ class GuildSticker(_BaseSticker):
         self._json_data_['guild_id'] = guild._json_data_['id']
         return guild
 
-    async def modify(self, *, name=None, description=undefined, tags=None):
+    async def modify(self, *, name=None, description=undefined, tag=None):
         json = {}
 
         if name is not None:
@@ -100,8 +100,8 @@ class GuildSticker(_BaseSticker):
             else:
                 json['description'] = None
 
-        if tags is not None:
-            json['tags'] = [str(tag) for tag in tags]
+        if tag is not None:
+            json['tags'] = str(tag)
 
         data = await rest.modify_guild_sticker.request(
             self.state.client.rest,
