@@ -9,12 +9,14 @@ from ..clients.client import ClientClasses
 from ..enums import MessageType
 from ..flags import MessageFlags
 from ..resolvers import resolve_embed_data
-from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
+from ..utils import JsonArray, JsonField, JsonObject, ReprHelper, Snowflake, undefined
 
 __all__ = ('AllowedMentions', 'MessageReference', 'Message')
 
 
-class AllowedMentions:
+class AllowedMentions(ReprHelper):
+    _repr_fields_ = ('roles', 'users', 'replied_user')
+
     def __init__(self, *, roles=None, users=None, replied_user=None):
         self.parse = []
 
@@ -59,7 +61,9 @@ class AllowedMentions:
         return data
 
 
-class MessageReference:
+class MessageReference(ReprHelper):
+    _repr_fields_ = ('message', 'ensure_exists')
+
     def __init__(self, message, *, ensure_exists=None):
         self.message = message
 
@@ -82,32 +86,46 @@ class MessageReference:
         return data
 
 
-class MessageMentionsData:
-    def __init__(self, message, everyone, users, roles, channels):
+class MessageMentionsData(ReprHelper):
+    _repr_fields_ = ('everyone', 'user_ids', 'role_ids', 'channel_ids')
+
+    def __init__(self, *, message):
         self.message = message
 
-        self.everyone = everyone
+        self.everyone = None
 
+        self.raw_users = None
+        self.raw_roles = None
+        self.raw_channels = None
+
+        self.user_ids = ()
+        self.role_ids = ()
+        self.channel_ids = ()
+
+    def _update_users(self, users):
         self.raw_users = copy.deepcopy(users)
-        self.raw_roles = copy.deepcopy(roles)
-        self.raw_channels = copy.deepcopy(channels)
-
         self.user_ids = tuple(Snowflake(user['id']) for user in users)
-        self.role_ids = tuple(Snowflake(role_id) for role_id in roles)
-        self.channel_ids = tuple(Snowflake(channel['id']) for channel in channels)
 
         for user in users:
-            if message.guild is not None:
+            if self.message.guild is not None:
                 try:
                     member = user.pop('member')
                 except KeyError:
                     pass
                 else:
                     member['user'] = user
-                    message.guild.members.upsert(member)
+                    self.message.guild.members.upsert(member)
                     continue
 
-            message.state.client.users.upsert(user)
+            self.message.state.client.users.upsert(user)
+
+    def _update_roles(self, roles):
+        self.raw_users = copy.deepcopy(roles)
+        self.role_ids = tuple(Snowflake(role_id) for role_id in roles)
+
+    def _update_channels(self, channels):
+        self.raw_channels = copy.deepcopy(channels)
+        self.channel_ids = tuple(Snowflake(channel['id']) for channel in channels)
 
     def get_members(self):
         if self.message.guild is not None:
@@ -179,7 +197,8 @@ class Message(BaseObject):
         self.author = None
         self.member = None
         self.reference = None
-        self.mentions = None
+
+        self.mentions = MessageMentionsData(message=self)
 
         self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
@@ -268,10 +287,17 @@ class Message(BaseObject):
     def update(self, data):
         super().update(data)
 
-        self.mentions = MessageMentionsData(
-            self, data.get('mention_everyone'), data.get('mentions', ()),
-            data.get('mention_roles', ()), data.get('mention_channels', ())
-        )
+        if 'mention_everyone' in data:
+            self.mentions.everyone = data['mention_everyone']
+
+        if 'mentions' in data:
+            self.mentions._update_users(data['mentions'])
+
+        if 'mention_roles' in data:
+            self.mentions._update_roles(data['mention_roles'])
+
+        if 'mention_channels' in data:
+            self.mentions._update_channels(data['mention_channels'])
 
         if 'author' in data:
             self.author = self.state.client.users.upsert(data['author'])

@@ -1,4 +1,4 @@
-from ..utils import Snowflake
+from ..utils import ReprHelper, Snowflake
 
 __all__ = []
 
@@ -20,7 +20,7 @@ def register(name, *, intent=None):
     return wrapped
 
 
-class BaseEvent:
+class BaseEvent(ReprHelper):
     _fields_ = ('shard', 'payload')
 
     def __init__(self, **kwargs):
@@ -32,14 +32,7 @@ class BaseEvent:
             if issubclass(base, BaseEvent):
                 cls._fields_ += base._fields_
 
-    def __repr__(self):
-        attrs = [
-            (field, getattr(self, field))
-            for field in self._fields_
-            if field != 'payload'
-        ]
-        formatted = ', '.join(f'{name}={value}' for name, value in attrs)
-        return f'<{self.__class__.__name__} {formatted}>'
+        cls._repr_fields_ = tuple(field for field in cls._fields_ if field != 'payload')
 
     @classmethod
     async def execute(cls, client, shard, payload):

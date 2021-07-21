@@ -1,2 +1,2 @@
-class PartialObjectError(Exception):
+class PartialObjectError(AttributeError):
     pass

@@ -1,9 +1,9 @@
-from ..utils import JsonField, JsonObject, Snowflake
+from ..utils import JsonField, JsonObject, ReprHelper, Snowflake
 
 __all__ = ('BaseObject',)
 
 
-class BaseObject(JsonObject):
+class BaseObject(JsonObject, ReprHelper):
     """The base class for all Discord entities.
 
     state BaseState: The state that the object belongs to.
@@ -19,6 +19,8 @@ class BaseObject(JsonObject):
     """
     __slots__ = ('state', 'cached', 'deleted', 'deleted_at', '__weakref__')
 
+    _repr_fields_ = ('id', 'cached', 'deleted')
+
     id = JsonField('id', Snowflake)
 
     def __init__(self, *, state):
@@ -28,12 +30,6 @@ class BaseObject(JsonObject):
 
     def __hash__(self):
         return hash(self.id)
-
-    def __repr__(self):
-        return (
-            f'<{self.__class__.__name__} id={self.id!r}, cached={self.cached},'
-            f' deleted={self.deleted}>'
-        )
 
     def _delete(self):
         self.deleted = True

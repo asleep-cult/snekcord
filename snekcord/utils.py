@@ -108,6 +108,25 @@ class JsonArray(JsonField):
         return [super(JsonArray, self)._unmarshal_(value) for value in values]
 
 
+class ReprHelper:
+    _repr_fields_ = ()
+
+    def __init_subclass__(cls):
+        for base in cls.__bases__:
+            if issubclass(base, ReprHelper):
+                cls._repr_fields_ += base._repr_fields_
+
+    def __repr__(self):
+        fields = ['<', self.__class__.__name__]
+
+        for field in self._repr_fields_:
+            fields.append(f' {field}={getattr(self, field)!r}')
+
+        fields.append('>')
+
+        return ''.join(fields)
+
+
 class Snowflake(int):
     __slots__ = ()
 
