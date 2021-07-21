@@ -201,7 +201,7 @@ class GuildEmojisUpdateEvent(BaseEvent):
                 emojis.add(guild.emojis.upsert(emoji).id)
 
             for emoji_id in set(guild.emojis.keys()) - emojis:
-                guild.emojis.remove_key(emoji_id)
+                guild.emojis[emoji_id]._delete()
 
         return cls(shard=shard, payload=payload, guild=guild)
 
@@ -225,7 +225,7 @@ class GuildStickersUpdate(BaseEvent):
                 stickers.add(guild.stickers.upsert(sticker).id)
 
             for sticker_id in set(guild.stickers.keys()) - stickers:
-                guild.stickers.remove_key(sticker_id)
+                guild.sticker[sticker_id]._delete()
 
         return cls(shard=shard, payload=payload, guild=guild)
 

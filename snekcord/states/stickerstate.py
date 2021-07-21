@@ -43,7 +43,9 @@ class GuildStickerState(BaseSubState):
     def upsert(self, data):
         sticker = self.superstate.upsert(data)
         sticker._json_data_['guild_id'] = self.guild._json_data_['guild_id']
+
         self.add_key(sticker.id)
+
         return sticker
 
     async def fetch(self, sticker):

@@ -34,12 +34,6 @@ class GuildChannel(BaseObject):
     def parent(self):
         return self.state.client.channels.get(self.parent_id)
 
-    def _delete(self):
-        super()._delete()
-
-        if self.guild is not None:
-            self.guild.channels.remove_key(self.id)
-
     def _modify_helper(self, name, position, permission):
         json = {}
 
@@ -56,6 +50,12 @@ class GuildChannel(BaseObject):
 
     def delete(self):
         return self.state.delete(self.id)
+
+    def _delete(self):
+        super()._delete()
+
+        if self.guild is not None:
+            self.guild.channels.remove_key(self.id)
 
     def update(self, data):
         super().update(data)

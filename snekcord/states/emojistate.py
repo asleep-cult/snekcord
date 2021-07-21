@@ -87,7 +87,9 @@ class GuildEmojiState(BaseSubState):
     def upsert(self, data):
         data['guild_id'] = self.guild.id
         emoji = self.superstate.upsert(data)
+
         self.add_key(emoji.id)
+
         return emoji
 
     async def fetch(self, emoji):

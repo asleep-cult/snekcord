@@ -92,6 +92,12 @@ class Sticker(BaseObject):
     def delete(self):
         return self.state.delete(self.id)
 
+    def _delete(self):
+        super()._delete()
+
+        if self.guild is not None:
+            self.guild.stickers.remove_key(self.id)
+
     def update(self, data):
         super().update(data)
 
