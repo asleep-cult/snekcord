@@ -225,7 +225,7 @@ class GuildStickersUpdate(BaseEvent):
                 stickers.add(guild.stickers.upsert(sticker).id)
 
             for sticker_id in set(guild.stickers.keys()) - stickers:
-                guild.sticker[sticker_id]._delete()
+                guild.stickers[sticker_id]._delete()
 
         return cls(shard=shard, payload=payload, guild=guild)
 

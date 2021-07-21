@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import StickerType
-from ..resolvers import resolve_image_data
+from ..resolvers import resolve_image_data, resolve_mimetype
 from ..utils import Snowflake
 
 
@@ -49,7 +49,7 @@ class GuildStickerState(BaseSubState):
 
     def upsert(self, data):
         sticker = self.superstate.upsert(data)
-        sticker._json_data_['guild_id'] = self.guild._json_data_['guild_id']
+        sticker._json_data_['guild_id'] = self.guild._json_data_['id']
 
         self.add_key(sticker.id)
 
@@ -72,17 +72,20 @@ class GuildStickerState(BaseSubState):
 
         return [self.upsert(sticker) for sticker in data]
 
-    async def create(self, *, name, image, tags, description=None):
-        json = {'name': str(name)}
-
-        json['image'] = await resolve_image_data(image)
-        json['tags'] = [str(tag) for tag in tags]
+    async def create(self, *, name, image, tag, description=None):
+        data = {'name': str(name), 'tags': str(tag)}
 
         if description is not None:
-            json['description'] = description
+            data['description'] = str(description)
+        else:
+            data['description'] = ''
+
+        image = await resolve_image_data(image)
+        mimetype, ext = resolve_mimetype(image)
 
         data = await rest.create_guild_sticker.request(
-            self.superstate.client.rest, {'guild_id': self.guild.id}, json=json
+            self.superstate.client.rest, {'guild_id': self.guild.id},
+            data=data, files={'file': (f'file{ext}', image, mimetype)},
         )
 
         return self.upsert(data)

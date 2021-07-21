@@ -3,7 +3,7 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import ExplicitContentFilterLevel, MessageNotificationsLevel
 from ..flags import SystemChannelFlags
-from ..resolvers import resolve_image_data
+from ..resolvers import resolve_data_uri
 from ..utils import Snowflake
 
 __all__ = ('GuildState', 'GuildBanState')
@@ -89,7 +89,7 @@ class GuildState(BaseState):
         json = {'name': str(name)}
 
         if icon is not None:
-            json['icon'] = await resolve_image_data(icon)
+            json['icon'] = await resolve_data_uri(icon)
 
         if verification_level is not None:
             json['default_message_notifications'] = (

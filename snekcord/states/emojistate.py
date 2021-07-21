@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.emojiobject import BaseEmoji, UnicodeEmoji
-from ..resolvers import resolve_emoji, resolve_image_data
+from ..resolvers import resolve_data_uri, resolve_emoji
 from ..utils import Snowflake
 
 UNICODE_EMOJIS_BY_SURROGATES = {}
@@ -85,7 +85,7 @@ class GuildEmojiState(BaseSubState):
         self.guild = guild
 
     def upsert(self, data):
-        data['guild_id'] = self.guild.id
+        data['guild_id'] = self.guild._json_data_['id']
         emoji = self.superstate.upsert(data)
 
         self.add_key(emoji.id)
@@ -111,7 +111,7 @@ class GuildEmojiState(BaseSubState):
     async def create(self, *, name, image, roles=None):
         json = {'name': str(name)}
 
-        json['image'] = await resolve_image_data(image)
+        json['image'] = await resolve_data_uri(image)
 
         if roles is not None:
             json['roles'] = Snowflake.try_snowflake_many(roles)

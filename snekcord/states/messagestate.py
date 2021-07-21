@@ -57,10 +57,10 @@ class MessageState(BaseState):
         return [self.upsert(message) for message in data]
 
     async def create(
-        self, *, content=None, tts=None, file=None, embed=None, embeds=None, allowed_mentions=None,
-        message_reference=None,  # components
+        self, *, content=None, tts=None, file=None, embed=None, embeds=None, sticker=None,
+        stickers=None, allowed_mentions=None, message_reference=None,  # components
     ):
-        json = {'embeds': []}
+        json = {}
 
         if content is not None:
             json['content'] = str(content)
@@ -69,10 +69,28 @@ class MessageState(BaseState):
             json['tts'] = bool(tts)
 
         if embed is not None:
+            if 'embeds' not in json:
+                json['embeds'] = []
+
             json['embeds'].append(resolve_embed_data(embed))
 
         if embeds is not None:
+            if 'embeds' not in json:
+                json['embeds'] = []
+
             json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
+
+        if sticker is not None:
+            if 'sticker_ids' not in json:
+                json['sticker_ids'] = []
+
+            json['sticker_ids'].append(Snowflake.try_snowflake(sticker))
+
+        if stickers is not None:
+            if 'sticker_ids' not in json:
+                json['sticker_ids'] = []
+
+            json['sticker_ids'].extend(Snowflake.try_snowflake_many(stickers))
 
         if allowed_mentions is not None:
             json['allowed_mentions'] = allowed_mentions.to_dict()

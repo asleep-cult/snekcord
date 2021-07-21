@@ -11,14 +11,10 @@ EMOJI_RE = re.compile(r'<(?P<animated>a)?:(?P<name>[\w\d_]{2,32}):(?P<id>\d{17,1
 ROLE_MENTION_RE = re.compile(r'<@&(?P<id>\d{17,19})>')
 USER_MENTION_RE = re.compile(r'<@!?(?P<id>\d{17,19})>')
 
-IMAGE_DATA_FORMATS = ('data:image/jpeg;base64,', 'data:image/png;base64,', 'data:image/gif;base64,')
-
 
 async def resolve_image_data(image):
-    # https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5
-
     if isinstance(image, Fetchable):
-        image = await image.fetch()
+        return await image.fetch()
 
     if isinstance(image, str):
         try:
@@ -34,26 +30,37 @@ async def resolve_image_data(image):
 
         image = image.read()
 
-    if isinstance(image, bytes):
-        if image.startswith((b'\xFF\xD8\xFF\xE0', b'\xFF\xD8\xFF\xE1')):
-            data = base64.b64encode(image).decode('ascii')
-            return f'data:image/jpeg;base64,{data}'
+    if not isinstance(image, bytes):
+        raise TypeError('Failed to resolve image data')
 
-        elif image.startswith(b'\x89\x50\x4E\x47'):
-            data = base64.b64encode(image).decode('ascii')
-            return f'data:image/png;base64,{data}'
+    return image
 
-        elif image.startswith(b'\x47\x49\x46\x38'):
-            data = base64.b64encode(image).decode('ascii')
-            return f'data:image/gif;base64,{data}'
 
-        image = image.decode('ascii')
+def resolve_mimetype(data):
+    # https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5
 
-    if isinstance(image, str):
-        if image.startswith(IMAGE_DATA_FORMATS):
-            return image
+    if data.startswith((b'\xFF\xD8\xFF\xE0', b'\xFF\xD8\xFF\xE1')):
+        return 'image/jpeg', '.jpg'
 
-    raise TypeError('Failed to resolve image data')
+    elif data.startswith(b'\x89\x50\x4E\x47'):
+        return 'image/png', '.png'
+
+    elif data.startswith(b'\x47\x49\x46\x38'):
+        return 'image/gif', '.gif'
+
+    elif data.startswith(b'{'):
+        return 'application/json', '.json'
+
+    return 'application/octet-stream', ''
+
+
+async def resolve_data_uri(image):
+    image = await resolve_image_data(image)
+
+    mimetype, _ = resolve_mimetype(image)
+    data = base64.b64encode(image)
+
+    return f'data:{mimetype};base64,{data}'
 
 
 def resolve_embed_data(embed):

@@ -46,7 +46,6 @@ class StickerItem(JsonObject):
 
 
 class _BaseSticker(BaseObject):
-    id = JsonField('id')
     name = JsonField('name')
     description = JsonField('description')
     type = JsonField('type', StickerType.get_enum)
@@ -113,7 +112,7 @@ class GuildSticker(_BaseSticker):
         return self.state.upsert(data)
 
     def delete(self):
-        return self.state.delete(self.id)
+        return self.guild.stickers.delete(self.id)
 
     def _delete(self):
         super()._delete()
