@@ -61,7 +61,7 @@ class GuildStickerState(BaseSubState):
             self.superstate.client.rest, {'guild_id': self.guild.id}
         )
 
-        return [self.superstate(sticker) for sticker in data]
+        return [self.upsert(sticker) for sticker in data]
 
     async def create(self, *, name, image, tags, description=None):
         json = {'name': str(name)}

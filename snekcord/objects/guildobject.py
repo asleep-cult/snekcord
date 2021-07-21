@@ -377,6 +377,10 @@ class Guild(BaseObject):
             for member in data['members']:
                 self.members.upsert(member)
 
+        if 'stickers' in data:
+            for sticker in data['stickers']:
+                self.stickers.upsert(sticker)
+
         if 'stage_instances' in data:
             for stage in data['stage_instances']:
                 stage['guild_id'] = self.id
