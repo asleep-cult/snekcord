@@ -197,3 +197,14 @@ class PremiumType(Enum[int]):
     NONE = 0
     NITRO_CLASSIC = 1
     NITRO = 2
+
+
+class StickerType(Enum[int]):
+    STANDARD = 1
+    GUILD = 2
+
+
+class StickerFormatType(Enum[int]):
+    PNG = 1
+    APNG = 2
+    LOTTIE = 3

@@ -175,6 +175,46 @@ delete_guild_emoji = HTTPEndpoint(
     BASE_API_URL + '/guilds/%(guild_id)s/emojis/%(emoji_id)s',
 )
 
+get_sticker = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/stickers/%(sticker_id)s'
+)
+
+get_sticker_packs = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/sticker-packs'
+)
+
+get_guild_stickers = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/guilds/%(guild_id)s/stickers'
+)
+
+get_guild_sticker = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/guilds/%(guild_id)s/stickers/%(sticker_id)s'
+)
+
+get_sticker_guild = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/stickers/%(sticker_id)s/guild'
+)
+
+create_guild_sticker = HTTPEndpoint(
+    'POST',
+    BASE_API_URL + '/guilds/%(guild_id)s/stickers'
+)
+
+modify_guild_sticker = HTTPEndpoint(
+    'PATCH',
+    BASE_API_URL + '/guilds/%(guild_id)s/stickers/%(sticker_id)s'
+)
+
+delete_guild_sticker = HTTPEndpoint(
+    'DELETE',
+    BASE_API_URL + '/guilds/%(guild_id)s/stickers/%(sticker_id)s'
+)
+
 create_guild = HTTPEndpoint(
     'POST',
     BASE_API_URL + '/guilds',

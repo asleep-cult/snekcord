@@ -83,8 +83,8 @@ class GuildChannelState(BaseSubState):
         return self.get(self.guild.public_updates_channel_id)
 
     def upsert(self, data):
-        data['guild_id'] = self.guild.id
         channel = self.superstate.upsert(data)
+        channel._json_data_['guild_id'] = self.guild._json_data_['id']
         self.add_key(channel.id)
         return channel
 

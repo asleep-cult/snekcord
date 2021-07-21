@@ -81,9 +81,12 @@ class Guild(BaseObject):
             superstate=self.state.client.channels, guild=self
         )
         self.emojis = ClientClasses.GuildEmojiState(superstate=self.state.client.emojis, guild=self)
-        self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
-        self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
         self.integrations = ClientClasses.IntegrationState(client=self.state.client, guild=self)
+        self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
+        self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
+        self.stickers = ClientClasses.GuildStickerState(
+            superstate=self.state.client.stickers, guild=self
+        )
 
     def __str__(self):
         return self.name

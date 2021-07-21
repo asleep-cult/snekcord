@@ -11,6 +11,7 @@ from .overwriteobject import *
 from .reactionsobject import *
 from .roleobject import *
 from .stageobject import *
+from .stickerobject import *
 from .templateobject import *
 from .userobject import *
 from .welcomescreenobject import *

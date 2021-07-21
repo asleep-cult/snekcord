@@ -30,6 +30,8 @@ class _ClientClasses:
         'Reactions',
         'Role',
         'StageInstance',
+        'StickerPack',
+        'Sticker',
         'GuildTemplate',
         'User',
         'GuildWidget',
@@ -57,6 +59,8 @@ class _ClientClasses:
         'GuildMemberRoleState',
         'RoleState',
         'StageInstanceState',
+        'StickerState',
+        'GuildStickerState',
         'UserState',
     }
 
@@ -167,6 +171,7 @@ class Client:
         self.guilds = ClientClasses.GuildState(client=self)
         self.invites = ClientClasses.InviteState(client=self)
         self.stages = ClientClasses.StageInstanceState(client=self)
+        self.stickers = ClientClasses.StickerState(client=self)
         self.users = ClientClasses.UserState(client=self)
 
         self.finalizing = False
