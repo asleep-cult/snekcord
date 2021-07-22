@@ -51,15 +51,13 @@ class _BaseSticker(BaseObject):
     name = JsonField('name')
     description = JsonField('description')
     type = JsonField('type', StickerType.get_enum)
-    format = JsonField('format', StickerFormatType.get_enum)
+    format = JsonField('format_type', StickerFormatType.get_enum)
 
     def __str__(self):
         return f':{self.tag}:'
 
 
 class StandardSticker(_BaseSticker):
-    _cache_ = False
-
     pack_id = JsonField('pack_id', Snowflake)
     tags = JsonField('tags', lambda tags: tags.split(', '))
     sort_value = JsonField('sort_value')
