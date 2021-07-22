@@ -203,7 +203,6 @@ class Message(BaseObject):
     webhook_id = JsonField('webhook_id', Snowflake)
     type = JsonField('type', MessageType.get_enum)
     activity = JsonField('activity', object=MessageActivity)
-    _application = JsonField('application')
     application_id = JsonField('application_id', Snowflake)
     flags = JsonField('flags', MessageFlags.from_value)
     _interaction = JsonField('interaction')
@@ -216,6 +215,7 @@ class Message(BaseObject):
         self.author = None
         self.member = None
         self.reference = None
+        self.application = None
         self.attachments = []
         self.sticker_items = []
 
@@ -344,6 +344,9 @@ class Message(BaseObject):
 
                 if referenced_message is not None:
                     self.state.upsert(data['referenced_message'])
+
+        if 'application' in data:
+            self.application = ClientClasses.Application.unmarshal(data, client=self.state.client)
 
         if 'attachments' in data:
             self.attachments.clear()

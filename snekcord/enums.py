@@ -215,3 +215,8 @@ class MessageActivityType(Enum[int]):
     SPECTATE = 2
     LISTEN = 3
     JOIN_REQUEST = 5
+
+
+class TeamMembershipState(Enum[int]):
+    INVITED = 1
+    ACCEPTED = 2

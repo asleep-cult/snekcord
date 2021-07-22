@@ -1,3 +1,4 @@
+from .applicationobject import *
 from .baseobject import *
 from .channelobject import *
 from .embedobject import *
@@ -12,6 +13,7 @@ from .reactionsobject import *
 from .roleobject import *
 from .stageobject import *
 from .stickerobject import *
+from .teamobject import *
 from .templateobject import *
 from .userobject import *
 from .welcomescreenobject import *

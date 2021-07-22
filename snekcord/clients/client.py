@@ -9,6 +9,7 @@ __all__ = ('ClientClasses', 'Client',)
 
 class _ClientClasses:
     _object_classes_ = {
+        'Application',
         'GuildChannel',
         'TextChannel',
         'CategoryChannel',
@@ -35,6 +36,8 @@ class _ClientClasses:
         'StickerItem',
         'StandardSticker',
         'GuildSticker',
+        'Team',
+        'TeamMember',
         'GuildTemplate',
         'User',
         'GuildWidget',

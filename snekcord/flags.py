@@ -54,7 +54,7 @@ class Bitset:
     @classmethod
     def from_value(cls, value):
         self = cls.__new__(cls)
-        self.value = value
+        self.value = int(value)
         return self
 
     @classmethod
@@ -171,3 +171,12 @@ class UserFlags(Bitset):
     verified_bot = Flag(16)
     early_verified_bot_developer = Flag(17)
     discord_certified_moderator = Flag(18)
+
+
+class ApplicationFlags(Bitset):
+    gateway_presence = Flag(12)
+    gateway_presence_limited = Flag(13)
+    gateway_guild_members = Flag(14)
+    gateway_guild_members_limited = Flag(15)
+    verification_pending_guild_limit = Flag(16)
+    embedded = Flag(17)

@@ -20,7 +20,6 @@ class BaseObject(JsonObject, ReprHelper):
     __slots__ = ('state', 'cached', 'deleted', 'deleted_at', '__weakref__')
 
     _repr_fields_ = ('id', 'cached', 'deleted')
-    _cache_ = True
 
     id = JsonField('id', Snowflake)
 
@@ -38,9 +37,8 @@ class BaseObject(JsonObject, ReprHelper):
 
     def cache(self):
         """Stores the object in the state's cache"""
-        if self._cache_:
-            self.state.mapping[self.id] = self
-            self.cached = True
+        self.state.mapping[self.id] = self
+        self.cached = True
 
     def uncache(self):
         """Removes the object from the state's cache"""
