@@ -242,7 +242,7 @@ class Message(BaseObject):
 
     async def modify(
         self, *, content=undefined, embed=undefined, embeds=undefined, suppress_embeds=undefined,
-        allowed_mentions=undefined,  # file=undefined, allowed_mentions, attachments, components,
+        allowed_mentions=undefined,  # file=undefined, attachments, components,
     ):
         json = {'embeds': []}
 
@@ -269,9 +269,9 @@ class Message(BaseObject):
 
         if allowed_mentions is not undefined:
             if allowed_mentions is not None:
-                json['mentions'] = allowed_mentions.to_dict()
+                json['allowed_mentions'] = allowed_mentions.to_dict()
             else:
-                json['mentions'] = None
+                json['allowed_mentions'] = None
 
         data = await rest.modify_message.request(
             self.state.client.rest, channel_id=self.channel.id, message_id=self.id, json=json
@@ -378,5 +378,68 @@ class Message(BaseObject):
 
             if self.reference.message is not None:
                 self.reference.message._json_data_['pinned'] = True
+
+        return self
+
+
+class WebhookMessage(BaseObject):
+    @property
+    def webhook(self):
+        return self.state.webhook
+
+    @property
+    def channel(self):
+        return self.webhook.channel
+
+    @property
+    def message(self):
+        return self.channel.messages.get(self.id)
+
+    async def modify(
+        self, *, content=undefined, embed=undefined, embeds=undefined, allowed_mentions=undefined
+        # file, attachments, components
+    ):
+        json = {}
+
+        if content is not undefined:
+            if content is not None:
+                json['content'] = str(content)
+            else:
+                json['content'] = None
+
+        if embed is not undefined:
+            if embed is not None:
+                json['embeds'] = [resolve_embed_data(embed)]
+            else:
+                json['embeds'] = None
+
+        if embeds is not undefined:
+            if embed is not None:
+                if 'embeds' not in json:
+                    json['embeds'] = []
+
+                json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
+            else:
+                json['embeds'] = None
+
+        if allowed_mentions is not undefined:
+            if allowed_mentions is not None:
+                json['allowed_mentions'] = allowed_mentions.to_dict()
+            else:
+                json['allowed_mentions'] = None
+
+        data = await rest.modify_webhook_message.request(
+            self.state.client.rest, webhook_id=self.webhook.id, webhook_token=self.webhook.token
+        )
+
+        return self.update(data)
+
+    def delete(self):
+        return self.state.delete(self.id)
+
+    def update(self, data):
+        self._json_data_['id'] = data['id']
+
+        self.channel.messages.upsert(data)
 
         return self

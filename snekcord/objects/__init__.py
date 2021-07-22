@@ -16,5 +16,6 @@ from .stickerobject import *
 from .teamobject import *
 from .templateobject import *
 from .userobject import *
+from .webhookobject import *
 from .welcomescreenobject import *
 from .widgetobject import *

@@ -40,6 +40,7 @@ class _ClientClasses:
         'TeamMember',
         'GuildTemplate',
         'User',
+        'Webhook',
         'GuildWidget',
         'WelcomeScreen',
     }
@@ -59,6 +60,7 @@ class _ClientClasses:
         'InviteState',
         'GuildMemberState',
         'MessageState',
+        'WebhookMessageState',
         'ChannelPinsState',
         'PermissionOverwriteState',
         'ReactionsState',
@@ -68,6 +70,8 @@ class _ClientClasses:
         'StickerState',
         'GuildStickerState',
         'UserState',
+        'WebhookState',
+        'ChannelWebhookState',
     }
 
     def __getattribute__(self, name):
@@ -179,6 +183,7 @@ class Client:
         self.stage_instances = ClientClasses.StageInstanceState(client=self)
         self.stickers = ClientClasses.StickerState(client=self)
         self.users = ClientClasses.UserState(client=self)
+        self.webhooks = ClientClasses.WebhookState(client=self)
 
         self.finalizing = False
 

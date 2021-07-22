@@ -164,6 +164,13 @@ class Guild(BaseObject):
 
         return [self.state.new_template(template) for template in data]
 
+    async def fetch_webhooks(self):
+        data = await rest.get_guild_webhooks.request(
+            self.state.client.rest, guild_id=self.id
+        )
+
+        return [self.state.client.webhooks.upsert(webhook) for webhook in data]
+
     async def create_template(self, *, name, description=undefined):
         json = {'name': str(name)}
 

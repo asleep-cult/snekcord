@@ -4,7 +4,7 @@ from ..clients.client import ClientClasses
 from ..resolvers import resolve_embed_data
 from ..utils import Snowflake, undefined
 
-__all__ = ('MessageState', 'ChannelPinsState')
+__all__ = ('MessageState', 'WebhookMessageState', 'ChannelPinsState')
 
 
 class MessageState(BaseState):
@@ -127,6 +127,41 @@ class MessageState(BaseState):
 
         await rest.bulk_delete_messages.request(
             self.client.rest, channel_id=self.channel.id, json={'message_ids': message_ids}
+        )
+
+
+class WebhookMessageState(BaseState):
+    def __init__(self, *, client, webhook):
+        super().__init__(client=client)
+        self.webhook = webhook
+
+    def upsert(self, data):
+        message = self.get(Snowflake(data['id']))
+
+        if message is not None:
+            message.update(data)
+        else:
+            message = ClientClasses.WebhookMessage.unmarshal(data, state=self)
+            message.cache()
+
+        return message
+
+    async def fetch(self, message):
+        message_id = Snowflake.try_snowflake(message)
+
+        data = await rest.get_webhook_message.request(
+            self.client.rest, webhook_id=self.webhook.id, webhook_token=self.webhook.token,
+            message_id=message_id
+        )
+
+        return self.upsert(data)
+
+    async def delete(self, message):
+        message_id = Snowflake.try_snowflake(message)
+
+        await rest.delete_webhook_message.request(
+            self.client.rest, webhook_id=self.webhook.id, webhook_token=self.webhook.token,
+            message_id=message_id
         )
 
 

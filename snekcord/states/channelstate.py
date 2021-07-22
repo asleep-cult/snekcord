@@ -30,7 +30,7 @@ class ChannelState(BaseState):
         if channel is not None:
             channel.update(data)
         else:
-            channel = self.get_class(data['type']).unmarshal(data, state=self)
+            channel = self.get_class(data.get('type')).unmarshal(data, state=self)
             channel.cache()
 
         return channel
