@@ -37,7 +37,7 @@ class Webhook(BaseObject):
 
     async def execute(
         self, *, content=None, username=None, avatar=None, tts=None, embed=None, embeds=None,
-        allowed_mentions=None, wait=None, thread=None  # file, components
+        mentions=None, wait=None, thread=None  # file, components
     ):
         json = {}
 
@@ -65,8 +65,8 @@ class Webhook(BaseObject):
 
             json['embeds'].extend(resolve_embed_data(embed) for embed in embeds)
 
-        if allowed_mentions is not None:
-            json['allowed_mentions'] = allowed_mentions.to_dict()
+        if mentions is not None:
+            json['allowed_mentions'] = mentions.to_dict()
 
         params = {}
 
@@ -79,10 +79,15 @@ class Webhook(BaseObject):
         if not any((json.get('content'), json.get('file'), json.get('embeds'))):
             raise TypeError('None of (content, file, embed(s)) were provided')
 
-        await rest.execute_webhook.request(
+        data = await rest.execute_webhook.request(
             self.state.client.rest, webhook_id=self.id, webhook_token=self.token,
             params=params, json=json
         )
+
+        if data:
+            return self.messages.upsert(data)
+
+        return None
 
     async def modify(self, *, name=None, avatar=undefined, channel=None):
         json = {}
@@ -104,6 +109,9 @@ class Webhook(BaseObject):
         )
 
         return self.state.upsert(data)
+
+    def delete(self):
+        return self.state.delete(self.id, getattr(self, 'token', None))
 
     def _delete(self):
         super()._delete()

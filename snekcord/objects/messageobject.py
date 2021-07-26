@@ -2,20 +2,23 @@ import copy
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .channelobject import GuildChannel
 from .embedobject import Embed
 from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import MessageActivityType, MessageType
+from ..exceptions import PartialObjectError
 from ..fetchables import Fetchable
 from ..flags import MessageFlags
 from ..resolvers import resolve_embed_data
 from ..utils import JsonArray, JsonField, JsonObject, ReprHelper, Snowflake, undefined
 
-__all__ = ('AllowedMentions', 'MessageReference', 'Message')
+__all__ = (
+    'MessageMentions', 'MessageReference', 'MessageMentionsData', 'MessageReferenceData',
+    'Message', 'WebhookMessage'
+)
 
 
-class AllowedMentions(ReprHelper):
+class MessageMentions(ReprHelper):
     _repr_fields_ = ('roles', 'users', 'replied_user')
 
     def __init__(self, *, roles=None, users=None, replied_user=None):
@@ -219,8 +222,7 @@ class Message(BaseObject):
         self.attachments = []
         self.sticker_items = []
 
-        self.mentions = MessageMentionsData(message=self)
-
+        self.mentions = ClientClasses.MessageMentionsData(message=self)
         self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
 
     @property
@@ -229,8 +231,21 @@ class Message(BaseObject):
 
     @property
     def guild(self):
-        if isinstance(self.channel, GuildChannel):
+        if isinstance(self.channel, ClientClasses.GuildChannel):
             return self.channel.guild
+        return None
+
+    @property
+    def webhook(self):
+        try:
+            return self.state.client.webhooks.get(self.webhook_id)
+        except PartialObjectError:
+            return None
+
+    @property
+    def webhook_message(self):
+        if self.webhook is not None:
+            return self.webhook.messages.get(self.id)
         return None
 
     async def crosspost(self):
@@ -242,7 +257,7 @@ class Message(BaseObject):
 
     async def modify(
         self, *, content=undefined, embed=undefined, embeds=undefined, suppress_embeds=undefined,
-        allowed_mentions=undefined,  # file=undefined, attachments, components,
+        mentions=undefined,  # file=undefined, attachments, components,
     ):
         json = {'embeds': []}
 
@@ -267,9 +282,9 @@ class Message(BaseObject):
         if suppress_embeds is not undefined:
             json['flags'] = MessageFlags(suppress_embeds=suppress_embeds)
 
-        if allowed_mentions is not undefined:
-            if allowed_mentions is not None:
-                json['allowed_mentions'] = allowed_mentions.to_dict()
+        if mentions is not undefined:
+            if mentions is not None:
+                json['allowed_mentions'] = mentions.to_dict()
             else:
                 json['allowed_mentions'] = None
 
@@ -283,7 +298,7 @@ class Message(BaseObject):
         kwargs['message_reference'] = MessageReference(self, ensure_exists=ensure_exists)
 
         if mention is not None:
-            kwargs['allowed_mentions'] = AllowedMentions(replied_user=mention)
+            kwargs['mentions'] = MessageMentions(replied_user=mention)
 
         return self.state.create(**kwargs)
 
@@ -337,7 +352,9 @@ class Message(BaseObject):
                 del self.reactions.mapping[emoji_id]
 
         if 'message_reference' in data:
-            self.reference = MessageReferenceData.unmarshal(data['message_reference'], message=self)
+            self.reference = ClientClasses.MessageReferenceData.unmarshal(
+                data['message_reference'], message=self
+            )
 
             if 'referenced_message' in data:
                 referenced_message = data['referenced_message']
@@ -396,7 +413,7 @@ class WebhookMessage(BaseObject):
         return self.channel.messages.get(self.id)
 
     async def modify(
-        self, *, content=undefined, embed=undefined, embeds=undefined, allowed_mentions=undefined
+        self, *, content=undefined, embed=undefined, embeds=undefined, mentions=undefined
         # file, attachments, components
     ):
         json = {}
@@ -422,9 +439,9 @@ class WebhookMessage(BaseObject):
             else:
                 json['embeds'] = None
 
-        if allowed_mentions is not undefined:
-            if allowed_mentions is not None:
-                json['allowed_mentions'] = allowed_mentions.to_dict()
+        if mentions is not undefined:
+            if mentions is not None:
+                json['allowed_mentions'] = mentions.to_dict()
             else:
                 json['allowed_mentions'] = None
 
@@ -440,6 +457,7 @@ class WebhookMessage(BaseObject):
     def update(self, data):
         self._json_data_['id'] = data['id']
 
-        self.channel.messages.upsert(data)
+        if self.channel is not None:
+            self.channel.messages.upsert(data)
 
         return self

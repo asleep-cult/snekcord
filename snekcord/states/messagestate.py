@@ -58,7 +58,7 @@ class MessageState(BaseState):
 
     async def create(
         self, *, content=None, tts=None, file=None, embed=None, embeds=None, sticker=None,
-        stickers=None, allowed_mentions=None, message_reference=None,  # components
+        stickers=None, mentions=None, reference=None,  # components
     ):
         json = {}
 
@@ -86,11 +86,11 @@ class MessageState(BaseState):
 
             json['sticker_ids'].extend(Snowflake.try_snowflake_many(stickers))
 
-        if allowed_mentions is not None:
-            json['allowed_mentions'] = allowed_mentions.to_dict()
+        if mentions is not None:
+            json['allowed_mentions'] = mentions.to_dict()
 
-        if message_reference is not None:
-            json['message_reference'] = message_reference.to_dict()
+        if reference is not None:
+            json['message_reference'] = reference.to_dict()
 
         if not any(
             (json.get('content'), json.get('file'), json.get('embeds'), json.get('sticker_ids'))
