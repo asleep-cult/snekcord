@@ -1,6 +1,5 @@
 from .baseobject import BaseObject
 from .. import rest
-from ..clients.client import ClientClasses
 from ..enums import StickerFormatType, StickerType
 from ..exceptions import PartialObjectError
 from ..utils import JsonField, JsonObject, Snowflake, undefined
@@ -25,8 +24,7 @@ class StickerPack(JsonObject):
             self.stickers.clear()
 
             for sticker in data['stickers']:
-                sticker = ClientClasses.StandardSticker.unmarshal(data, state=self.state)
-                self.stickers.append(sticker)
+                self.stickers.append(self.state.upsert(sticker))
 
         return self
 
