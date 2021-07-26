@@ -3,6 +3,8 @@ from http import HTTPStatus
 
 from httpx import AsyncClient
 
+from .ratelimit import RatelimitBucket
+
 __all__ = ('HTTPError', 'RestSession')
 
 
@@ -23,6 +25,8 @@ class RestSession(AsyncClient):
         self.global_headers.update({
             'Authorization': self.authorization.to_string(),
         })
+
+        self.buckets = {}
 
         kwargs['timeout'] = None
         super().__init__(*args, **kwargs)
@@ -51,12 +55,17 @@ class RestSession(AsyncClient):
                 yield from self._iter_errors(value, keys + (key,))
 
     async def request(self, method, url, *, keywords, **kwargs):
+        bucket = RatelimitBucket.from_request(self, method, url, keywords)
+
         url = url.format(**keywords)
 
         headers = kwargs.setdefault('headers', {})
         headers.update(self.global_headers)
 
-        response = await super().request(method, url, **kwargs)
+        async with bucket:
+            response = await super().request(method, url, **kwargs)
+            bucket.update(response)
+
         await response.aclose()
 
         data = response.content
