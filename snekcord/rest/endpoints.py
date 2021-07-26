@@ -544,7 +544,7 @@ get_channel_webhooks = HTTPEndpoint(
 
 get_guild_webhooks = HTTPEndpoint(
     'GET',
-    BASE_API_URL + '/channels/{guild_id}/webhooks',
+    BASE_API_URL + '/guilds/{guild_id}/webhooks',
 )
 
 get_webhook = HTTPEndpoint(
@@ -584,12 +584,17 @@ execute_webhook = HTTPEndpoint(
 
 execute_slack_webhook = HTTPEndpoint(
     'POST',
-    BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}',
+    BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/slack',
 )
 
 execute_github_webhook = HTTPEndpoint(
     'POST',
-    BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}',
+    BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/github',
+)
+
+get_webhook_message = HTTPEndpoint(
+    'GET',
+    BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}'
 )
 
 modify_webhook_message = HTTPEndpoint(

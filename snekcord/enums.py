@@ -220,3 +220,9 @@ class MessageActivityType(Enum[int]):
 class TeamMembershipState(Enum[int]):
     INVITED = 1
     ACCEPTED = 2
+
+
+class WebhookType(Enum[int]):
+    INCOMING = 1
+    CHANNEL_FOLLOWER = 2
+    APPLICATION = 3

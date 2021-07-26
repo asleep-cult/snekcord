@@ -73,7 +73,7 @@ class GuildChannel(BaseObject):
 
 
 class TextChannel(GuildChannel):
-    __slots__ = ('last_pin_timestamp', 'messages', 'pins')
+    __slots__ = ('last_pin_timestamp', 'messages', 'pins', 'webhooks')
 
     topic = JsonField('topic')
     slowmode = JsonField('rate_limit_per_user')
@@ -86,6 +86,9 @@ class TextChannel(GuildChannel):
 
         self.messages = ClientClasses.MessageState(client=self.state.client, channel=self)
         self.pins = ClientClasses.ChannelPinsState(superstate=self.messages, channel=self)
+        self.webhooks = ClientClasses.ChannelWebhookState(
+            superstate=self.state.client.webhooks, channel=self
+        )
 
     def __str__(self):
         return f'#{self.name}'
