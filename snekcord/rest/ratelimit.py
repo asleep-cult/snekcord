@@ -7,35 +7,27 @@ MAJOR_PARAMS = ('channel_id', 'guild_id', 'webhook_id', 'webhook_token')
 class RatelimitBucket:
     def __init__(self, bucket):
         self.bucket = bucket
-        self.semaphore = None
         self.limit = None
         self.remaining = None
         self.reset = None
-        self.entered = False
-        self.initialized = asyncio.Event()
+        self.lock = asyncio.Lock()
 
     def __repr__(self):
         return (
-            f'<{self.__class__.__name__} semaphore={self.semaphore!r},'
+            f'<{self.__class__.__name__} lock={self.lock!r},'
             f' limit={self.limit}, remaining={self.remaining}, reset={self.reset}>'
         )
 
     async def __aenter__(self):
-        if not self.entered:
-            self.entered = True
-        else:
-            if not self.initialized.is_set():
-                await self.initialized.wait()
-
-            await self.semaphore.acquire()
+        await self.lock.acquire()
 
     async def __aexit__(self, exc_type, exc_value, exc_tb):
         if self.remaining == 0:
             if self.reset is not None:
-                time = (self.reset - datetime.utcnow()).total_seconds()
-                await asyncio.sleep(time)
+                await asyncio.sleep((self.reset - datetime.utcnow()).total_seconds())
+                self.reset = None
 
-        self.semaphore.release()
+        self.lock.release()
 
     @classmethod
     def from_request(cls, session, method, url, keywords):
@@ -71,7 +63,3 @@ class RatelimitBucket:
 
             if reset_after is not None:
                 self.reset = datetime.utcnow() + timedelta(seconds=float(reset_after))
-
-        if not self.initialized.is_set():
-            self.semaphore = asyncio.Semaphore(self.limit)
-            self.initialized.set()

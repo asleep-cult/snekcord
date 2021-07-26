@@ -1,3 +1,4 @@
+import asyncio
 import json
 from http import HTTPStatus
 
@@ -65,6 +66,9 @@ class RestSession(AsyncClient):
         async with bucket:
             response = await super().request(method, url, **kwargs)
             bucket.update(response)
+
+            if response.status_code == 429:
+                await asyncio.sleep(float(response.headers['Retry-After']))
 
         await response.aclose()
 
