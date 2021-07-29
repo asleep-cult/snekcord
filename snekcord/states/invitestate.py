@@ -33,6 +33,4 @@ class InviteState(BaseState):
         return self.upsert(data)
 
     async def delete(self, code):
-        await rest.delete_invite.request(
-            self.client.rest, invite_code=code
-        )
+        await rest.delete_invite.request(self.client.rest, invite_code=code)

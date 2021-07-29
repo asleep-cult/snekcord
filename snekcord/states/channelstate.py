@@ -47,9 +47,7 @@ class ChannelState(BaseState):
     async def delete(self, channel):
         channel_id = Snowflake.try_snowflake(channel)
 
-        await rest.delete_channel.request(
-            self.client.rest, channel_id=channel_id,
-        )
+        await rest.delete_channel.request(self.client.rest, channel_id=channel_id)
 
     async def close(self, channel):
         return self.delete(channel)

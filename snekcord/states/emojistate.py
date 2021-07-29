@@ -102,9 +102,7 @@ class GuildEmojiState(BaseSubState):
         return self.upsert(data)
 
     async def fetch_all(self):
-        data = await rest.get_guild_emojis.request(
-            self.client.rest, guild_id=self.guild.id
-        )
+        data = await rest.get_guild_emojis.request(self.client.rest, guild_id=self.guild.id)
 
         return [self.upsert(emoji) for emoji in data]
 

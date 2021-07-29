@@ -32,7 +32,7 @@ class RestError(Exception):
 
     def format_keys(self, keys):
         keys = iter(keys)
-        value = next(keys, '')
+        value = next(keys)
 
         for key in keys:
             if key.isdigit():

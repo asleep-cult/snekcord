@@ -27,9 +27,7 @@ class WebhookState(BaseState):
                 self.client.rest, webhook_id=webhook_id, webhook_token=webhook_token
             )
         else:
-            data = await rest.get_webhook.request(
-                self.client.rest, webbook_id=webhook_id
-            )
+            data = await rest.get_webhook.request(self.client.rest, webbook_id=webhook_id)
 
         return self.upsert(data)
 
@@ -43,9 +41,7 @@ class WebhookState(BaseState):
                 self.client.rest, webhook_id=webhook_id, webhook_token=webhook_token
             )
         else:
-            await rest.delete_webhook.request(
-                self.client.rest, webhook_id=webhook_id
-            )
+            await rest.delete_webhook.request(self.client.rest, webhook_id=webhook_id)
 
 
 class ChannelWebhookState(BaseSubState):

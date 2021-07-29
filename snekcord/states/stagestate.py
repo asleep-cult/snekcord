@@ -45,6 +45,4 @@ class StageInstanceState(BaseState):
     async def delete(self, stage):
         channel_id = Snowflake.try_snowflake(stage)
 
-        await rest.delete_stage_instance.request(
-            self.client.rest, channel_id=channel_id
-        )
+        await rest.delete_stage_instance.request(self.client.rest, channel_id=channel_id)

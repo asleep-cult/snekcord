@@ -32,9 +32,7 @@ class GuildState(BaseState):
         if with_counts is not None:
             params['with_counts'] = with_counts
 
-        data = await rest.get_guild.request(
-            self.client.rest, guild_id=guild_id
-        )
+        data = await rest.get_guild.request(self.client.rest, guild_id=guild_id)
 
         guild = self.upsert(data)
 
