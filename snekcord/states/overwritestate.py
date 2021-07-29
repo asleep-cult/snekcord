@@ -64,7 +64,7 @@ class PermissionOverwriteState(BaseState):
             member = self.channel.guild.members.get(member)
 
             if member is None:
-                return
+                return None
 
         permissions = member.permissions.copy()
 
