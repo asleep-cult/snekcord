@@ -35,11 +35,9 @@ class User(BaseObject):
     def avatar(self):
         avatar = self._json_data_.get('avatar')
         if avatar is not None:
-            return UserAvatar(rest=self.state.client.rest, user_id=self.id, user_avatar=avatar)
+            return UserAvatar(self.state.client.rest, self.id, avatar)
         return self.default_avatar
 
     @property
     def default_avatar(self):
-        return DefaultUserAvatar(
-            rest=self.state.client.rest, user_discriminator=int(self.discriminator)
-        )
+        return DefaultUserAvatar(self.state.client.rest, int(self.discriminator))

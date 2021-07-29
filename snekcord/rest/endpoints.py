@@ -15,6 +15,7 @@ class RestEndpoint:
 
 
 BASE_API_URL = 'https://discord.com/api/v9'
+BASE_CDN_URL = 'https://cdn.discordapp.com'
 
 get_guild_audit_log = RestEndpoint(
     'GET',
@@ -615,4 +616,65 @@ get_gateway = RestEndpoint(
 get_gateway_bot = RestEndpoint(
     'GET',
     BASE_API_URL + '/gateway/bot'
+)
+
+get_guild_icon = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/icons/{guild_id}/{guild_icon}.{format}'
+)
+
+get_guild_splash = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/splashes/{guild_id}/{guild_splash}.{format}'
+)
+
+get_guild_discovery_splash = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/discovery-splashes/{guild_id}/{guild_discovery_splash}.{format}'
+)
+
+get_guild_banner = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/banners/{guild_id}/{guild_banner}.{format}'
+)
+
+get_default_user_avatar = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/embed/avatars/{user_discriminator}.{format}'
+)
+
+get_user_avatar = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/avatars/{user_id}/{user_avatar}.{format}'
+)
+
+get_application_icon = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/app-icons/{application_id}/{application_icon}.{format}'
+)
+
+get_application_cover = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/app-icons/{application_id}/{application_cover_image}.{format}'
+)
+
+get_application_asset = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/app-icons/{application_id}/{application_asset}.{format}'
+)
+
+get_achievement_icon = RestEndpoint(
+    'GET',
+    BASE_CDN_URL
+    + '/app-icons/{application_id}/achievements/{achievement_id}/icons/{achievement_icon}.{format}'
+)
+
+get_team_icon = RestEndpoint(
+    'GET',
+    BASE_CDN_URL + '/team-icons/{team_id}/{team_icon}.{format}'
+)
+
+get_guild_widget_image = RestEndpoint(
+    'GET',
+    BASE_API_URL + '/guilds/{guild_id}/widget.{format}'
 )
