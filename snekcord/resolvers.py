@@ -4,7 +4,7 @@ import re
 
 from .fetchables import Fetchable
 from .objects.embedobject import Embed, EmbedBuilder
-from .utils import Snowflake
+from .snowflake import Snowflake
 
 CHANNEL_MENTION_RE = re.compile(r'<#(?P<id>\d{17,19})>')
 EMOJI_RE = re.compile(r'<(?P<animated>a)?:(?P<name>[\w\d_]{2,32}):(?P<id>\d{17,19})>')

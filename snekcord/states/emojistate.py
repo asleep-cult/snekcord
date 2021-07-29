@@ -3,7 +3,7 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.emojiobject import BaseEmoji, UnicodeEmoji
 from ..resolvers import resolve_data_uri, resolve_emoji
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 UNICODE_EMOJIS_BY_SURROGATES = {}
 UNICODE_EMOJIS_BY_NAME = {}

@@ -1,7 +1,8 @@
 from .baseobject import BaseObject
 from ..enums import PermissionOverwriteType
 from ..flags import Permissions
-from ..utils import JsonField, undefined
+from ..json import JsonField
+from ..undefined import undefined
 
 __all__ = ('PermissionOverwrite',)
 

@@ -4,7 +4,9 @@ from .baseobject import BaseObject
 from .. import rest
 from ..clients.client import ClientClasses
 from ..flags import Permissions
-from ..utils import JsonField, Snowflake, undefined
+from ..json import JsonField
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = ('GuildMember',)
 

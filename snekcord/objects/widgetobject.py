@@ -1,6 +1,8 @@
 from .. import rest
 from ..fetchables import GuildWidgetImage
-from ..utils import JsonArray, JsonField, JsonObject, Snowflake, undefined
+from ..json import JsonArray, JsonField, JsonObject
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = ('GuildWidgetChannel', 'GuildWidgetMember', 'GuildWidgetJson', 'GuildWidget')
 

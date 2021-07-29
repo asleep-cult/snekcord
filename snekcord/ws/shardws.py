@@ -5,7 +5,7 @@ import random
 import time
 
 from .basews import BaseWebSocket, WebSocketResponse
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 __all__ = ('ShardOpcode', 'ShardCloseCode', 'Shard', 'ShardWebSocket')
 

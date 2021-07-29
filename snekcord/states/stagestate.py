@@ -2,14 +2,14 @@ from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.stageobject import StageInstancePrivacyLevel
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 __all__ = ('StageInstanceState',)
 
 
 class StageInstanceState(BaseState):
     def upsert(self, data):
-        stage = self.get(Snowflake(data['id']))
+        stage = self.get(Snowflake(data['channel_id']))
 
         if stage is not None:
             stage.update(data)

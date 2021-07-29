@@ -1,6 +1,8 @@
 from .. import rest
 from ..clients import ClientClasses
-from ..utils import JsonField, JsonObject, Snowflake, undefined
+from ..json import JsonField, JsonObject
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = ('WelcomeScreen', 'WelcomeScreenChannel')
 

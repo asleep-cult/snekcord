@@ -4,7 +4,9 @@ from ..clients.client import ClientClasses
 from ..enums import WebhookType
 from ..fetchables import Fetchable
 from ..resolvers import resolve_data_uri, resolve_embed_data
-from ..utils import JsonField, Snowflake, undefined
+from ..json import JsonField
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 
 class Webhook(BaseObject):

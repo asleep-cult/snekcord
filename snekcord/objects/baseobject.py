@@ -1,9 +1,10 @@
-from ..utils import JsonField, JsonObject, ReprHelper, Snowflake
+from ..json import JsonField, JsonObject
+from ..snowflake import Snowflake
 
 __all__ = ('BaseObject',)
 
 
-class BaseObject(JsonObject, ReprHelper):
+class BaseObject(JsonObject):
     __slots__ = ('state', 'cached', 'deleted', 'deleted_at', '__weakref__')
 
     _repr_fields_ = ('id', 'cached', 'deleted')
@@ -14,6 +15,12 @@ class BaseObject(JsonObject, ReprHelper):
         self.state = state
         self.cached = False
         self.deleted = False
+
+    def __repr__(self):
+        return (
+            f'<{self.__class__.__name__} id={self.id!r},'
+            f' cached={self.cached}, deleted={self.deleted}>'
+        )
 
     def __hash__(self):
         return hash(self.id)

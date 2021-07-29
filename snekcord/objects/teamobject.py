@@ -1,6 +1,7 @@
 from ..clients.client import ClientClasses
 from ..enums import TeamMembershipState
-from ..utils import JsonField, JsonObject, Snowflake
+from ..json import JsonField, JsonObject
+from ..snowflake import Snowflake
 
 
 class Team(JsonObject):

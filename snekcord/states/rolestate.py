@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..flags import Permissions
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 __all__ = ('RoleState', 'GuildMemberRoleState')
 

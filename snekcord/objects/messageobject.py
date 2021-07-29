@@ -9,8 +9,10 @@ from ..enums import MessageActivityType, MessageType
 from ..exceptions import PartialObjectError
 from ..fetchables import Fetchable
 from ..flags import MessageFlags
+from ..json import JsonArray, JsonField, JsonObject
 from ..resolvers import resolve_embed_data
-from ..utils import JsonArray, JsonField, JsonObject, ReprHelper, Snowflake, undefined
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = (
     'MessageMentions', 'MessageReference', 'MessageMentionsData', 'MessageReferenceData',
@@ -18,9 +20,7 @@ __all__ = (
 )
 
 
-class MessageMentions(ReprHelper):
-    _repr_fields_ = ('roles', 'users', 'replied_user')
-
+class MessageMentions:
     def __init__(self, *, roles=None, users=None, replied_user=None):
         self.parse = []
 
@@ -65,9 +65,7 @@ class MessageMentions(ReprHelper):
         return data
 
 
-class MessageReference(ReprHelper):
-    _repr_fields_ = ('message', 'ensure_exists')
-
+class MessageReference:
     def __init__(self, message, *, ensure_exists=None):
         self.message = message
 
@@ -90,9 +88,7 @@ class MessageReference(ReprHelper):
         return data
 
 
-class MessageMentionsData(ReprHelper):
-    _repr_fields_ = ('everyone', 'user_ids', 'role_ids', 'channel_ids')
-
+class MessageMentionsData:
     def __init__(self, *, message):
         self.message = message
 
@@ -192,7 +188,10 @@ class Attachment(Fetchable, JsonObject):
 
 
 class Message(BaseObject):
-    __slots__ = ('author', 'member', 'reference', 'reactions', 'mentions')
+    __slots__ = (
+        'author', 'member', 'reference', 'application', 'attachments', 'sticker_items',
+        'mentions', 'reactions'
+    )
 
     channel_id = JsonField('channel_id', Snowflake)
     guild_id = JsonField('guild_id', Snowflake)

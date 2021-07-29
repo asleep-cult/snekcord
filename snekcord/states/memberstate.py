@@ -1,7 +1,7 @@
 from .basestate import BaseState
 from .. import rest
 from ..clients.client import ClientClasses
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 __all__ = ('GuildMemberState',)
 

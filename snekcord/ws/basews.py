@@ -1,6 +1,6 @@
 from wsaio import WebSocketClient
 
-from ..utils import JsonField, JsonObject
+from ..json import JsonField, JsonObject
 
 __all__ = ('BaseWebSocket',)
 

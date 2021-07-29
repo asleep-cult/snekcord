@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..objects.channelobject import ChannelType
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 __all__ = ('ChannelState', 'GuildChannelState')
 

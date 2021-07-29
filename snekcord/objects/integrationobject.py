@@ -2,7 +2,8 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from ..enums import IntegrationExpireBehavior, IntegrationType
-from ..utils import JsonField, JsonObject, Snowflake
+from ..json import JsonField, JsonObject
+from ..snowflake import Snowflake
 
 __all__ = ('IntegrationAccount', 'IntegrationApplication', 'Integration')
 

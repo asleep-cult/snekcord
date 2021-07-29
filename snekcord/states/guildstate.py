@@ -4,7 +4,7 @@ from ..clients.client import ClientClasses
 from ..enums import ExplicitContentFilterLevel, MessageNotificationsLevel
 from ..flags import SystemChannelFlags
 from ..resolvers import resolve_data_uri
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 __all__ = ('GuildState', 'GuildBanState')
 

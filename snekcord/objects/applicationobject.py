@@ -1,6 +1,7 @@
 from ..clients.client import ClientClasses
 from ..flags import ApplicationFlags
-from ..utils import JsonArray, JsonField, JsonObject, Snowflake
+from ..json import JsonArray, JsonField, JsonObject
+from ..snowflake import Snowflake
 
 
 class Application(JsonObject):

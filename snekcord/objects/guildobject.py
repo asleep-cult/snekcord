@@ -14,8 +14,10 @@ from ..enums import (
 )
 from ..fetchables import GuildBanner, GuildDiscoverySplash, GuildIcon, GuildSplash
 from ..flags import SystemChannelFlags
+from ..json import JsonArray, JsonField
 from ..resolvers import resolve_data_uri
-from ..utils import JsonArray, JsonField, Snowflake, undefined
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = ('Guild', 'GuildBan',)
 
@@ -23,7 +25,7 @@ __all__ = ('Guild', 'GuildBan',)
 class Guild(BaseObject):
     __slots__ = (
         'unsynced', 'widget', 'vanity_url', 'welcome_screen', 'channels', 'emojis', 'roles',
-        'members', 'bans', 'integrations'
+        'members', 'bans', 'integrations', 'stickers'
     )
 
     name = JsonField('name')

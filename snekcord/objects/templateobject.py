@@ -3,7 +3,9 @@ from datetime import datetime
 from .baseobject import BaseObject
 from .. import rest
 from ..resolvers import resolve_data_uri
-from ..utils import JsonField, Snowflake, undefined
+from ..json import JsonField
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = ('GuildTemplate',)
 

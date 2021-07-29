@@ -2,7 +2,9 @@ from .baseobject import BaseObject
 from .. import rest
 from ..enums import StickerFormatType, StickerType
 from ..exceptions import PartialObjectError
-from ..utils import JsonField, JsonObject, Snowflake, undefined
+from ..json import JsonField, JsonObject
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 
 class StickerPack(JsonObject):

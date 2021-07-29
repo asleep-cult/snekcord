@@ -2,7 +2,8 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..resolvers import resolve_embed_data
-from ..utils import Snowflake, undefined
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 __all__ = ('MessageState', 'WebhookMessageState', 'ChannelPinsState')
 

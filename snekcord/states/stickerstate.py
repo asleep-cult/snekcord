@@ -3,7 +3,7 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import StickerType
 from ..resolvers import resolve_image_data, resolve_mimetype
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 
 class StickerState(BaseState):

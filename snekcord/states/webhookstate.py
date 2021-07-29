@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import rest
 from ..clients.client import ClientClasses
 from ..resolvers import resolve_data_uri
-from ..utils import Snowflake
+from ..snowflake import Snowflake
 
 
 class WebhookState(BaseState):

@@ -2,7 +2,7 @@ from .baseobject import BaseObject
 from ..enums import PremiumType
 from ..fetchables import DefaultUserAvatar, UserAvatar
 from ..flags import UserFlags
-from ..utils import JsonField
+from ..json import JsonField
 
 __all__ = ('User',)
 

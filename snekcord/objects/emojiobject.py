@@ -4,7 +4,9 @@ from .baseobject import BaseObject
 from .. import rest
 from ..clients.client import ClientClasses
 from ..exceptions import PartialObjectError
-from ..utils import JsonArray, JsonField, Snowflake, undefined
+from ..json import JsonArray, JsonField
+from ..snowflake import Snowflake
+from ..undefined import undefined
 
 
 __all__ = ('CustomEmoji', 'PartialCustomEmoji', 'UnicodeEmoji', 'PartialUnicodeEmoji')
