@@ -1,4 +1,3 @@
-from functools import lru_cache
 from http import HTTPStatus
 
 __all__ = ('PartialObjectError', 'RestError')
@@ -31,7 +30,6 @@ class RestError(Exception):
             if 'errors' in self.data:
                 yield from self._iter_errors(self.data['errors'])
 
-    @lru_cache
     def format_keys(self, keys):
         keys = iter(keys)
         value = next(keys, '')
