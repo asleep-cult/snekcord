@@ -2,8 +2,8 @@ from datetime import datetime
 
 from .baseobject import BaseObject
 from .. import rest
-from ..resolvers import resolve_data_uri
 from ..json import JsonField
+from ..resolvers import resolve_data_uri
 from ..snowflake import Snowflake
 from ..undefined import undefined
 

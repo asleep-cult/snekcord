@@ -3,8 +3,8 @@ from .. import rest
 from ..clients.client import ClientClasses
 from ..enums import WebhookType
 from ..fetchables import Fetchable
-from ..resolvers import resolve_data_uri, resolve_embed_data
 from ..json import JsonField
+from ..resolvers import resolve_data_uri, resolve_embed_data
 from ..snowflake import Snowflake
 from ..undefined import undefined
 
