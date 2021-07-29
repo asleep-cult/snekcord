@@ -31,7 +31,7 @@ class RestError(Exception):
             if 'errors' in self.data:
                 yield from self._iter_errors(self.data['errors'])
 
-    @lru_cache()
+    @lru_cache
     def format_keys(self, keys):
         keys = iter(keys)
         value = next(keys, '')

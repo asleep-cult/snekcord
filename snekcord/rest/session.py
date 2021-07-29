@@ -6,13 +6,7 @@ from httpx import AsyncClient
 from .ratelimit import RatelimitBucket
 from ..exceptions import RestError
 
-__all__ = ('HTTPError', 'RestSession')
-
-
-class HTTPError(Exception):
-    def __init__(self, msg, response):
-        super().__init__(msg)
-        self.response = response
+__all__ = ('RestSession',)
 
 
 class RestSession:
