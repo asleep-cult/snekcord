@@ -306,7 +306,7 @@ class Client:
         asyncio.run_coroutine_threadsafe(self.finalize(), loop=self.loop)
 
     async def close(self):
-        await self.rest.aclose()
+        await self.rest.close()
 
     async def finalize(self):
         await self.close()

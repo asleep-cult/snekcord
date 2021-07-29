@@ -106,11 +106,9 @@ class MessageState(BaseState):
     async def delete(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        data = await rest.delete_message.request(
+        await rest.delete_message.request(
             self.client.rest, channel_id=self.channel.id, message_id=message_id
         )
-
-        return self.upsert(data)
 
     async def bulk_delete(self, messages):
         message_ids = Snowflake.try_snowflake_many(messages)

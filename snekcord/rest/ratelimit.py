@@ -30,15 +30,15 @@ class RatelimitBucket:
         self.lock.release()
 
     @classmethod
-    def from_request(cls, session, method, url, keywords):
+    def from_request(cls, cache, method, url, keywords):
         major_params = ':'.join(str(keywords.get(param)) for param in MAJOR_PARAMS)
         bucket = '-'.join((method, url, major_params))
 
-        if bucket in session.buckets:
-            return session.buckets[bucket]
+        if bucket in cache:
+            return cache[bucket]
         else:
             self = cls(bucket)
-            session.buckets[bucket] = self
+            cache[bucket] = self
             return self
 
     def update(self, response):
