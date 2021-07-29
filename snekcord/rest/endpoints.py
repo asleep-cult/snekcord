@@ -3,7 +3,7 @@ import string
 _formatter = string.Formatter()
 
 
-class HTTPEndpoint:
+class RestEndpoint:
     def __init__(self, method, url):
         self.method = method
         self.url = url
@@ -16,603 +16,603 @@ class HTTPEndpoint:
 
 BASE_API_URL = 'https://discord.com/api/v9'
 
-get_guild_audit_log = HTTPEndpoint(
+get_guild_audit_log = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/audit-logs',
 )
 
-get_channel = HTTPEndpoint(
+get_channel = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}',
 )
 
-modify_channel = HTTPEndpoint(
+modify_channel = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/channels/{channel_id}',
 )
 
-delete_channel = HTTPEndpoint(
+delete_channel = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}',
 )
 
-get_channel_messages = HTTPEndpoint(
+get_channel_messages = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}/messages',
 )
 
-get_channel_message = HTTPEndpoint(
+get_channel_message = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}',
 )
 
-create_channel_message = HTTPEndpoint(
+create_channel_message = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/messages',
 )
 
-crosspost_message = HTTPEndpoint(
+crosspost_message = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}/crosspost',
 )
 
-add_reaction = HTTPEndpoint(
+add_reaction = RestEndpoint(
     'PUT',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me',
 )
 
-remove_reaction = HTTPEndpoint(
+remove_reaction = RestEndpoint(
     'DELETE',
     BASE_API_URL
     + '/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}'
 )
 
-get_reactions = HTTPEndpoint(
+get_reactions = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}/reactions/{emoji_id}',
 )
 
-remove_reactions = HTTPEndpoint(
+remove_reactions = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}/reactions/{emoji}',
 )
 
-remove_all_reactions = HTTPEndpoint(
+remove_all_reactions = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}/reactions',
 )
 
-modify_message = HTTPEndpoint(
+modify_message = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}',
 )
 
-delete_message = HTTPEndpoint(
+delete_message = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}/messages/{message_id}',
 )
 
-bulk_delete_messages = HTTPEndpoint(
+bulk_delete_messages = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/messages/bulk-delete',
 )
 
-create_channel_permission_overwrite = HTTPEndpoint(
+create_channel_permission_overwrite = RestEndpoint(
     'PUT',
     BASE_API_URL + '/channels/{channel_id}/permissions/{overwrite_id}',
 )
 
-delete_channel_permission_overwrite = HTTPEndpoint(
+delete_channel_permission_overwrite = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}/permissions/{overwrite_id}',
 )
 
-get_channel_invites = HTTPEndpoint(
+get_channel_invites = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}/invites',
 )
 
-create_channel_invite = HTTPEndpoint(
+create_channel_invite = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/invites',
 )
 
-add_news_channel_follower = HTTPEndpoint(
+add_news_channel_follower = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/followers',
 )
 
-trigger_typing_indicator = HTTPEndpoint(
+trigger_typing_indicator = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/typing',
 )
 
-get_pinned_messages = HTTPEndpoint(
+get_pinned_messages = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}/pins',
 )
 
-add_pinned_message = HTTPEndpoint(
+add_pinned_message = RestEndpoint(
     'PUT',
     BASE_API_URL + '/channels/{channel_id}/pins/{message_id}',
 )
 
-remove_pinned_message = HTTPEndpoint(
+remove_pinned_message = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}/pins/{message_id}',
 )
 
-add_group_dm_recipient = HTTPEndpoint(
+add_group_dm_recipient = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/recipients/{user_id}',
 )
 
-delete_group_dm_recipient = HTTPEndpoint(
+delete_group_dm_recipient = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/channels/{channel_id}/recipients/{user_id}',
 )
 
-get_guild_emojis = HTTPEndpoint(
+get_guild_emojis = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/emojis',
 )
 
-get_guild_emoji = HTTPEndpoint(
+get_guild_emoji = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/emojis/{emoji}',
 )
 
-get_emoji_guild = HTTPEndpoint(
+get_emoji_guild = RestEndpoint(
     'GET',
     BASE_API_URL + '/emojis/{emoji_id}/guild'
 )
 
-create_guild_emoji = HTTPEndpoint(
+create_guild_emoji = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/emojis',
 )
 
-modify_guild_emoji = HTTPEndpoint(
+modify_guild_emoji = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/emojis/{emoji_id}',
 )
 
-delete_guild_emoji = HTTPEndpoint(
+delete_guild_emoji = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/emojis/{emoji_id}',
 )
 
-get_sticker = HTTPEndpoint(
+get_sticker = RestEndpoint(
     'GET',
     BASE_API_URL + '/stickers/{sticker_id}'
 )
 
-get_sticker_packs = HTTPEndpoint(
+get_sticker_packs = RestEndpoint(
     'GET',
     BASE_API_URL + '/sticker-packs'
 )
 
-get_guild_stickers = HTTPEndpoint(
+get_guild_stickers = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/stickers'
 )
 
-get_guild_sticker = HTTPEndpoint(
+get_guild_sticker = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/stickers/{sticker_id}'
 )
 
-get_sticker_guild = HTTPEndpoint(
+get_sticker_guild = RestEndpoint(
     'GET',
     BASE_API_URL + '/stickers/{sticker_id}/guild'
 )
 
-create_guild_sticker = HTTPEndpoint(
+create_guild_sticker = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/stickers'
 )
 
-modify_guild_sticker = HTTPEndpoint(
+modify_guild_sticker = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/stickers/{sticker_id}'
 )
 
-delete_guild_sticker = HTTPEndpoint(
+delete_guild_sticker = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/stickers/{sticker_id}'
 )
 
-create_guild = HTTPEndpoint(
+create_guild = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds',
 )
 
-get_guild = HTTPEndpoint(
+get_guild = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}',
 )
 
-get_guild_preview = HTTPEndpoint(
+get_guild_preview = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/preview',
 )
 
-modify_guild = HTTPEndpoint(
+modify_guild = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}',
 )
 
-delete_guild = HTTPEndpoint(
+delete_guild = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}',
 )
 
-get_guild_channels = HTTPEndpoint(
+get_guild_channels = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/channels',
 )
 
-create_guild_channel = HTTPEndpoint(
+create_guild_channel = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/channels',
 )
 
-modify_guild_channels = HTTPEndpoint(
+modify_guild_channels = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/channels',
 )
 
-get_guild_member = HTTPEndpoint(
+get_guild_member = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/members/{user_id}',
 )
 
-get_guild_members = HTTPEndpoint(
+get_guild_members = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/members',
 )
 
-search_guild_members = HTTPEndpoint(
+search_guild_members = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/members/search',
 )
 
-add_guild_member = HTTPEndpoint(
+add_guild_member = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/members/{user_id}',
 )
 
-modify_guild_member = HTTPEndpoint(
+modify_guild_member = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/members/{user_id}',
 )
 
-modify_self_nick = HTTPEndpoint(
+modify_self_nick = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/members/@me/nick',
 )
 
-add_guild_member_role = HTTPEndpoint(
+add_guild_member_role = RestEndpoint(
     'PUT',
     BASE_API_URL + '/guilds/{guild_id}/members/{user_id}/roles/{role_id}',
 )
 
-remove_guild_member_role = HTTPEndpoint(
+remove_guild_member_role = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/members/{user_id}/roles/{role_id}',
 )
 
-remove_guild_member = HTTPEndpoint(
+remove_guild_member = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/members/{user_id}',
 )
 
-get_guild_bans = HTTPEndpoint(
+get_guild_bans = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/bans',
 )
 
-get_guild_ban = HTTPEndpoint(
+get_guild_ban = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/bans/{user_id}'
 )
 
-create_guild_ban = HTTPEndpoint(
+create_guild_ban = RestEndpoint(
     'PUT',
     BASE_API_URL + '/guilds/{guild_id}/bans/{user_id}',
 )
 
-remove_guild_ban = HTTPEndpoint(
+remove_guild_ban = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/bans/{user_id}',
 )
 
-get_guild_roles = HTTPEndpoint(
+get_guild_roles = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/roles',
 )
 
-create_guild_role = HTTPEndpoint(
+create_guild_role = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/roles',
 )
 
-modify_guild_roles = HTTPEndpoint(
+modify_guild_roles = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/roles',
 )
 
-modify_guild_role = HTTPEndpoint(
+modify_guild_role = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/roles/{role_id}',
 )
 
-delete_guild_role = HTTPEndpoint(
+delete_guild_role = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/roles/{role_id}',
 )
 
-get_guild_prune_count = HTTPEndpoint(
+get_guild_prune_count = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/prune',
 )
 
-begin_guild_prune = HTTPEndpoint(
+begin_guild_prune = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/prune',
 )
 
-get_guild_voice_regions = HTTPEndpoint(
+get_guild_voice_regions = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/regions',
 )
 
-get_guild_invites = HTTPEndpoint(
+get_guild_invites = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/invites',
 )
 
-get_guild_integrations = HTTPEndpoint(
+get_guild_integrations = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/integrations',
 )
 
-delete_guild_integration = HTTPEndpoint(
+delete_guild_integration = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/integrations/{integration_id}'
 )
 
-get_guild_widget_settings = HTTPEndpoint(
+get_guild_widget_settings = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/widget',
 )
 
-modify_guild_widget_settings = HTTPEndpoint(
+modify_guild_widget_settings = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/widget',
 )
 
-get_guild_widget = HTTPEndpoint(
+get_guild_widget = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/widget.json',
 )
 
-get_guild_vanity_url = HTTPEndpoint(
+get_guild_vanity_url = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/vanity-url',
 )
 
-get_guild_welcome_screen = HTTPEndpoint(
+get_guild_welcome_screen = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/welcome-screen',
 )
 
-modify_guild_welcome_screen = HTTPEndpoint(
+modify_guild_welcome_screen = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/welcome-screen',
 )
 
-modify_self_voice_state = HTTPEndpoint(
+modify_self_voice_state = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/voice-states/@me',
 )
 
-modify_user_voice_state = HTTPEndpoint(
+modify_user_voice_state = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/voice-states/{user_id}',
 )
 
-get_invite = HTTPEndpoint(
+get_invite = RestEndpoint(
     'GET',
     BASE_API_URL + '/invites/{invite_code}',
 )
 
-delete_invite = HTTPEndpoint(
+delete_invite = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/invites/{invite_code}',
 )
 
-create_stage_instance = HTTPEndpoint(
+create_stage_instance = RestEndpoint(
     'POST',
     BASE_API_URL + '/stage-instances',
 )
 
-get_stage_instance = HTTPEndpoint(
+get_stage_instance = RestEndpoint(
     'GET',
     BASE_API_URL + '/stage-instances/{channel_id}',
 )
 
-modify_stage_instance = HTTPEndpoint(
+modify_stage_instance = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/stage-instances/{channel_id}',
 )
 
-delete_stage_instance = HTTPEndpoint(
+delete_stage_instance = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/stage-instances/{channel_id}',
 )
 
-get_template = HTTPEndpoint(
+get_template = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/templates/{template_code}',
 )
 
-create_guild_from_template = HTTPEndpoint(
+create_guild_from_template = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/templates/{template_code}',
 )
 
-get_guild_templates = HTTPEndpoint(
+get_guild_templates = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/templates'
 )
 
-create_guild_template = HTTPEndpoint(
+create_guild_template = RestEndpoint(
     'POST',
     BASE_API_URL + '/guilds/{guild_id}/templates',
 )
 
-sync_guild_template = HTTPEndpoint(
+sync_guild_template = RestEndpoint(
     'PUT',
     BASE_API_URL + '/guilds/{guild_id}/templates/{template_code}',
 )
 
-modify_guild_template = HTTPEndpoint(
+modify_guild_template = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/guilds/{guild_id}/templates/{template_code}',
 )
 
-delete_guild_template = HTTPEndpoint(
+delete_guild_template = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/guilds/{guild_id}/templates/{template_code}',
 )
 
-get_me = HTTPEndpoint(
+get_me = RestEndpoint(
     'GET',
     BASE_API_URL + '/users/@me',
 )
 
-get_user = HTTPEndpoint(
+get_user = RestEndpoint(
     'GET',
     BASE_API_URL + '/users/{user_id}'
 )
 
-modify_self = HTTPEndpoint(
+modify_self = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/users/@me',
 )
 
-get_my_guilds = HTTPEndpoint(
+get_my_guilds = RestEndpoint(
     'GET',
     BASE_API_URL + '/users/@me/guilds',
 )
 
-leave_guild = HTTPEndpoint(
+leave_guild = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/users/@me/guilds/{guild_id}',
 )
 
-create_dm = HTTPEndpoint(
+create_dm = RestEndpoint(
     'POST',
     BASE_API_URL + '/users/@me/channels',
 )
 
-create_group_dm = HTTPEndpoint(
+create_group_dm = RestEndpoint(
     'POST',
     BASE_API_URL + '/users/@me/channels',
 )
 
-get_user_connections = HTTPEndpoint(
+get_user_connections = RestEndpoint(
     'GET',
     BASE_API_URL + '/users/@me/connections'
 )
 
-get_voice_regions = HTTPEndpoint(
+get_voice_regions = RestEndpoint(
     'GET',
     BASE_API_URL + '/voice/regions',
 )
 
-create_webhook = HTTPEndpoint(
+create_webhook = RestEndpoint(
     'POST',
     BASE_API_URL + '/channels/{channel_id}/webhooks',
 )
 
-get_channel_webhooks = HTTPEndpoint(
+get_channel_webhooks = RestEndpoint(
     'GET',
     BASE_API_URL + '/channels/{channel_id}/webhooks',
 )
 
-get_guild_webhooks = HTTPEndpoint(
+get_guild_webhooks = RestEndpoint(
     'GET',
     BASE_API_URL + '/guilds/{guild_id}/webhooks',
 )
 
-get_webhook = HTTPEndpoint(
+get_webhook = RestEndpoint(
     'GET',
     BASE_API_URL + '/webhooks/{webhook_id}'
 )
 
-get_webhook_with_token = HTTPEndpoint(
+get_webhook_with_token = RestEndpoint(
     'GET',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}',
 )
 
-modify_webhook = HTTPEndpoint(
+modify_webhook = RestEndpoint(
     'GET',
     BASE_API_URL + '/webhooks/{webhook_id}',
 )
 
-modify_webhook_with_token = HTTPEndpoint(
+modify_webhook_with_token = RestEndpoint(
     'GET',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}',
 )
 
-delete_webhook = HTTPEndpoint(
+delete_webhook = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/webhooks/{webhook_id}',
 )
 
-delete_webhook_with_token = HTTPEndpoint(
+delete_webhook_with_token = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}',
 )
 
-execute_webhook = HTTPEndpoint(
+execute_webhook = RestEndpoint(
     'POST',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}',
 )
 
-execute_slack_webhook = HTTPEndpoint(
+execute_slack_webhook = RestEndpoint(
     'POST',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/slack',
 )
 
-execute_github_webhook = HTTPEndpoint(
+execute_github_webhook = RestEndpoint(
     'POST',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/github',
 )
 
-get_webhook_message = HTTPEndpoint(
+get_webhook_message = RestEndpoint(
     'GET',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}'
 )
 
-modify_webhook_message = HTTPEndpoint(
+modify_webhook_message = RestEndpoint(
     'PATCH',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}',
 )
 
-delete_webhook_message = HTTPEndpoint(
+delete_webhook_message = RestEndpoint(
     'DELETE',
     BASE_API_URL + '/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}',
 )
 
-get_gateway = HTTPEndpoint(
+get_gateway = RestEndpoint(
     'GET',
     BASE_API_URL + '/gateway'
 )
 
-get_gateway_bot = HTTPEndpoint(
+get_gateway_bot = RestEndpoint(
     'GET',
     BASE_API_URL + '/gateway/bot'
 )
