@@ -30,11 +30,10 @@ class RestSession:
         kwargs['timeout'] = None
         self.client = AsyncClient(**kwargs)
 
-    async def request(self, method, url, *, keywords=None, **kwargs):
+    async def request(self, method, url, *, keywords, **kwargs):
         ratelimiter = RatelimitBucket.from_request(self.ratelimiters, method, url, keywords)
 
-        if keywords is not None:
-            url = url.format(**keywords)
+        url = url.format(**keywords)
 
         headers = kwargs.setdefault('headers', {})
         headers.update(self.headers)

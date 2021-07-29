@@ -49,8 +49,9 @@ class Fetchable:
     def url(self):
         raise NotImplementedError
 
-    def fetch(self, **kwargs):
-        return self.rest.request('GET', self.url(**kwargs))
+    async def fetch(self, **kwargs):
+        response = await self.rest.client.request('GET', self.url(**kwargs))
+        return await response.aread()
 
 
 class GuildIcon(Fetchable):
