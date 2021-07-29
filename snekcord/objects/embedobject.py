@@ -438,9 +438,9 @@ class EmbedBuilder:
         self.embed._json_data_['fields'].clear()
         return self
 
-    def send_to(self, channel, **kwargs):
-        """Sends the embed to `channel` with `**kwargs`, equivalent to
-        `await channel.messages.create(embed=self.embed)`
+    def send_to(self, destination, **kwargs):
+        """Sends the embed to `destination` with `**kwargs`, equivalent to
+        `await destination.messages.create(embed=self.embed)`
         """
         kwargs['embed'] = self.embed
-        return channel.messages.create(**kwargs)
+        return destination.messages.create(**kwargs)
