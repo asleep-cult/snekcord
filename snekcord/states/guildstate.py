@@ -24,7 +24,7 @@ class GuildState(BaseState):
     def new_template(self, data):
         return ClientClasses.GuildTemplate.unmarshal(data, state=self)
 
-    async def fetch(self, guild, *, with_counts=None, sync=True):
+    async def fetch(self, guild, *, with_counts=None):
         guild_id = Snowflake.try_snowflake(guild)
 
         params = {}
@@ -36,7 +36,7 @@ class GuildState(BaseState):
 
         return self.upsert(data)
 
-    async def fetch_many(self, *, before=None, after=None, limit=None, sync=True):
+    async def fetch_many(self, *, before=None, after=None, limit=None):
         params = {}
 
         if before is not None:
