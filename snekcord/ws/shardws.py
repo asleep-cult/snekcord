@@ -106,6 +106,12 @@ class Shard:
             await self.ws.send_heartbeat()
             await asyncio.sleep(heartbeat_interval)
 
+    async def close(self, *, code=1000, message=b''):
+        if self.heartbeater_task is not None:
+            self.heartbeater_task.cancel()
+
+        await self.ws.send_close(code, message)
+
 
 _MESSAGE_RENAME_TABLE = {
     'CHANNEL_PINS_UDPATE': (

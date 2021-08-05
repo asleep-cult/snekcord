@@ -18,7 +18,7 @@ class WebSocketClient(Client):
         self.shard_count = kwargs.pop('shard_count', 1)
         self.timeouts = kwargs.pop('timeouts', None)
 
-        self.intents = WebSocketIntents.from_value(int(kwargs.pop('intents', 0)))
+        self.intents = WebSocketIntents.from_value(kwargs.pop('intents', 0))
         self.intents.guilds = True
 
         self.auto_intents = kwargs.pop('auto_intents', True)

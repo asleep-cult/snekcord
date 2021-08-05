@@ -163,8 +163,6 @@ class _EventListener:
 class Client:
     _events_ = None
 
-    _handled_signals_ = [signal.SIGINT, signal.SIGTERM]
-
     def __init__(self, token, *, loop=None):
         if loop is not None:
             self.loop = loop
@@ -190,10 +188,6 @@ class Client:
 
         self._listeners = {}
         self._waiters = {}
-
-    @classmethod
-    def add_handled_signal(cls, signo):
-        cls._handled_signals_.append(signo)
 
     def register_listener(self, name, callback, *, sync=False, persistent=True):
         name = name.lower()
@@ -240,7 +234,6 @@ class Client:
 
     async def _run_callbacks(self, name, *args):
         name = name.lower()
-
         listeners = self._listeners.get(name)
         waiters = self._waiters.get(name)
 
@@ -283,8 +276,8 @@ class Client:
 
         self._sigpending.clear()
 
-        for signo in self._handled_signals_:
-            signal.signal(signo, self._sighandlers[signo])
+        for signo, handler in self._sighandlers.items():
+            signal.signal(signo, handler)
 
     def _sighandle(self, signo, frame):
         self._sigpending.append((signo, frame))
@@ -293,7 +286,7 @@ class Client:
             try:
                 self._repropagate()
                 self.loop.close()
-            except BaseException:
+            except Exception:
                 return
 
         self.finalizing = True
@@ -313,14 +306,12 @@ class Client:
         self.loop.call_soon_threadsafe(self._repropagate)
         self.loop.call_soon_threadsafe(self.loop.close)
 
-    def run_forever(self):
-        for signo in self._handled_signals_:
+    def run_forever(self, *, signals=None):
+        if signals is None:
+            signals = (signal.SIGINT, signal.SIGTERM)
+
+        for signo in signals:
             self._sighandlers[signo] = signal.getsignal(signo)
             signal.signal(signo, self._sighandle)
 
-        try:
-            self.loop.run_forever()
-        except BaseException as exc:
-            return exc
-
-        return None
+        self.loop.run_forever()
