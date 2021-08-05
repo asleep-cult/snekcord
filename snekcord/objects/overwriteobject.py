@@ -8,7 +8,7 @@ __all__ = ('PermissionOverwrite',)
 
 
 class PermissionOverwrite(BaseObject):
-    type = JsonField('type', PermissionOverwriteType.get_enum)
+    type = JsonField('type', PermissionOverwriteType.try_enum)
     allow = JsonField('allow', Permissions.from_value)
     deny = JsonField('deny', Permissions.from_value)
 
@@ -26,13 +26,13 @@ class PermissionOverwrite(BaseObject):
     def modify(self, *, allow=undefined, deny=undefined):
         if allow is not undefined:
             if allow is not None:
-                allow = Permissions.get_value(allow)
+                allow = Permissions.try_value(allow)
             else:
                 allow = 0
 
         if deny is not undefined:
             if deny is not None:
-                deny = Permissions.get_value(deny)
+                deny = Permissions.try_value(deny)
             else:
                 deny = 0
 

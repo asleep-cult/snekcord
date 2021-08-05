@@ -30,7 +30,7 @@ class Team(JsonObject):
 
 
 class TeamMember(JsonObject):
-    membership_state = JsonField('membership_state', TeamMembershipState.get_enum)
+    membership_state = JsonField('membership_state', TeamMembershipState.try_enum)
     team_id = JsonField('team_id', Snowflake)
 
     def __init__(self, *, team):

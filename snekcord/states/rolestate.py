@@ -43,7 +43,7 @@ class RoleState(BaseState):
             json['name'] = str(name)
 
         if permissions is not None:
-            json['permissions'] = Permissions.get_value(permissions)
+            json['permissions'] = Permissions.try_value(permissions)
 
         if color is not None:
             json['color'] = int(color)

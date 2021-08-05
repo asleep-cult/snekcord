@@ -62,7 +62,7 @@ class Role(BaseObject):
 
         if permissions is not undefined:
             if permissions is not None:
-                json['permissions'] = Permissions.get_value(permissions)
+                json['permissions'] = Permissions.try_value(permissions)
             else:
                 json['permissions'] = None
 

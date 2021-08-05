@@ -58,7 +58,7 @@ class Bitset:
         return self
 
     @classmethod
-    def get_value(cls, bitset):
+    def try_value(cls, bitset):
         if isinstance(bitset, int):
             return bitset
         elif isinstance(bitset, Bitset):
@@ -71,13 +71,6 @@ class Bitset:
 
     def to_dict(self):
         return dict(zip(self._flags_, self))
-
-
-class CacheFlags(Bitset):
-    guild_bans = Flag(0)
-    guild_integrations = Flag(1)
-    guild_invites = Flag(2)
-    guild_widget = Flag(3)
 
 
 class WebSocketIntents(Bitset):

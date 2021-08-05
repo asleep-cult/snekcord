@@ -12,7 +12,7 @@ class StageInstance(BaseObject):
     raw_id = JsonField('id', Snowflake)
     guild_id = JsonField('guild_id', Snowflake)
     topic = JsonField('topic')
-    privacy_level = JsonField('privacy_level', StageInstancePrivacyLevel.get_enum)
+    privacy_level = JsonField('privacy_level', StageInstancePrivacyLevel.try_enum)
     discoverable_disabled = JsonField('discoverable_disabled')
 
     @property
@@ -37,7 +37,7 @@ class StageInstance(BaseObject):
             json['topic'] = str(topic)
 
         if privacy_level is not None:
-            json['privacy_level'] = StageInstancePrivacyLevel.get_value(privacy_level)
+            json['privacy_level'] = StageInstancePrivacyLevel.try_value(privacy_level)
 
         data = await rest.modify_stage_instance.request(
             self.state.client.rest, channel_id=self.id, json=json

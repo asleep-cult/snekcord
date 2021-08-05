@@ -168,7 +168,7 @@ class MessageReferenceData(JsonObject):
 
 
 class MessageActivity(JsonObject):
-    type = JsonField('type', MessageActivityType.get_enum)
+    type = JsonField('type', MessageActivityType.try_enum)
     party_id = JsonField('party_id', Snowflake)
 
 
@@ -203,7 +203,7 @@ class Message(BaseObject):
     nonce = JsonField('nonce')
     pinned = JsonField('pinned')
     webhook_id = JsonField('webhook_id', Snowflake)
-    type = JsonField('type', MessageType.get_enum)
+    type = JsonField('type', MessageType.try_enum)
     activity = JsonField('activity', object=MessageActivity)
     application_id = JsonField('application_id', Snowflake)
     flags = JsonField('flags', MessageFlags.from_value)

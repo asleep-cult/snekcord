@@ -12,7 +12,7 @@ from ..undefined import undefined
 class Webhook(BaseObject):
     __slots__ = ('creator', 'source_guild', 'source_channel')
 
-    type = JsonField('type', WebhookType.get_enum)
+    type = JsonField('type', WebhookType.try_enum)
     guild_id = JsonField('guild_id', Snowflake)
     channel_id = JsonField('channel_id', Snowflake)
     name = JsonField('name')

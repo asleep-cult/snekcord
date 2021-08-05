@@ -110,7 +110,6 @@ class GuildCreateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         guild = client.guilds.upsert(payload)
-        await guild.sync(payload)
         return cls(
             shard=shard, payload=payload, guild=guild,
             from_unavailable=payload.pop('_from_unavailable_'), joined=payload.pop('_joined_')
@@ -124,7 +123,6 @@ class GuildUpdateEvent(BaseEvent):
     @classmethod
     async def execute(cls, client, shard, payload):
         guild = client.guilds.upsert(payload)
-        await guild.sync(payload)
         return cls(shard=shard, payload=payload, guild=guild)
 
 

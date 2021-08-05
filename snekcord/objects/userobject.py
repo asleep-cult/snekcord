@@ -17,7 +17,7 @@ class User(BaseObject):
     verified = JsonField('verified')
     email = JsonField('email')
     flags = JsonField('flags', UserFlags.from_value)
-    premium_type = JsonField('premium_type', PremiumType.get_enum)
+    premium_type = JsonField('premium_type', PremiumType.try_enum)
     public_flags = JsonField('public_flags', UserFlags.from_value)
 
     def __str__(self):

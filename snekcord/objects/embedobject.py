@@ -152,7 +152,7 @@ class Embed(JsonObject):
         fields list[EmbedField]: The embed's fields
     """
     title = JsonField('title'),
-    type = JsonField('type', EmbedType.get_enum, default=EmbedType.RICH)
+    type = JsonField('type', EmbedType.try_enum, default=EmbedType.RICH)
     description = JsonField('description')
     url = JsonField('url')
     timestamp = JsonField('timestamp', datetime.fromisoformat)
@@ -234,7 +234,7 @@ class EmbedBuilder:
     def set_type(self, type):
         """Sets the embed's type"""
         if type is not None:
-            type = EmbedType.get_enum(type)
+            type = EmbedType.try_enum(type)
 
         self.embed._json_data_['type'] = type
 

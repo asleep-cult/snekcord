@@ -34,12 +34,7 @@ class GuildState(BaseState):
 
         data = await rest.get_guild.request(self.client.rest, guild_id=guild_id)
 
-        guild = self.upsert(data)
-
-        if sync:
-            await guild.sync(data)
-
-        return guild
+        return self.upsert(data)
 
     async def fetch_many(self, *, before=None, after=None, limit=None, sync=True):
         params = {}
@@ -55,13 +50,7 @@ class GuildState(BaseState):
 
         data = await rest.get_my_guilds.request(self.client.rest)
 
-        guilds = [self.upsert(guild) for guild in data]
-
-        if sync:
-            for guild in guilds:
-                await guild.sync(data)
-
-        return guilds
+        return [self.upsert(guild) for guild in data]
 
     async def fetch_preview(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
@@ -91,19 +80,19 @@ class GuildState(BaseState):
 
         if verification_level is not None:
             json['default_message_notifications'] = (
-                MessageNotificationsLevel.get_value(default_message_notifications)
+                MessageNotificationsLevel.try_value(default_message_notifications)
             )
 
         if explicit_content_filter is not None:
             json['explicit_content_filter'] = (
-                ExplicitContentFilterLevel.get_value(explicit_content_filter)
+                ExplicitContentFilterLevel.try_value(explicit_content_filter)
             )
 
         if afk_timeout is not None:
             json['afk_timeout'] = int(afk_timeout)
 
         if system_channel_flags is not None:
-            json['system_channel_flags'] = SystemChannelFlags.get_value(system_channel_flags)
+            json['system_channel_flags'] = SystemChannelFlags.try_value(system_channel_flags)
 
         data = await rest.create_guild.request(self.client.rest, json=json)
 

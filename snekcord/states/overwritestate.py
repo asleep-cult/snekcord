@@ -34,7 +34,7 @@ class PermissionOverwriteState(BaseState):
         obj_id = Snowflake.try_snowflake(obj)
 
         if type is not None:
-            json['type'] = PermissionOverwriteType.get_value(type)
+            json['type'] = PermissionOverwriteType.try_value(type)
 
         elif isinstance(obj, ClientClasses.GuildMember):
             json['type'] = PermissionOverwriteType.MEMBER
@@ -42,8 +42,8 @@ class PermissionOverwriteState(BaseState):
         elif isinstance(obj, ClientClasses.Role):
             json['type'] = PermissionOverwriteType.ROLE
 
-        json['allow'] = Permissions.get_value(allow)
-        json['deny'] = Permissions.get_value(deny)
+        json['allow'] = Permissions.try_value(allow)
+        json['deny'] = Permissions.try_value(deny)
 
         await rest.create_channel_permission_overwrite.request(
             self.client.rest, channel_id=self.channel.id, overwrite_id=obj_id, json=json

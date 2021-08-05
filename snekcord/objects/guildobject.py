@@ -24,12 +24,12 @@ __all__ = ('Guild', 'GuildBan',)
 
 class Guild(BaseObject):
     __slots__ = (
-        'unsynced', 'widget', 'vanity_url', 'welcome_screen', 'channels', 'emojis', 'roles',
+        'widget', 'vanity_url', 'welcome_screen', 'channels', 'emojis', 'roles',
         'members', 'bans', 'integrations', 'stickers'
     )
 
     name = JsonField('name')
-    features = JsonArray('features', GuildFeature.get_enum)
+    features = JsonArray('features', GuildFeature.try_enum)
     member_count = JsonField('approximate_member_count')
     presence_count = JsonField('approximate_presence_count')
     description = JsonField('description')
@@ -39,16 +39,16 @@ class Guild(BaseObject):
     region = JsonField('region')
     afk_channel_id = JsonField('afk_channel_id', Snowflake)
     afk_timeout = JsonField('afk_timeout')
-    verification_level = JsonField('verification_level', VerificationLevel.get_enum)
+    verification_level = JsonField('verification_level', VerificationLevel.try_enum)
     default_message_notifications = JsonField(
         'default_message_notifications',
-        MessageNotificationsLevel.get_enum
+        MessageNotificationsLevel.try_enum
     )
     explicit_content_filter = JsonField(
         'explicit_content_filter',
-        ExplicitContentFilterLevel.get_enum
+        ExplicitContentFilterLevel.try_enum
     )
-    mfa_level = JsonField('mfa_level', MFALevel.get_enum)
+    mfa_level = JsonField('mfa_level', MFALevel.try_enum)
     application_id = JsonField('application_id', Snowflake)
     system_channel_id = JsonField('system_channel_id', Snowflake)
     system_channel_flags = JsonField('system_channel_flags', SystemChannelFlags.from_value)
@@ -62,17 +62,15 @@ class Guild(BaseObject):
     _presences = JsonArray('presences')
     max_presences = JsonField('max_presences')
     max_members = JsonField('max_members')
-    premium_tier = JsonField('permium_tier', PremiumTier.get_enum)
+    premium_tier = JsonField('permium_tier', PremiumTier.try_enum)
     premium_subscription_count = JsonField('premium_subscription_count')
     preferred_locale = JsonField('preferred_locale')
     public_updates_channel_id = JsonField('public_updates_channel_id', Snowflake)
     max_video_channel_users = JsonField('max_video_channel_users')
-    nsfw_level = JsonField('nsfw', GuildNSFWLevel.get_enum)
+    nsfw_level = JsonField('nsfw', GuildNSFWLevel.try_enum)
 
     def __init__(self, *, state):
         super().__init__(state=state)
-
-        self.unsynced = True
 
         self.widget = ClientClasses.GuildWidget(guild=self)
         self.vanity_url = ClientClasses.GuildVanityURL(guild=self)
@@ -120,26 +118,6 @@ class Guild(BaseObject):
         if banner is not None:
             return GuildBanner(self.state.client.rest, self.id, banner)
         return None
-
-    async def sync(self, payload):
-        cache_flags = self.state.client.cache_flags
-
-        if cache_flags is None:
-            return
-
-        if self.unsynced and cache_flags.guild_bans:
-            await self.bans.fetch_all()
-
-        if self.unsynced and cache_flags.guild_integrations:
-            await self.integrations.fetch_all()
-
-        if self.unsynced and cache_flags.guild_invites:
-            await self.fetch_invites()
-
-        if 'widget_enabled' not in payload and cache_flags.guild_widget:
-            await self.widget.fetch()
-
-        self.unsynced = False
 
     def fetch_preview(self):
         return self.state.fetch_preview(self.id)
@@ -200,14 +178,14 @@ class Guild(BaseObject):
 
         if verification_level is not undefined:
             if verification_level is not None:
-                json['verification_level'] = VerificationLevel.get_value(verification_level)
+                json['verification_level'] = VerificationLevel.try_value(verification_level)
             else:
                 json['verification_level'] = None
 
         if default_message_notifications is not undefined:
             if default_message_notifications is not None:
                 json['default_message_notifications'] = (
-                    MessageNotificationsLevel.get_value(default_message_notifications)
+                    MessageNotificationsLevel.try_value(default_message_notifications)
                 )
             else:
                 json['default_message_notifications'] = None
@@ -215,7 +193,7 @@ class Guild(BaseObject):
         if explicit_content_filter is not undefined:
             if explicit_content_filter is not None:
                 json['explicit_content_filter'] = (
-                    ExplicitContentFilterLevel.get_value(explicit_content_filter)
+                    ExplicitContentFilterLevel.try_value(explicit_content_filter)
                 )
             else:
                 json['explicit_content_filter'] = None
@@ -263,7 +241,7 @@ class Guild(BaseObject):
                 json['system_channel_id'] = None
 
         if system_channel_flags is not None:
-            json['system_channel_flags'] = SystemChannelFlags.get_value(system_channel_flags)
+            json['system_channel_flags'] = SystemChannelFlags.try_value(system_channel_flags)
 
         if rules_channel is not undefined:
             if rules_channel is not None:
@@ -284,7 +262,7 @@ class Guild(BaseObject):
                 json['preferred_locale'] = None
 
         if features is not None:
-            json['features'] = [GuildFeature.get_value(feature) for feature in features]
+            json['features'] = [GuildFeature.try_value(feature) for feature in features]
 
         if description is not undefined:
             if description is not None:

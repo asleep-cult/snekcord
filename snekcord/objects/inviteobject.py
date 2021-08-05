@@ -12,7 +12,7 @@ class Invite(BaseObject):
     __slots__ = ('guild', 'channel', 'inviter', 'target_user', 'target_application')
 
     id = JsonField('code')
-    target_type = JsonField('target_type', InviteTargetType.get_enum)
+    target_type = JsonField('target_type', InviteTargetType.try_enum)
     presence_count = JsonField('approximate_presence_count')
     member_count = JsonField('approximate_member_count')
     expires_at = JsonField('expires_at')

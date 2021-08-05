@@ -40,14 +40,14 @@ class Enum:
         return self.value != value
 
     @classmethod
-    def get_enum(cls, value):
+    def try_enum(cls, value):
         try:
             return cls._enum_values_[value]
         except KeyError:
             return cls('undefined', value)
 
     @classmethod
-    def get_value(cls, enum):
+    def try_value(cls, enum):
         if isinstance(enum, cls):
             return enum.value
         elif isinstance(enum, cls._enum_type_):

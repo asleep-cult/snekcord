@@ -165,18 +165,13 @@ class Client:
 
     _handled_signals_ = [signal.SIGINT, signal.SIGTERM]
 
-    def __init__(self, token, *, loop=None, cache_flags=None):
+    def __init__(self, token, *, loop=None):
         if loop is not None:
             self.loop = loop
         else:
             self.loop = asyncio.get_event_loop()
 
-        if isinstance(token, str):
-            self.authorization = Authorization.from_string(token)
-        elif isinstance(token, tuple):
-            pass  # (username, password)
-
-        self.cache_flags = cache_flags
+        self.authorization = Authorization.from_string(token)
 
         self.rest = ClientClasses.RestSession(client=self)
         self.channels = ClientClasses.ChannelState(client=self)

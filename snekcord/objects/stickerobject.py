@@ -34,7 +34,7 @@ class StickerPack(JsonObject):
 class StickerItem(JsonObject):
     id = JsonField('id', Snowflake)
     name = JsonField('name')
-    format = JsonField('format_type', StickerFormatType.get_enum)
+    format = JsonField('format_type', StickerFormatType.try_enum)
 
     def __init__(self, *, state):
         self.state = state
@@ -50,8 +50,8 @@ class StickerItem(JsonObject):
 class _BaseSticker(BaseObject):
     name = JsonField('name')
     description = JsonField('description')
-    type = JsonField('type', StickerType.get_enum)
-    format = JsonField('format_type', StickerFormatType.get_enum)
+    type = JsonField('type', StickerType.try_enum)
+    format = JsonField('format_type', StickerFormatType.try_enum)
 
     def __str__(self):
         return f':{self.tag}:'

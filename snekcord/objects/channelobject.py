@@ -15,7 +15,7 @@ class GuildChannel(BaseObject):
     position = JsonField('position')
     nsfw = JsonField('nsfw')
     parent_id = JsonField('parent_id', Snowflake)
-    type = JsonField('type', ChannelType.get_enum)
+    type = JsonField('type', ChannelType.try_enum)
 
     def __init__(self, *, state):
         super().__init__(state=state)
@@ -103,7 +103,7 @@ class TextChannel(GuildChannel):
         json = self._modify_helper(name, position, permissions)
 
         if type is not None:
-            json['type'] = ChannelType.get_value(type)
+            json['type'] = ChannelType.try_value(type)
 
         if topic is not undefined:
             if topic is not None:
@@ -179,7 +179,7 @@ class CategoryChannel(GuildChannel):
 class VoiceChannel(GuildChannel):
     bitrate = JsonField('bitrate')
     user_limit = JsonField('user_limit')
-    video_quality_mode = JsonField('video_quality_mode', VideoQualityMode.get_enum)
+    video_quality_mode = JsonField('video_quality_mode', VideoQualityMode.try_enum)
 
     def __str__(self):
         return f'#!{self.name}'
@@ -216,7 +216,7 @@ class VoiceChannel(GuildChannel):
 
         if video_quality_mode is not None:
             if video_quality_mode is not None:
-                json['video_quality_mode'] = VideoQualityMode.get_value(video_quality_mode)
+                json['video_quality_mode'] = VideoQualityMode.try_value(video_quality_mode)
             else:
                 json['video_quality_mode'] = None
 
@@ -274,7 +274,7 @@ class StoreChannel(GuildChannel):
 
 class DMChannel(BaseObject):
     last_message_id = JsonField('last_message_id', Snowflake)
-    type = JsonField('type', ChannelType.get_enum)
+    type = JsonField('type', ChannelType.try_enum)
     _recipients = JsonArray('recipients')
 
     def close(self):

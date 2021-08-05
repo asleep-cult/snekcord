@@ -36,7 +36,7 @@ class StageInstanceState(BaseState):
         json['topic'] = str(topic)
 
         if privacy_level is not None:
-            json['privacy_level'] = StageInstancePrivacyLevel.get_value(privacy_level)
+            json['privacy_level'] = StageInstancePrivacyLevel.try_value(privacy_level)
 
         data = await rest.create_stage_instance.request(self.client.rest, json=json)
 

@@ -1,4 +1,3 @@
-
 import json
 
 from .exceptions import PartialObjectError
