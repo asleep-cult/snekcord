@@ -28,8 +28,7 @@ class MessageState(BaseState):
         message_id = Snowflake.try_snowflake(message)
 
         data = await http.get_channel_message.request(
-            self.client.http,
-            channel_id=self.channel.id, message_id=message_id
+            self.client.http, channel_id=self.channel.id, message_id=message_id
         )
 
         return self.upsert(data)
@@ -96,7 +95,7 @@ class MessageState(BaseState):
         if not any(
             (json.get('content'), json.get('file'), json.get('embeds'), json.get('sticker_ids'))
         ):
-            raise TypeError('None of (content, file, embed(s), sticker(s)) were provided')
+            raise ValueError('None of (content, file, embed(s), sticker(s)) were provided')
 
         data = await http.create_channel_message.request(
             self.client.http, channel_id=self.channel.id, json=json
@@ -115,14 +114,13 @@ class MessageState(BaseState):
         message_ids = Snowflake.try_snowflake_many(messages)
 
         if len(message_ids) == 0:
-            raise TypeError('bulk_delete requires at least 1 message')
+            raise ValueError('bulk_delete requires at least 1 message')
 
         elif len(message_ids) == 1:
-            message_id, = message_ids
-            return await self.delete(message_id)
+            return await self.delete(message_ids[0])
 
         elif len(message_ids) > 100:
-            raise TypeError('bulk_delete can\'t delete more than 100 messages')
+            raise ValueError('bulk_delete can\'t delete more than 100 messages')
 
         await http.bulk_delete_messages.request(
             self.client.http, channel_id=self.channel.id, json={'message_ids': message_ids}

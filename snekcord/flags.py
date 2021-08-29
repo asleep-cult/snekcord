@@ -38,10 +38,13 @@ class Bitset:
 
     def __iter__(self):
         for flag in self._flags_:
-            yield getattr(self, flag)
+            yield flag, getattr(self, flag)
 
     def __index__(self):
         return self.value
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__}:{self.value}>'
 
     @classmethod
     def all(cls):
@@ -68,9 +71,6 @@ class Bitset:
 
     def copy(self):
         return self.from_value(self.value)
-
-    def to_dict(self):
-        return dict(zip(self._flags_, self))
 
 
 class WebSocketIntents(Bitset):

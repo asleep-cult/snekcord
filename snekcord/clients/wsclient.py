@@ -42,7 +42,7 @@ class WebSocketClient(Client):
         if intent is not None:
             if self.auto_intents and not self.connected:
                 setattr(self.intents, intent, True)
-            else:
+            elif not getattr(self.intents, intent):
                 warnings.warn(
                     f'The {name!r} event requires the {intent!r} intent to be enabled, '
                     f'this event will not be received from Discord.'

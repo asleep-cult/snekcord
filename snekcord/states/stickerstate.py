@@ -2,7 +2,7 @@ from .basestate import BaseState, BaseSubState
 from .. import http
 from ..enums import StickerType
 from ..objects.stickerobject import GuildSticker, StandardSticker, StickerPack
-from ..resolvers import resolve_image_data, resolve_mimetype
+from ..resolvers import resolve_data, resolve_mimetype
 from ..snowflake import Snowflake
 
 
@@ -82,7 +82,7 @@ class GuildStickerState(BaseSubState):
         else:
             data['description'] = ''
 
-        image = await resolve_image_data(image)
+        image = await resolve_data(image)
         mimetype, ext = resolve_mimetype(image)
 
         data = await http.create_guild_sticker.request(

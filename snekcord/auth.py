@@ -5,9 +5,9 @@ TOKEN_RE = re.compile(r'^((?P<prefix>Bot|Bearer) )?(?P<token>[\w.-]+)$')
 
 
 class AuthorizationType(enum.Enum):
-    BOT = 'Bot'
-    BEARER = 'Bearer'
-    USER = 'User'
+    Bot = 0
+    Bearer = 1
+    User = 2
 
 
 class Authorization:
@@ -16,7 +16,7 @@ class Authorization:
         self.type = type
 
     def __repr__(self):
-        return f'<{self.__class__.__name__} type={self.type!r}>'
+        return f'<{self.__class__.__name__} type={self.type.name}>'
 
     @classmethod
     def from_string(cls, string):
@@ -28,11 +28,11 @@ class Authorization:
         prefix = match.group('prefix')
 
         if prefix == 'Bot':
-            type = AuthorizationType.BOT
+            type = AuthorizationType.Bot
         elif prefix == 'Bearer':
-            type = AuthorizationType.BEARER
+            type = AuthorizationType.Bearer
         else:
-            type = AuthorizationType.USER
+            type = AuthorizationType.User
 
         return cls(type, match.group('token'))
 
@@ -45,16 +45,16 @@ class Authorization:
             return self.token
 
     def is_bot(self):
-        return self.type == AuthorizationType.BOT
+        return self.type == AuthorizationType.Bot
 
     def is_bearer(self):
-        return self.type == AuthorizationType.BEARER
+        return self.type == AuthorizationType.Bearer
 
     def is_user(self):
-        return self.type == AuthorizationType.USER
+        return self.type == AuthorizationType.User
 
     def is_mfa(self):
         return self.is_user() and self.token.startswith('mfa.')
 
     def gateway_allowed(self):
-        return self.type in (AuthorizationType.BOT, AuthorizationType.USER)
+        return self.type in (AuthorizationType.Bot, AuthorizationType.User)
