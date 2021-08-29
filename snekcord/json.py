@@ -1,9 +1,61 @@
 import json
 
-from .exceptions import PartialObjectError
 from .undefined import undefined
 
-__all__ = ('JsonObject', 'JsonField', 'JsonArray')
+
+class JsonField:
+    __slots__ = ('key', 'unmarshaler', 'owner', 'name')
+
+    def __init__(self, key, unmarshaler=None, *, object=None):
+        self.key = key
+        self.unmarshaler = unmarshaler
+
+        if object is not None:
+            self.unmarshaler = object.unmarshal
+
+        self.owner = None
+        self.name = None
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        value = self.get(instance, undefined)
+        if value is undefined:
+            raise AttributeError(f'{owner.__name__} object is missing field {self.name!r}')
+
+        return value
+
+    def __set__(self, instance, value):
+        raise AttributeError(f'{self.qualname()} does not support assignment')
+
+    def __delete__(self, instance):
+        raise AttributeError(f'{self.qualname()} does not support deletion')
+
+    def qualname(self):
+        return f'{self.owner.__name__}.{self.name}'
+
+    def get(self, instance, default=None):
+        if not isinstance(instance, self.owner):
+            raise TypeError(f'{self.qualname()}.get() expects {self.owner.__name__}, '
+                            f'received {instance.__class__.__name__}')
+
+        try:
+            value = instance._json_data_[self.key]
+
+            if self.unmarshaler is not None:
+                value = self.unmarshaler(value)
+
+            return value
+        except KeyError:
+            return default
+
+    def exists(self, instance):
+        if not isinstance(instance, self.owner):
+            raise TypeError(f'{self.qualname()}.exists() expects {self.owner.__name__}, '
+                            f'received {instance.__class__.__name__}')
+
+        return self.key in instance._json_data_
 
 
 class JsonObjectMeta(type):
@@ -16,82 +68,41 @@ class JsonObjectMeta(type):
 class JsonObject(metaclass=JsonObjectMeta):
     __slots__ = ('_json_data_',)
 
+    def __init_subclass__(cls):
+        cls._json_fields_ = {}
+
+        for name, value in cls.__dict__.items():
+            if isinstance(value, JsonField):
+                value.owner = cls
+                value.name = name
+
+                cls._json_fields_[name] = value
+
     @classmethod
-    def unmarshal(cls, data=None, **kwargs):
-        if isinstance(data, (bytes, bytearray, memoryview, str)):
+    def unmarshal(cls, data, **kwargs):
+        if isinstance(data, (str, bytes)):
             data = json.loads(data)
 
         self = cls(**kwargs)
-
-        if data is not None:
-            self.update(data)
-
+        self.update(data)
         return self
 
     def update(self, data):
         self._json_data_.update(data)
-        return self
-
-    def to_dict(self):
-        return self._json_data_.copy()
-
-    def marshal(self, *args, **kwargs):
-        return json.dumps(self._json_data_, *args, **kwargs)
-
-
-class JsonField:
-    def __init__(self, key, unmarshaler=None, object=None, default=undefined):
-        self.key = key
-        self.object = object
-        self.default = default
-
-        if self.object is not None:
-            self._unmarshaler = self.object.unmarshal
-        else:
-            self._unmarshaler = unmarshaler
-
-        self.name = None
-
-    def __set_name__(self, owner, name):
-        if not issubclass(owner, JsonObject):
-            raise TypeError(f'{self.__class__.__name__!r} can only be used with JsonObject')
-        self.name = name
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-
-        try:
-            value = instance._json_data_[self.key]
-        except KeyError:
-            if self.default is undefined:
-                raise PartialObjectError(
-                    f'{instance.__class__.__name__} object is missing field {self.name!r}'
-                ) from None
-
-            if callable(self.default):
-                value = self.default()
-            else:
-                value = self.default
-
-        return self._unmarshal_(value)
-
-    def __set__(self, instance, value):
-        raise AttributeError(f'Cannot set attribute {self.name!r}')
-
-    def __delete__(self, instance):
-        raise AttributeError(f'Cannot delete attribute {self.name!r}')
-
-    def _unmarshal_(self, value):
-        if self._unmarshaler is not None:
-            return self._unmarshaler(value)
-        return value
 
 
 class JsonArray(JsonField):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('default', list)
-        super().__init__(*args, **kwargs)
+    def get(self, instance, default=None):
+        if not isinstance(instance, self.owner):
+            raise TypeError(f'{self.name}.get() expects {self.owner.__name__}, '
+                            f'received {instance.__class__.__name__}')
 
-    def _unmarshal_(self, values):
-        return [super(JsonArray, self)._unmarshal_(value) for value in values]
+        try:
+            values = instance._json_data_[self.key]
+
+            if self.unmarshaler is not None:
+                values = [self.unmarshaler(value) for value in values]
+
+            return values
+        except KeyError:
+            return default

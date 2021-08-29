@@ -152,7 +152,7 @@ class Embed(JsonObject):
         fields list[EmbedField]: The embed's fields
     """
     title = JsonField('title'),
-    type = JsonField('type', EmbedType.try_enum, default=EmbedType.RICH)
+    type = JsonField('type', EmbedType.try_enum)
     description = JsonField('description')
     url = JsonField('url')
     timestamp = JsonField('timestamp', datetime.fromisoformat)
@@ -303,7 +303,9 @@ class EmbedBuilder:
 
     def set_footer(self, text, *, icon_url=None, proxy_icon_url=None):
         """Sets the embed's footer"""
-        json = {'text': str(text)}
+        json = {}
+
+        json['text'] = str(text)
 
         if icon_url is not None:
             json['icon_url'] = str(icon_url)
@@ -392,7 +394,9 @@ class EmbedBuilder:
         Raises:
             TypeError: Raised when an invalid argument type is provided
         """
-        json = {'name': str(name)}
+        json = {}
+
+        json['name'] = str(name)
 
         if icon_url is not None:
             json['icon_url'] = str(icon_url)
@@ -410,7 +414,10 @@ class EmbedBuilder:
         return self
 
     def _field(self, name, value, inline):
-        json = {'name': str(name), 'value': str(value)}
+        json = {}
+
+        json['name'] = str(name)
+        json['value'] = str(value)
 
         if inline is not None:
             json['inline'] = bool(inline)

@@ -1,5 +1,5 @@
-from .. import rest
-from ..clients import ClientClasses
+from .emojiobject import CustomEmoji, PartialCustomEmoji, PartialUnicodeEmoji, UnicodeEmoji
+from .. import http
 from ..json import JsonField, JsonObject
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -17,8 +17,8 @@ class WelcomeScreen(JsonObject):
         self.welcome_channels = {}
 
     async def fetch(self):
-        data = await rest.get_guild_welcome_screen.request(
-            self.guild.state.client.rest, guild_id=self.guild.id
+        data = await http.get_guild_welcome_screen.request(
+            self.guild.state.client.http, guild_id=self.guild.id
         )
 
         return self.update(data)
@@ -50,14 +50,10 @@ class WelcomeScreen(JsonObject):
                     if 'emoji' in data:
                         emoji = self.guild.state.client.emojis.resolve(data['emoji'])
 
-                        if isinstance(
-                            emoji, (ClientClasses.UnicodeEmoji, ClientClasses.PartialUnicodeEmoji)
-                        ):
+                        if isinstance(emoji, (UnicodeEmoji, PartialUnicodeEmoji)):
                             welcome_channel['emoji_name'] = emoji.unicode
 
-                        elif isinstance(
-                            emoji, (ClientClasses.CustomEmoji, ClientClasses.PartialCustomEmoji)
-                        ):
+                        elif isinstance(emoji, (CustomEmoji, PartialCustomEmoji)):
                             welcome_channel['emoji_name'] = emoji.name
                             welcome_channel['emoji_id'] = emoji.id
 
@@ -73,8 +69,8 @@ class WelcomeScreen(JsonObject):
             else:
                 json['description'] = None
 
-        data = await rest.modify_guild_welcome_screen.request(
-            self.guild.state.client.rest, guild_id=self.guild.id, json=json
+        data = await http.modify_guild_welcome_screen.request(
+            self.guild.state.client.http, guild_id=self.guild.id, json=json
         )
 
         return self.update(data)

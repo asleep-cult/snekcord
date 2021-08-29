@@ -3,22 +3,20 @@ import json
 
 from httpx import AsyncClient
 
+from .endpoints import BASE_API_URL
 from .ratelimit import RatelimitBucket
-from ..exceptions import RestError
+from ..exceptions import HTTPError
 
-__all__ = ('RestSession',)
+__all__ = ('HTTPSession',)
 
 
-class RestSession:
-    def __init__(self, client, **kwargs):
-        self.loop = client.loop
-
-        self.authorization = client.authorization
+class HTTPSession:
+    def __init__(self, authorization, loop, **kwargs):
+        self.authorization = authorization
+        self.loop = loop
 
         self.headers = kwargs.pop('headers', {})
-        self.headers.update({
-            'Authorization': self.authorization.to_string(),
-        })
+        self.headers['Authorization'] = self.authorization.to_string()
 
         self.ratelimiters = {}
 
@@ -29,6 +27,9 @@ class RestSession:
 
         kwargs['timeout'] = None
         self.client = AsyncClient(**kwargs)
+
+    def is_dapi(self, url):
+        return url.startswith(BASE_API_URL)
 
     async def request(self, method, url, *, keywords, **kwargs):
         ratelimiter = RatelimitBucket.from_request(self.ratelimiters, method, url, keywords)
@@ -64,7 +65,7 @@ class RestSession:
             data = response.content
 
         if response.status_code >= 400:
-            raise RestError(self, method, url, response, data)
+            raise HTTPError(self, method, url, response, data)
 
         return data
 

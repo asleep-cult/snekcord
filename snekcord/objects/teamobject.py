@@ -1,4 +1,3 @@
-from ..clients.client import ClientClasses
 from ..enums import TeamMembershipState
 from ..json import JsonField, JsonObject
 from ..snowflake import Snowflake
@@ -23,7 +22,7 @@ class Team(JsonObject):
             self.members.clear()
 
             for member in data['members']:
-                member = ClientClasses.TeamMember.unmarshal(member, team=self)
+                member = TeamMember.unmarshal(member, team=self)
                 self.members[member.user.id] = member
 
         return self

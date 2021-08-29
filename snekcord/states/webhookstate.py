@@ -1,6 +1,6 @@
 from .basestate import BaseState, BaseSubState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from ..objects.webhookobject import Webhook
 from ..resolvers import resolve_data_uri
 from ..snowflake import Snowflake
 
@@ -12,7 +12,7 @@ class WebhookState(BaseState):
         if webhook is not None:
             webhook.update(data)
         else:
-            webhook = ClientClasses.Webhook.unmarshal(data, state=self)
+            webhook = Webhook.unmarshal(data, state=self)
             webhook.cache()
 
         return webhook
@@ -23,11 +23,11 @@ class WebhookState(BaseState):
         if token is not None:
             webhook_token = str(token)
 
-            data = await rest.get_webhook_with_token.request(
-                self.client.rest, webhook_id=webhook_id, webhook_token=webhook_token
+            data = await http.get_webhook_with_token.request(
+                self.client.http, webhook_id=webhook_id, webhook_token=webhook_token
             )
         else:
-            data = await rest.get_webhook.request(self.client.rest, webbook_id=webhook_id)
+            data = await http.get_webhook.request(self.client.http, webbook_id=webhook_id)
 
         return self.upsert(data)
 
@@ -37,11 +37,11 @@ class WebhookState(BaseState):
         if token is not None:
             webhook_token = str(token)
 
-            await rest.delete_webhook_with_token.request(
-                self.client.rest, webhook_id=webhook_id, webhook_token=webhook_token
+            await http.delete_webhook_with_token.request(
+                self.client.http, webhook_id=webhook_id, webhook_token=webhook_token
             )
         else:
-            await rest.delete_webhook.request(self.client.rest, webhook_id=webhook_id)
+            await http.delete_webhook.request(self.client.http, webhook_id=webhook_id)
 
 
 class ChannelWebhookState(BaseSubState):
@@ -59,8 +59,8 @@ class ChannelWebhookState(BaseSubState):
         return webhook
 
     async def fetch_all(self):
-        data = await rest.get_channel_webhooks.request(
-            self.superstate.client.rest, channel_id=self.channel.id
+        data = await http.get_channel_webhooks.request(
+            self.superstate.client.http, channel_id=self.channel.id
         )
 
         return [self.upsert(webhook) for webhook in data]
@@ -71,8 +71,8 @@ class ChannelWebhookState(BaseSubState):
         if avatar is not None:
             json['avatar'] = await resolve_data_uri(avatar)
 
-        data = await rest.create_webhook.request(
-            self.superstate.client.rest, channel_id=self.channel.id, json=json
+        data = await http.create_webhook.request(
+            self.superstate.client.http, channel_id=self.channel.id, json=json
         )
 
         return self.upsert(data)

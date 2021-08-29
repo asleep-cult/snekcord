@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from .. import states
 from ..enums import (
     ExplicitContentFilterLevel,
     GuildFeature,
@@ -15,6 +15,9 @@ from ..enums import (
 from ..fetchables import GuildBanner, GuildDiscoverySplash, GuildIcon, GuildSplash
 from ..flags import SystemChannelFlags
 from ..json import JsonArray, JsonField
+from ..objects.inviteobject import GuildVanityURL
+from ..objects.welcomescreenobject import WelcomeScreen
+from ..objects.widgetobject import GuildWidget
 from ..resolvers import resolve_data_uri
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -72,19 +75,19 @@ class Guild(BaseObject):
     def __init__(self, *, state):
         super().__init__(state=state)
 
-        self.widget = ClientClasses.GuildWidget(guild=self)
-        self.vanity_url = ClientClasses.GuildVanityURL(guild=self)
-        self.welcome_screen = ClientClasses.WelcomeScreen(guild=self)
+        self.widget = GuildWidget(guild=self)
+        self.vanity_url = GuildVanityURL(guild=self)
+        self.welcome_screen = WelcomeScreen(guild=self)
 
-        self.bans = ClientClasses.GuildBanState(client=self.state.client, guild=self)
-        self.channels = ClientClasses.GuildChannelState(
+        self.bans = states.GuildBanState(client=self.state.client, guild=self)
+        self.channels = states.GuildChannelState(
             superstate=self.state.client.channels, guild=self
         )
-        self.emojis = ClientClasses.GuildEmojiState(superstate=self.state.client.emojis, guild=self)
-        self.integrations = ClientClasses.IntegrationState(client=self.state.client, guild=self)
-        self.members = ClientClasses.GuildMemberState(client=self.state.client, guild=self)
-        self.roles = ClientClasses.RoleState(client=self.state.client, guild=self)
-        self.stickers = ClientClasses.GuildStickerState(
+        self.emojis = states.GuildEmojiState(superstate=self.state.client.emojis, guild=self)
+        self.integrations = states.IntegrationState(client=self.state.client, guild=self)
+        self.members = states.GuildMemberState(client=self.state.client, guild=self)
+        self.roles = states.RoleState(client=self.state.client, guild=self)
+        self.stickers = states.GuildStickerState(
             superstate=self.state.client.stickers, guild=self
         )
 
@@ -95,55 +98,55 @@ class Guild(BaseObject):
     def icon(self):
         icon = self._json_data_.get('icon')
         if icon is not None:
-            return GuildIcon(self.state.client.rest, self.id, icon)
+            return GuildIcon(self.state.client.http, self.id, icon)
         return None
 
     @property
     def splash(self):
         splash = self._json_data_.get('splash')
         if splash is not None:
-            return GuildSplash(self.state.client.rest, self.id, splash)
+            return GuildSplash(self.state.client.http, self.id, splash)
         return None
 
     @property
     def discovery_splash(self):
         discovery_splash = self._json_data_.get('discovery_splash')
         if discovery_splash is not None:
-            return GuildDiscoverySplash(self.state.client.rest, self.id, discovery_splash)
+            return GuildDiscoverySplash(self.state.client.http, self.id, discovery_splash)
         return None
 
     @property
     def banner(self):
         banner = self._json_data_.get('banner')
         if banner is not None:
-            return GuildBanner(self.state.client.rest, self.id, banner)
+            return GuildBanner(self.state.client.http, self.id, banner)
         return None
 
     def fetch_preview(self):
         return self.state.fetch_preview(self.id)
 
     async def fetch_invites(self):
-        data = await rest.get_guild_invites.request(
-            self.state.client.rest, guild_id=self.id
+        data = await http.get_guild_invites.request(
+            self.state.client.http, guild_id=self.id
         )
 
         return [self.state.client.invites.upsert(invite) for invite in data]
 
     def fetch_voice_regions(self):
-        return rest.get_guild_voice_regions.request(
-            self.state.client.rest, {'guild_id': self.id}
+        return http.get_guild_voice_regions.request(
+            self.state.client.http, {'guild_id': self.id}
         )
 
     async def fetch_templates(self):
-        data = await rest.get_guild_templates.request(
-            self.state.client.rest, guild_id=self.id
+        data = await http.get_guild_templates.request(
+            self.state.client.http, guild_id=self.id
         )
 
         return [self.state.new_template(template) for template in data]
 
     async def fetch_webhooks(self):
-        data = await rest.get_guild_webhooks.request(
-            self.state.client.rest, guild_id=self.id
+        data = await http.get_guild_webhooks.request(
+            self.state.client.http, guild_id=self.id
         )
 
         return [self.state.client.webhooks.upsert(webhook) for webhook in data]
@@ -157,8 +160,8 @@ class Guild(BaseObject):
             else:
                 json['description'] = None
 
-        data = await rest.create_guild_template.request(
-            self.state.client.rest, guild_id=self.id, json=json
+        data = await http.create_guild_template.request(
+            self.state.client.http, guild_id=self.id, json=json
         )
 
         return self.state.new_template(data)
@@ -270,8 +273,8 @@ class Guild(BaseObject):
             else:
                 json['description'] = None
 
-        data = await rest.modify_guild.request(
-            self.state.client.rest, guild_id=self.id, json=json
+        data = await http.modify_guild.request(
+            self.state.client.http, guild_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -285,8 +288,8 @@ class Guild(BaseObject):
         if roles is not None:
             params['include_roles'] = ','.join(str(r) for r in Snowflake.try_snowflake_many(roles))
 
-        data = await rest.get_guild_prune_count.request(
-            self.state.client.rest, {'guild_id': self.id}, params=params
+        data = await http.get_guild_prune_count.request(
+            self.state.client.http, {'guild_id': self.id}, params=params
         )
 
         return data['pruned']
@@ -306,8 +309,8 @@ class Guild(BaseObject):
         if reason is not None:
             json['reason'] = str(reason)
 
-        data = await rest.begin_guild_prune.request(
-            self.state.client.rest, guild_id=self.id, json=json
+        data = await http.begin_guild_prune.request(
+            self.state.client.http, guild_id=self.id, json=json
         )
 
         return data['pruned']

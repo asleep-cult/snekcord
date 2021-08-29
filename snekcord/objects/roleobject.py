@@ -1,5 +1,5 @@
 from .baseobject import BaseObject
-from .. import rest
+from .. import http
 from ..flags import Permissions
 from ..json import JsonField, JsonObject
 from ..snowflake import Snowflake
@@ -84,8 +84,8 @@ class Role(BaseObject):
             else:
                 json['mentionable'] = None
 
-        data = await rest.modify_guild_role.request(
-            self.state.client.rest, guild_id=self.guild.id, role_id=self.id, json=json
+        data = await http.modify_guild_role.request(
+            self.state.client.http, guild_id=self.guild.id, role_id=self.id, json=json
         )
 
         return self.state.upsert(data)

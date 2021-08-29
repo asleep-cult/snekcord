@@ -1,6 +1,6 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from ..objects.userobject import User
 from ..snowflake import Snowflake
 
 __all__ = ('UserState',)
@@ -13,7 +13,7 @@ class UserState(BaseState):
         if user is not None:
             user.update(data)
         else:
-            user = ClientClasses.User.unmarshal(data, state=self)
+            user = User.unmarshal(data, state=self)
             user.cache()
 
         return user
@@ -21,11 +21,11 @@ class UserState(BaseState):
     async def fetch(self, user):
         user_id = Snowflake.try_snowflake(user)
 
-        data = await rest.get_user.request(self.client.rest, user_id=user_id)
+        data = await http.get_user.request(self.client.http, user_id=user_id)
 
         return self.upsert(data)
 
     async def fetch_me(self):
-        data = await rest.get_me.request(self.client.rest)
+        data = await http.get_me.request(self.client.http)
 
         return self.upsert(data)

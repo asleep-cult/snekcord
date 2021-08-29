@@ -1,7 +1,6 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
-from ..objects.stageobject import StageInstancePrivacyLevel
+from .. import http
+from ..objects.stageobject import StageInstance, StageInstancePrivacyLevel
 from ..snowflake import Snowflake
 
 __all__ = ('StageInstanceState',)
@@ -14,7 +13,7 @@ class StageInstanceState(BaseState):
         if stage is not None:
             stage.update(data)
         else:
-            stage = ClientClasses.StageInstance.unmarshal(data, state=self)
+            stage = StageInstance.unmarshal(data, state=self)
             stage.cache()
 
         return stage
@@ -22,8 +21,8 @@ class StageInstanceState(BaseState):
     async def fetch(self, stage):
         channel_id = Snowflake.try_snowflake(stage)
 
-        data = await rest.get_stage_instance.request(
-            self.client.rest, channel_id=channel_id
+        data = await http.get_stage_instance.request(
+            self.client.http, channel_id=channel_id
         )
 
         return self.upsert(data)
@@ -38,11 +37,11 @@ class StageInstanceState(BaseState):
         if privacy_level is not None:
             json['privacy_level'] = StageInstancePrivacyLevel.try_value(privacy_level)
 
-        data = await rest.create_stage_instance.request(self.client.rest, json=json)
+        data = await http.create_stage_instance.request(self.client.http, json=json)
 
         return self.upsert(data)
 
     async def delete(self, stage):
         channel_id = Snowflake.try_snowflake(stage)
 
-        await rest.delete_stage_instance.request(self.client.rest, channel_id=channel_id)
+        await http.delete_stage_instance.request(self.client.http, channel_id=channel_id)

@@ -2,7 +2,7 @@ import warnings
 
 from .client import Client
 from .wsevents import WS_EVENTS, WS_EVENTS_INTENTS
-from .. import rest
+from .. import http
 from ..flags import WebSocketIntents
 from ..ws.shardws import Shard
 
@@ -59,7 +59,7 @@ class WebSocketClient(Client):
         return waiter
 
     def fetch_gateway(self):
-        return rest.get_gateway.request(self.rest)
+        return http.get_gateway.request(self.http)
 
     async def connect(self, *args, **kwargs):
         gateway = await self.fetch_gateway()

@@ -1,6 +1,6 @@
 from .baseobject import BaseObject
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from .. import states
 from ..enums import WebhookType
 from ..fetchables import Fetchable
 from ..json import JsonField
@@ -27,7 +27,7 @@ class Webhook(BaseObject):
         self.source_guild = None
         self.source_channel = None
 
-        self.messages = ClientClasses.WebhookMessageState(client=self.state.client, webhook=self)
+        self.messages = states.WebhookMessageState(client=self.state.client, webhook=self)
 
     @property
     def guild(self):
@@ -81,8 +81,8 @@ class Webhook(BaseObject):
         if not any((json.get('content'), json.get('file'), json.get('embeds'))):
             raise TypeError('None of (content, file, embed(s)) were provided')
 
-        data = await rest.execute_webhook.request(
-            self.state.client.rest, webhook_id=self.id, webhook_token=self.token,
+        data = await http.execute_webhook.request(
+            self.state.client.http, webhook_id=self.id, webhook_token=self.token,
             params=params, json=json
         )
 
@@ -106,8 +106,8 @@ class Webhook(BaseObject):
         if channel is not None:
             json['channel_id'] = Snowflake.try_snowflake(channel)
 
-        data = await rest.modify_webhook.request(
-            self.state.client.rest, webhook_id=self.id, json=json
+        data = await http.modify_webhook.request(
+            self.state.client.http, webhook_id=self.id, json=json
         )
 
         return self.state.upsert(data)

@@ -1,5 +1,5 @@
 from .baseobject import BaseObject
-from .. import rest
+from .. import http
 from ..enums import StageInstancePrivacyLevel
 from ..json import JsonField
 from ..snowflake import Snowflake
@@ -39,8 +39,8 @@ class StageInstance(BaseObject):
         if privacy_level is not None:
             json['privacy_level'] = StageInstancePrivacyLevel.try_value(privacy_level)
 
-        data = await rest.modify_stage_instance.request(
-            self.state.client.rest, channel_id=self.id, json=json
+        data = await http.modify_stage_instance.request(
+            self.state.client.http, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)

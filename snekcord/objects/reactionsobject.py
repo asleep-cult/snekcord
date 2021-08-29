@@ -1,5 +1,5 @@
 from .baseobject import BaseObject
-from .. import rest
+from .. import http
 from ..json import JsonField
 from ..snowflake import Snowflake
 from ..states.basestate import BaseSubState
@@ -37,8 +37,8 @@ class Reactions(BaseSubState, BaseObject):
         if limit is not None:
             params['limit'] = int(limit)
 
-        data = await rest.get_reactions.request(
-            self.state.client.rest, channel_id=self.state.message.channel.id,
+        data = await http.get_reactions.request(
+            self.state.client.http, channel_id=self.state.message.channel.id,
             message_id=self.state.message.id, emoji=self.emoji.to_reaction()
         )
 
@@ -50,22 +50,22 @@ class Reactions(BaseSubState, BaseObject):
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.remove_reaction.request(
-            self.state.client.rest, channel_id=self.state.message.channel.id,
+        await http.remove_reaction.request(
+            self.state.client.http, channel_id=self.state.message.channel.id,
             message_id=self.state.message.id, emoji=self.emoji.to_reaction(),
             user_id=user_id
         )
 
     async def remove_me(self):
-        await rest.remove_reaction.request(
-            self.state.client.rest, channel_id=self.state.message.channel.id,
+        await http.remove_reaction.request(
+            self.state.client.http, channel_id=self.state.message.channel.id,
             message_id=self.state.message.id, emoji=self.emoji.to_reaction(),
             user_id='@me'
         )
 
     async def remove_all(self):
-        await rest.remove_reactions.request(
-            self.state.client.rest, channel_id=self.state.message.channel.id,
+        await http.remove_reactions.request(
+            self.state.client.http, channel_id=self.state.message.channel.id,
             message_id=self.state.message.id, emoji=self.emoji.to_reaction()
         )
 

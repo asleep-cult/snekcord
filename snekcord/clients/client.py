@@ -3,98 +3,17 @@ import signal
 import weakref
 
 from ..auth import Authorization
+from ..http import HTTPSession
+from ..states.channelstate import ChannelState
+from ..states.emojistate import EmojiState
+from ..states.guildstate import GuildState
+from ..states.invitestate import InviteState
+from ..states.stagestate import StageInstanceState
+from ..states.stickerstate import StickerState
+from ..states.userstate import UserState
+from ..states.webhookstate import WebhookState
 
-__all__ = ('ClientClasses', 'Client',)
-
-
-class _ClientClasses:
-    _object_classes_ = {
-        'Application',
-        'GuildChannel',
-        'TextChannel',
-        'CategoryChannel',
-        'VoiceChannel',
-        'StageChannel',
-        'StoreChannel',
-        'DMChannel',
-        'CustomEmoji',
-        'PartialCustomEmoji',
-        'UnicodeEmoji',
-        'PartialUnicodeEmoji',
-        'Guild',
-        'GuildBan',
-        'Integration',
-        'Invite',
-        'GuildVanityURL',
-        'GuildMember',
-        'MessageMentionsData',
-        'MessageReferenceData',
-        'Message',
-        'WebhookMessage',
-        'PermissionOverwrite',
-        'Reactions',
-        'Role',
-        'StageInstance',
-        'StickerPack',
-        'StickerItem',
-        'StandardSticker',
-        'GuildSticker',
-        'Team',
-        'TeamMember',
-        'GuildTemplate',
-        'User',
-        'Webhook',
-        'GuildWidget',
-        'WelcomeScreen',
-    }
-
-    _rest_classes_ = {
-        'RestSession',
-    }
-
-    _state_classes_ = {
-        'ChannelState',
-        'GuildChannelState',
-        'EmojiState',
-        'GuildEmojiState',
-        'GuildBanState',
-        'GuildState',
-        'IntegrationState',
-        'InviteState',
-        'GuildMemberState',
-        'MessageState',
-        'WebhookMessageState',
-        'ChannelPinsState',
-        'PermissionOverwriteState',
-        'ReactionsState',
-        'GuildMemberRoleState',
-        'RoleState',
-        'StageInstanceState',
-        'StickerState',
-        'GuildStickerState',
-        'UserState',
-        'WebhookState',
-        'ChannelWebhookState',
-    }
-
-    def __getattribute__(self, name):
-        if name in _ClientClasses._object_classes_:
-            from .. import objects
-
-            return getattr(objects, name)
-        elif name in _ClientClasses._rest_classes_:
-            from .. import rest
-
-            return getattr(rest, name)
-        elif name in _ClientClasses._state_classes_:
-            from .. import states
-
-            return getattr(states, name)
-        else:
-            return super().__getattribute__(name)
-
-
-ClientClasses = _ClientClasses()
+__all__ = ('Client',)
 
 
 class _EventWaiter:
@@ -171,15 +90,15 @@ class Client:
 
         self.authorization = Authorization.from_string(token)
 
-        self.rest = ClientClasses.RestSession(client=self)
-        self.channels = ClientClasses.ChannelState(client=self)
-        self.emojis = ClientClasses.EmojiState(client=self)
-        self.guilds = ClientClasses.GuildState(client=self)
-        self.invites = ClientClasses.InviteState(client=self)
-        self.stage_instances = ClientClasses.StageInstanceState(client=self)
-        self.stickers = ClientClasses.StickerState(client=self)
-        self.users = ClientClasses.UserState(client=self)
-        self.webhooks = ClientClasses.WebhookState(client=self)
+        self.http = HTTPSession(self.authorization, self.loop)
+        self.channels = ChannelState(client=self)
+        self.emojis = EmojiState(client=self)
+        self.guilds = GuildState(client=self)
+        self.invites = InviteState(client=self)
+        self.stage_instances = StageInstanceState(client=self)
+        self.stickers = StickerState(client=self)
+        self.users = UserState(client=self)
+        self.webhooks = WebhookState(client=self)
 
         self.finalizing = False
 

@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from .. import states
 from ..flags import Permissions
 from ..json import JsonField
 from ..snowflake import Snowflake
@@ -25,8 +25,7 @@ class GuildMember(BaseObject):
         super().__init__(state=state)
 
         self.user = None
-
-        self.roles = ClientClasses.GuildMemberRoleState(superstate=self.guild.roles, member=self)
+        self.roles = states.GuildMemberRoleState(superstate=self.guild.roles, member=self)
 
     def __str__(self):
         return str(self.user)
@@ -107,8 +106,8 @@ class GuildMember(BaseObject):
             else:
                 json['channel_id'] = None
 
-        data = await rest.modify_guild_member.request(
-            self.state.client.rest, guild_id=self.guild.id, user_id=self.id, json=json
+        data = await http.modify_guild_member.request(
+            self.state.client.http, guild_id=self.guild.id, user_id=self.id, json=json
         )
 
         return self.state.upsert(data)

@@ -1,7 +1,6 @@
 from .baseobject import BaseObject
-from .. import rest
+from .. import http
 from ..enums import StickerFormatType, StickerType
-from ..exceptions import PartialObjectError
 from ..json import JsonField, JsonObject
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -80,17 +79,14 @@ class GuildSticker(_BaseSticker):
 
     @property
     def guild(self):
-        try:
-            return self.state.client.guilds.get(self.guild_id)
-        except PartialObjectError:
-            return None
+        return self.state.client.guilds.get(GuildSticker.guild_id.get(self))
 
     async def fetch_guild(self):
         if self.guild is not None:
             return await self.guild.fetch()
 
-        data = await rest.get_sticker_guild.request(
-            self.state.client.rest, sticker_id=self.id
+        data = await http.get_sticker_guild.request(
+            self.state.client.http, sticker_id=self.id
         )
 
         guild = self.state.client.guilds.upsert(data)
@@ -112,8 +108,8 @@ class GuildSticker(_BaseSticker):
         if tag is not None:
             json['tags'] = str(tag)
 
-        data = await rest.modify_guild_sticker.request(
-            self.state.client.rest, guild_id=self.guild.id, sticker_id=self.id, json=json
+        data = await http.modify_guild_sticker.request(
+            self.state.client.http, guild_id=self.guild.id, sticker_id=self.id, json=json
         )
 
         return self.state.upsert(data)

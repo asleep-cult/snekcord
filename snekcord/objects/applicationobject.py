@@ -1,4 +1,4 @@
-from ..clients.client import ClientClasses
+from .teamobject import Team
 from ..flags import ApplicationFlags
 from ..json import JsonArray, JsonField, JsonObject
 from ..snowflake import Snowflake
@@ -36,6 +36,6 @@ class Application(JsonObject):
             self.owner = self.client.users.upsert(data['user'])
 
         if 'team' in data:
-            self.team = ClientClasses.Team.unmarshal(data['team'], applciation=self)
+            self.team = Team.unmarshal(data['team'], applciation=self)
 
         return self

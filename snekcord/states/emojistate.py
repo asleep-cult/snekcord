@@ -1,7 +1,8 @@
 from .basestate import BaseState, BaseSubState
-from .. import rest
-from ..clients.client import ClientClasses
-from ..objects.emojiobject import BaseEmoji, UnicodeEmoji
+from .. import http
+from ..objects.emojiobject import (
+    BaseEmoji, CustomEmoji, PartialCustomEmoji, PartialUnicodeEmoji, UnicodeEmoji
+)
 from ..resolvers import resolve_data_uri, resolve_emoji
 from ..snowflake import Snowflake
 
@@ -38,7 +39,7 @@ class EmojiState(BaseState):
             if emoji is not None:
                 return emoji
 
-            return ClientClasses.PartialUnicodeEmoji(surrogates=data)
+            return PartialUnicodeEmoji(surrogates=data)
 
         return default
 
@@ -51,7 +52,7 @@ class EmojiState(BaseState):
             if emoji is not None:
                 emoji.update(data)
             else:
-                emoji = ClientClasses.CustomEmoji.unmarshal(data, state=self)
+                emoji = CustomEmoji.unmarshal(data, state=self)
                 emoji.cache()
         else:
             emoji = self.client.emojis.get_unicode(data['name'].encode())
@@ -74,7 +75,7 @@ class EmojiState(BaseState):
                 if emoji is not None:
                     return emoji
 
-                return ClientClasses.PartialCustomEmoji(client=self.client, **data)
+                return PartialCustomEmoji(client=self.client, **data)
 
         return self.get_unicode(emoji)
 
@@ -95,14 +96,14 @@ class GuildEmojiState(BaseSubState):
     async def fetch(self, emoji):
         emoji_id = Snowflake.try_snowflake(emoji)
 
-        data = await rest.get_guild_emoji.request(
-            self.client.rest, guild_id=self.guild.id, emoji_id=emoji_id
+        data = await http.get_guild_emoji.request(
+            self.client.http, guild_id=self.guild.id, emoji_id=emoji_id
         )
 
         return self.upsert(data)
 
     async def fetch_all(self):
-        data = await rest.get_guild_emojis.request(self.client.rest, guild_id=self.guild.id)
+        data = await http.get_guild_emojis.request(self.client.http, guild_id=self.guild.id)
 
         return [self.upsert(emoji) for emoji in data]
 
@@ -114,8 +115,8 @@ class GuildEmojiState(BaseSubState):
         if roles is not None:
             json['roles'] = Snowflake.try_snowflake_many(roles)
 
-        data = await rest.create_guild_emoji.request(
-            self.client.rest, guild_id=self.guild.id, json=json
+        data = await http.create_guild_emoji.request(
+            self.client.http, guild_id=self.guild.id, json=json
         )
 
         return self.superstate.upsert(data)
@@ -123,6 +124,6 @@ class GuildEmojiState(BaseSubState):
     async def delete(self, emoji):
         emoji_id = Snowflake.try_snowflake(emoji)
 
-        await rest.delete_guild_emoji.request(
-            self.client.rest, guild_id=self.guild.id, emoji_id=emoji_id
+        await http.delete_guild_emoji.request(
+            self.client.http, guild_id=self.guild.id, emoji_id=emoji_id
         )

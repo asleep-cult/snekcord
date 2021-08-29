@@ -1,7 +1,9 @@
 from .basestate import BaseState, BaseSubState
-from .. import rest
-from ..clients.client import ClientClasses
-from ..objects.channelobject import ChannelType
+from .. import http
+from ..objects.channelobject import (
+    CategoryChannel, ChannelType, DMChannel, GuildChannel, StageChannel,
+    StoreChannel, TextChannel, VoiceChannel
+)
 from ..snowflake import Snowflake
 
 __all__ = ('ChannelState', 'GuildChannelState')
@@ -10,19 +12,19 @@ __all__ = ('ChannelState', 'GuildChannelState')
 class ChannelState(BaseState):
     def get_class(self, type):
         if type in (ChannelType.GUILD_TEXT, ChannelType.GUILD_NEWS):
-            return ClientClasses.TextChannel
+            return TextChannel
         elif type == ChannelType.DM:
-            return ClientClasses.DMChannel
+            return DMChannel
         elif type == ChannelType.GUILD_VOICE:
-            return ClientClasses.VoiceChannel
+            return VoiceChannel
         elif type == ChannelType.GUILD_STAGE_VOICE:
-            return ClientClasses.StageChannel
+            return StageChannel
         elif type == ChannelType.GUILD_CATEGORY:
-            return ClientClasses.CategoryChannel
+            return CategoryChannel
         elif type == ChannelType.GUILD_STORE:
-            return ClientClasses.StorChannel
+            return StoreChannel
         else:
-            return ClientClasses.GuildChannel
+            return GuildChannel
 
     def upsert(self, data):
         channel = self.get(Snowflake(data['id']))
@@ -38,8 +40,8 @@ class ChannelState(BaseState):
     async def fetch(self, channel):
         channel_id = Snowflake.try_snowflake(channel)
 
-        data = await rest.get_channel.request(
-            self.client.rest, channel_id=channel_id,
+        data = await http.get_channel.request(
+            self.client.http, channel_id=channel_id,
         )
 
         return self.upsert(data)
@@ -47,7 +49,7 @@ class ChannelState(BaseState):
     async def delete(self, channel):
         channel_id = Snowflake.try_snowflake(channel)
 
-        await rest.delete_channel.request(self.client.rest, channel_id=channel_id)
+        await http.delete_channel.request(self.client.http, channel_id=channel_id)
 
     async def close(self, channel):
         return self.delete(channel)
@@ -91,8 +93,8 @@ class GuildChannelState(BaseSubState):
         return channel
 
     async def fetch_all(self):
-        data = await rest.get_guild_channels.request(
-            self.superstate.client.rest, guild_id=self.guild.id
+        data = await http.get_guild_channels.request(
+            self.superstate.client.http, guild_id=self.guild.id
         )
 
         return [self.upsert(channel) for channel in data]
@@ -129,6 +131,6 @@ class GuildChannelState(BaseSubState):
 
             json.append(channel)
 
-        await rest.modify_guild_channels.request(
-            self.superstate.client.rest, guild_id=self.guild.id, json=json
+        await http.modify_guild_channels.request(
+            self.superstate.client.http, guild_id=self.guild.id, json=json
         )

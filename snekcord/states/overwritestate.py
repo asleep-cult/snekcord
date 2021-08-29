@@ -1,8 +1,9 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
 from ..flags import Permissions
-from ..objects.overwriteobject import PermissionOverwriteType
+from ..objects.memberobject import GuildMember
+from ..objects.overwriteobject import PermissionOverwrite, PermissionOverwriteType
+from ..objects.roleobject import Role
 from ..snowflake import Snowflake
 
 __all__ = ('PermissionOverwriteState',)
@@ -23,7 +24,7 @@ class PermissionOverwriteState(BaseState):
         if overwrite is not None:
             overwrite.update(data)
         else:
-            overwrite = ClientClasses.PermissionOverwrite.unmarshal(data, state=self)
+            overwrite = PermissionOverwrite.unmarshal(data, state=self)
             overwrite.cache()
 
         return overwrite
@@ -36,28 +37,28 @@ class PermissionOverwriteState(BaseState):
         if type is not None:
             json['type'] = PermissionOverwriteType.try_value(type)
 
-        elif isinstance(obj, ClientClasses.GuildMember):
+        elif isinstance(obj, GuildMember):
             json['type'] = PermissionOverwriteType.MEMBER
 
-        elif isinstance(obj, ClientClasses.Role):
+        elif isinstance(obj, Role):
             json['type'] = PermissionOverwriteType.ROLE
 
         json['allow'] = Permissions.try_value(allow)
         json['deny'] = Permissions.try_value(deny)
 
-        await rest.create_channel_permission_overwrite.request(
-            self.client.rest, channel_id=self.channel.id, overwrite_id=obj_id, json=json
+        await http.create_channel_permission_overwrite.request(
+            self.client.http, channel_id=self.channel.id, overwrite_id=obj_id, json=json
         )
 
     async def delete(self, overwrite):
         overwrite_id = Snowflake.try_snowflake(overwrite)
 
-        await rest.delete_channel_permission_overwrite.request(
-            self.client.rest, channel_id=self.channel.id, overwrite_id=overwrite_id
+        await http.delete_channel_permission_overwrite.request(
+            self.client.http, channel_id=self.channel.id, overwrite_id=overwrite_id
         )
 
     def apply_to(self, member):
-        if not isinstance(member, ClientClasses.GuildMember):
+        if not isinstance(member, GuildMember):
             if self.channel.guild is None:
                 return None
 

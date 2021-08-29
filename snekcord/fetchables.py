@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 
-from . import rest
+from . import http
 
 VALID_SIZES = tuple(sqrt ** 2 for sqrt in range(4, 65))
 VALID_FORMATS = ('png', 'jpg', 'jpeg', 'webp', 'gif')
@@ -21,8 +21,8 @@ def _validate_format(format):
 
 
 class Fetchable:
-    def __init__(self, rest):
-        self.rest = rest
+    def __init__(self, http):
+        self.http = http
 
     def __str__(self):
         return self.url()
@@ -50,15 +50,15 @@ class Fetchable:
         raise NotImplementedError
 
     async def fetch(self, **kwargs):
-        response = await self.rest.client.request('GET', self.url(**kwargs))
+        response = await self.http.client.request('GET', self.url(**kwargs))
         return await response.aread()
 
 
 class GuildIcon(Fetchable):
-    ENDPOINT = rest.get_guild_icon
+    ENDPOINT = http.get_guild_icon
 
-    def __init__(self, rest, guild_id, guild_icon):
-        super().__init__(rest)
+    def __init__(self, http, guild_id, guild_icon):
+        super().__init__(http)
 
         self.guild_id = guild_id
         self.guild_icon = guild_icon
@@ -84,10 +84,10 @@ class GuildIcon(Fetchable):
 
 
 class GuildSplash(Fetchable):
-    ENDPOINT = rest.get_guild_splash
+    ENDPOINT = http.get_guild_splash
 
-    def __init__(self, rest, guild_id, guild_splash):
-        super().__init__(rest)
+    def __init__(self, http, guild_id, guild_splash):
+        super().__init__(http)
 
         self.guild_id = guild_id
         self.guild_splash = guild_splash
@@ -106,10 +106,10 @@ class GuildSplash(Fetchable):
 
 
 class GuildDiscoverySplash(Fetchable):
-    ENDPOINT = rest.get_guild_discovery_splash
+    ENDPOINT = http.get_guild_discovery_splash
 
-    def __init__(self, rest, guild_id, guild_discovery_splash):
-        super().__init__(rest)
+    def __init__(self, http, guild_id, guild_discovery_splash):
+        super().__init__(http)
 
         self.guild_id = guild_id
         self.guild_discovery_splash = guild_discovery_splash
@@ -128,10 +128,10 @@ class GuildDiscoverySplash(Fetchable):
 
 
 class GuildBanner(Fetchable):
-    ENDPOINT = rest.get_guild_banner
+    ENDPOINT = http.get_guild_banner
 
-    def __init__(self, rest, guild_id, guild_banner):
-        super().__init__(rest)
+    def __init__(self, http, guild_id, guild_banner):
+        super().__init__(http)
 
         self.guild_id = guild_id
         self.guild_banner = guild_banner
@@ -150,10 +150,10 @@ class GuildBanner(Fetchable):
 
 
 class DefaultUserAvatar(Fetchable):
-    ENDPOINT = rest.get_default_user_avatar
+    ENDPOINT = http.get_default_user_avatar
 
-    def __init__(self, rest, user_discriminator):
-        super().__init__(rest)
+    def __init__(self, http, user_discriminator):
+        super().__init__(http)
 
         self.user_discriminator = user_discriminator
 
@@ -168,10 +168,10 @@ class DefaultUserAvatar(Fetchable):
 
 
 class UserAvatar(Fetchable):
-    ENDPOINT = rest.get_user_avatar
+    ENDPOINT = http.get_user_avatar
 
-    def __init__(self, rest, user_id, user_avatar):
-        super().__init__(rest)
+    def __init__(self, http, user_id, user_avatar):
+        super().__init__(http)
 
         self.user_id = user_id
         self.user_avatar = user_avatar
@@ -190,10 +190,10 @@ class UserAvatar(Fetchable):
 
 
 class ApplicationIcon(Fetchable):
-    ENDPOINT = rest.get_application_icon
+    ENDPOINT = http.get_application_icon
 
-    def __init__(self, rest, application_id, application_icon):
-        super().__init__(rest)
+    def __init__(self, http, application_id, application_icon):
+        super().__init__(http)
 
         self.application_id = application_id
         self.application_icon = application_icon
@@ -212,10 +212,10 @@ class ApplicationIcon(Fetchable):
 
 
 class ApplicationCover(Fetchable):
-    ENDPOINT = rest.get_application_cover
+    ENDPOINT = http.get_application_cover
 
-    def __init__(self, rest, application_id, application_cover_image):
-        super().__init__(rest)
+    def __init__(self, http, application_id, application_cover_image):
+        super().__init__(http)
 
         self.application_id = application_id
         self.application_cover_image = application_cover_image
@@ -234,10 +234,10 @@ class ApplicationCover(Fetchable):
 
 
 class ApplicationAsset(Fetchable):
-    ENDPOINT = rest.get_application_asset
+    ENDPOINT = http.get_application_asset
 
-    def __init__(self, rest, application_id, application_asset):
-        super().__init__(rest)
+    def __init__(self, http, application_id, application_asset):
+        super().__init__(http)
 
         self.application_id = application_id
         self.application_asset = application_asset
@@ -256,10 +256,10 @@ class ApplicationAsset(Fetchable):
 
 
 class AchievementIcon(Fetchable):
-    ENDPOINT = rest.get_achievement_icon
+    ENDPOINT = http.get_achievement_icon
 
-    def __init__(self, rest, application_id, achievement_id, achievement_icon):
-        super().__init__(rest)
+    def __init__(self, http, application_id, achievement_id, achievement_icon):
+        super().__init__(http)
 
         self.application_id = application_id
         self.achievement_id = achievement_id
@@ -279,10 +279,10 @@ class AchievementIcon(Fetchable):
 
 
 class TeamIcon(Fetchable):
-    ENDPOINT = rest.get_team_icon
+    ENDPOINT = http.get_team_icon
 
-    def __init__(self, rest, team_id, team_icon):
-        super().__init__(rest)
+    def __init__(self, http, team_id, team_icon):
+        super().__init__(http)
 
         self.team_id = team_id
         self.team_icon = team_icon
@@ -301,10 +301,10 @@ class TeamIcon(Fetchable):
 
 
 class GuildWidgetImage(Fetchable):
-    ENDPOINT = rest.get_guild_widget_image
+    ENDPOINT = http.get_guild_widget_image
 
-    def __init__(self, rest, guild_id):
-        super().__init__(rest)
+    def __init__(self, http, guild_id):
+        super().__init__(http)
 
         self.guild_id = guild_id
 

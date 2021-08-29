@@ -7,8 +7,6 @@ __all__ = ('BaseObject',)
 class BaseObject(JsonObject):
     __slots__ = ('state', 'cached', 'deleted', 'deleted_at', '__weakref__')
 
-    _repr_fields_ = ('id', 'cached', 'deleted')
-
     id = JsonField('id', Snowflake)
 
     def __init__(self, *, state):

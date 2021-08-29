@@ -1,6 +1,6 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from ..objects.memberobject import GuildMember
 from ..snowflake import Snowflake
 
 __all__ = ('GuildMemberState',)
@@ -17,7 +17,7 @@ class GuildMemberState(BaseState):
         if member is not None:
             member.update(data)
         else:
-            member = ClientClasses.GuildMember.unmarshal(data, state=self)
+            member = GuildMember.unmarshal(data, state=self)
             member.cache()
 
         return member
@@ -25,8 +25,8 @@ class GuildMemberState(BaseState):
     async def fetch(self, user):
         user_id = Snowflake.try_snowflake(user)
 
-        data = await rest.get_guild_member.request(
-            self.client.rest, guild_id=self.guild.id, user_id=user_id
+        data = await http.get_guild_member.request(
+            self.client.http, guild_id=self.guild.id, user_id=user_id
         )
 
         return self.upsert(data)
@@ -40,20 +40,22 @@ class GuildMemberState(BaseState):
         if limit is not None:
             params['limit'] = int(limit)
 
-        data = await rest.get_guild_members.request(
-            self.client.rest, guild_id=self.guild.id, params=params
+        data = await http.get_guild_members.request(
+            self.client.http, guild_id=self.guild.id, params=params
         )
 
         return [self.upsert(member) for member in data]
 
     async def search(self, query, *, limit=None):
-        params = {'query': str(query)}
+        params = {}
+
+        params['query'] = str(query)
 
         if limit is not None:
             params['limit'] = int(limit)
 
-        data = await rest.search_guild_members.request(
-            self.client.rest, guild_id=self.guild.id, params=params
+        data = await http.search_guild_members.request(
+            self.client.http, guild_id=self.guild.id, params=params
         )
 
         return [self.upsert(member) for member in data]
@@ -75,13 +77,13 @@ class GuildMemberState(BaseState):
 
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.add_guild_member.request(
-            self.client.rest, guild_id=self.guild.id, user_id=user_id, json=json
+        await http.add_guild_member.request(
+            self.client.http, guild_id=self.guild.id, user_id=user_id, json=json
         )
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.remove_guild_member.request(
-            self.client.rest, guild_id=self.guild.id, user_id=user_id
+        await http.remove_guild_member.request(
+            self.client.http, guild_id=self.guild.id, user_id=user_id
         )

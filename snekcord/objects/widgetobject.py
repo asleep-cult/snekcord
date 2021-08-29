@@ -1,4 +1,4 @@
-from .. import rest
+from .. import http
 from ..fetchables import GuildWidgetImage
 from ..json import JsonArray, JsonField, JsonObject
 from ..snowflake import Snowflake
@@ -47,12 +47,12 @@ class GuildWidget(JsonObject):
     @property
     def image(self):
         return GuildWidgetImage(
-            rest=self.guild.state.client.rest, guild_id=self.guild.id
+            http=self.guild.state.client.http, guild_id=self.guild.id
         )
 
     async def fetch(self):
-        data = await rest.get_guild_widget.request(
-            self.guild.state.client.rest, {'guild_id': self.guild.id}
+        data = await http.get_guild_widget.request(
+            self.guild.state.client.http, guild_id=self.guild.id
         )
 
         return self.update(data)
@@ -69,8 +69,8 @@ class GuildWidget(JsonObject):
             else:
                 json['channel_id'] = None
 
-        data = await rest.modify_guild_widget_settings.request(
-            self.guild.state.client.rest, guild_id=self.guild.id, json=json
+        data = await http.modify_guild_widget_settings.request(
+            self.guild.state.client.http, guild_id=self.guild.id, json=json
         )
 
         return self.update(data)

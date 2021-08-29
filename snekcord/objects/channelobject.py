@@ -1,6 +1,6 @@
 from .baseobject import BaseObject
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from .. import states
 from ..enums import ChannelType, VideoQualityMode
 from ..json import JsonArray, JsonField
 from ..snowflake import Snowflake
@@ -20,9 +20,7 @@ class GuildChannel(BaseObject):
     def __init__(self, *, state):
         super().__init__(state=state)
 
-        self.permissions = ClientClasses.PermissionOverwriteState(
-            client=self.state.client, channel=self
-        )
+        self.permissions = states.PermissionOverwriteState(client=self.state.client, channel=self)
 
     @property
     def mention(self):
@@ -86,9 +84,9 @@ class TextChannel(GuildChannel):
 
         self.last_pin_timestamp = None
 
-        self.messages = ClientClasses.MessageState(client=self.state.client, channel=self)
-        self.pins = ClientClasses.ChannelPinsState(superstate=self.messages, channel=self)
-        self.webhooks = ClientClasses.ChannelWebhookState(
+        self.messages = states.MessageState(client=self.state.client, channel=self)
+        self.pins = states.ChannelPinsState(superstate=self.messages, channel=self)
+        self.webhooks = states.ChannelWebhookState(
             superstate=self.state.client.webhooks, channel=self
         )
 
@@ -135,8 +133,8 @@ class TextChannel(GuildChannel):
             else:
                 json['default_auto_archive_duration'] = None
 
-        data = await rest.modify_channel.request(
-            self.state.client.rest, channel_id=self.id, json=json
+        data = await http.modify_channel.request(
+            self.state.client.http, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -144,16 +142,15 @@ class TextChannel(GuildChannel):
     async def add_follower(self, channel):
         channel_id = Snowflake.try_snowflake(channel)
 
-        data = await rest.add_news_channel_follower.request(
-            self.state.client.rest, channel_id=self.id,
-            params={'webhook_channel_id': channel_id}
+        data = await http.add_news_channel_follower.request(
+            self.state.client.http, channel_id=self.id, params={'webhook_channel_id': channel_id}
         )
 
         return Snowflake(data['webhook_id'])
 
     async def trigger_typing(self):
-        await rest.trigger_typing_indicator.request(
-            self.state.client.rest, channel_id=self.id
+        await http.trigger_typing_indicator.request(
+            self.state.client.http, channel_id=self.id
         )
 
 
@@ -169,8 +166,8 @@ class CategoryChannel(GuildChannel):
     async def modify(self, *, name=None, position=undefined, permissions=undefined):
         json = self._modify_helper(name, position, permissions)
 
-        data = await rest.modify_channel.request(
-            self.state.client.rest, channel_id=self.id, json=json
+        data = await http.modify_channel.request(
+            self.state.client.http, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -220,8 +217,8 @@ class VoiceChannel(GuildChannel):
             else:
                 json['video_quality_mode'] = None
 
-        data = await rest.modify_channel.request(
-            self.state.client.rest, channel_id=self.id, json=json
+        data = await http.modify_channel.request(
+            self.state.client.http, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -245,7 +242,7 @@ class StageChannel(VoiceChannel):
 
 class StoreChannel(GuildChannel):
     def __str__(self):
-        return f'#{self.name}'  # hm?
+        return f'#{self.name}'
 
     async def modify(
         self, *, name=None, position=undefined, nsfw=undefined, permissions=undefined,
@@ -265,8 +262,8 @@ class StoreChannel(GuildChannel):
             else:
                 json['parent'] = None
 
-        data = await rest.modify_channel.request(
-            self.state.client.rest, channel_id=self.id, json=json
+        data = await http.modify_channel.request(
+            self.state.client.http, channel_id=self.id, json=json
         )
 
         return self.state.upsert(data)

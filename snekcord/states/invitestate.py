@@ -1,6 +1,6 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from ..objects.inviteobject import Invite
 
 __all__ = ('InviteState',)
 
@@ -12,7 +12,7 @@ class InviteState(BaseState):
         if invite is not None:
             invite.update(data)
         else:
-            invite = ClientClasses.Invite.unmarshal(data, state=self)
+            invite = Invite.unmarshal(data, state=self)
             invite.cache()
 
         return invite
@@ -26,11 +26,11 @@ class InviteState(BaseState):
         if with_expiration is not None:
             params['with_exipration'] = with_expiration
 
-        data = await rest.get_invite.request(
-            self.client.rest, invite_code=code, params=params
+        data = await http.get_invite.request(
+            self.client.http, invite_code=code, params=params
         )
 
         return self.upsert(data)
 
     async def delete(self, code):
-        await rest.delete_invite.request(self.client.rest, invite_code=code)
+        await http.delete_invite.request(self.client.http, invite_code=code)

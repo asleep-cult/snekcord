@@ -1,8 +1,9 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
 from ..enums import ExplicitContentFilterLevel, MessageNotificationsLevel
 from ..flags import SystemChannelFlags
+from ..objects.guildobject import Guild, GuildBan
+from ..objects.templateobject import GuildTemplate
 from ..resolvers import resolve_data_uri
 from ..snowflake import Snowflake
 
@@ -16,13 +17,13 @@ class GuildState(BaseState):
         if guild is not None:
             guild.update(data)
         else:
-            guild = ClientClasses.Guild.unmarshal(data, state=self)
+            guild = Guild.unmarshal(data, state=self)
             guild.cache()
 
         return guild
 
     def new_template(self, data):
-        return ClientClasses.GuildTemplate.unmarshal(data, state=self)
+        return GuildTemplate.unmarshal(data, state=self)
 
     async def fetch(self, guild, *, with_counts=None):
         guild_id = Snowflake.try_snowflake(guild)
@@ -32,7 +33,7 @@ class GuildState(BaseState):
         if with_counts is not None:
             params['with_counts'] = with_counts
 
-        data = await rest.get_guild.request(self.client.rest, guild_id=guild_id)
+        data = await http.get_guild.request(self.client.http, guild_id=guild_id)
 
         return self.upsert(data)
 
@@ -48,22 +49,22 @@ class GuildState(BaseState):
         if limit is not None:
             params['limit'] = int(limit)
 
-        data = await rest.get_my_guilds.request(self.client.rest)
+        data = await http.get_my_guilds.request(self.client.http)
 
         return [self.upsert(guild) for guild in data]
 
     async def fetch_preview(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
 
-        data = await rest.get_guild_preview.request(
-            self.client.rest, guild_id=guild_id
+        data = await http.get_guild_preview.request(
+            self.client.http, guild_id=guild_id
         )
 
         return self.upsert(data)
 
     async def fetch_template(self, code):
-        data = await rest.get_template.request(
-            self.client.rest, template_code=code
+        data = await http.get_template.request(
+            self.client.http, template_code=code
         )
 
         return self.new_template(data)
@@ -94,22 +95,22 @@ class GuildState(BaseState):
         if system_channel_flags is not None:
             json['system_channel_flags'] = SystemChannelFlags.try_value(system_channel_flags)
 
-        data = await rest.create_guild.request(self.client.rest, json=json)
+        data = await http.create_guild.request(self.client.http, json=json)
 
         return self.upsert(data)
 
     async def leave(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
 
-        await rest.leave_guild.request(
-            self.client.rest, guild_id=guild_id
+        await http.leave_guild.request(
+            self.client.http, guild_id=guild_id
         )
 
     async def delete(self, guild):
         guild_id = Snowflake.try_snowflake(guild)
 
-        await rest.delete_guild.request(
-            self.client.rest, guild_id=guild_id
+        await http.delete_guild.request(
+            self.client.http, guild_id=guild_id
         )
 
 
@@ -124,7 +125,7 @@ class GuildBanState(BaseState):
         if ban is not None:
             ban.update(data)
         else:
-            ban = ClientClasses.GuildBan.unmarshal(data, state=self)
+            ban = GuildBan.unmarshal(data, state=self)
             ban.cache()
 
         return ban
@@ -132,15 +133,15 @@ class GuildBanState(BaseState):
     async def fetch(self, user):
         user_id = Snowflake.try_snowflake(user)
 
-        data = await rest.get_guild_ban.request(
-            self.client.rest, guild_id=self.guild.id, user_id=user_id
+        data = await http.get_guild_ban.request(
+            self.client.http, guild_id=self.guild.id, user_id=user_id
         )
 
         return self.upsert(data)
 
     async def fetch_all(self):
-        data = await rest.get_guild_bans.request(
-            self.client.rest, guild_id=self.guild.id
+        data = await http.get_guild_bans.request(
+            self.client.http, guild_id=self.guild.id
         )
 
         return [self.upsert(ban) for ban in data]
@@ -156,13 +157,13 @@ class GuildBanState(BaseState):
 
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.create_guild_ban.request(
-            self.client.rest, guild_id=self.guild.id, user_id=user_id
+        await http.create_guild_ban.request(
+            self.client.http, guild_id=self.guild.id, user_id=user_id
         )
 
     async def remove(self, user):
         user_id = Snowflake.try_snowflake(user)
 
-        await rest.remove_guild_ban.request(
-            self.client.rest, guild_id=self.guild.id, user_id=user_id
+        await http.remove_guild_ban.request(
+            self.client.http, guild_id=self.guild.id, user_id=user_id
         )

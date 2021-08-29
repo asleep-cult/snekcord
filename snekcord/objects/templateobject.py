@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .. import rest
+from .. import http
 from ..json import JsonField
 from ..resolvers import resolve_data_uri
 from ..snowflake import Snowflake
@@ -37,27 +37,29 @@ class GuildTemplate(BaseObject):
         return self.state.client.guilds.get(self.source_guild_id)
 
     async def fetch(self):
-        data = await rest.get_template.request(
-            self.state.client.rest, template_code=self.code
+        data = await http.get_template.request(
+            self.state.client.http, template_code=self.code
         )
 
         return self.update(data)
 
     async def create_guild(self, *, name, icon=None):
-        json = {'name': str(name)}
+        json = {}
+
+        json['name'] = str(name)
 
         if icon is not None:
             json['icon'] = await resolve_data_uri(icon)
 
-        data = await rest.create_guild_from_template.request(
-            self.state.client.rest, template_code=self.code, json=json
+        data = await http.create_guild_from_template.request(
+            self.state.client.http, template_code=self.code, json=json
         )
 
         return self.state.upsert(data)
 
     async def sync(self):
-        data = await rest.sync_guild_template.request(
-            self.state.client.rest, guild_id=self.source_guild_id, template_code=self.code
+        data = await http.sync_guild_template.request(
+            self.state.client.http, guild_id=self.source_guild_id, template_code=self.code
         )
 
         return self.update(data)
@@ -74,16 +76,16 @@ class GuildTemplate(BaseObject):
             else:
                 json['description'] = None
 
-        data = await rest.modify_guild_template.request(
-            self.state.client.rest, guild_id=self.source_guild_id, template_code=self.code,
+        data = await http.modify_guild_template.request(
+            self.state.client.http, guild_id=self.source_guild_id, template_code=self.code,
             json=json
         )
 
         return self.update(data)
 
     async def delete(self):
-        await rest.delete_guild_template.request(
-            self.state.client.rest,
+        await http.delete_guild_template.request(
+            self.state.client.http,
             {'guild_id': self.source_guild_id, 'template_code': self.code}
         )
 

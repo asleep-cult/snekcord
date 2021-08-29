@@ -1,6 +1,6 @@
 from .basestate import BaseState, BaseSubState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from ..objects.messageobject import Message, WebhookMessage
 from ..resolvers import resolve_embed_data
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -19,7 +19,7 @@ class MessageState(BaseState):
         if message is not None:
             message.update(data)
         else:
-            message = ClientClasses.Message.unmarshal(data, state=self)
+            message = Message.unmarshal(data, state=self)
             message.cache()
 
         return message
@@ -27,8 +27,8 @@ class MessageState(BaseState):
     async def fetch(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        data = await rest.get_channel_message.request(
-            self.client.rest,
+        data = await http.get_channel_message.request(
+            self.client.http,
             channel_id=self.channel.id, message_id=message_id
         )
 
@@ -51,8 +51,8 @@ class MessageState(BaseState):
         if limit is not undefined:
             params['limit'] = int(limit)
 
-        data = await rest.get_channel_messages.request(
-            self.client.rest, channel_id=self.channel.id, params=params
+        data = await http.get_channel_messages.request(
+            self.client.http, channel_id=self.channel.id, params=params
         )
 
         return [self.upsert(message) for message in data]
@@ -98,8 +98,8 @@ class MessageState(BaseState):
         ):
             raise TypeError('None of (content, file, embed(s), sticker(s)) were provided')
 
-        data = await rest.create_channel_message.request(
-            self.client.rest, channel_id=self.channel.id, json=json
+        data = await http.create_channel_message.request(
+            self.client.http, channel_id=self.channel.id, json=json
         )
 
         return self.upsert(data)
@@ -107,8 +107,8 @@ class MessageState(BaseState):
     async def delete(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        await rest.delete_message.request(
-            self.client.rest, channel_id=self.channel.id, message_id=message_id
+        await http.delete_message.request(
+            self.client.http, channel_id=self.channel.id, message_id=message_id
         )
 
     async def bulk_delete(self, messages):
@@ -124,8 +124,8 @@ class MessageState(BaseState):
         elif len(message_ids) > 100:
             raise TypeError('bulk_delete can\'t delete more than 100 messages')
 
-        await rest.bulk_delete_messages.request(
-            self.client.rest, channel_id=self.channel.id, json={'message_ids': message_ids}
+        await http.bulk_delete_messages.request(
+            self.client.http, channel_id=self.channel.id, json={'message_ids': message_ids}
         )
 
 
@@ -140,7 +140,7 @@ class WebhookMessageState(BaseState):
         if message is not None:
             message.update(data)
         else:
-            message = ClientClasses.WebhookMessage.unmarshal(data, state=self)
+            message = WebhookMessage.unmarshal(data, state=self)
             message.cache()
 
         return message
@@ -148,8 +148,8 @@ class WebhookMessageState(BaseState):
     async def fetch(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        data = await rest.get_webhook_message.request(
-            self.client.rest, webhook_id=self.webhook.id, webhook_token=self.webhook.token,
+        data = await http.get_webhook_message.request(
+            self.client.http, webhook_id=self.webhook.id, webhook_token=self.webhook.token,
             message_id=message_id
         )
 
@@ -158,8 +158,8 @@ class WebhookMessageState(BaseState):
     async def delete(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        await rest.delete_webhook_message.request(
-            self.client.rest, webhook_id=self.webhook.id, webhook_token=self.webhook.token,
+        await http.delete_webhook_message.request(
+            self.client.http, webhook_id=self.webhook.id, webhook_token=self.webhook.token,
             message_id=message_id
         )
 
@@ -170,8 +170,8 @@ class ChannelPinsState(BaseSubState):
         self.channel = channel
 
     async def fetch_all(self):
-        data = await rest.get_pinned_messages.request(
-            self.superstate.client.rest, channel_id=self.channel.id
+        data = await http.get_pinned_messages.request(
+            self.superstate.client.http, channel_id=self.channel.id
         )
 
         return [self.superstate.upsert(message) for message in data]
@@ -179,13 +179,13 @@ class ChannelPinsState(BaseSubState):
     async def add(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        await rest.add_pinned_message.request(
-            self.superstate.client.rest, channel_id=self.channel.id, message_id=message_id
+        await http.add_pinned_message.request(
+            self.superstate.client.http, channel_id=self.channel.id, message_id=message_id
         )
 
     async def remove(self, message):
         message_id = Snowflake.try_snowflake(message)
 
-        await rest.remove_pinned_message.request(
-            self.superstate.client.rest, channel_id=self.channel.id, message_id=message_id
+        await http.remove_pinned_message.request(
+            self.superstate.client.http, channel_id=self.channel.id, message_id=message_id
         )

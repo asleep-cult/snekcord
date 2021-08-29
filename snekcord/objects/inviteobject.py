@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from .baseobject import BaseObject
-from .. import rest
+from .. import http
 from ..enums import InviteTargetType
 from ..json import JsonField, JsonObject
 
@@ -70,8 +70,8 @@ class GuildVanityURL(JsonObject):
         return self.guild.state.client.invites.get(self.code)
 
     async def fetch(self):
-        data = await rest.get_guild_vanity_url.request(
-            self.guild.state.client.rest, guild_id=self.guild.id
+        data = await http.get_guild_vanity_url.request(
+            self.guild.state.client.http, guild_id=self.guild.id
         )
 
         return self.update(data)

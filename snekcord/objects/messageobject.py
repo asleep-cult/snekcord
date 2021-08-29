@@ -2,11 +2,12 @@ import copy
 from datetime import datetime
 
 from .baseobject import BaseObject
+from .channelobject import GuildChannel
 from .embedobject import Embed
-from .. import rest
-from ..clients.client import ClientClasses
+from .stickerobject import StickerItem
+from .. import http
+from .. import states
 from ..enums import MessageActivityType, MessageType
-from ..exceptions import PartialObjectError
 from ..fetchables import Fetchable
 from ..flags import MessageFlags
 from ..json import JsonArray, JsonField, JsonObject
@@ -221,8 +222,8 @@ class Message(BaseObject):
         self.attachments = []
         self.sticker_items = []
 
-        self.mentions = ClientClasses.MessageMentionsData(message=self)
-        self.reactions = ClientClasses.ReactionsState(client=self.state.client, message=self)
+        self.mentions = MessageMentionsData(message=self)
+        self.reactions = states.ReactionsState(client=self.state.client, message=self)
 
     @property
     def channel(self):
@@ -230,16 +231,13 @@ class Message(BaseObject):
 
     @property
     def guild(self):
-        if isinstance(self.channel, ClientClasses.GuildChannel):
+        if isinstance(self.channel, GuildChannel):
             return self.channel.guild
         return None
 
     @property
     def webhook(self):
-        try:
-            return self.state.client.webhooks.get(self.webhook_id)
-        except PartialObjectError:
-            return None
+        return self.state.client.webhooks.get(Message.webhook_id.get(self))
 
     @property
     def webhook_message(self):
@@ -248,8 +246,8 @@ class Message(BaseObject):
         return None
 
     async def crosspost(self):
-        data = await rest.crosspost_message.request(
-            self.state.client.rest, channel_id=self.channel.id, message_id=self.id
+        data = await http.crosspost_message.request(
+            self.state.client.http, channel_id=self.channel.id, message_id=self.id
         )
 
         return self.state.upsert(data)
@@ -258,7 +256,9 @@ class Message(BaseObject):
         self, *, content=undefined, embed=undefined, embeds=undefined, suppress_embeds=undefined,
         mentions=undefined,  # file=undefined, attachments, components,
     ):
-        json = {'embeds': []}
+        json = {}
+
+        json['embeds'] = []
 
         if content is not undefined:
             if content is not None:
@@ -287,8 +287,8 @@ class Message(BaseObject):
             else:
                 json['allowed_mentions'] = None
 
-        data = await rest.modify_message.request(
-            self.state.client.rest, channel_id=self.channel.id, message_id=self.id, json=json
+        data = await http.modify_message.request(
+            self.state.client.http, channel_id=self.channel.id, message_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -351,9 +351,7 @@ class Message(BaseObject):
                 del self.reactions.mapping[emoji_id]
 
         if 'message_reference' in data:
-            self.reference = ClientClasses.MessageReferenceData.unmarshal(
-                data['message_reference'], message=self
-            )
+            self.reference = MessageReferenceData.unmarshal(data['message_reference'], message=self)
 
             if 'referenced_message' in data:
                 referenced_message = data['referenced_message']
@@ -362,13 +360,14 @@ class Message(BaseObject):
                     self.state.upsert(data['referenced_message'])
 
         if 'application' in data:
-            self.application = ClientClasses.Application.unmarshal(data, client=self.state.client)
+            pass
+            # self.application = Application.unmarshal(data, client=self.state.client)
 
         if 'attachments' in data:
             self.attachments.clear()
 
             for attachment in data['attachments']:
-                attachment = Attachment.unmarshal(attachment, rest=self.state.client.rest)
+                attachment = Attachment.unmarshal(attachment, http=self.state.client.http)
                 self.attachments.append(attachment)
 
         if 'stickers' in data:
@@ -379,9 +378,7 @@ class Message(BaseObject):
             self.sticker_items.clear()
 
             for sticker_item in data['sticker_items']:
-                sticker_item = ClientClasses.StickerItem.unmarshal(
-                    sticker_item, state=self.state.client.stickers
-                )
+                sticker_item = StickerItem.unmarshal(sticker_item, state=self.state.client.stickers)
                 self.sticker_items.append(sticker_item)
 
         if self.pinned:
@@ -444,8 +441,8 @@ class WebhookMessage(BaseObject):
             else:
                 json['allowed_mentions'] = None
 
-        data = await rest.modify_webhook_message.request(
-            self.state.client.rest, webhook_id=self.webhook.id, webhook_token=self.webhook.token
+        data = await http.modify_webhook_message.request(
+            self.state.client.http, webhook_id=self.webhook.id, webhook_token=self.webhook.token
         )
 
         return self.update(data)

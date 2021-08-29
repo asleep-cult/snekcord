@@ -1,6 +1,6 @@
 from .basestate import BaseState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
+from ..objects.reactionsobject import Reactions
 
 __all__ = ('ReactionsState',)
 
@@ -17,7 +17,7 @@ class ReactionsState(BaseState):
         if reactions is not None:
             reactions.update(data)
         else:
-            reactions = ClientClasses.Reactions.unmarshal(data, state=self)
+            reactions = Reactions.unmarshal(data, state=self)
             reactions.cache()
 
         return reactions
@@ -25,12 +25,12 @@ class ReactionsState(BaseState):
     async def add(self, emoji):
         emoji = self.client.emojis.resolve(emoji)
 
-        await rest.add_reaction.request(
-            self.client.rest, channel_id=self.message.channel.id, message_id=self.message.id,
+        await http.add_reaction.request(
+            self.client.http, channel_id=self.message.channel.id, message_id=self.message.id,
             emoji=emoji.to_reaction()
         )
 
     async def remove_all(self):
-        await rest.remove_all_reactions.request(
-            self.client.rest, channel_id=self.message.channel.id, message_id=self.message.id
+        await http.remove_all_reactions.request(
+            self.client.http, channel_id=self.message.channel.id, message_id=self.message.id
         )

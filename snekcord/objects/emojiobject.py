@@ -1,9 +1,7 @@
 from urllib.parse import quote
 
 from .baseobject import BaseObject
-from .. import rest
-from ..clients.client import ClientClasses
-from ..exceptions import PartialObjectError
+from .. import http
 from ..json import JsonArray, JsonField
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -39,8 +37,8 @@ class PartialCustomEmoji(_BaseCustomEmoji):
         self.animated = animated
 
     async def fetch_guild(self):
-        data = await rest.get_emoji_guild.request(
-            self.client.rest, emoji_id=self.id
+        data = await http.get_emoji_guild.request(
+            self.client.http, emoji_id=self.id
         )
 
         return self.client.guilds.upsert(data)
@@ -64,17 +62,14 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
 
     @property
     def guild(self):
-        try:
-            return self.state.client.guilds.get(self.guild_id)
-        except PartialObjectError:
-            return None
+        return self.state.client.guilds.get(CustomEmoji.guild_id.get(self))
 
     async def fetch_guild(self):
         if self.guild is not None:
             return await self.guild.fetch()
 
-        data = await rest.get_emoji_guild.request(
-            self.state.client.rest, emoji_id=self.id
+        data = await http.get_emoji_guild.request(
+            self.state.client.http, emoji_id=self.id
         )
 
         guild = self.state.client.guilds.upsert(data)
@@ -96,8 +91,8 @@ class CustomEmoji(BaseObject, _BaseCustomEmoji):
             else:
                 json['roles'] = None
 
-        data = await rest.modify_guild_emoji.request(
-            self.state.client.rest, guild_id=self.guild.id, emoji_id=self.id, json=json
+        data = await http.modify_guild_emoji.request(
+            self.state.client.http, guild_id=self.guild.id, emoji_id=self.id, json=json
         )
 
         return self.state.upsert(data)
@@ -147,9 +142,7 @@ class UnicodeEmoji(_BaseUnicodeEmoji):
         self.diversity_children = []
 
         for child in diversity_children:
-            self.diversity_children.append(
-                ClientClasses.UnicodeEmoji(category=category, data=child)
-            )
+            self.diversity_children.append(UnicodeEmoji(category=category, data=child))
 
     def __str__(self):
         return f':{self.name}:'

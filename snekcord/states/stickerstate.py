@@ -1,7 +1,7 @@
 from .basestate import BaseState, BaseSubState
-from .. import rest
-from ..clients.client import ClientClasses
+from .. import http
 from ..enums import StickerType
+from ..objects.stickerobject import GuildSticker, StandardSticker, StickerPack
 from ..resolvers import resolve_image_data, resolve_mimetype
 from ..snowflake import Snowflake
 
@@ -9,9 +9,9 @@ from ..snowflake import Snowflake
 class StickerState(BaseState):
     def get_class(self, type):
         if type == StickerType.GUILD:
-            return ClientClasses.GuildSticker
+            return GuildSticker
         elif type == StickerType.STANDARD:
-            return ClientClasses.StandardSticker
+            return StandardSticker
 
     def upsert(self, data):
         sticker = self.get(Snowflake(data['id']))
@@ -25,19 +25,19 @@ class StickerState(BaseState):
         return sticker
 
     def new_pack(self, data):
-        return ClientClasses.StickerPack.unmarshal(data, state=self)
+        return StickerPack.unmarshal(data, state=self)
 
     async def fetch(self, sticker):
         sticker_id = Snowflake.try_snowflake(sticker)
 
-        data = await rest.get_sticker.request(
-            self.client.rest, sticker_id=sticker_id
+        data = await http.get_sticker.request(
+            self.client.http, sticker_id=sticker_id
         )
 
         return self.upsert(data)
 
     async def fetch_packs(self):
-        data = await rest.get_sticker_packs.request(self.client.rest)
+        data = await http.get_sticker_packs.request(self.client.http)
 
         return [self.new_pack(pack) for pack in data['sticker_packs']]
 
@@ -58,21 +58,24 @@ class GuildStickerState(BaseSubState):
     async def fetch(self, sticker):
         sticker_id = Snowflake.try_snowflake(sticker)
 
-        data = await rest.get_guild_sticker.request(
-            self.superstate.client.rest, guild_id=self.guild.id, sticker_id=sticker_id
+        data = await http.get_guild_sticker.request(
+            self.superstate.client.http, guild_id=self.guild.id, sticker_id=sticker_id
         )
 
         return self.upsert(data)
 
     async def fetch_all(self):
-        data = await rest.get_guild_stickers.request(
-            self.superstate.client.rest, guild_id=self.guild.id
+        data = await http.get_guild_stickers.request(
+            self.superstate.client.http, guild_id=self.guild.id
         )
 
         return [self.upsert(sticker) for sticker in data]
 
     async def create(self, *, name, image, tag, description=None):
-        data = {'name': str(name), 'tags': str(tag)}
+        data = {}
+
+        data['name'] = str(name)
+        data['tags'] = str(tag)
 
         if description is not None:
             data['description'] = str(description)
@@ -82,8 +85,8 @@ class GuildStickerState(BaseSubState):
         image = await resolve_image_data(image)
         mimetype, ext = resolve_mimetype(image)
 
-        data = await rest.create_guild_sticker.request(
-            self.superstate.client.rest, guild_id=self.guild.id,
+        data = await http.create_guild_sticker.request(
+            self.superstate.client.http, guild_id=self.guild.id,
             data=data, files={'file': (f'file{ext}', image, mimetype)},
         )
 
@@ -92,6 +95,6 @@ class GuildStickerState(BaseSubState):
     async def delete(self, sticker):
         sticker_id = Snowflake.try_snowflake(sticker)
 
-        await rest.delete_guild_sticker.request(
-            self.superstate.client.rest, guild_id=self.guild.id, sticker_id=sticker_id
+        await http.delete_guild_sticker.request(
+            self.superstate.client.http, guild_id=self.guild.id, sticker_id=sticker_id
         )
