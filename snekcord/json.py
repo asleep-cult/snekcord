@@ -66,7 +66,7 @@ class JsonArray(JsonField):
     def get(self, instance, default=None):
         if not isinstance(instance, self.owner):
             raise TypeError(
-                f'{self.name}.get() expects {self.owner.__name__}, '
+                f'{self.qualname()}.get() expects {self.owner.__name__}, '
                 f'received {instance.__class__.__name__}'
             )
 
@@ -83,8 +83,13 @@ class JsonArray(JsonField):
 
 class JsonObjectMeta(type):
     def __call__(cls, *args, **kwargs):
-        self = super().__call__(*args, **kwargs)
-        self._json_data_ = {}
+        self = cls.__new__(cls)
+        self._json_data_ = [undefined] * len(cls._json_fields_)
+
+        ret = cls.__init__(self, *args, **kwargs)
+        if ret is not None:
+            raise TypeError(f'__init__() should return None, not {ret.__class__.__name__}')
+
         return self
 
 

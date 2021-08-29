@@ -12,7 +12,7 @@ ROLE_MENTION_RE = re.compile(r'<@&(?P<id>\d{17,19})>')
 USER_MENTION_RE = re.compile(r'<@!?(?P<id>\d{17,19})>')
 
 
-async def resolve_image_data(image):
+async def resolve_data(image):
     if isinstance(image, Fetchable):
         return await image.fetch()
 
@@ -55,7 +55,7 @@ def resolve_mimetype(data):
 
 
 async def resolve_data_uri(image):
-    image = await resolve_image_data(image)
+    image = await resolve_data(image)
 
     mimetype, _ = resolve_mimetype(image)
     data = base64.b64encode(image)
