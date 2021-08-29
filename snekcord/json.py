@@ -110,5 +110,11 @@ class JsonObject(metaclass=JsonObjectMeta):
         self.update(data)
         return self
 
+    def to_dict(self):
+        return self._json_data_.copy()
+
+    def marshal(self, *args, **kwargs):
+        return json.dumps(self._json_data_, *args, **kwargs)
+
     def update(self, data):
         self._json_data_.update(data)

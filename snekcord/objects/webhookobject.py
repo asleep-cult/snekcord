@@ -79,7 +79,7 @@ class Webhook(BaseObject):
             params['thread_id'] = Snowflake.try_snowflake(thread)
 
         if not any((json.get('content'), json.get('file'), json.get('embeds'))):
-            raise TypeError('None of (content, file, embed(s)) were provided')
+            raise ValueError('None of (content, file, embed(s)) were provided')
 
         data = await http.execute_webhook.request(
             self.state.client.http, webhook_id=self.id, webhook_token=self.token,
