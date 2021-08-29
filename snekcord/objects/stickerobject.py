@@ -79,7 +79,7 @@ class GuildSticker(_BaseSticker):
 
     @property
     def guild(self):
-        return self.state.client.guilds.get(GuildSticker.guild_id.get(self))
+        return self.state.client.guilds.get(self.get('guild_id'))
 
     async def fetch_guild(self):
         if self.guild is not None:

@@ -101,6 +101,18 @@ class JsonObject(metaclass=JsonObjectMeta):
 
                 cls._json_fields_[name] = value
 
+    def __contains__(self, key):
+        return key in self._json_fields_
+
+    def __getitem__(self, key):
+        field = self._json_fields_[key]
+
+        value = field.get(self, undefined)
+        if value is undefined:
+            raise KeyError(key)
+
+        return value
+
     @classmethod
     def unmarshal(cls, data, **kwargs):
         if isinstance(data, (str, bytes)):
@@ -109,6 +121,11 @@ class JsonObject(metaclass=JsonObjectMeta):
         self = cls(**kwargs)
         self.update(data)
         return self
+
+    def get(self, key, default=None):
+        if key in self._json_fields_:
+            return self._json_fields_[key].get(self, default)
+        return default
 
     def update(self, data):
         self._json_data_.update(data)

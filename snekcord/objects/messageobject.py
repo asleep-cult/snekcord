@@ -237,7 +237,7 @@ class Message(BaseObject):
 
     @property
     def webhook(self):
-        return self.state.client.webhooks.get(Message.webhook_id.get(self))
+        return self.state.client.webhooks.get(self.get('webhook_id'))
 
     @property
     def webhook_message(self):
