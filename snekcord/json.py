@@ -37,8 +37,10 @@ class JsonField:
 
     def get(self, instance, default=None):
         if not isinstance(instance, self.owner):
-            raise TypeError(f'{self.qualname()}.get() expects {self.owner.__name__}, '
-                            f'received {instance.__class__.__name__}')
+            raise TypeError(
+                f'{self.qualname()}.get() expects {self.owner.__name__}, '
+                f'received {instance.__class__.__name__}'
+            )
 
         try:
             value = instance._json_data_[self.key]
@@ -52,10 +54,31 @@ class JsonField:
 
     def exists(self, instance):
         if not isinstance(instance, self.owner):
-            raise TypeError(f'{self.qualname()}.exists() expects {self.owner.__name__}, '
-                            f'received {instance.__class__.__name__}')
+            raise TypeError(
+                f'{self.qualname()}.exists() expects {self.owner.__name__}, '
+                f'received {instance.__class__.__name__}'
+            )
 
         return self.key in instance._json_data_
+
+
+class JsonArray(JsonField):
+    def get(self, instance, default=None):
+        if not isinstance(instance, self.owner):
+            raise TypeError(
+                f'{self.name}.get() expects {self.owner.__name__}, '
+                f'received {instance.__class__.__name__}'
+            )
+
+        try:
+            values = instance._json_data_[self.key]
+
+            if self.unmarshaler is not None:
+                values = [self.unmarshaler(value) for value in values]
+
+            return values
+        except KeyError:
+            return default
 
 
 class JsonObjectMeta(type):
@@ -89,20 +112,3 @@ class JsonObject(metaclass=JsonObjectMeta):
 
     def update(self, data):
         self._json_data_.update(data)
-
-
-class JsonArray(JsonField):
-    def get(self, instance, default=None):
-        if not isinstance(instance, self.owner):
-            raise TypeError(f'{self.name}.get() expects {self.owner.__name__}, '
-                            f'received {instance.__class__.__name__}')
-
-        try:
-            values = instance._json_data_[self.key]
-
-            if self.unmarshaler is not None:
-                values = [self.unmarshaler(value) for value in values]
-
-            return values
-        except KeyError:
-            return default
