@@ -1,8 +1,11 @@
 import json
 from collections.abc import Iterable
 from ctypes import py_object as _py_object
+from typing import Any, Dict
 
 from .exceptions import InvalidFieldError, MissingFieldError
+
+JSONData = Dict[str, Any]
 
 
 class JSONEncoder(json.JSONEncoder):

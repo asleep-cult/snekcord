@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import enum
+from typing import Optional, TYPE_CHECKING
 
 from .base_listener import (
     BaseWebSocketListener,
     WebSocketIntents,
 )
 from ...exceptions import UnknownModelError
+
+if TYPE_CHECKING:
+    from .base_listener import WaiterFilter
+    from ...models import Guild
+    from ...json import JSONData
 
 __all__ = (
     'GuildEvent',
@@ -29,91 +35,112 @@ class GuildEvent(str, enum.Enum):
 
 
 class GuildListener(BaseWebSocketListener):
-    def to_event(self, name):
+    def get_event(self, name: str) -> GuildEvent:
         return GuildEvent(name)
 
-    def get_intents(self):
+    def get_intents(self) -> WebSocketIntents:
         return WebSocketIntents.GUILDS
 
-    def wait_for_join(self, *, timeout=None, filter=None):
-        return self.create_waiter(GuildEvent.JOIN, timeout=timeout, filter=filter)
+    async def dispatch_guild_join(self, payload: JSONData) -> GuildJoinEvent:
+        guild = await self.client.guilds.upsert(payload)
+        return GuildJoinEvent(guild=guild, payload=payload)
 
-    def wait_for_available(self, *, timeout=None, filter=None):
-        return self.create_waiter(GuildEvent.AVAILABLE, timeout=timeout, filter=filter)
+    async def dispatch_guild_available(self, payload: JSONData) -> GuildAvailableEvent:
+        guild = await self.client.guilds.upsert(payload)
+        return GuildAvailableEvent(guild=guild, payload=payload)
 
-    def wait_for_receive(self, *, timeout=None, filter=None):
-        return self.create_waiter(GuildEvent.RECEIVE, timeout=timeout, filter=filter)
+    async def dispatch_guild_receive(self, payload: JSONData) -> GuildReceiveEvent:
+        guild = await self.client.guilds.upsert(payload)
+        return GuildReceiveEvent(guild=guild, payload=payload)
 
-    def wait_for_update(self, *, timeout=None, filter=None):
-        return self.create_waiter(GuildEvent.UPDATE, timeout=timeout, filter=filter)
+    async def dispatch_guild_update(self, payload: JSONData) -> GuildUpdateEvent:
+        guild = await self.client.guilds.upsert(payload)
+        return GuildUpdateEvent(guild=guild, payload=payload)
 
-    def wait_for_delete(self, *, timeout=None, filter=None):
-        return self.create_waiter(GuildEvent.DELETE, timeout=timeout, filter=filter)
-
-    def wait_for_unavailable(self, *, timeout=None, filter=None):
-        return self.create_waiter(GuildEvent.UNAVAILABLE, timeout=timeout, filter=filter)
-
-
-class _GuildUpsertEvent:
-    __slots__ = ('guild', 'payload')
-
-    def __init__(self, *, guild, payload):
-        self.guild = guild
-        self.payload = payload
-
-    @classmethod
-    async def execute(cls, client, payload):
-        guild = await client.guilds.upsert(payload)
-        return cls(guild=guild, payload=payload)
-
-
-@GuildListener.event(GuildEvent.JOIN)
-class GuildJoinEvent(_GuildUpsertEvent):
-    __slots__ = ()
-
-    def __repr__(self):
-        return f'GuildJoinEvent(guild={self.guild!r})'
-
-
-@GuildListener.event(GuildEvent.AVAILABLE)
-class GuildAvailableEvent(_GuildUpsertEvent):
-    __slots__ = ()
-
-    def __repr__(self):
-        return f'GuildAvailableEvent(guild={self.guild!r})'
-
-
-@GuildListener.event(GuildEvent.RECEIVE)
-class GuildReceiveEvent(_GuildUpsertEvent):
-    __slots__ = ()
-
-    def __repr__(self):
-        return f'GuildReceiveEvent(guild={self.guild!r})'
-
-
-@GuildListener.event(GuildEvent.UPDATE)
-class GuildUpdateEvent(_GuildUpsertEvent):
-    __slots__ = ()
-
-    def __repr__(self):
-        return f'GuildCUpdateEvent(guild={self.guild!r})'
-
-
-@GuildListener.event(GuildEvent.DELETE)
-class GuildDeleteEvent:
-    __slots__ = ('guild',)
-
-    def __init__(self, *, guild):
-        self.guild = guild
-
-    def __repr__(self):
-        return f'GuildDeleteEvent(guild={self.guild!r})'
-
-    @classmethod
-    async def execute(cls, client, data):
+    async def dispatch_guild_delete_event(self, payload: JSONData) -> GuildDeleteEvent:
         try:
-            guild = client.guilds.pop(data['id'])
+            guild = self.client.guilds.pop(payload['id'])
         except UnknownModelError:
             guild = None
 
-        return cls(guild=guild)
+        return GuildDeleteEvent(guild=guild, payload=payload)
+
+    def wait_for_join(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[GuildJoinEvent] = None
+    ):
+        return self.create_waiter(GuildEvent.JOIN, timeout=timeout, filter=filter)
+
+    def wait_for_available(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[GuildAvailableEvent] = None
+    ):
+        return self.create_waiter(GuildEvent.AVAILABLE, timeout=timeout, filter=filter)
+
+    def wait_for_receive(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[GuildReceiveEvent] = None
+    ):
+        return self.create_waiter(GuildEvent.RECEIVE, timeout=timeout, filter=filter)
+
+    def wait_for_update(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[GuildUpdateEvent] = None
+    ):
+        return self.create_waiter(GuildEvent.UPDATE, timeout=timeout, filter=filter)
+
+    def wait_for_delete(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[GuildDeleteEvent] = None
+    ):
+        return self.create_waiter(GuildEvent.DELETE, timeout=timeout, filter=filter)
+
+
+class GuildJoinEvent:
+    __slots__ = ('guild', 'payload')
+
+    def __init__(self, *, guild: Guild, payload: JSONData) -> None:
+        self.guild = guild
+        self.payload = payload
+
+    def __repr__(self) -> str:
+        return f'GuildJoinEvent(guild={self.guild!r})'
+
+
+class GuildAvailableEvent:
+    __slots__ = ('guild', 'payload')
+
+    def __init__(self, *, guild: Guild, payload: JSONData) -> None:
+        self.guild = guild
+        self.payload = payload
+
+    def __repr__(self) -> str:
+        return f'GuildAvailableEvent(guild={self.guild!r})'
+
+
+class GuildReceiveEvent:
+    __slots__ = ('guild', 'payload')
+
+    def __init__(self, *, guild: Guild, payload: JSONData) -> None:
+        self.guild = guild
+        self.payload = payload
+
+    def __repr__(self) -> str:
+        return f'GuildReceiveEvent(guild={self.guild!r})'
+
+
+class GuildUpdateEvent:
+    __slots__ = ('guild', 'payload')
+
+    def __init__(self, *, guild: Guild, payload: JSONData) -> None:
+        self.guild = guild
+        self.payload = payload
+
+    def __repr__(self) -> str:
+        return f'GuildUpdateEvent(guild={self.guild!r})'
+
+
+class GuildDeleteEvent:
+    __slots__ = ('guild',)
+
+    def __init__(self, *, guild: Guild, payload: JSONData) -> None:
+        self.guild = guild
+        self.payload = payload
+
+    def __repr__(self) -> str:
+        return f'GuildDeleteEvent(guild={self.guild!r})'

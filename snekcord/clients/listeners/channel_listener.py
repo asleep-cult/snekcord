@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
+from typing import Optional, TYPE_CHECKING
 
 from .base_listener import (
     BaseWebSocketListener,
     WebSocketIntents,
 )
 from ...exceptions import UnknownModelError
+
+if TYPE_CHECKING:
+    from .base_listener import WaiterFilter
+    from ...models import BaseChannel, ModelWrapper
+    from ...json import JSONData
+    from ..websocket_client import WebSocketClient
 
 __all__ = (
     'ChannelEvent',
@@ -27,17 +34,17 @@ class ChannelEvent(str, enum.Enum):
 
 
 class ChannelListener(BaseWebSocketListener):
-    def __init__(self, *, client):
+    def __init__(self, *, client: WebSocketClient) -> None:
         super().__init__(client=client)
         self.direct_messages = False
 
-    def enable_direct_messages(self):
+    def enable_direct_messages(self) -> None:
         self.direct_messages = True
 
-    def to_event(self, name):
+    def get_event(self, name: str) -> ChannelEvent:
         return ChannelEvent(name)
 
-    def get_intents(self):
+    def get_intents(self) -> WebSocketIntents:
         intents = WebSocketIntents.GUILDS
 
         if self.direct_messages:
@@ -45,74 +52,92 @@ class ChannelListener(BaseWebSocketListener):
 
         return intents
 
-    def wait_for_create(self, *, timeout=None, filter=None):
+    async def dispatch_channel_create(self, payload: JSONData) -> ChannelCreateEvent:
+        channel = await self.client.channels.upsert(payload)
+        return ChannelCreateEvent(channel=channel, payload=payload)
+
+    async def dispatch_channel_update(self, payload: JSONData) -> ChannelUpdateEvent:
+        channel = await self.client.channels.upsert(payload)
+        return ChannelUpdateEvent(channel=channel, payload=payload)
+
+    async def dispatch_channel_delete(self, payload: JSONData) -> ChannelDeleteEvent:
+        try:
+            channel = self.client.channels.pop(payload['id'])
+        except UnknownModelError:
+            channel = None
+
+        return ChannelDeleteEvent(channel=channel, payload=payload)
+
+    async def dispatch_channel_pins_update(self, payload: JSONData) -> ChannelPinsUpdateEvent:
+        channel = self.client.channels.wrap_id(payload['channel_id'])
+
+        timestamp = payload.get('last_pin_timestamp')
+        if timestamp is not None:
+            timestamp = datetime.fromisoformat(timestamp)
+
+        return ChannelPinsUpdateEvent(channel=channel, payload=payload, timestamp=timestamp)
+
+    def wait_for_create(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[ChannelCreateEvent] = None
+    ):
         return self.create_waiter(ChannelEvent.CREATE, timeout=timeout, filter=filter)
 
-    def wait_for_update(self, *, timeout=None, filter=None):
+    def wait_for_update(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[ChannelUpdateEvent] = None
+    ):
         return self.create_waiter(ChannelEvent.UPDATE, timeout=timeout, filter=filter)
 
-    def wait_for_delete(self, *, timeout=None, filter=None):
+    def wait_for_delete(
+        self, *, timeout: Optional[float] = None, filter: WaiterFilter[ChannelDeleteEvent] = None
+    ):
         return self.create_waiter(ChannelEvent.DELETE, timeout=timeout, filter=filter)
 
-    def wait_for_pins_update(self, *, timeout=None, filter=None):
+    def wait_for_pins_update(
+        self,
+        *,
+        timeout: Optional[float] = None,
+        filter: WaiterFilter[ChannelPinsUpdateEvent] = None
+    ):
         return self.create_waiter(ChannelEvent.PINS_UPDATE, timeout=timeout, filter=filter)
 
 
-class _ChannelUpsertEvent:
+class ChannelCreateEvent:
     __slots__ = ('channel', 'payload')
 
-    def __init__(self, *, channel, payload):
+    def __init__(self, *, channel: BaseChannel, payload: JSONData) -> None:
         self.channel = channel
         self.payload = payload
 
-    @classmethod
-    async def execute(cls, client, payload):
-        channel = await client.channels.upsert(payload)
-        return cls(channel=channel, payload=payload)
-
-
-@ChannelListener.event(ChannelEvent.CREATE)
-class ChannelCreateEvent(_ChannelUpsertEvent):
-    __slots__ = ()
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'ChannelCreateEvent(channel={self.channel!r})'
 
 
-@ChannelListener.event(ChannelEvent.UPDATE)
-class ChannelUpdateEvent(_ChannelUpsertEvent):
-    __slots__ = ()
+class ChannelUpdateEvent:
+    __slots__ = ('channel', 'payload')
 
-    def __repr__(self):
+    def __init__(self, *, channel: BaseChannel, payload: JSONData) -> None:
+        self.channel = channel
+        self.payload = payload
+
+    def __repr__(self) -> str:
         return f'ChannelUpdateEvent(channel={self.channel!r})'
 
 
-@ChannelListener.event(ChannelEvent.DELETE)
 class ChannelDeleteEvent:
     __slots__ = ('channel', 'payload')
 
-    def __init__(self, *, channel, payload):
+    def __init__(self, *, channel: BaseChannel, payload: JSONData) -> None:
         self.channel = channel
         self.payload = payload
 
     def __repr__(self):
         return f'ChannelDeleteEvent(channel={self.channel!r})'
 
-    @classmethod
-    async def execute(cls, client, payload):
-        try:
-            channel = client.channels.pop(payload['id'])
-        except UnknownModelError:
-            channel = None
 
-        return cls(channel=channel, payload=payload)
-
-
-@ChannelListener.event(ChannelEvent.PINS_UPDATE)
 class ChannelPinsUpdateEvent:
     __slots__ = ('channel', 'timestamp', 'payload')
 
-    def __init__(self, *, channel, timestamp, payload):
+    def __init__(self, *, channel: ModelWrapper, timestamp: datetime, payload: JSONData) -> None:
         self.channel = channel
         self.timestamp = timestamp
         self.payload = payload
@@ -121,16 +146,3 @@ class ChannelPinsUpdateEvent:
         return (
             f'ChannelPinsUpdateEvent(channel={self.channel}, timestamp={self.timestamp!r})'
         )
-
-    @classmethod
-    def execute(cls, client, payload):
-        try:
-            channel = client.channels.get(payload['id'])
-        except UnknownModelError:
-            channel = None
-
-        timestamp = payload.get('last_pin_timestamp')
-        if timestamp is not None:
-            timestamp = datetime.fromisoformat(timestamp)
-
-        return cls(channel=channel, payload=payload, timestamp=timestamp)

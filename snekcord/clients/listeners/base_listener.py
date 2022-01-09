@@ -1,10 +1,17 @@
 import asyncio
 import enum
+import inspect
+from collections import defaultdict
+from typing import Callable, Optional, TypeVar
 
 __all__ = (
     'WebSocketListener',
     'WebSocketIntents',
 )
+
+T = TypeVar('T')
+
+WaiterFilter = Optional[Callable[[T], bool]]
 
 
 class WebSocketIntents(enum.IntFlag):
@@ -109,17 +116,22 @@ class _WebSocketEventWaiter:
 
 
 class BaseWebSocketListener:
-    __slots__ = ('_callbacks', '_waiters')
+    __slots__ = ('_callbacks', '_waiters', '_dispatchers')
 
     def __init__(self, *, client):
         self.client = client
-        self._callbacks = {}
-        self._waiters = {}
+        self._callbacks = defaultdict(list)
+        self._waiters = defaultdict(list)
+
+        self._dispatchers = {}
+        for name, func in inspect.getmembers(self, inspect.isfunction):
+            if name.startswith('dispatch_'):
+                self._dispatchers[self.get_event(name[9:])] = func
 
     def __repr__(self):
         return f'{self.__class__.__name__}(client={self.client!r})'
 
-    def to_event(self, name):
+    def get_event(self, name):
         raise NotImplementedError
 
     def get_intents(self):
@@ -128,63 +140,34 @@ class BaseWebSocketListener:
     def add_handler(self, handler):
         handler.register_callbacks(self)
 
-    def remove_handler(self, handler):
-        handler.unregister_callbacks(self)
-
     def create_waiter(self, event, *, timeout=None, filter=None):
-        event = self.to_event(event)
+        event = self.get_event(event)
 
         waiter = _WebSocketEventWaiter(self, event, timeout=timeout, filter=filter)
-        try:
-            waiters = self._waiters[event]
-        except KeyError:
-            waiters = self._waiters[event] = []
+        self._waiters[event].append(waiter)
 
-        waiters.append(waiter)
         return waiter
 
     def register_callback(self, event, callback):
-        event = self.to_event(event)
-
-        try:
-            callbacks = self._callbacks[event]
-        except KeyError:
-            callbacks = self._callbacks[event] = []
-
-        callbacks.append(callback)
+        event = self.get_event(event)
+        self._waiters[event].append(callback)
 
     def unregister_callback(self, event, callback):
-        event = self.to_event(event)
+        event = self.get_event(event)
 
         try:
-            callbacks = self._callbacks[event]
-        except KeyError:
-            raise RuntimeError(f'No callbacks registered for {event!r}') from None
-
-        try:
-            callbacks.remove(callback)
+            self._callbacks[event].remove(callback)
         except ValueError:
-            raise RuntimeError(
-                f'Callback {callback!r} is not registered for {event!r}'
-            ) from None
+            raise RuntimeError(f'Callback {callback!r} is not registered for {event!r}') from None
 
     async def dispatch(self, event, payload):
-        evt = await self._events_.get(event).execute(self.client, payload)
+        event = self.get_event(event)
+        evt = await self._dispatchers[event](payload)
 
-        for callback in self._callbacks.get(event, ()):
+        callbacks = self._callbacks[event]
+        for callback in callbacks:
             self.client.loop.create_task(callback(evt))
 
-        for waiter in self._waiters.get(event, ()):
+        waiters = self._waiters[event]
+        for waiter in waiters:
             waiter.put(evt)
-
-    @classmethod
-    def event(cls, event):
-        def wrapped(klass):
-            if not hasattr(cls, '_events_'):
-                cls._events_ = {}
-
-            cls._events_[event] = klass
-            klass._event_ = event
-
-            return klass
-        return wrapped
