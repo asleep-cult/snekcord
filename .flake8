@@ -1,0 +1,8 @@
+[flake8]
+# E730: assignment of lambda
+# F401: unused import (__init__.py)
+# F403: from module import * (__init__.py)
+max-line-length = 100
+per-file-ignores =
+    *: E731
+    __init__.py: F401, F403
