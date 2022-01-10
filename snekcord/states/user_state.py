@@ -1,7 +1,7 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownModelError
-from ..models import (
-    ModelWrapper,
+from ..exceptions import UnknownObjectError
+from ..objects import (
+    ObjectWrapper,
     User,
 )
 from ..rest.endpoints import (
@@ -24,18 +24,18 @@ class UserState(BaseSate):
         if isinstance(object, User):
             return object.id
 
-        if isinstance(object, ModelWrapper):
+        if isinstance(object, ObjectWrapper):
             if isinstance(object.state, cls):
                 return object.id
 
-            raise TypeError('Expected ModelWrapper created by UserState')
+            raise TypeError('Expected ObjectWrapper created by UserState')
 
-        raise TypeError('Expected Snowflake, int, str, UserModel or ModelWrapper')
+        raise TypeError('Expected Snowflake, int, str, User or ObjectWrapper')
 
     async def upsert(self, data):
         try:
             user = self.get(data['id'])
-        except UnknownModelError:
+        except UnknownObjectError:
             user = User.unmarshal(data, state=self)
         else:
             user.update(data)

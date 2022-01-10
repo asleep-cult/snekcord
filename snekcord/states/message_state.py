@@ -1,11 +1,11 @@
 from .base_state import BaseSate
 from ..builders import JSONBuilder
 from ..epochs import MessageEpoch
-from ..exceptions import UnknownModelError
+from ..exceptions import UnknownObjectError
 from ..mentions import MessageMentions
-from ..models import (
+from ..objects import (
     Message,
-    ModelWrapper,
+    ObjectWrapper,
 )
 from ..rest.endpoints import (
     CREATE_CHANNEL_MESSAGE,
@@ -31,7 +31,7 @@ class MessageState(BaseSate):
 
         Raises:
             TypeError: The object is not a Snowflake, integer, string,
-                Message or ModelWrapper created by a message state.
+                Message or ObjectWrapper created by a message state.
         """
         if isinstance(object, Snowflake):
             return object
@@ -42,13 +42,13 @@ class MessageState(BaseSate):
         if isinstance(object, Message):
             return object.id
 
-        if isinstance(object, ModelWrapper):
+        if isinstance(object, ObjectWrapper):
             if isinstance(object.state, cls):
                 return object.id
 
-            raise TypeError('Expected ModelWrapper created by MessageState')
+            raise TypeError('Expected ObjectWrapper created by MessageState')
 
-        raise TypeError('Expected Snowflake, int, str, MessageModel or ModelWrapper')
+        raise TypeError('Expected Snowflake, int, str, Message or ObjectWrapper')
 
     async def upsert(self, data):
         """Creates or otherwise updates a message and adds it to the state's cache.
@@ -64,14 +64,14 @@ class MessageState(BaseSate):
         if member is not None:
             try:
                 guild = self.channel.guild.unwrap()
-            except UnknownModelError:
+            except UnknownObjectError:
                 member = None
             else:
                 member = await guild.members.upsert(member)
 
         try:
             message = self.get(data['id'])
-        except UnknownModelError:
+        except UnknownObjectError:
             message = Message.unmarshal(data, state=self, author=author, member=member)
         else:
             message.update(data)

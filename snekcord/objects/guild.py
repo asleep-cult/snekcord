@@ -1,7 +1,7 @@
 import enum
 
-from .base_models import BaseModel
-from .emoji_models import CustomEmoji
+from .base import BaseObject
+from .emoji import CustomEmoji
 from .. import json
 
 __all__ = (
@@ -86,7 +86,7 @@ class GuildFeature(enum.Enum):
     WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
 
 
-class Guild(BaseModel):
+class Guild(BaseObject):
     __slots__ = (
         'roles',
         'emojis',

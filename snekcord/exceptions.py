@@ -20,12 +20,12 @@ class InvalidFieldError(Exception):
         )
 
 
-class UnknownModelError(LookupError):
+class UnknownObjectError(LookupError):
     def __init__(self, id):
         self.id = id
 
     def __str__(self):
-        return f'Model with id {self.id} is not cached'
+        return f'Object with id {self.id} is not cached'
 
 
 class UnknownListenerError(LookupError):

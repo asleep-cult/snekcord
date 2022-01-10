@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from .base_models import BaseModel
+from .base import BaseObject
 from .. import json
 
 __all__ = ('MessageType', 'MessageFlags', 'Message')
@@ -45,7 +45,7 @@ class MessageFlags(enum.IntFlag):
     LOADING = 1 << 7
 
 
-class Message(BaseModel):
+class Message(BaseObject):
     __slots__ = ('author', 'member', 'webhook', 'application')
 
     type = json.JSONField('type', MessageType, repr=True)

@@ -1,8 +1,8 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownModelError
-from ..models import (
+from ..exceptions import UnknownObjectError
+from ..objects import (
     Guild,
-    ModelWrapper,
+    ObjectWrapper,
 )
 from ..rest.endpoints import (
     GET_GUILD,
@@ -24,18 +24,18 @@ class GuildState(BaseSate):
         if isinstance(object, Guild):
             return object.id
 
-        if isinstance(object, ModelWrapper):
+        if isinstance(object, ObjectWrapper):
             if isinstance(object.state, cls):
                 return object
 
-            raise TypeError('Expected ModelWrapper created by GuildState')
+            raise TypeError('Expected ObjectWrapper created by GuildState')
 
-        raise TypeError('Expected Snowflake, int, str, GuildModel or ModelWrapper')
+        raise TypeError('Expected Snowflake, int, str, Guild or ObjectWrapper')
 
     async def upsert(self, data):
         try:
             guild = self.get(data['id'])
-        except UnknownModelError:
+        except UnknownObjectError:
             guild = Guild.unmarshal(data, state=self)
         else:
             guild.update(data)

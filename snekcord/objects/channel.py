@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import enum
 
-from .base_models import BaseModel
+from .base import BaseObject
 from .. import json
 from ..collection import Collection
-from ..exceptions import UnknownModelError
+from ..exceptions import UnknownObjectError
 
 __all__ = (
     'ChannelType',
@@ -32,7 +32,7 @@ class ChannelType(enum.IntEnum):
     GUILD_STAGE_VOICE = 13
 
 
-class BaseChannel(BaseModel):
+class BaseChannel(BaseObject):
     __slots__ = ()
 
     type = json.JSONField('type', ChannelType)
@@ -102,7 +102,7 @@ class CategoryChannel(GuildChannel):
 
         try:
             guild = self.guild.unwrap()
-        except UnknownModelError:
+        except UnknownObjectError:
             return children
 
         for channel in guild.channels:
