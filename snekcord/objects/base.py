@@ -1,7 +1,7 @@
 from .. import json
 from ..snowflake import Snowflake
 
-__all__ = ('BaseModel', 'ModelWrapper')
+__all__ = ('BaseObject', 'ObjectWrapper')
 
 
 class _IDField(json.JSONField):
@@ -15,7 +15,7 @@ class _IDField(json.JSONField):
         return str(value)
 
 
-class _ModelMixin:
+class _ObjectMixin:
     __slots__ = ()
 
     def __init__(self, *, state) -> None:
@@ -35,7 +35,7 @@ class _ModelMixin:
         return await self.state.fetch(self.id)
 
 
-class BaseModel(json.JSONObject, _ModelMixin):
+class BaseObject(json.JSONObject, _ObjectMixin):
     __slots__ = ('__weakref__', 'state')
 
     id = _IDField()
@@ -48,7 +48,7 @@ class BaseModel(json.JSONObject, _ModelMixin):
         return self.id
 
 
-class ModelWrapper(_ModelMixin):
+class ObjectWrapper(_ObjectMixin):
     """A wrapper for an object that might not be cached.
 
     state: The state that the wrapped object belongs to.
@@ -63,7 +63,7 @@ class ModelWrapper(_ModelMixin):
         self.set_id(id)
 
     def __repr__(self) -> str:
-        return f'<ModelWrapper id={self.id}>'
+        return f'<ObjectWrapper id={self.id}>'
 
     def _get_id(self):
         return self.id

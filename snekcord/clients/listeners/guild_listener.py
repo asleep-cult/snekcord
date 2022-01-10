@@ -7,11 +7,11 @@ from .base_listener import (
     BaseWebSocketListener,
     WebSocketIntents,
 )
-from ...exceptions import UnknownModelError
+from ...exceptions import UnknownObjectError
 
 if TYPE_CHECKING:
     from .base_listener import WaiterFilter
-    from ...models import Guild
+    from ...objects import Guild
     from ...json import JSONData
 
 __all__ = (
@@ -60,7 +60,7 @@ class GuildListener(BaseWebSocketListener):
     async def dispatch_guild_delete_event(self, payload: JSONData) -> GuildDeleteEvent:
         try:
             guild = self.client.guilds.pop(payload['id'])
-        except UnknownModelError:
+        except UnknownObjectError:
             guild = None
 
         return GuildDeleteEvent(guild=guild, payload=payload)

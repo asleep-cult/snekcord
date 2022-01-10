@@ -167,7 +167,7 @@ class JSONObjectMeta(type):
 
         namespace['_json_fields_'] = json_fields
 
-        return cls.__new__(cls, name, bases, namespace)
+        return type.__new__(cls, name, bases, namespace)
 
 
 class JSONObject(metaclass=JSONObjectMeta):

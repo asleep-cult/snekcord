@@ -1,6 +1,6 @@
 from ..collection import Collection
-from ..exceptions import UnknownModelError
-from ..models import ModelWrapper
+from ..exceptions import UnknownObjectError
+from ..objects import ObjectWrapper
 
 __all__ = ('BaseSate',)
 
@@ -27,8 +27,8 @@ class BaseSate:
         return iter(self.cache)
 
     def wrap_id(self, object):
-        """Creates a ModelWrapper for a specific object."""
-        return ModelWrapper(state=self, id=object)
+        """Creates a ObjectWrapper for a specific object."""
+        return ObjectWrapper(state=self, id=object)
 
     @classmethod
     def unwrap_id(cls, object):
@@ -42,20 +42,20 @@ class BaseSate:
         """
         id = self.unwrap_id(object)
 
-        model = self.cache.get(id)
-        if model is None:
-            raise UnknownModelError(id) from None
+        object = self.cache.get(id)
+        if object is None:
+            raise UnknownObjectError(id) from None
 
-        return model
+        return object
 
     def pop(self, object):
         id = self.unwrap_id(object)
 
-        model = self.cache.pop(id, None)
-        if model is None:
-            raise UnknownModelError(id)
+        object = self.cache.pop(id, None)
+        if object is None:
+            raise UnknownObjectError(id)
 
-        return model
+        return object
 
     async def upsert(self, data):
         raise NotImplementedError

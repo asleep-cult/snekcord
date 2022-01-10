@@ -1,11 +1,11 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownModelError
-from ..models import (
+from ..exceptions import UnknownObjectError
+from ..objects import (
     BaseChannel,
     CategoryChannel,
     ChannelType,
     GuildChannel,
-    ModelWrapper,
+    ObjectWrapper,
     StoreChannel,
     TextChannel,
     VoiceChannel,
@@ -27,15 +27,15 @@ class ChannelState(BaseSate):
         if isinstance(object, BaseChannel):
             return object.id
 
-        if isinstance(object, ModelWrapper):
+        if isinstance(object, ObjectWrapper):
             if isinstance(object.state, cls):
                 return object.id
 
-            raise TypeError('Expected ModelWrapper created by ChannelState')
+            raise TypeError('Expected ObjectWrapper created by ChannelState')
 
-        raise TypeError('Expected Snowflake, str, int, BaseChannelModel or ModelWrapper')
+        raise TypeError('Expected Snowflake, str, int, BaseChannel or ObjectWrapper')
 
-    def get_model(self, type):
+    def get_object(self, type):
         if type is ChannelType.GUILD_CATEGORY:
             return CategoryChannel
 
@@ -53,9 +53,9 @@ class ChannelState(BaseSate):
     async def upsert(self, data):
         try:
             channel = self.get(data['id'])
-        except UnknownModelError:
-            model = self.get_model(ChannelType(data['type']))
-            channel = model.unmarshal(data, state=self)
+        except UnknownObjectError:
+            object = self.get_object(ChannelType(data['type']))
+            channel = object.unmarshal(data, state=self)
         else:
             channel.update(data)
 

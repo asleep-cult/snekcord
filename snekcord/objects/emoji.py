@@ -1,11 +1,11 @@
-from .base_models import BaseModel
+from .base import BaseObject
 from .. import json
 from ..collection import Collection
 
 __all__ = ('CustomEmoji',)
 
 
-class CustomEmoji(BaseModel):
+class CustomEmoji(BaseObject):
     name = json.JSONField('name')
     require_colons = json.JSONField('require_colons')
     managed = json.JSONField('managed')

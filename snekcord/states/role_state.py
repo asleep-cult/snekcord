@@ -1,7 +1,7 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownModelError
-from ..models import (
-    ModelWrapper,
+from ..exceptions import UnknownObjectError
+from ..objects import (
+    ObjectWrapper,
     Role,
 )
 from ..snowflake import Snowflake
@@ -25,18 +25,18 @@ class RoleState(BaseSate):
         if isinstance(object, Role):
             return object.id
 
-        if isinstance(object, ModelWrapper):
+        if isinstance(object, ObjectWrapper):
             if isinstance(object.state, cls):
                 return object.id
 
-            raise TypeError('Expected ModelWrapper created by RoleState')
+            raise TypeError('Expected ObjectWrapper created by RoleState')
 
-        raise TypeError('Expectes Snowflake, int, str, RoleModel or ModelWrapper')
+        raise TypeError('Expectes Snowflake, int, str, Role or ObjectWrapper')
 
     async def upsert(self, data):
         try:
             role = self.get(data['id'])
-        except UnknownModelError:
+        except UnknownObjectError:
             role = Role.unmarshal(data, state=self)
         else:
             role.update(data)

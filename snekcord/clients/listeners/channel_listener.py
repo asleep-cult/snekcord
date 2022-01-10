@@ -8,11 +8,11 @@ from .base_listener import (
     BaseWebSocketListener,
     WebSocketIntents,
 )
-from ...exceptions import UnknownModelError
+from ...exceptions import UnknownObjectError
 
 if TYPE_CHECKING:
     from .base_listener import WaiterFilter
-    from ...models import BaseChannel, ModelWrapper
+    from ...objects import BaseChannel, ObjectWrapper
     from ...json import JSONData
     from ..websocket_client import WebSocketClient
 
@@ -63,7 +63,7 @@ class ChannelListener(BaseWebSocketListener):
     async def dispatch_channel_delete(self, payload: JSONData) -> ChannelDeleteEvent:
         try:
             channel = self.client.channels.pop(payload['id'])
-        except UnknownModelError:
+        except UnknownObjectError:
             channel = None
 
         return ChannelDeleteEvent(channel=channel, payload=payload)
@@ -137,7 +137,7 @@ class ChannelDeleteEvent:
 class ChannelPinsUpdateEvent:
     __slots__ = ('channel', 'timestamp', 'payload')
 
-    def __init__(self, *, channel: ModelWrapper, timestamp: datetime, payload: JSONData) -> None:
+    def __init__(self, *, channel: ObjectWrapper, timestamp: datetime, payload: JSONData) -> None:
         self.channel = channel
         self.timestamp = timestamp
         self.payload = payload

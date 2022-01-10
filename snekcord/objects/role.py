@@ -1,4 +1,4 @@
-from .base_models import BaseModel
+from .base import BaseObject
 from .. import json
 
 __all__ = ('RoleTags', 'Role')
@@ -19,7 +19,7 @@ class RoleTags(json.JSONObject):
         return self.role.client
 
 
-class Role(BaseModel):
+class Role(BaseObject):
     __slots__ = ('tags',)
 
     name = json.JSONField('name')

@@ -1,8 +1,8 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownModelError
-from ..models import (
-    CustomEmojiModel,
-    ModelWrapper,
+from ..exceptions import UnknownObjectError
+from ..objects import (
+    CustomEmoji,
+    ObjectWrapper,
 )
 from ..rest.endpoints import (
     GET_GUILD_EMOJI,
@@ -26,16 +26,16 @@ class EmojiState(BaseSate):
         if isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, CustomEmojiModel):
+        if isinstance(object, CustomEmoji):
             return object.id
 
-        if isinstance(object, ModelWrapper):
+        if isinstance(object, ObjectWrapper):
             if isinstance(object.state, cls):
                 return object.id
 
-            raise TypeError('Expected ModelWrapper created by EmojiState')
+            raise TypeError('Expected ObjectWrapper created by EmojiState')
 
-        raise TypeError('Expected Snowflake, str, int. CustomEmojiModel or ModelWrapper')
+        raise TypeError('Expected Snowflake, str, int. CustomEmoji or ObjectWrapper')
 
     async def upsert(self, data):
         user = data.get('user')
@@ -44,8 +44,8 @@ class EmojiState(BaseSate):
 
         try:
             emoji = self.get(data['id'])
-        except UnknownModelError:
-            emoji = CustomEmojiModel.unmarshal(data, state=self, user=user)
+        except UnknownObjectError:
+            emoji = CustomEmoji.unmarshal(data, state=self, user=user)
         else:
             emoji.update(data)
             emoji.user = user
