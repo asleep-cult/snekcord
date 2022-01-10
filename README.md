@@ -3,21 +3,15 @@
 import asyncio
 import snekcord
 
-
-class MessageHandler(snekcord.EventHandler):
-    async def ping(self, evt: snekcord.MessageCreateEvent):
-        if evt.message.content == 'ping':
-            await evt.channel.message.create(content='pong')
+client = snekcord.WebSocketClient("Bot <TOKEN>")
 
 
-async def main():
-    client = snekcord.WebSocketClient('Bot <TOKEN>')
-
-    listener = client.create_message_listener(direct_messages=True)
-    listener.add_handler(MessageHandler())
-
-    await client.connect()
+@client.messages.on_create()
+async def message_create(evt: snekcord.MessageCreateEvent):
+    if evt.message.content == 'ping':
+        await channel.messages.create(content='pong')
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(client.connect())
 ```
