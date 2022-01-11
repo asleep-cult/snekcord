@@ -12,9 +12,12 @@ httpx = "^0.21.3"
 loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
-flake8 = "^4.0.1"
 pre-commit = "^2.16.0"
+blue = "^0.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.blue]
+line-length = 100

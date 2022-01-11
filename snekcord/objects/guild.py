@@ -111,9 +111,7 @@ class Guild(BaseObject):
     message_notifications_level = json.JSONField(
         'default_message_notifications', GuildMessageNotifications
     )
-    explicit_content_filter = json.JSONField(
-        'explicit_content_filter', GuildExplicitContentFilter
-    )
+    explicit_content_filter = json.JSONField('explicit_content_filter', GuildExplicitContentFilter)
     mfa_level = json.JSONField('mfa_level', GuildMFALevel)
     nsfw_level = json.JSONField('nsfw_level', GuildNSFWLevel)
     premium_tier = json.JSONField('premium_tier', GuildPremiumTier)

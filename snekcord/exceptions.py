@@ -15,9 +15,7 @@ class InvalidFieldError(Exception):
         self.field = field
 
     def __str__(self):
-        return (
-            f'{self.field._owner.__name__} object received invalid data for field {self.field._name!r}'  # noqa: E501
-        )
+        return f'{self.field._owner.__name__} object received invalid data for field {self.field._name!r}'  # noqa: E501
 
 
 class UnknownObjectError(LookupError):

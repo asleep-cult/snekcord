@@ -147,17 +147,10 @@ class ShardWebSocket:
         self.heartbeater = ShardHeartbeater(self)
 
     def should_reconnect(self):
-        return (
-            self._session_id is not None
-            and self._reconnect is not False
-        )
+        return self._session_id is not None and self._reconnect is not False
 
     def get_identify_properties(self):
-        return {
-            '$os': platform.system(),
-            '$browser': 'snekcord',
-            '$device': 'snekcord'
-        }
+        return {'$os': platform.system(), '$browser': 'snekcord', '$device': 'snekcord'}
 
     async def wait_for_hello(self):
         await asyncio.wait_for(self._hello_ev.wait(), timeout=30)
@@ -257,18 +250,14 @@ class ShardWebSocket:
         try:
             await self.wait_for_hello()
         except asyncio.TimeoutError:
-            await self.ws.close(
-                'WebSocket failed to send HELLO in time', code=WS_POLICY_VIOLATION
-            )
+            await self.ws.close('WebSocket failed to send HELLO in time', code=WS_POLICY_VIOLATION)
             raise ShardConnectError(self, 'WebSocket timed out while waiting for HELLO')
 
         if self.should_reconnect():
             self._reconnect = False
             await self.ws.send_resume(self.token, self._session_id, self._sequence)
         else:
-            await self.ws.send_identify(
-                self.token, self.get_identify_properties(), self.intents
-            )
+            await self.ws.send_identify(self.token, self.get_identify_properties(), self.intents)
 
         try:
             await self.wait_for_ready()
@@ -302,7 +291,7 @@ class ShardWebSocketClient(WebSocketClient):
                 'token': token,
                 'properties': properties,
                 'intents': int(intents),
-            }
+            },
         }
 
         if shard is not None:
@@ -326,7 +315,7 @@ class ShardWebSocketClient(WebSocketClient):
                 'tokens': token,
                 'session_id': session_id,
                 'seq': sequence,
-            }
+            },
         }
 
         logger.info('WebSocket sending resume payload')

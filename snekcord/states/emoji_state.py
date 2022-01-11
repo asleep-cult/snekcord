@@ -59,9 +59,7 @@ class EmojiState(BaseSate):
     async def fetch(self, emoji):
         emoji_id = self.unwrap_id(emoji)
 
-        data = await self.client.request(
-            GET_GUILD_EMOJI, guild_id=self.guild.id, emoji_id=emoji_id
-        )
+        data = await self.client.request(GET_GUILD_EMOJI, guild_id=self.guild.id, emoji_id=emoji_id)
         assert isinstance(data, dict)
 
         return await self.upsert(data)

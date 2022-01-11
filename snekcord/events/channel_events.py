@@ -21,9 +21,7 @@ class ChannelEventType(str, enum.Enum):
 class ChannelCreateEvent(BaseEvent):
     __slots__ = ('channel',)
 
-    def __init__(
-        self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel
-    ) -> None:
+    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -38,9 +36,7 @@ class ChannelCreateEvent(BaseEvent):
 class ChannelUpdateEvent(BaseEvent):
     __slots__ = ('channel',)
 
-    def __init__(
-        self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel
-    ) -> None:
+    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -55,9 +51,7 @@ class ChannelUpdateEvent(BaseEvent):
 class ChannelDeleteEvent(BaseEvent):
     __slots__ = ('channel',)
 
-    def __init__(
-        self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel
-    ) -> None:
+    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 

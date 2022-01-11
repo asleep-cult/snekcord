@@ -28,10 +28,7 @@ class Collection:
         if self is other:
             return True
 
-        return (
-            self._map == other._map
-            and self._keys == other._keys
-        )
+        return self._map == other._map and self._keys == other._keys
 
     @recursive_repr('Collection({...})')
     def __repr__(self):
@@ -184,9 +181,7 @@ class CollectionValuesView:
         if self._collection is other._collection:
             return True
 
-        return all(
-            self._collection[i] == other._collection[i] for i in range(len(self))
-        )
+        return all(self._collection[i] == other._collection[i] for i in range(len(self)))
 
 
 class CollectionItemsView:
@@ -207,10 +202,7 @@ class CollectionItemsView:
             yield key, value
 
     def __contains__(self, item):
-        if (
-            not isinstance(item, tuple)
-            or len(item) != 2
-        ):
+        if not isinstance(item, tuple) or len(item) != 2:
             return False
 
         try:

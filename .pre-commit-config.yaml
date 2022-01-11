@@ -1,12 +1,12 @@
 repos:
   - repo: local
     hooks:
-      - id: flake8
-        name: Flake8
-        description: Runs flake8 to lint the files.
+      - id: blue
+        name: Blue
+        description: Runs blue to format the files.
         language: system
         types: [python]
-        entry: poetry run flake8
+        entry: poetry run blue ./snekcord
         require_serial: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
