@@ -18,13 +18,11 @@ class JSONBuilder(dict):
 
             self[key] = value
         else:
-            if value is undefined:
-                return
+            if value is not undefined:
+                if value is not None:
+                    value = transformer(value)
 
-            if transformer is not None:
-                value = transformer(value)
-
-            self[key] = value
+                self[key] = value
 
     def set_array(self, key, values, *, nullable=False, transformer=None):
         if transformer is not None:
