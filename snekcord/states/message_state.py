@@ -1,3 +1,5 @@
+from typing import Iterable, Optional, TYPE_CHECKING, Union
+
 from .base_state import BaseSate
 from ..builders import JSONBuilder
 from ..epochs import MessageEpoch
@@ -15,7 +17,12 @@ from ..rest.endpoints import (
     GET_CHANNEL_MESSAGES,
 )
 from ..snowflake import Snowflake
-from ..undefined import undefined
+from ..undefined import MaybeUndefined, undefined
+
+if TYPE_CHECKING:
+    from ..json import JSONData
+
+MessageUnwrappable = Union[Snowflake, Message, str, int, ObjectWrapper]
 
 __all__ = ('MessageState',)
 
@@ -26,7 +33,7 @@ class MessageState(BaseSate):
         self.channel = channel
 
     @classmethod
-    def unwrap_id(cls, object) -> Snowflake:
+    def unwrap_id(cls, object: MessageUnwrappable) -> Snowflake:
         """Converts an object into a message id.
 
         Raises:
@@ -50,7 +57,7 @@ class MessageState(BaseSate):
 
         raise TypeError('Expected Snowflake, int, str, Message or ObjectWrapper')
 
-    async def upsert(self, data):
+    async def upsert(self, data: JSONData) -> Message:
         """Creates or otherwise updates a message and adds it to the state's cache.
 
         !!! note
@@ -91,7 +98,7 @@ class MessageState(BaseSate):
 
         return message
 
-    async def fetch(self, message):
+    async def fetch(self, message: MessageUnwrappable) -> Message:
         """Retrieves the message with the corresponding id from Discord."""
         message_id = self.unwrap_id(message)
 
@@ -102,7 +109,7 @@ class MessageState(BaseSate):
 
         return await self.upsert(data)
 
-    async def fetch_many(self, epoch=None, *, limit=100):
+    async def fetch_many(self, epoch: Optional[MessageEpoch] = None, *, limit: int = 100):
         params = JSONBuilder()
 
         if epoch is not None:
@@ -125,15 +132,15 @@ class MessageState(BaseSate):
     async def create(
         self,
         *,
-        content=undefined,
-        tts=undefined,
+        content: MaybeUndefined[str] = undefined,
+        tts: MaybeUndefined[bool] = undefined,
         embeds=undefined,
-        mentions=undefined,
+        mentions: MaybeUndefined[MessageMentions] = undefined,
         reference=undefined,
         components=undefined,
         stickers=undefined,
         attachments=undefined,
-    ):
+    ) -> Message:
         body = JSONBuilder()
 
         body.str('content', content)
@@ -158,11 +165,11 @@ class MessageState(BaseSate):
 
         return await self.upsert(data)
 
-    async def delete(self, message) -> None:
+    async def delete(self, message: MessageUnwrappable) -> None:
         message_id = self.unwrap_id(message)
         await self.client.rest.request(DELETE_CHANNEL_MESSAGE, message_id=message_id)
 
-    async def delete_many(self, messages) -> None:
+    async def delete_many(self, messages: Iterable[MessageUnwrappable]) -> None:
         message_ids = set()
         for message in messages:
             message_ids.add(self.unwrap_id(message))

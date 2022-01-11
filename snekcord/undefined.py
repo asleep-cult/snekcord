@@ -1,12 +1,16 @@
+import enum
+from typing import TypeVar, Union
+
+
 __all__ = ('undefined',)
 
-
-class UndefinedType:
-    def __repr__(self):
-        return '<undefined>'
-
-    def __bool__(self):
-        return False
+T = TypeVar('T')
 
 
-undefined = UndefinedType()
+class UndefinedType(enum.Enum):
+    undefined = enum.auto()
+
+
+undefined = UndefinedType.undefined
+
+MaybeUndefined = Union[undefined, T]
