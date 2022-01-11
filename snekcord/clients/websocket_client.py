@@ -5,26 +5,13 @@ import socket
 from loguru import logger
 
 from .client import Client
-from .listeners import (
-    ChannelEvent,
-    ChannelListener,
-    GuildEvent,
-    GuildListener,
-    WebSocketIntents,
-    WebSocketListener,
-)
-from ..exceptions import UnknownListenerError
 from ..rest.endpoints import (
     GET_GATEWAY,
     GET_GATEWAY_BOT,
 )
 from ..websockets.shard_websocket import ShardWebSocket
 
-__all__ = (
-    'WebSocketIntents',
-    'WebSocketListener',
-    'WebSocketClient',
-)
+__all__ = ('WebSocketClient',)
 
 
 class WebSocketClient(Client):
@@ -40,7 +27,6 @@ class WebSocketClient(Client):
             self.shard_ids = None
 
         self._shards = {}
-        self._listeners = {}
         self._events = {}
 
     def get_intents(self):
@@ -52,42 +38,6 @@ class WebSocketClient(Client):
             raise ValueError(f'Invalid shard id: {shard_id!r}')
 
         return self._shards[shard_id]
-
-    def create_channel_listener(self, *, direct_messages=False):
-        listener = ChannelListener(client=self)
-        self._listeners[WebSocketListener.CHANNEL_EVENTS] = listener
-
-        if direct_messages:
-            listener.enable_direct_messages()
-
-        for event in ChannelEvent:
-            self._events[event] = listener
-
-        return listener
-
-    def create_guild_listener(self):
-        listener = GuildListener(client=self)
-        self._listeners[WebSocketListener.GUILD_EVENTS] = listener
-
-        for event in GuildEvent:
-            self._events[event] = listener
-
-        return listener
-
-    def get_listener(self, type):
-        try:
-            return self._listeners[type]
-        except KeyError:
-            raise UnknownListenerError(type) from None
-
-    def get_channel_listener(self):
-        return self.get_listener(WebSocketListener.CHANNEL_EVENTS)
-
-    def get_guild_listener(self):
-        return self.get_listener(WebSocketListener.GUILD_EVENTS)
-
-    def get_listener_for(self, event: str):
-        return self._events.get(event)
 
     async def fetch_gateway(self):
         if self.authorization.is_bot():
