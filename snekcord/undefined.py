@@ -13,4 +13,4 @@ class UndefinedType(enum.Enum):
 
 undefined = UndefinedType.undefined
 
-MaybeUndefined = Union[undefined, T]
+MaybeUndefined = Union[UndefinedType, T]
