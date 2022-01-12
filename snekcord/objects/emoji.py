@@ -6,15 +6,17 @@ __all__ = ('CustomEmoji',)
 
 
 class CustomEmoji(BaseObject):
+    __slots__ = ('user', 'roles')
+
     name = json.JSONField('name')
     require_colons = json.JSONField('require_colons')
     managed = json.JSONField('managed')
     animated = json.JSONField('animated')
     available = json.JSONField('available')
 
-    def __init__(self, *, state, user) -> None:
+    def __init__(self, *, state) -> None:
         super().__init__(state=state)
-        self.user = user
+        self.user = None
         self.roles = Collection()
 
     def __str__(self) -> str:
@@ -27,9 +29,12 @@ class CustomEmoji(BaseObject):
     def guild(self):
         return self.state.guild
 
+    async def _update_user(self, data):
+        self.user = await self.client.users.upsert(data)
+
     def _update_roles(self, roles):
         self.roles.clear()
 
         for role in roles:
             wrapper = self.guild.roles.wrap_id(role)
-            self.roles.set(wrapper.id, wrapper)
+            self.roles[wrapper.id] = wrapper

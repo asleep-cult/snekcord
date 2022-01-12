@@ -5,7 +5,6 @@ from typing import Iterable, Optional, TYPE_CHECKING, Union
 from .base_state import BaseSate
 from ..builders import JSONBuilder
 from ..epochs import MessageEpoch
-from ..exceptions import UnknownObjectError
 from ..mentions import MessageMentions
 from ..objects import (
     Message,
@@ -65,25 +64,19 @@ class MessageState(BaseSate):
         !!! note
             The member slot will not be propagated if the guild is not cached.
         """
-        author = data.get('author')
-        if author is not None:
-            author = await self.client.users.upsert(author)
-
-        member = data.get('member')
-        if member is not None:
-            try:
-                guild = self.channel.guild.unwrap()
-            except UnknownObjectError:
-                member = None
-            else:
-                member = await guild.members.upsert(member)
-
         message = self.get(data['id'])
         if message is not None:
             message.update(data)
-            message.author, message.member = author, member
         else:
-            message = Message.unmarshal(data, state=self, author=author, member=member)
+            message = Message.unmarshal(data, state=self)
+
+        author = data.get('author')
+        if author is not None:
+            await message._update_author(author)
+
+        member = data.get('member')
+        if member is not None:
+            await message._update_member(member)
 
         guild_id = data.get('guild_id')
         if guild_id is not None:

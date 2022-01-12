@@ -37,16 +37,15 @@ class EmojiState(BaseSate):
         raise TypeError('Expected Snowflake, str, int. CustomEmoji or ObjectWrapper')
 
     async def upsert(self, data):
-        user = data.get('user')
-        if user is not None:
-            user = await self.client.users.upsert(user)
-
         emoji = self.get(data['id'])
         if emoji is not None:
             emoji.update(data)
-            emoji.user = user
         else:
-            emoji = CustomEmoji.unmarshal(data, state=self, user=user)
+            emoji = CustomEmoji.unmarshal(data, state=self)
+
+        user = data.get('user')
+        if user is not None:
+            await emoji._update_user(user)
 
         roles = data.get('roles')
         if roles is not None:

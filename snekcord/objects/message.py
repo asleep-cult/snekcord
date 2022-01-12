@@ -3,6 +3,7 @@ from datetime import datetime
 
 from .base import BaseObject
 from .. import json
+from ..exceptions import UnknownObjectError
 
 __all__ = ('MessageType', 'MessageFlags', 'Message')
 
@@ -65,10 +66,10 @@ class Message(BaseObject):
     # components
     # sticker_items
 
-    def __init__(self, *, state, author, member):
+    def __init__(self, *, state):
         super().__init__(state=state)
-        self.author = author
-        self.member = member
+        self.author = None
+        self.member = None
         self.webhook = self.client.webhooks.wrap_id(None)
         self.application = self.client.applications.wrap_id(None)
 
@@ -79,3 +80,14 @@ class Message(BaseObject):
     @property
     def guild(self):
         return self.channel.guild
+
+    async def _update_author(self, data):
+        self.author = await self.client.users.upsert(data)
+
+    async def _update_member(self, data):
+        try:
+            guild = self.guild.unwrap()
+        except UnknownObjectError:
+            self.member = None
+        else:
+            self.member = await guild.members.upsert(data)
