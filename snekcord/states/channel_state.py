@@ -1,5 +1,4 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownObjectError
 from ..objects import (
     BaseChannel,
     CategoryChannel,
@@ -51,13 +50,12 @@ class ChannelState(BaseSate):
         return BaseChannel
 
     async def upsert(self, data):
-        try:
-            channel = self.get(data['id'])
-        except UnknownObjectError:
+        channel = self.get(data['id'])
+        if channel is not None:
+            channel.update(data)
+        else:
             object = self.get_object(ChannelType(data['type']))
             channel = object.unmarshal(data, state=self)
-        else:
-            channel.update(data)
 
         if isinstance(channel, GuildChannel):
             guild_id = data.get('guild_id')

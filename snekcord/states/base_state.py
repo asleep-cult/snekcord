@@ -1,5 +1,4 @@
 from ..collection import Collection
-from ..exceptions import UnknownObjectError
 from ..objects import ObjectWrapper
 
 __all__ = ('BaseSate',)
@@ -40,22 +39,10 @@ class BaseSate:
         Raises:
             CacheLookupError: The object does not exist in the state's cache.
         """
-        id = self.unwrap_id(object)
-
-        object = self.cache.get(id)
-        if object is None:
-            raise UnknownObjectError(id) from None
-
-        return object
+        return self.cache.get(self.unwrap_id(object))
 
     def pop(self, object):
-        id = self.unwrap_id(object)
-
-        object = self.cache.pop(id, None)
-        if object is None:
-            raise UnknownObjectError(id)
-
-        return object
+        return self.cache.pop(self.unwrap_id(object))
 
     async def upsert(self, data):
         raise NotImplementedError

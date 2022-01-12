@@ -1,4 +1,5 @@
 from .. import json
+from ..exceptions import UnknownObjectError
 from ..snowflake import Snowflake
 
 __all__ = ('BaseObject', 'ObjectWrapper')
@@ -51,9 +52,11 @@ class BaseObject(json.JSONObject, _ObjectMixin):
 class ObjectWrapper(_ObjectMixin):
     """A wrapper for an object that might not be cached.
 
-    state: The state that the wrapped object belongs to.
+    state:
+        The state that the wrapped object belongs to.
 
-    id: The id of the wrapped object.
+    id:
+        The id of the wrapped object.
     """
 
     __slots__ = ('__weakref__', 'state', 'id')
@@ -77,4 +80,9 @@ class ObjectWrapper(_ObjectMixin):
 
     def unwrap(self):
         """Eqivalent to `self.state.get(self.id)`."""
-        return self.state.get(self.id)
+        object = self.state.get(self.id)
+
+        if object is None:
+            raise UnknownObjectError(self.id)
+
+        return object

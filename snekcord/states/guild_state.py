@@ -1,5 +1,4 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownObjectError
 from ..objects import (
     Guild,
     ObjectWrapper,
@@ -33,12 +32,11 @@ class GuildState(BaseSate):
         raise TypeError('Expected Snowflake, int, str, Guild or ObjectWrapper')
 
     async def upsert(self, data):
-        try:
-            guild = self.get(data['id'])
-        except UnknownObjectError:
-            guild = Guild.unmarshal(data, state=self)
-        else:
+        guild = self.get(data['id'])
+        if guild is not None:
             guild.update(data)
+        else:
+            guild = Guild.unmarshal(data, state=self)
 
         owner_id = data.get('owner_id')
         if owner_id is not None:

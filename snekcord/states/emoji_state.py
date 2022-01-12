@@ -1,5 +1,4 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownObjectError
 from ..objects import (
     CustomEmoji,
     ObjectWrapper,
@@ -42,13 +41,12 @@ class EmojiState(BaseSate):
         if user is not None:
             user = await self.client.users.upsert(user)
 
-        try:
-            emoji = self.get(data['id'])
-        except UnknownObjectError:
-            emoji = CustomEmoji.unmarshal(data, state=self, user=user)
-        else:
+        emoji = self.get(data['id'])
+        if emoji is not None:
             emoji.update(data)
             emoji.user = user
+        else:
+            emoji = CustomEmoji.unmarshal(data, state=self, user=user)
 
         roles = data.get('roles')
         if roles is not None:

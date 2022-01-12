@@ -78,13 +78,12 @@ class MessageState(BaseSate):
             else:
                 member = await guild.members.upsert(member)
 
-        try:
-            message = self.get(data['id'])
-        except UnknownObjectError:
-            message = Message.unmarshal(data, state=self, author=author, member=member)
-        else:
+        message = self.get(data['id'])
+        if message is not None:
             message.update(data)
             message.author, message.member = author, member
+        else:
+            message = Message.unmarshal(data, state=self, author=author, member=member)
 
         guild_id = data.get('guild_id')
         if guild_id is not None:

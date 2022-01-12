@@ -1,5 +1,4 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownObjectError
 from ..objects import (
     ObjectWrapper,
     Role,
@@ -34,12 +33,11 @@ class RoleState(BaseSate):
         raise TypeError('Expectes Snowflake, int, str, Role or ObjectWrapper')
 
     async def upsert(self, data):
-        try:
-            role = self.get(data['id'])
-        except UnknownObjectError:
-            role = Role.unmarshal(data, state=self)
-        else:
+        role = self.get(data['id'])
+        if role is not None:
             role.update(data)
+        else:
+            role = Role.unmarshal(data, state=self)
 
         tags = data.get('tags')
         if tags is not None:

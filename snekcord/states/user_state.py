@@ -1,5 +1,4 @@
 from .base_state import BaseSate
-from ..exceptions import UnknownObjectError
 from ..objects import (
     ObjectWrapper,
     User,
@@ -33,12 +32,11 @@ class UserState(BaseSate):
         raise TypeError('Expected Snowflake, int, str, User or ObjectWrapper')
 
     async def upsert(self, data):
-        try:
-            user = self.get(data['id'])
-        except UnknownObjectError:
-            user = User.unmarshal(data, state=self)
-        else:
+        user = self.get(data['id'])
+        if user is not None:
             user.update(data)
+        else:
+            user = User.unmarshal(data, state=self)
 
         return user
 
