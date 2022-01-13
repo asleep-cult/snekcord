@@ -1,4 +1,18 @@
-from .base_state import BaseSate
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from .base_state import BaseCachedState
+from ..events import (
+    BaseEvent,
+    GuildAvailableEvent,
+    GuildDeleteEvent,
+    GuildEvent,
+    GuildJoinEvent,
+    GuildReceiveEvent,
+    GuildUpdateEvent,
+)
+from ..intents import WebSocketIntents
 from ..objects import (
     Guild,
     ObjectWrapper,
@@ -8,10 +22,14 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 
+if TYPE_CHECKING:
+    from ..json import JSONData
+    from ..websockets import ShardWebSocket
+
 __all__ = ('GuildState',)
 
 
-class GuildState(BaseSate):
+class GuildState(BaseCachedState):
     @classmethod
     def unwrap_id(cls, object):
         if isinstance(object, Snowflake):
@@ -77,3 +95,56 @@ class GuildState(BaseSate):
         assert isinstance(data, dict)
 
         return await self.upsert(data)
+
+    def on_join(self):
+        return self.on(GuildEvent.JOIN)
+
+    def on_available(self):
+        return self.on(GuildEvent.AVAILABLE)
+
+    def on_receive(self):
+        return self.on(GuildEvent.RECEIVE)
+
+    def on_update(self):
+        return self.on(GuildEvent.UPDATE)
+
+    def on_delete(self):
+        return self.on(GuildEvent.DELETE)
+
+    def on_unavailable(self):
+        return self.on(GuildEvent.UNAVAILABLE)
+
+    def get_events(self) -> type[GuildEvent]:
+        return GuildEvent
+
+    def get_intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
+
+    async def process_event(
+        self, shard: ShardWebSocket, event: str, payload: JSONData
+    ) -> BaseEvent:
+        event = self.cast_event(event)
+
+        if event is GuildEvent.JOIN:
+            guild = await self.upsert(payload)
+            return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvent.AVAILABLE:
+            guild = await self.upsert(payload)
+            return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvent.RECEIVE:
+            guild = await self.upsert(payload)
+            return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvent.UPDATE:
+            guild = await self.upsert(payload)
+            return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvent.DELETE:
+            try:
+                guild = self.pop(payload['id'])
+            except KeyError:
+                guild = None
+
+            return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)

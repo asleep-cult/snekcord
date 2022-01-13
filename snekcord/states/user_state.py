@@ -1,4 +1,4 @@
-from .base_state import BaseSate
+from .base_state import BaseCachedState
 from ..objects import (
     ObjectWrapper,
     User,
@@ -11,7 +11,7 @@ from ..snowflake import Snowflake
 __all__ = ('UserState',)
 
 
-class UserState(BaseSate):
+class UserState(BaseCachedState):
     @classmethod
     def unwrap_id(cls, object) -> Snowflake:
         if isinstance(object, Snowflake):

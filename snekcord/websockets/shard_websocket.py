@@ -128,7 +128,7 @@ class ShardWebSocket:
 
     @property
     def intents(self):
-        return self.client.get_intents()
+        return self.client.intents
 
     @property
     def loop(self):
@@ -220,11 +220,11 @@ class ShardWebSocket:
                 else:
                     self._guild_states.pop(guild_id, None)
 
-            listener = self.client.get_listener_for(event)
-            if listener is not None:
-                await listener.dispatch(event, data)
+            state = self.client.get_state_for(event)
+            if state is not None:
+                await state.dispatch(event, self, data)
             else:
-                logger.debug(f'WebSocket received unknown event {event!r}')
+                logger.debug(f'WebSocket received unhandled event {event!r}')
 
     async def on_reconnect(self):
         await self.ws.close('WebSocket requested reconnect', code=WS_NORMAL_CLOSURE)

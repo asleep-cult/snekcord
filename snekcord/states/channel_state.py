@@ -1,4 +1,18 @@
-from .base_state import BaseSate
+from __future__ import annotations
+
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from .base_state import BaseCachedState
+from ..events import (
+    BaseEvent,
+    ChannelCreateEvent,
+    ChannelDeleteEvent,
+    ChannelEvent,
+    ChannelPinsUpdateEvent,
+    ChannelUpdateEvent,
+)
+from ..intents import WebSocketIntents
 from ..objects import (
     BaseChannel,
     CategoryChannel,
@@ -11,10 +25,14 @@ from ..objects import (
 )
 from ..snowflake import Snowflake
 
+if TYPE_CHECKING:
+    from ..json import JSONData
+    from ..websockets import ShardWebSocket
+
 __all__ = ('ChannelState',)
 
 
-class ChannelState(BaseSate):
+class ChannelState(BaseCachedState):
     @classmethod
     def unwrap_id(cls, object) -> Snowflake:
         if isinstance(object, Snowflake):
@@ -34,7 +52,7 @@ class ChannelState(BaseSate):
 
         raise TypeError('Expected Snowflake, str, int, BaseChannel or ObjectWrapper')
 
-    def get_object(self, type):
+    def get_type(self, type):
         if type is ChannelType.GUILD_CATEGORY:
             return CategoryChannel
 
@@ -54,8 +72,8 @@ class ChannelState(BaseSate):
         if channel is not None:
             channel.update(data)
         else:
-            object = self.get_object(ChannelType(data['type']))
-            channel = object.unmarshal(data, state=self)
+            type = self.get_type(ChannelType(data['type']))
+            channel = type.unmarshal(data, state=self)
 
         if isinstance(channel, GuildChannel):
             guild_id = data.get('guild_id')
@@ -63,3 +81,53 @@ class ChannelState(BaseSate):
                 channel.guild.set_id(guild_id)
 
         return channel
+
+    def on_create(self):
+        return self.on(ChannelEvent.CREATE)
+
+    def on_update(self):
+        return self.on(ChannelEvent.UPDATE)
+
+    def on_delete(self):
+        return self.on(ChannelEvent.DELETE)
+
+    def on_pins_update(self):
+        return self.on(ChannelEvent.PINS_UPDATE)
+
+    def get_events(self) -> type[ChannelEvent]:
+        return ChannelEvent
+
+    def get_intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
+
+    async def process_event(
+        self, event: str, shard: ShardWebSocket, payload: JSONData
+    ) -> BaseEvent:
+        event = self.cast_event(event)
+
+        if event is ChannelEvent.CREATE:
+            channel = await self.upsert(payload)
+            return ChannelCreateEvent(shard=shard, payload=payload, channel=channel)
+
+        if event is ChannelEvent.UPDATE:
+            channel = await self.upsert(payload)
+            return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
+
+        if event is ChannelEvent.DELETE:
+            try:
+                channel = self.pop(payload['id'])
+            except KeyError:
+                channel = None
+
+            return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
+
+        if event is ChannelEvent.PINS_UPDATE:
+            channel = self.wrap_id(payload['channel_id'])
+
+            timestamp = payload.get('timestamp')
+            if timestamp is not None:
+                timestamp = datetime.fromisoformat(timestamp)
+
+            return ChannelPinsUpdateEvent(
+                shard=shard, payload=payload, channel=channel, timestmap=timestamp
+            )

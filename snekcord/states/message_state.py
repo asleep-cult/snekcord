@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable, Optional, TYPE_CHECKING, Union
 
-from .base_state import BaseSate
+from .base_state import BaseCachedState
 from ..builders import JSONBuilder
 from ..epochs import MessageEpoch
 from ..mentions import MessageMentions
@@ -28,7 +28,7 @@ MessageUnwrappable = Union[Snowflake, Message, str, int, ObjectWrapper]
 __all__ = ('MessageState',)
 
 
-class MessageState(BaseSate):
+class MessageState(BaseCachedState):
     def __init__(self, *, client, channel) -> None:
         super().__init__(client=client)
         self.channel = channel
