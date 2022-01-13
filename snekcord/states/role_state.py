@@ -1,4 +1,4 @@
-from .base_state import BaseSate
+from .base_state import BaseState
 from ..objects import (
     ObjectWrapper,
     Role,
@@ -8,7 +8,7 @@ from ..snowflake import Snowflake
 __all__ = ('RoleState',)
 
 
-class RoleState(BaseSate):
+class RoleState(BaseState):
     def __init__(self, *, client, guild) -> None:
         super().__init__(client=client)
         self.guild = guild

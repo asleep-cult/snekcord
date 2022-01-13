@@ -1,4 +1,19 @@
-from .base_state import BaseSate
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from .base_state import (
+    BaseState,
+    StateCacheMixin,
+)
+from ..events import (
+    GuildAvailableEvent,
+    GuildDeleteEvent,
+    GuildEvent,
+    GuildJoinEvent,
+    GuildReceiveEvent,
+    GuildUpdateEvent,
+)
 from ..objects import (
     Guild,
     ObjectWrapper,
@@ -8,10 +23,14 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 
+if TYPE_CHECKING:
+    from ..json import JSONData
+    from ..websockets import ShardWebSocket
+
 __all__ = ('GuildState',)
 
 
-class GuildState(BaseSate):
+class GuildState(BaseState, StateCacheMixin):
     @classmethod
     def unwrap_id(cls, object):
         if isinstance(object, Snowflake):
@@ -77,3 +96,50 @@ class GuildState(BaseSate):
         assert isinstance(data, dict)
 
         return await self.upsert(data)
+
+    def get_events(self) -> type[GuildEvent]:
+        return GuildEvent
+
+    def on_join(self):
+        return self.on(GuildEvent.JOIN)
+
+    def on_available(self):
+        return self.on(GuildEvent.AVAILABLE)
+
+    def on_receive(self):
+        return self.on(GuildEvent.RECEIVE)
+
+    def on_update(self):
+        return self.on(GuildEvent.UPDATE)
+
+    def on_delete(self):
+        return self.on(GuildEvent.DELETE)
+
+    def on_unavailable(self):
+        return self.on(GuildEvent.UNAVAILABLE)
+
+    async def dispatch_join(self, shard: ShardWebSocket, payload: JSONData) -> GuildJoinEvent:
+        guild = await self.upsert(payload)
+        return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
+
+    async def dispatch_available(
+        self, shard: ShardWebSocket, payload: JSONData
+    ) -> GuildAvailableEvent:
+        guild = await self.upsert(payload)
+        return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
+
+    async def dispatch_receive(self, shard: ShardWebSocket, payload: JSONData) -> GuildReceiveEvent:
+        guild = await self.upsert(payload)
+        return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
+
+    async def dispatch_update(self, shard: ShardWebSocket, payload: JSONData) -> GuildUpdateEvent:
+        guild = await self.upsert(payload)
+        return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
+
+    async def dispatch_delete(self, shard: ShardWebSocket, payload: JSONData) -> GuildDeleteEvent:
+        try:
+            guild = self.pop(payload['id'])
+        except KeyError:
+            guild = None
+
+        return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)

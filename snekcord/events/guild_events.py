@@ -8,8 +8,18 @@ if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
+__all__ = (
+    'GuildEvent',
+    'GuildJoinEvent',
+    'GuildAvailableEvent',
+    'GuildReceiveEvent',
+    'GuildUpdateEvent',
+    'GuildDeleteEvent',
+    'GuildUnavailableEvent',
+)
 
-class GuildEventType(str, enum.Enum):
+
+class GuildEvent(str, enum.Enum):
     JOIN = 'GUILD_JOIN'
     AVAILABLE = 'GUILD_AVAILABLE'
     RECEIVE = 'GUILD_RECEIVE'
@@ -26,8 +36,8 @@ class GuildJoinEvent(BaseEvent):
         self.guild = guild
 
     @staticmethod
-    def get_type() -> GuildEventType:
-        return GuildEventType.JOIN
+    def get_type() -> GuildEvent:
+        return GuildEvent.JOIN
 
     def __repr__(self) -> str:
         return f'<GuildJoinEvent guild={self.guild!r}>'
@@ -41,8 +51,8 @@ class GuildAvailableEvent(BaseEvent):
         self.guild = guild
 
     @staticmethod
-    def get_type() -> GuildEventType:
-        return GuildEventType.AVAILABLE
+    def get_type() -> GuildEvent:
+        return GuildEvent.AVAILABLE
 
     def __repr__(self) -> str:
         return f'<GuildAvailableEvent guild={self.guild!r}>'
@@ -56,8 +66,8 @@ class GuildReceiveEvent(BaseEvent):
         self.guild = guild
 
     @staticmethod
-    def get_type() -> GuildEventType:
-        return GuildEventType.RECEIVE
+    def get_type() -> GuildEvent:
+        return GuildEvent.RECEIVE
 
     def __repr__(self) -> str:
         return f'<GuildReceiveEvent guild={self.guild!r}>'
@@ -71,8 +81,8 @@ class GuildUpdateEvent(BaseEvent):
         self.guild = guild
 
     @staticmethod
-    def get_type() -> GuildEventType:
-        return GuildEventType.UPDATE
+    def get_type() -> GuildEvent:
+        return GuildEvent.UPDATE
 
     def __repr__(self) -> str:
         return f'<GuildUpdateEvent guild={self.guild!r}>'
@@ -86,8 +96,8 @@ class GuildDeleteEvent(BaseEvent):
         self.guild = guild
 
     @staticmethod
-    def get_type() -> GuildEventType:
-        return GuildEventType.DELETE
+    def get_type() -> GuildEvent:
+        return GuildEvent.DELETE
 
     def __repr__(self) -> str:
         return f'<GuildDeleteEvent guild={self.guild!r}>'
@@ -101,8 +111,8 @@ class GuildUnavailableEvent(BaseEvent):
         self.guild = guild
 
     @staticmethod
-    def get_type() -> GuildEventType:
-        return GuildEventType.UNAVAILABLE
+    def get_type() -> GuildEvent:
+        return GuildEvent.UNAVAILABLE
 
     def __repr__(self) -> str:
         return f'<GuildUnavailableEvent guild={self.guild!r}>'

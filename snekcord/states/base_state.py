@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import asyncio
 import enum
 import inspect
 from collections import defaultdict
@@ -8,6 +11,7 @@ from ..objects import ObjectWrapper
 
 if TYPE_CHECKING:
     from ..json import JSONData
+    from ..websockets import ShardWebSocket
     from ..clients.client import Client
 
 __all__ = ('BaseState',)
@@ -17,7 +21,8 @@ class StateCacheMixin:
     def __init__(self):
         self.cache = Collection()
 
-    def unwrap_id(self, object):
+    @classmethod
+    def unwrap_id(cls, object):
         raise NotImplementedError
 
     def __contains__(self, object) -> bool:
@@ -50,13 +55,14 @@ class BaseState:
     def _get_client(self) -> Client:
         return self.client
 
-    def unwrap_id(self, object):
+    @classmethod
+    def unwrap_id(cls, object):
         raise NotImplementedError
 
     def wrap_id(self, object):
         return ObjectWrapper(state=self, id=object)
 
-    def get_events(self) -> enum.Enum:
+    def get_events(self) -> type[enum.Enum]:
         raise NotImplementedError
 
     def cast_event(self, event: str) -> enum.Enum:
@@ -66,15 +72,18 @@ class BaseState:
         event = self.cast_event()
 
         def decorator(func):
+            if not asyncio.iscoroutinefunction(func):
+                raise TypeError('The callback should be a coroutine function.')
+
             self._callbacks[event].append(func)
 
         return decorator
 
-    async def dispatch(self, event: str, payload: JSONData) -> None:
+    async def dispatch(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
         event = self.cast_event(event)
 
         dispatcher = self._dispatchers[event.name]
-        ret = await dispatcher(payload)
+        ret = await dispatcher(shard, payload)
 
         for callback in self._callbacks[event]:
             self.client.loop.create_task(callback(ret))

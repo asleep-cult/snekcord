@@ -4,7 +4,6 @@ if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
-
 __all__ = ('BaseEvent',)
 
 

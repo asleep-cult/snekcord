@@ -6,12 +6,20 @@ from .base_events import BaseEvent
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from ..objects import BaseChannel
+    from ..objects import BaseChannel, ObjectWrapper
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
+__all__ = (
+    'ChannelEvent',
+    'ChannelCreateEvent',
+    'ChannelUpdateEvent',
+    'ChannelDeleteEvent',
+    'ChannelPinsUpdateEvent',
+)
 
-class ChannelEventType(str, enum.Enum):
+
+class ChannelEvent(str, enum.Enum):
     CREATE = 'CHANNEL_DELETE'
     UPDATE = 'CHANNEL_UPDATE'
     DELETE = 'CHANNEL_DELETE'
@@ -26,8 +34,8 @@ class ChannelCreateEvent(BaseEvent):
         self.channel = channel
 
     @staticmethod
-    def get_type() -> ChannelEventType:
-        return ChannelEventType.CREATE
+    def get_type() -> ChannelEvent:
+        return ChannelEvent.CREATE
 
     def __repr__(self) -> str:
         return f'<ChannelCreateEvent channel={self.channel!r}>'
@@ -41,8 +49,8 @@ class ChannelUpdateEvent(BaseEvent):
         self.channel = channel
 
     @staticmethod
-    def get_type() -> ChannelEventType:
-        return ChannelEventType.UPDATE
+    def get_type() -> ChannelEvent:
+        return ChannelEvent.UPDATE
 
     def __repr__(self) -> str:
         return f'<ChannelUpdateEvent channel={self.channel!r}>'
@@ -56,8 +64,8 @@ class ChannelDeleteEvent(BaseEvent):
         self.channel = channel
 
     @staticmethod
-    def get_type() -> ChannelEventType:
-        return ChannelEventType.DELETE
+    def get_type() -> ChannelEvent:
+        return ChannelEvent.DELETE
 
     def __repr__(self) -> str:
         return f'<ChannelDeleteEvent channel={self.channel!r}>'
@@ -67,15 +75,20 @@ class ChannelPinsUpdateEvent(BaseEvent):
     __slots__ = ('channel', 'timestamp')
 
     def __init__(
-        self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel, timestamp: datetime
+        self,
+        *,
+        shard: ShardWebSocket,
+        payload: JSONData,
+        channel: ObjectWrapper,
+        timestamp: datetime,
     ) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
         self.timestamp = timestamp
 
     @staticmethod
-    def get_type() -> ChannelEventType:
-        return ChannelEventType.PINS_UPDATE
+    def get_type() -> ChannelEvent:
+        return ChannelEvent.PINS_UPDATE
 
     def __repr__(self) -> str:
         return f'<ChannelPinsUpdateEvent channel={self.channel!r} timestamp={self.timestamp!r}>'
