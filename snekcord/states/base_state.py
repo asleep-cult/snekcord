@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import enum
-import inspect
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
@@ -23,11 +22,6 @@ class BaseState:
         self.client = client
         self._callbacks = defaultdict(list)
         self._waiters = defaultdict(list)
-
-        self._dispatchers = {}
-        for name, func in inspect.getmembers(self):
-            if name.startswith('dispatch_'):
-                self._dispatchers[name[9:].upper()] = func
 
     @classmethod
     def unwrap_id(cls, object):
@@ -59,11 +53,11 @@ class BaseState:
 
         return decorator
 
-    async def dispatch(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
-        event = self.cast_event(event)
+    async def process_event(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
+        raise NotImplementedError
 
-        dispatcher = self._dispatchers[event.name]
-        ret = await dispatcher(shard, payload)
+    async def dispatch(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
+        ret = await self.process_event(event, shard, payload)
 
         for callback in self._callbacks[event]:
             self.client.loop.create_task(callback(ret))

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from .base_state import BaseCachedState
 from ..events import (
+    BaseEvent,
     ChannelCreateEvent,
     ChannelDeleteEvent,
     ChannelEvent,
@@ -81,12 +82,6 @@ class ChannelState(BaseCachedState):
 
         return channel
 
-    def get_events(self) -> type[ChannelEvent]:
-        return ChannelEvent
-
-    def get_intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
-
     def on_create(self):
         return self.on(ChannelEvent.CREATE)
 
@@ -99,31 +94,40 @@ class ChannelState(BaseCachedState):
     def on_pins_update(self):
         return self.on(ChannelEvent.PINS_UPDATE)
 
-    async def dispatch_create(self, shard: ShardWebSocket, payload: JSONData) -> ChannelCreateEvent:
-        channel = await self.upsert(payload)
-        return ChannelCreateEvent(shard=shard, payload=payload, channel=channel)
+    def get_events(self) -> type[ChannelEvent]:
+        return ChannelEvent
 
-    async def dispatch_update(self, shard: ShardWebSocket, payload: JSONData) -> ChannelUpdateEvent:
-        channel = await self.upsert(payload)
-        return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
+    def get_intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
 
-    async def dispatch_delete(self, shard: ShardWebSocket, payload: JSONData) -> ChannelDeleteEvent:
-        try:
-            channel = self.pop(payload['id'])
-        except KeyError:
-            channel = None
+    async def process_event(
+        self, event: str, shard: ShardWebSocket, payload: JSONData
+    ) -> BaseEvent:
+        event = self.cast_event(event)
 
-        return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
+        if event is ChannelEvent.CREATE:
+            channel = await self.upsert(payload)
+            return ChannelCreateEvent(shard=shard, payload=payload, channel=channel)
 
-    async def dispatch_pins_update(
-        self, shard: ShardWebSocket, payload: JSONData
-    ) -> ChannelPinsUpdateEvent:
-        channel = self.wrap_id(payload['channel_id'])
+        if event is ChannelEvent.UPDATE:
+            channel = await self.upsert(payload)
+            return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
 
-        timestamp = payload.get('timestamp')
-        if timestamp is not None:
-            timestamp = datetime.fromisoformat(timestamp)
+        if event is ChannelEvent.DELETE:
+            try:
+                channel = self.pop(payload['id'])
+            except KeyError:
+                channel = None
 
-        return ChannelPinsUpdateEvent(
-            shard=shard, payload=payload, channel=channel, timestmap=timestamp
-        )
+            return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
+
+        if event is ChannelEvent.PINS_UPDATE:
+            channel = self.wrap_id(payload['channel_id'])
+
+            timestamp = payload.get('timestamp')
+            if timestamp is not None:
+                timestamp = datetime.fromisoformat(timestamp)
+
+            return ChannelPinsUpdateEvent(
+                shard=shard, payload=payload, channel=channel, timestmap=timestamp
+            )

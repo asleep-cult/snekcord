@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from .base_state import BaseCachedState
 from ..events import (
+    BaseEvent,
     GuildAvailableEvent,
     GuildDeleteEvent,
     GuildEvent,
@@ -95,12 +96,6 @@ class GuildState(BaseCachedState):
 
         return await self.upsert(data)
 
-    def get_events(self) -> type[GuildEvent]:
-        return GuildEvent
-
-    def get_intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
-
     def on_join(self):
         return self.on(GuildEvent.JOIN)
 
@@ -119,28 +114,37 @@ class GuildState(BaseCachedState):
     def on_unavailable(self):
         return self.on(GuildEvent.UNAVAILABLE)
 
-    async def dispatch_join(self, shard: ShardWebSocket, payload: JSONData) -> GuildJoinEvent:
-        guild = await self.upsert(payload)
-        return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
+    def get_events(self) -> type[GuildEvent]:
+        return GuildEvent
 
-    async def dispatch_available(
-        self, shard: ShardWebSocket, payload: JSONData
-    ) -> GuildAvailableEvent:
-        guild = await self.upsert(payload)
-        return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
+    def get_intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
 
-    async def dispatch_receive(self, shard: ShardWebSocket, payload: JSONData) -> GuildReceiveEvent:
-        guild = await self.upsert(payload)
-        return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
+    async def process_event(
+        self, shard: ShardWebSocket, event: str, payload: JSONData
+    ) -> BaseEvent:
+        event = self.cast_event(event)
 
-    async def dispatch_update(self, shard: ShardWebSocket, payload: JSONData) -> GuildUpdateEvent:
-        guild = await self.upsert(payload)
-        return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
+        if event is GuildEvent.JOIN:
+            guild = await self.upsert(payload)
+            return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
 
-    async def dispatch_delete(self, shard: ShardWebSocket, payload: JSONData) -> GuildDeleteEvent:
-        try:
-            guild = self.pop(payload['id'])
-        except KeyError:
-            guild = None
+        if event is GuildEvent.AVAILABLE:
+            guild = await self.upsert(payload)
+            return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
 
-        return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)
+        if event is GuildEvent.RECEIVE:
+            guild = await self.upsert(payload)
+            return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvent.UPDATE:
+            guild = await self.upsert(payload)
+            return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvent.DELETE:
+            try:
+                guild = self.pop(payload['id'])
+            except KeyError:
+                guild = None
+
+            return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)
