@@ -25,8 +25,8 @@ class GuildJoinEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @property
-    def type(self) -> GuildEventType:
+    @staticmethod
+    def get_type() -> GuildEventType:
         return GuildEventType.JOIN
 
     def __repr__(self) -> str:
@@ -40,8 +40,8 @@ class GuildAvailableEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @property
-    def type(self) -> GuildEventType:
+    @staticmethod
+    def get_type() -> GuildEventType:
         return GuildEventType.AVAILABLE
 
     def __repr__(self) -> str:
@@ -55,8 +55,8 @@ class GuildReceiveEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @property
-    def type(self) -> GuildEventType:
+    @staticmethod
+    def get_type() -> GuildEventType:
         return GuildEventType.RECEIVE
 
     def __repr__(self) -> str:
@@ -70,8 +70,8 @@ class GuildUpdateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @property
-    def type(self) -> GuildEventType:
+    @staticmethod
+    def get_type() -> GuildEventType:
         return GuildEventType.UPDATE
 
     def __repr__(self) -> str:
@@ -85,8 +85,8 @@ class GuildDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @property
-    def type(self) -> GuildEventType:
+    @staticmethod
+    def get_type() -> GuildEventType:
         return GuildEventType.DELETE
 
     def __repr__(self) -> str:
@@ -100,8 +100,8 @@ class GuildUnavailableEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @property
-    def type(self) -> GuildEventType:
+    @staticmethod
+    def get_type() -> GuildEventType:
         return GuildEventType.UNAVAILABLE
 
     def __repr__(self) -> str:

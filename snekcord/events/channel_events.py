@@ -25,8 +25,8 @@ class ChannelCreateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
-    @property
-    def type(self) -> ChannelEventType:
+    @staticmethod
+    def get_type() -> ChannelEventType:
         return ChannelEventType.CREATE
 
     def __repr__(self) -> str:
@@ -40,8 +40,8 @@ class ChannelUpdateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
-    @property
-    def type(self) -> ChannelEventType:
+    @staticmethod
+    def get_type() -> ChannelEventType:
         return ChannelEventType.UPDATE
 
     def __repr__(self) -> str:
@@ -55,8 +55,8 @@ class ChannelDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
-    @property
-    def type(self) -> ChannelEventType:
+    @staticmethod
+    def get_type() -> ChannelEventType:
         return ChannelEventType.DELETE
 
     def __repr__(self) -> str:
@@ -73,8 +73,8 @@ class ChannelPinsUpdateEvent(BaseEvent):
         self.channel = channel
         self.timestamp = timestamp
 
-    @property
-    def type(self) -> ChannelEventType:
+    @staticmethod
+    def get_type() -> ChannelEventType:
         return ChannelEventType.PINS_UPDATE
 
     def __repr__(self) -> str:

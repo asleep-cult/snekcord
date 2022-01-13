@@ -15,6 +15,6 @@ class BaseEvent:
         self.shard = shard
         self.payload = payload
 
-    @property
-    def type(self):
+    @staticmethod
+    def get_type():
         raise NotImplementedError

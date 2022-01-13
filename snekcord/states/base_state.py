@@ -73,7 +73,7 @@ class BaseState:
     async def dispatch(self, event: str, payload: JSONData) -> None:
         event = self.cast_event(event)
 
-        dispatcher = self._dispatchers[event]
+        dispatcher = self._dispatchers[event.name]
         ret = await dispatcher(payload)
 
         for callback in self._callbacks[event]:
