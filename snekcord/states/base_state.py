@@ -74,10 +74,6 @@ class BaseCachedState(BaseState):
         super().__init__(client=client)
         self.cache = Collection()
 
-    @classmethod
-    def unwrap_id(cls, object):
-        raise NotImplementedError
-
     def __contains__(self, object) -> bool:
         return self.unwrap_id(object) in self.cache.keys()
 
