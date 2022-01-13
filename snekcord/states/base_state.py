@@ -1,23 +1,23 @@
+import enum
+import inspect
+from collections import defaultdict
+from typing import TYPE_CHECKING
+
 from ..collection import Collection
 from ..objects import ObjectWrapper
 
-__all__ = ('BaseSate',)
+if TYPE_CHECKING:
+    from ..clients.client import Client
+
+__all__ = ('BaseState',)
 
 
-class BaseSate:
-    """The base class for all states. Represents the cache and state-specific
-    functionality for a specific object e.g. `fetch`, `create`.
-
-    client:
-        The client that the state belongs to.
-
-    cache:
-        The underlying Collection that holds the objects instanciated by the state.
-    """
-
-    def __init__(self, *, client) -> None:
-        self.client = client
+class StateCacheMixin:
+    def __init__(self):
         self.cache = Collection()
+
+    def unwrap_id(self, object):
+        raise NotImplementedError
 
     def __contains__(self, object) -> bool:
         return self.unwrap_id(object) in self.cache.keys()
@@ -25,20 +25,7 @@ class BaseSate:
     def __iter__(self):
         return iter(self.cache)
 
-    def wrap_id(self, object):
-        """Creates a ObjectWrapper for a specific object."""
-        return ObjectWrapper(state=self, id=object)
-
-    @classmethod
-    def unwrap_id(cls, object):
-        raise NotImplementedError
-
     def get(self, object):
-        """Retrieves the object with the corresponding id from the state's cache.
-
-        Raises:
-            CacheLookupError: The object does not exist in the state's cache.
-        """
         return self.cache.get(self.unwrap_id(object))
 
     def pop(self, object):
@@ -47,5 +34,44 @@ class BaseSate:
     async def upsert(self, data):
         raise NotImplementedError
 
-    async def fetch(self, object):
+
+class StateEventsMixin:
+    def __init__(self):
+        self._callbacks = defaultdict(list)
+        self._waiters = defaultdict(list)
+
+        self._dispatchers = {}
+        for name, func in inspect.getmembers(self, inspect.isfunction):
+            if name.startswith('dispatch_'):
+                event = getattr(self.get_events(), name[9:].upper())
+                self._dispatchers[event] = func
+
+    def _get_client(self) -> Client:
         raise NotImplementedError
+
+    def get_events(self) -> enum.Enum:
+        raise NotImplementedError
+
+    def cast_event(self, event: str) -> str:
+        return self.get_events()(event)
+
+    def on(self, event: str):
+        def decorator(func):
+            callbacks = self._callbacks[self.cast_event(event)]
+            callbacks.append(func)
+
+        return decorator
+
+
+class BaseState:
+    def __init__(self, *, client: Client) -> None:
+        self.client = client
+
+    def _get_client(self) -> Client:
+        return self.client
+
+    def unwrap_id(self, object):
+        raise NotImplementedError
+
+    def wrap_id(self, object):
+        return ObjectWrapper(state=self, id=object)
