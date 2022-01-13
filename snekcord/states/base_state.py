@@ -7,6 +7,7 @@ from ..collection import Collection
 from ..objects import ObjectWrapper
 
 if TYPE_CHECKING:
+    from ..json import JSONData
     from ..clients.client import Client
 
 __all__ = ('BaseState',)
@@ -35,37 +36,16 @@ class StateCacheMixin:
         raise NotImplementedError
 
 
-class StateEventsMixin:
-    def __init__(self):
+class BaseState:
+    def __init__(self, *, client: Client) -> None:
+        self.client = client
         self._callbacks = defaultdict(list)
         self._waiters = defaultdict(list)
 
         self._dispatchers = {}
-        for name, func in inspect.getmembers(self, inspect.isfunction):
+        for name, func in inspect.getmembers(self):
             if name.startswith('dispatch_'):
-                event = getattr(self.get_events(), name[9:].upper())
-                self._dispatchers[event] = func
-
-    def _get_client(self) -> Client:
-        raise NotImplementedError
-
-    def get_events(self) -> enum.Enum:
-        raise NotImplementedError
-
-    def cast_event(self, event: str) -> str:
-        return self.get_events()(event)
-
-    def on(self, event: str):
-        def decorator(func):
-            callbacks = self._callbacks[self.cast_event(event)]
-            callbacks.append(func)
-
-        return decorator
-
-
-class BaseState:
-    def __init__(self, *, client: Client) -> None:
-        self.client = client
+                self._dispatchers[name[9:].upper()] = func
 
     def _get_client(self) -> Client:
         return self.client
@@ -75,3 +55,26 @@ class BaseState:
 
     def wrap_id(self, object):
         return ObjectWrapper(state=self, id=object)
+
+    def get_events(self) -> enum.Enum:
+        raise NotImplementedError
+
+    def cast_event(self, event: str) -> enum.Enum:
+        return self.get_events()(event)
+
+    def on(self, event: str):
+        event = self.cast_event()
+
+        def decorator(func):
+            self._callbacks[event].append(func)
+
+        return decorator
+
+    async def dispatch(self, event: str, payload: JSONData) -> None:
+        event = self.cast_event(event)
+
+        dispatcher = self._dispatchers[event]
+        ret = await dispatcher(payload)
+
+        for callback in self._callbacks[event]:
+            self.client.loop.create_task(callback(ret))
