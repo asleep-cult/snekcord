@@ -165,7 +165,13 @@ class JSONObjectMeta(type):
             if isinstance(value, _JSONDescriptor):
                 json_fields[key] = value.bind(key, len(json_fields))
 
+        for base in bases:
+            if issubclass(base, JSONObject):
+                for key, value in base._json_fields_.items():
+                    json_fields[key] = value.bind(key, len(json_fields))
+
         namespace['_json_fields_'] = json_fields
+        namespace.update(json_fields)
 
         return type.__new__(cls, name, bases, namespace)
 

@@ -26,18 +26,7 @@ class UnknownObjectError(LookupError):
         return f'Object with id {self.id} is not cached'
 
 
-class UnknownListenerError(LookupError):
-    def __init__(self, type):
-        self.type = type
-
-    def __repr__(self):
-        return (
-            f'Client has no {self.type!r} listener. Perhaps you forgot'
-            f' to create it before starting the client?'
-        )
-
-
-class ShardConnectError:
+class ShardConnectError(Exception):
     def __init__(self, shard, message):
         self.shard = shard
         self.message = message

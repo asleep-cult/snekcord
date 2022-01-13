@@ -3,10 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from .base_state import (
-    BaseState,
-    StateCacheMixin,
-)
+from .base_state import BaseCachedState
 from ..events import (
     ChannelCreateEvent,
     ChannelDeleteEvent,
@@ -14,6 +11,7 @@ from ..events import (
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
+from ..intents import WebSocketIntents
 from ..objects import (
     BaseChannel,
     CategoryChannel,
@@ -33,7 +31,7 @@ if TYPE_CHECKING:
 __all__ = ('ChannelState',)
 
 
-class ChannelState(BaseState, StateCacheMixin):
+class ChannelState(BaseCachedState):
     @classmethod
     def unwrap_id(cls, object) -> Snowflake:
         if isinstance(object, Snowflake):
@@ -85,6 +83,9 @@ class ChannelState(BaseState, StateCacheMixin):
 
     def get_events(self) -> type[ChannelEvent]:
         return ChannelEvent
+
+    def get_intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
 
     def on_create(self):
         return self.on(ChannelEvent.CREATE)

@@ -1,7 +1,4 @@
-from .base_state import (
-    BaseState,
-    StateCacheMixin,
-)
+from .base_state import BaseCachedState
 from ..objects import (
     CustomEmoji,
     ObjectWrapper,
@@ -15,7 +12,7 @@ from ..snowflake import Snowflake
 __all__ = ('EmojiState',)
 
 
-class EmojiState(BaseState, StateCacheMixin):
+class EmojiState(BaseCachedState):
     def __init__(self, *, client, guild) -> None:
         super().__init__(client=client)
         self.guild = guild

@@ -1,6 +1,6 @@
-import functools
 import signal
 import socket
+from typing import Optional
 
 from loguru import logger
 
@@ -9,6 +9,7 @@ from ..rest.endpoints import (
     GET_GATEWAY,
     GET_GATEWAY_BOT,
 )
+from ..states import BaseState
 from ..websockets.shard_websocket import ShardWebSocket
 
 __all__ = ('WebSocketClient',)
@@ -26,12 +27,19 @@ class WebSocketClient(Client):
         else:
             self.shard_ids = None
 
+        self.intents = 0
+
         self._shards = {}
         self._events = {}
 
-    def get_intents(self):
-        func = lambda intents, listener: intents | listener.get_intents()
-        return functools.reduce(func, self._listeners.values(), 0)
+    def enable_events(self, state: BaseState) -> None:
+        self.intents |= state.get_intents()
+
+        for event in state.get_events():
+            self._events[event] = state
+
+    def get_state_for(self, event: str) -> Optional[BaseState]:
+        return self._events.get(event)
 
     def get_shard(self, shard_id: int):
         if shard_id not in self.shard_ids:

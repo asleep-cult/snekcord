@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .base_state import (
-    BaseState,
-    StateCacheMixin,
-)
+from .base_state import BaseCachedState
 from ..events import (
     GuildAvailableEvent,
     GuildDeleteEvent,
@@ -14,6 +11,7 @@ from ..events import (
     GuildReceiveEvent,
     GuildUpdateEvent,
 )
+from ..intents import WebSocketIntents
 from ..objects import (
     Guild,
     ObjectWrapper,
@@ -30,7 +28,7 @@ if TYPE_CHECKING:
 __all__ = ('GuildState',)
 
 
-class GuildState(BaseState, StateCacheMixin):
+class GuildState(BaseCachedState):
     @classmethod
     def unwrap_id(cls, object):
         if isinstance(object, Snowflake):
@@ -99,6 +97,9 @@ class GuildState(BaseState, StateCacheMixin):
 
     def get_events(self) -> type[GuildEvent]:
         return GuildEvent
+
+    def get_intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
 
     def on_join(self):
         return self.on(GuildEvent.JOIN)
