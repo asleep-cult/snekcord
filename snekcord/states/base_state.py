@@ -5,10 +5,14 @@ import enum
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-from ..collection import Collection
+from ..collection import (
+    Collection,
+    WeakCollection,
+)
 from ..objects import ObjectWrapper
 
 if TYPE_CHECKING:
+    from ..events import BaseEvent
     from ..intents import WebSocketIntents
     from ..json import JSONData
     from ..websockets import ShardWebSocket
@@ -53,7 +57,9 @@ class BaseState:
 
         return decorator
 
-    async def process_event(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
+    async def process_event(
+        self, event: str, shard: ShardWebSocket, payload: JSONData
+    ) -> BaseEvent:
         raise NotImplementedError
 
     async def dispatch(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
@@ -82,3 +88,40 @@ class BaseCachedState(BaseState):
 
     async def upsert(self, data):
         raise NotImplementedError
+
+
+class BaseSubsidiaryState:
+    def __init__(self, *, superstate: BaseState) -> None:
+        self.superstate = superstate
+
+        if isinstance(superstate, BaseCachedState):
+            self.cache = WeakCollection()
+        else:
+            self.cahce = Collection()
+
+    @property
+    def client(self) -> Client:
+        return self.superstate.client
+
+    def __contains__(self, object) -> bool:
+        return self.superstate.unwrap_id(object) in self.cache.keys()
+
+    def __iter__(self):
+        return iter(self.cache)
+
+    def get(self, object):
+        return self.cache.get(self.superstate.unwrap_id(object))
+
+    def pop(self, object):
+        return self.cache.pop(self.superstate.unwrap_id(object))
+
+    async def upsert(self, data):
+        if not isinstance(self.superstate, BaseCachedState):
+            raise NotImplementedError(
+                'Subsidiary state with non-cached superstate must implement upsert'
+            )
+
+        object = await self.superstate.upsert(data)
+        self.cache[self.superstate.unwrap_id(object)] = object
+
+        return object

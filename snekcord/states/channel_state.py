@@ -3,7 +3,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from .base_state import BaseCachedState
+from .base_state import (
+    BaseCachedState,
+    BaseState,
+    BaseSubsidiaryState,
+)
 from ..events import (
     BaseEvent,
     ChannelCreateEvent,
@@ -17,6 +21,7 @@ from ..objects import (
     BaseChannel,
     CategoryChannel,
     ChannelType,
+    Guild,
     GuildChannel,
     ObjectWrapper,
     StoreChannel,
@@ -29,7 +34,7 @@ if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
-__all__ = ('ChannelState',)
+__all__ = ('ChannelState', 'GuildChannelState')
 
 
 class ChannelState(BaseCachedState):
@@ -131,3 +136,13 @@ class ChannelState(BaseCachedState):
             return ChannelPinsUpdateEvent(
                 shard=shard, payload=payload, channel=channel, timestmap=timestamp
             )
+
+
+class GuildChannelState(BaseSubsidiaryState):
+    def __init__(self, *, superstate: BaseState, guild: Guild) -> None:
+        super().__init__(superstate=superstate)
+        self.guild = guild
+
+    async def upsert(self, data):
+        data['guild_id'] = Guild.id.deconstruct(self.guild.id)
+        return await super().upsert(data)

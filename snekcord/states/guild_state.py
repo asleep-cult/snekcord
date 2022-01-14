@@ -121,7 +121,7 @@ class GuildState(BaseCachedState):
         return WebSocketIntents.GUILDS
 
     async def process_event(
-        self, shard: ShardWebSocket, event: str, payload: JSONData
+        self, event: str, shard: ShardWebSocket, payload: JSONData
     ) -> BaseEvent:
         event = self.cast_event(event)
 

@@ -70,8 +70,8 @@ class Message(BaseObject):
         super().__init__(state=state)
         self.author = None
         self.member = None
-        self.webhook = self.client.webhooks.wrap_id(None)
-        self.application = self.client.applications.wrap_id(None)
+        # self.webhook = self.client.webhooks.wrap_id(None)
+        # self.application = self.client.applications.wrap_id(None)
 
     @property
     def channel(self):
