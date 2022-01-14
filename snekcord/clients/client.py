@@ -56,7 +56,7 @@ class Client:
 
     def create_message_state(self, *, channel=None) -> MessageState:
         if channel is not None:
-            return ChannelMessageState(superstate=self.channels, channel=channel)
+            return ChannelMessageState(superstate=self.messages, channel=channel)
         else:
             return MessageState(client=self)
 

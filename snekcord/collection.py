@@ -10,13 +10,7 @@ class Collection:
     __slots__ = ('_keys', '_map')
 
     def __init__(self):
-        self._create_keys()
-        self._create_map()
-
-    def _create_keys(self):
         self._keys = []
-
-    def _create_map(self):
         self._map = {}
 
     def __len__(self):
@@ -136,6 +130,7 @@ class Collection:
 
     def __setitem__(self, key, value):
         self._map[key] = value
+        self._keys.append(key)
 
     def __delitem__(self, index):
         del self._map[self.getkey(index)]
@@ -144,6 +139,10 @@ class Collection:
 class WeakCollection(Collection):
     def _create_map(self):
         self._map = WeakValueDictionary()
+
+    @recursive_repr('WeakCollection({...})')
+    def __repr__(self):
+        return f'WeakCollection({self._map})'
 
 
 class CollectionKeysView:
@@ -195,7 +194,9 @@ class CollectionValuesView:
         if self._collection is other._collection:
             return True
 
-        return all(self._collection[i] == other._collection[i] for i in range(len(self)))
+        return len(self) == len(other) and all(
+            self._collection[i] == other._collection[i] for i in range(len(self))
+        )
 
 
 class CollectionItemsView:

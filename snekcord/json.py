@@ -204,7 +204,7 @@ class JSONObject(metaclass=JSONObjectMeta):
         if not attrs:
             return f'<{self.__class__.__name__}>'
 
-        inner = ', '.join(f'{name}={value}' for name, value in attrs)
+        inner = ' '.join(f'{name}={value}' for name, value in attrs)
         return f'<{self.__class__.__name__} {inner}>'
 
     def update(self, data):

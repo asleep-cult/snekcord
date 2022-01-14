@@ -97,7 +97,7 @@ class BaseSubsidiaryState:
         if isinstance(superstate, BaseCachedState):
             self.cache = WeakCollection()
         else:
-            self.cahce = Collection()
+            self.cache = Collection()
 
     @property
     def client(self) -> Client:
