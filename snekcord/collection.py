@@ -1,4 +1,5 @@
 from reprlib import recursive_repr
+from weakref import WeakValueDictionary
 
 from .undefined import undefined
 
@@ -6,8 +7,16 @@ from .undefined import undefined
 class Collection:
     """An ordered dictionary with support for indexing."""
 
+    __slots__ = ('_keys', '_map')
+
     def __init__(self):
+        self._create_keys()
+        self._create_map()
+
+    def _create_keys(self):
         self._keys = []
+
+    def _create_map(self):
         self._map = {}
 
     def __len__(self):
@@ -130,6 +139,11 @@ class Collection:
 
     def __delitem__(self, index):
         del self._map[self.getkey(index)]
+
+
+class WeakCollection(Collection):
+    def _create_map(self):
+        self._map = WeakValueDictionary()
 
 
 class CollectionKeysView:
