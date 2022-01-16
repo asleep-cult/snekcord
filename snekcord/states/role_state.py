@@ -89,7 +89,7 @@ class RoleState(BaseState):
         if event is RoleEvent.DELETE:
             guild = self.client.guilds.get(payload['guild_id'])
             if guild is not None:
-                role = guild.roles.pop(payload['role']['id'])
+                role = guild.roles.pop(payload['role_id'])
             else:
                 role = None
 
