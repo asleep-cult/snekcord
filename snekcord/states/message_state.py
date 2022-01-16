@@ -119,16 +119,17 @@ class MessageState(BaseState):
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
                 message = await channel.messages.upsert(payload)
+            else:
+                message = None
 
             return MessageUpdateEvent(shard=shard, payload=payload, message=message)
 
         if event is MessageEvent.DELETE:
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
-                try:
-                    message = channel.messages.pop(payload['message_id'])
-                except KeyError:
-                    message = None
+                message = channel.messages.pop(payload['message_id'])
+            else:
+                message = None
 
             return MessageDeleteEvent(shard=shard, payload=payload, message=message)
 
@@ -138,12 +139,10 @@ class MessageState(BaseState):
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
                 for message_id in payload['ids']:
-                    try:
-                        message = channel.messages.pop(message_id)
-                    except KeyError:
-                        continue
+                    message = channel.messages.pop(message_id)
 
-                    messages[message.id] = message
+                    if message is not None:
+                        messages[message.id] = message
 
             return MessageBulkDeleteEvent(shard=shard, payload=payload, messages=messages)
 

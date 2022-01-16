@@ -8,7 +8,10 @@ from .base_events import BaseEvent
 if TYPE_CHECKING:
     from ..collection import Collection
     from ..json import JSONData
-    from ..objects import Message
+    from ..objects import (
+        Message,
+        ObjectWrapper,
+    )
     from ..websockets import ShardWebSocket
 
 __all__ = (
@@ -41,6 +44,14 @@ class MessageCreateEvent(BaseEvent):
     def __repr__(self) -> str:
         return f'<MessageCreateEvent message={self.message!r}>'
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+    @property
+    def channel(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
+
 
 class MessageUpdateEvent(BaseEvent):
     __slots__ = ('message',)
@@ -55,6 +66,14 @@ class MessageUpdateEvent(BaseEvent):
 
     def __repr__(self) -> str:
         return f'<MessageUpdateEvent message={self.message!r}>'
+
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+    @property
+    def channel(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
 
 
 class MessageDeleteEvent(BaseEvent):
@@ -71,6 +90,14 @@ class MessageDeleteEvent(BaseEvent):
     def __repr__(self) -> str:
         return f'<MessageDeleteEvent message={self.message!r}>'
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+    @property
+    def channel(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
+
 
 class MessageBulkDeleteEvent(BaseEvent):
     __slots__ = ('messages',)
@@ -85,3 +112,11 @@ class MessageBulkDeleteEvent(BaseEvent):
 
     def __repr__(self) -> str:
         return f'<MessageBulkDeleteEvent messages={self.messages!r}>'
+
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+    @property
+    def channel(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('channel_id'))

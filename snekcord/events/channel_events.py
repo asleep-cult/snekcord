@@ -8,7 +8,10 @@ from .base_events import BaseEvent
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from ..objects import BaseChannel, ObjectWrapper
+    from ..objects import (
+        BaseChannel,
+        ObjectWrapper,
+    )
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
@@ -42,6 +45,10 @@ class ChannelCreateEvent(BaseEvent):
     def __repr__(self) -> str:
         return f'<ChannelCreateEvent channel={self.channel!r}>'
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
 
 class ChannelUpdateEvent(BaseEvent):
     __slots__ = ('channel',)
@@ -57,6 +64,10 @@ class ChannelUpdateEvent(BaseEvent):
     def __repr__(self) -> str:
         return f'<ChannelUpdateEvent channel={self.channel!r}>'
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
 
 class ChannelDeleteEvent(BaseEvent):
     __slots__ = ('channel',)
@@ -71,6 +82,10 @@ class ChannelDeleteEvent(BaseEvent):
 
     def __repr__(self) -> str:
         return f'<ChannelDeleteEvent channel={self.channel!r}>'
+
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
 
 class ChannelPinsUpdateEvent(BaseEvent):
@@ -94,3 +109,7 @@ class ChannelPinsUpdateEvent(BaseEvent):
 
     def __repr__(self) -> str:
         return f'<ChannelPinsUpdateEvent channel={self.channel!r} timestamp={self.timestamp!r}>'
+
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))

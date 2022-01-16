@@ -8,8 +8,10 @@ client.messages.listen()
 
 @client.messages.on_create()
 async def message_create(evt: snekcord.MessageCreateEvent):
+    channel = evt.channel.unwrap()
+
     if evt.message.content == 'ping':
-        await evt.channel.messages.create(content='pong')
+        await channel.messages.create(content='pong')
 
 if __name__ == '__main__':
     asyncio.run(client.connect())

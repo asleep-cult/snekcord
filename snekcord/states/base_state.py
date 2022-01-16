@@ -31,9 +31,6 @@ class BaseState:
     def unwrap_id(cls, object):
         raise NotImplementedError
 
-    def wrap_id(self, object):
-        return ObjectWrapper(state=self, id=object)
-
     def get_events(self) -> type[enum.Enum]:
         raise NotImplementedError
 
@@ -74,6 +71,9 @@ class BaseCachedState(BaseState):
         super().__init__(client=client)
         self.cache = Collection()
 
+    def wrap_id(self, object):
+        return ObjectWrapper(state=self, id=object)
+
     def __contains__(self, object) -> bool:
         return self.unwrap_id(object) in self.cache.keys()
 
@@ -84,7 +84,7 @@ class BaseCachedState(BaseState):
         return self.cache.get(self.unwrap_id(object))
 
     def pop(self, object):
-        return self.cache.pop(self.unwrap_id(object))
+        return self.cache.pop(self.unwrap_id(object), None)
 
     async def upsert(self, data):
         raise NotImplementedError
@@ -103,17 +103,26 @@ class BaseSubsidiaryState:
     def client(self) -> Client:
         return self.superstate.client
 
+    def unwrap_id(self, object):
+        return self.superstate.unwrap_id(object)
+
+    def wrap_id(self, object):
+        if isinstance(self.superstate, BaseCachedState):
+            return self.superstate.wrap_id(object)
+
+        return ObjectWrapper(state=self, id=object)
+
     def __contains__(self, object) -> bool:
-        return self.superstate.unwrap_id(object) in self.cache.keys()
+        return self.unwrap_id(object) in self.cache.keys()
 
     def __iter__(self):
         return iter(self.cache)
 
     def get(self, object):
-        return self.cache.get(self.superstate.unwrap_id(object))
+        return self.cache.get(self.unwrap_id(object))
 
     def pop(self, object):
-        return self.cache.pop(self.superstate.unwrap_id(object))
+        return self.cache.pop(self.unwrap_id(object), None)
 
     async def upsert(self, data):
         if not isinstance(self.superstate, BaseCachedState):
@@ -122,6 +131,6 @@ class BaseSubsidiaryState:
             )
 
         object = await self.superstate.upsert(data)
-        self.cache[self.superstate.unwrap_id(object)] = object
+        self.cache[self.unwrap_id(object)] = object
 
         return object

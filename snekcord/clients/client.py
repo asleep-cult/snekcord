@@ -8,6 +8,7 @@ from ..states import (
     ChannelState,
     EmojiState,
     GuildChannelState,
+    GuildRoleState,
     GuildState,
     MessageState,
     RoleState,
@@ -33,6 +34,7 @@ class Client:
 
         self.channels = self.create_channel_state()
         self.guilds = self.create_guild_state()
+        self.roles = self.create_role_state()
         self.users = self.create_user_state()
         self.messages = self.create_message_state()
 
@@ -60,8 +62,11 @@ class Client:
         else:
             return MessageState(client=self)
 
-    def create_role_state(self, *, guild):
-        return RoleState(client=self, guild=guild)
+    def create_role_state(self, *, guild=None):
+        if guild is not None:
+            return GuildRoleState(superstate=self.roles, guild=guild)
+        else:
+            return RoleState(client=self)
 
     def create_user_state(self) -> UserState:
         return UserState(client=self)

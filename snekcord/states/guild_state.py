@@ -142,9 +142,5 @@ class GuildState(BaseCachedState):
             return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
 
         if event is GuildEvent.DELETE:
-            try:
-                guild = self.pop(payload['id'])
-            except KeyError:
-                guild = None
-
+            guild = self.pop(payload['id'])
             return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)

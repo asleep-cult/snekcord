@@ -119,11 +119,7 @@ class ChannelState(BaseCachedState):
             return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
 
         if event is ChannelEvent.DELETE:
-            try:
-                channel = self.pop(payload['id'])
-            except KeyError:
-                channel = None
-
+            channel = self.pop(payload['id'])
             return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
 
         if event is ChannelEvent.PINS_UPDATE:
