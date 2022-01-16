@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import typing
 
 from .base_state import (
     BaseState,
     BaseSubsidiaryState,
 )
+from ..builders import JSONBuilder
 from ..events import (
     BaseEvent,
     RoleCreateEvent,
@@ -19,11 +20,21 @@ from ..objects import (
     ObjectWrapper,
     Role,
 )
+from ..rest.endpoints import (
+    CREATE_GUILD_ROLE,
+    GET_GUILD_ROLES,
+)
 from ..snowflake import Snowflake
+from ..undefined import (
+    MaybeUndefined,
+    undefined,
+)
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
+
+RoleUnwrappable = typing.Union[Snowflake, Role, str, int, ObjectWrapper]
 
 __all__ = ('RoleState', 'GuildRoleState')
 
@@ -41,10 +52,10 @@ class RoleState(BaseState):
             return object.id
 
         if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
+            if isinstance(object.state, GuildRoleState):
                 return object.id
 
-            raise TypeError('Expected ObjectWrapper created by RoleState')
+            raise TypeError('Expected ObjectWrapper created by GuildRoleState')
 
         raise TypeError('Expectes Snowflake, int, str, Role or ObjectWrapper')
 
@@ -113,3 +124,34 @@ class GuildRoleState(BaseSubsidiaryState):
             role._update_tags(tags)
 
         return role
+
+    async def fetch_all(self) -> list[Role]:
+        data = await self.client.rest.request(GET_GUILD_ROLES, guild_id=self.guild.id)
+        assert isinstance(data, dict)
+
+        return [await self.upsert(role) for role in data]
+
+    async def create(
+        self,
+        *,
+        name: MaybeUndefined[str] = undefined,
+        permissions: MaybeUndefined[int] = undefined,
+        color: MaybeUndefined[int] = undefined,
+        hoist: MaybeUndefined[bool] = undefined,
+        icon=undefined,
+        emoji: MaybeUndefined[str] = undefined,
+        mentionable: MaybeUndefined[bool] = undefined,
+    ) -> Role:
+        body = JSONBuilder()
+
+        body.str('name', name)
+        body.str('permissions', permissions)
+        body.int('color', color)
+        body.bool('hoist', hoist)
+        body.str('icon', icon)
+        body.bool('mentionable', mentionable)
+
+        data = await self.client.rest.request(CREATE_GUILD_ROLE, guild_id=self.guild.id, json=body)
+        assert isinstance(data, dict)
+
+        return await self.upsert(data)

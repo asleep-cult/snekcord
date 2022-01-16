@@ -1,6 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .. import json
 from ..exceptions import UnknownObjectError
 from ..snowflake import Snowflake
+
+if TYPE_CHECKING:
+    from ..clients import Client
 
 __all__ = ('BaseObject', 'ObjectWrapper')
 
@@ -26,11 +33,11 @@ class _ObjectMixin:
         raise NotImplementedError
 
     @property
-    def client(self):
+    def client(self) -> Client:
         return self.state.client
 
     def is_cached(self) -> bool:
-        return self.id in self.state.keys()
+        return self.id in self.state.cache.keys()
 
     async def fetch(self):
         return await self.state.fetch(self.id)
@@ -50,15 +57,6 @@ class BaseObject(json.JSONObject, _ObjectMixin):
 
 
 class ObjectWrapper(_ObjectMixin):
-    """A wrapper for an object that might not be cached.
-
-    state:
-        The state that the wrapped object belongs to.
-
-    id:
-        The id of the wrapped object.
-    """
-
     __slots__ = ('__weakref__', 'state', 'id')
 
     def __init__(self, *, state, id) -> None:
@@ -72,16 +70,16 @@ class ObjectWrapper(_ObjectMixin):
         return self.id
 
     def set_id(self, id):
-        """Changes the id of the wrapper."""
         if id is not None:
             self.id = self.state.unwrap_id(id)
         else:
             self.id = None
 
     def unwrap(self):
-        """Eqivalent to `self.state.get(self.id)`."""
-        object = self.state.get(self.id)
+        if self.id is None:
+            raise UnknownObjectError(None)
 
+        object = self.state.get(self.id)
         if object is None:
             raise UnknownObjectError(self.id)
 

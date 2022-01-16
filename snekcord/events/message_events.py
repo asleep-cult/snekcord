@@ -60,13 +60,6 @@ class MessageUpdateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.UPDATE
-
-    def __repr__(self) -> str:
-        return f'<MessageUpdateEvent message={self.message!r}>'
-
     @property
     def guild(self) -> ObjectWrapper:
         return self.client.guilds.wrap_id(self.payload.get('guild_id'))
@@ -74,6 +67,13 @@ class MessageUpdateEvent(BaseEvent):
     @property
     def channel(self) -> ObjectWrapper:
         return self.client.guilds.wrap_id(self.payload.get('channel_id'))
+
+    @staticmethod
+    def get_type() -> MessageEvent:
+        return MessageEvent.UPDATE
+
+    def __repr__(self) -> str:
+        return f'<MessageUpdateEvent message={self.message!r}>'
 
 
 class MessageDeleteEvent(BaseEvent):
@@ -83,13 +83,6 @@ class MessageDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.UPDATE
-
-    def __repr__(self) -> str:
-        return f'<MessageDeleteEvent message={self.message!r}>'
-
     @property
     def guild(self) -> ObjectWrapper:
         return self.client.guilds.wrap_id(self.payload.get('guild_id'))
@@ -97,6 +90,13 @@ class MessageDeleteEvent(BaseEvent):
     @property
     def channel(self) -> ObjectWrapper:
         return self.client.guilds.wrap_id(self.payload.get('channel_id'))
+
+    @staticmethod
+    def get_type() -> MessageEvent:
+        return MessageEvent.UPDATE
+
+    def __repr__(self) -> str:
+        return f'<MessageDeleteEvent message={self.message!r}>'
 
 
 class MessageBulkDeleteEvent(BaseEvent):
@@ -106,13 +106,6 @@ class MessageBulkDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.messages = messages
 
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.UPDATE
-
-    def __repr__(self) -> str:
-        return f'<MessageBulkDeleteEvent messages={self.messages!r}>'
-
     @property
     def guild(self) -> ObjectWrapper:
         return self.client.guilds.wrap_id(self.payload.get('guild_id'))
@@ -120,3 +113,10 @@ class MessageBulkDeleteEvent(BaseEvent):
     @property
     def channel(self) -> ObjectWrapper:
         return self.client.guilds.wrap_id(self.payload.get('channel_id'))
+
+    @staticmethod
+    def get_type() -> MessageEvent:
+        return MessageEvent.UPDATE
+
+    def __repr__(self) -> str:
+        return f'<MessageBulkDeleteEvent messages={self.messages!r}>'

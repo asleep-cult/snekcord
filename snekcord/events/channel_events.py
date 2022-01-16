@@ -38,16 +38,16 @@ class ChannelCreateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
     @staticmethod
     def get_type() -> ChannelEvent:
         return ChannelEvent.CREATE
 
     def __repr__(self) -> str:
         return f'<ChannelCreateEvent channel={self.channel!r}>'
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
 
 class ChannelUpdateEvent(BaseEvent):
@@ -57,16 +57,16 @@ class ChannelUpdateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
     @staticmethod
     def get_type() -> ChannelEvent:
         return ChannelEvent.UPDATE
 
     def __repr__(self) -> str:
         return f'<ChannelUpdateEvent channel={self.channel!r}>'
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
 
 class ChannelDeleteEvent(BaseEvent):
@@ -76,16 +76,16 @@ class ChannelDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
     @staticmethod
     def get_type() -> ChannelEvent:
         return ChannelEvent.DELETE
 
     def __repr__(self) -> str:
         return f'<ChannelDeleteEvent channel={self.channel!r}>'
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
 
 class ChannelPinsUpdateEvent(BaseEvent):
@@ -103,13 +103,13 @@ class ChannelPinsUpdateEvent(BaseEvent):
         self.channel = channel
         self.timestamp = timestamp
 
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
     @staticmethod
     def get_type() -> ChannelEvent:
         return ChannelEvent.PINS_UPDATE
 
     def __repr__(self) -> str:
         return f'<ChannelPinsUpdateEvent channel={self.channel!r} timestamp={self.timestamp!r}>'
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))

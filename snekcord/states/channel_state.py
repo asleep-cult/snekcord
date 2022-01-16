@@ -85,6 +85,8 @@ class ChannelState(BaseCachedState):
             if guild_id is not None:
                 channel.guild.set_id(guild_id)
 
+            channel.parent.set_id(data.get('parent_id'))
+
         return channel
 
     def on_create(self):

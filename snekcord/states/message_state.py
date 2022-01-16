@@ -67,10 +67,10 @@ class MessageState(BaseState):
             return object.id
 
         if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
+            if isinstance(object.state, ChannelMessageState):
                 return object.id
 
-            raise TypeError('Expected ObjectWrapper created by MessageState')
+            raise TypeError('Expected ObjectWrapper created by ChannelMessageState')
 
         raise TypeError('Expected Snowflake, int, str, Message or ObjectWrapper')
 
@@ -127,7 +127,7 @@ class MessageState(BaseState):
         if event is MessageEvent.DELETE:
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
-                message = channel.messages.pop(payload['message_id'])
+                message = channel.messages.pop(payload['id'])
             else:
                 message = None
 
@@ -153,11 +153,6 @@ class ChannelMessageState(BaseSubsidiaryState):
         self.channel = channel
 
     async def upsert(self, data: JSONData) -> Message:
-        """Creates or otherwise updates a message and adds it to the state's cache.
-
-        !!! note
-            The member slot will not be propagated if the guild is not cached.
-        """
         message = self.get(data['id'])
         if message is not None:
             message.update(data)
@@ -190,7 +185,6 @@ class ChannelMessageState(BaseSubsidiaryState):
         return message
 
     async def fetch(self, message: MessageUnwrappable) -> Message:
-        """Retrieves the message with the corresponding id from Discord."""
         message_id = self.unwrap_id(message)
 
         data = await self.client.rest.request(
@@ -258,12 +252,12 @@ class ChannelMessageState(BaseSubsidiaryState):
 
     async def delete(self, message: MessageUnwrappable) -> None:
         message_id = self.unwrap_id(message)
-        await self.client.rest.request(DELETE_CHANNEL_MESSAGE, message_id=message_id)
+        await self.client.rest.request(
+            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=message_id
+        )
 
     async def delete_many(self, messages: Iterable[MessageUnwrappable]) -> None:
-        message_ids = set()
-        for message in messages:
-            message_ids.add(self.unwrap_id(message))
+        message_ids = {self.unwrap_id(message) for message in messages}
 
         if len(message_ids) <= 1:
             raise TypeError('Cannot bulk delete <= 1 message')
