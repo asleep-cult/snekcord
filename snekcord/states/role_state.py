@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import typing
+from typing import TYPE_CHECKING, Union
 
 from .base_state import (
     BaseState,
@@ -30,13 +30,13 @@ from ..undefined import (
     undefined,
 )
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
-RoleUnwrappable = typing.Union[Snowflake, Role, str, int, ObjectWrapper]
+__all__ = ('RoleUnwrappable', 'RoleState', 'GuildRoleState')
 
-__all__ = ('RoleState', 'GuildRoleState')
+RoleUnwrappable = Union[Snowflake, Role, str, int, ObjectWrapper]
 
 
 class RoleState(BaseState):

@@ -38,9 +38,9 @@ if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
-MessageUnwrappable = Union[Snowflake, Message, str, int, ObjectWrapper]
+__all__ = ('MessageUnwrappable', 'MessageState', 'ChannelMessageState')
 
-__all__ = ('MessageState', 'ChannelMessageState')
+MessageUnwrappable = Union[Snowflake, Message, str, int, ObjectWrapper]
 
 
 class MessageState(BaseState):

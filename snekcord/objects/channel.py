@@ -1,11 +1,21 @@
 from __future__ import annotations
 
 import enum
+from typing import TYPE_CHECKING
 
 from .base import BaseObject
 from .. import json
 from ..collection import Collection
 from ..exceptions import UnknownObjectError
+from ..rest.endpoints import (
+    ADD_CHANNEL_PIN,
+    GET_CHANNEL_PINS,
+    REMOVE_CHANNEL_PIN,
+)
+
+if TYPE_CHECKING:
+    from .message import Message
+    from ..states import MessageUnwrappable
 
 __all__ = (
     'ChannelType',
@@ -84,6 +94,24 @@ class TextChannel(GuildChannel):
     def __init__(self, *, state):
         super().__init__(state=state)
         self.messages = self.client.create_message_state(channel=self)
+
+    async def fetch_pins(self) -> list[Message]:
+        data = await self.client.rest.request(GET_CHANNEL_PINS, channel_id=self.id)
+        assert isinstance(data, list)
+
+        return [await self.messages.upsert(message) for message in data]
+
+    async def add_pin(self, message: MessageUnwrappable) -> None:
+        message_id = self.client.messages.unwrap_id(message)
+
+        await self.client.rest.request(ADD_CHANNEL_PIN, channel_id=self.id, message_id=message_id)
+
+    async def remove_pin(self, message: MessageUnwrappable) -> None:
+        message_id = self.client.messages.unwrap_id(message)
+
+        await self.client.rest.request(
+            REMOVE_CHANNEL_PIN, channel_id=self.id, message_id=message_id
+        )
 
 
 class VoiceChannel(BaseChannel):
