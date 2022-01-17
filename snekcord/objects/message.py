@@ -1,9 +1,21 @@
+from __future__ import annotations
+
 import enum
 from datetime import datetime
+from types import NoneType
+from typing import Optional
 
 from .base import BaseObject
 from .. import json
+from ..builders import JSONBuilder
 from ..exceptions import UnknownObjectError
+from ..mentions import MessageMentions
+from ..rest.endpoints import (
+    CROSSPOST_CHANNEL_MESSAGE,
+    DELETE_CHANNEL_MESSAGE,
+    MODIFY_CHANNEL_MESSAGE,
+)
+from ..undefined import MaybeUndefined, UndefinedType, undefined
 
 __all__ = ('MessageType', 'MessageFlags', 'Message')
 
@@ -80,6 +92,49 @@ class Message(BaseObject):
     @property
     def guild(self):
         return self.channel.guild
+
+    async def crosspost(self) -> Message:
+        data = await self.client.rest.request(
+            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
+        )
+        assert isinstance(data, dict)
+
+        return await self.state.upsert(data)
+
+    async def modify(
+        self,
+        *,
+        content: MaybeUndefined[Optional[str]] = undefined,
+        embeds=undefined,
+        flags: MaybeUndefined[Optional[MessageFlags]] = undefined,
+        mentions: MaybeUndefined[Optional[MessageMentions]] = undefined,
+        components=undefined,
+        attachments=undefined,
+    ) -> None:
+        body = JSONBuilder()
+
+        body.str('content', content, nullable=True)
+        body.int('flags', flags, nullable=True)
+
+        if not isinstance(mentions, (MessageMentions, UndefinedType, NoneType)):
+            cls = mentions.__class__
+            raise TypeError(
+                f'mentions should be MessageMentions, undefined or None, got {cls.__name__!r}'
+            )
+
+        body.set('allowed_mentions', mentions, transformer=MessageMentions.to_dict)
+
+        data = await self.client.rest.request(
+            MODIFY_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id, json=body
+        )
+        assert isinstance(data, dict)
+
+        return await self.state.upsert(data)
+
+    async def delete(self) -> None:
+        await self.client.rest.request(
+            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
+        )
 
     async def _update_author(self, data):
         self.author = await self.client.users.upsert(data)

@@ -26,13 +26,12 @@ from ..objects import (
 )
 from ..rest.endpoints import (
     CREATE_CHANNEL_MESSAGE,
-    DELETE_CHANNEL_MESSAGE,
     DELETE_CHANNEL_MESSAGES,
     GET_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGES,
 )
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined, undefined
+from ..undefined import MaybeUndefined, UndefinedType, undefined
 
 if TYPE_CHECKING:
     from ..clients import Client
@@ -231,14 +230,13 @@ class ChannelMessageState(BaseSubsidiaryState):
         body.str('content', content)
         body.bool('tts', tts)
 
-        if mentions is not undefined:
-            if not isinstance(mentions, MessageMentions):
-                cls = mentions.__class__
-                raise TypeError(
-                    f'mentions should be MessageMentions or undefined, got {cls.__name__}'
-                )
+        if not isinstance(mentions, (MessageMentions, UndefinedType)):
+            cls = mentions.__class__
+            raise TypeError(
+                f'mentions should be MessageMentions or undefined, got {cls.__name__!r}'
+            )
 
-            body['allowed_mentions'] = mentions.to_dict()
+        body.set('allowed_mentions', mentions, transformer=MessageMentions.to_dict)
 
         if reference is not undefined:
             body['message_reference'] = {'message_id': self.unwrap_id(reference)}
@@ -249,12 +247,6 @@ class ChannelMessageState(BaseSubsidiaryState):
         assert isinstance(data, dict)
 
         return await self.upsert(data)
-
-    async def delete(self, message: MessageUnwrappable) -> None:
-        message_id = self.unwrap_id(message)
-        await self.client.rest.request(
-            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=message_id
-        )
 
     async def delete_many(self, messages: Iterable[MessageUnwrappable]) -> None:
         message_ids = {self.unwrap_id(message) for message in messages}
