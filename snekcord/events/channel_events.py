@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'ChannelEvent',
+    'BaseChannelEvent',
     'ChannelCreateEvent',
     'ChannelUpdateEvent',
     'ChannelDeleteEvent',
@@ -31,16 +32,18 @@ class ChannelEvent(str, enum.Enum):
     PINS_UPDATE = 'CHANNEL_PINS_UPDATE'
 
 
-class ChannelCreateEvent(BaseEvent):
+class BaseChannelEvent(BaseEvent):
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+
+class ChannelCreateEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
     @staticmethod
     def get_type() -> ChannelEvent:
@@ -50,16 +53,12 @@ class ChannelCreateEvent(BaseEvent):
         return f'<ChannelCreateEvent channel={self.channel!r}>'
 
 
-class ChannelUpdateEvent(BaseEvent):
+class ChannelUpdateEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
     @staticmethod
     def get_type() -> ChannelEvent:
@@ -69,16 +68,12 @@ class ChannelUpdateEvent(BaseEvent):
         return f'<ChannelUpdateEvent channel={self.channel!r}>'
 
 
-class ChannelDeleteEvent(BaseEvent):
+class ChannelDeleteEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
     @staticmethod
     def get_type() -> ChannelEvent:
@@ -88,7 +83,7 @@ class ChannelDeleteEvent(BaseEvent):
         return f'<ChannelDeleteEvent channel={self.channel!r}>'
 
 
-class ChannelPinsUpdateEvent(BaseEvent):
+class ChannelPinsUpdateEvent(BaseChannelEvent):
     __slots__ = ('channel', 'timestamp')
 
     def __init__(
@@ -102,10 +97,6 @@ class ChannelPinsUpdateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
         self.timestamp = timestamp
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
 
     @staticmethod
     def get_type() -> ChannelEvent:

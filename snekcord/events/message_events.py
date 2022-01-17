@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'MessageEvent',
+    'BaseMessageEvent',
     'MessageCreateEvent',
     'MessageUpdateEvent',
     'MessageDeleteEvent',
@@ -28,6 +29,16 @@ class MessageEvent(str, enum.Enum):
     UPDATE = 'MESSAGE_UPDATE'
     DELETE = 'MESSAGE_DELETE'
     BULK_DELETE = 'MESSAGE_DELETE_BULK'
+
+
+class BaseMessageEvent(BaseEvent):
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+    @property
+    def channel(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
 
 
 class MessageCreateEvent(BaseEvent):
@@ -44,14 +55,6 @@ class MessageCreateEvent(BaseEvent):
     def __repr__(self) -> str:
         return f'<MessageCreateEvent message={self.message!r}>'
 
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
-
-    @property
-    def channel(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
-
 
 class MessageUpdateEvent(BaseEvent):
     __slots__ = ('message',)
@@ -59,14 +62,6 @@ class MessageUpdateEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
-
-    @property
-    def channel(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
 
     @staticmethod
     def get_type() -> MessageEvent:
@@ -83,14 +78,6 @@ class MessageDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
-
-    @property
-    def channel(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
-
     @staticmethod
     def get_type() -> MessageEvent:
         return MessageEvent.UPDATE
@@ -105,14 +92,6 @@ class MessageBulkDeleteEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, messages: Collection) -> None:
         super().__init__(shard=shard, payload=payload)
         self.messages = messages
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
-
-    @property
-    def channel(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
 
     @staticmethod
     def get_type() -> MessageEvent:
