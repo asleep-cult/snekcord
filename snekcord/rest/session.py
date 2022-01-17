@@ -9,9 +9,8 @@ BASE_CDN_URL = 'https://cdn.discordapp.com'
 
 
 class RESTSession:
-    def __init__(self, *, authorization, loop, **kwargs):
+    def __init__(self, *, authorization, **kwargs):
         self.authorization = authorization
-        self.loop = loop
 
         try:
             self.api = kwargs.pop('api').rstrip('/')

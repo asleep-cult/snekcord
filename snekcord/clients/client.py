@@ -1,5 +1,3 @@
-import asyncio
-
 from ..auth import Authorization
 from ..rest import RESTSession
 from ..states import (
@@ -19,18 +17,13 @@ __all__ = ('Client',)
 
 
 class Client:
-    def __init__(self, authorization, *, loop=None):
-        if loop is not None:
-            self.loop = loop
-        else:
-            self.loop = asyncio.get_event_loop()
-
+    def __init__(self, authorization):
         if isinstance(authorization, Authorization):
             self.authorizaition = authorization
         else:
             self.authorization = Authorization.parse(authorization)
 
-        self.rest = RESTSession(authorization=self.authorization, loop=self.loop)
+        self.rest = RESTSession(authorization=self.authorization)
 
         self.channels = self.create_channel_state()
         self.guilds = self.create_guild_state()

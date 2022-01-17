@@ -1,3 +1,4 @@
+import asyncio
 import signal
 import socket
 from typing import Optional
@@ -17,10 +18,16 @@ __all__ = ('WebSocketClient',)
 
 class WebSocketClient(Client):
     def __init__(self, authorization, *, loop=None, shard_ids=None):
-        super().__init__(authorization, loop=loop)
+        super().__init__(authorization)
 
         if not self.authorization.ws_connectable():
             raise TypeError(f'Cannot connect to gateway using {authorization.type.name} token')
+
+        if loop is not None:
+            if not isinstance(loop, asyncio.AbstractEventLoop):
+                raise TypeError('loop should be an abstract event loop')
+
+        self.loop = loop
 
         if shard_ids is not None:
             self.shard_ids = [int(shard_id) for shard_id in shard_ids]
@@ -56,6 +63,9 @@ class WebSocketClient(Client):
         return await self.rest.request(endpoint)
 
     async def connect(self) -> None:
+        if self.loop is None:
+            self.loop = asyncio.get_running_loop()
+
         gateway = await self.fetch_gateway()
 
         if self.shard_ids is None:
