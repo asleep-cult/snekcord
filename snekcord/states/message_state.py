@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 from .base_state import (
-    BaseState,
+    BaseClientState,
     BaseSubsidiaryState,
 )
 from ..builders import JSONBuilder
@@ -43,7 +43,7 @@ __all__ = ('MessageUnwrappable', 'MessageState', 'ChannelMessageState')
 MessageUnwrappable = Union[Snowflake, Message, str, int, ObjectWrapper]
 
 
-class MessageState(BaseState):
+class MessageState(BaseClientState):
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
         self._direct_messages = False
@@ -147,7 +147,7 @@ class MessageState(BaseState):
 
 
 class ChannelMessageState(BaseSubsidiaryState):
-    def __init__(self, *, superstate: BaseState, channel: BaseChannel) -> None:
+    def __init__(self, *, superstate: BaseClientState, channel: BaseChannel) -> None:
         super().__init__(superstate=superstate)
         self.channel = channel
 

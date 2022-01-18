@@ -5,7 +5,7 @@ from datetime import datetime
 from types import NoneType
 from typing import Optional
 
-from .base import BaseObject
+from .base import SnowflakeObject
 from .. import json
 from ..builders import JSONBuilder
 from ..exceptions import UnknownObjectError
@@ -58,7 +58,7 @@ class MessageFlags(enum.IntFlag):
     LOADING = 1 << 7
 
 
-class Message(BaseObject):
+class Message(SnowflakeObject):
     __slots__ = ('author', 'member', 'webhook', 'application')
 
     type = json.JSONField('type', MessageType, repr=True)

@@ -1,6 +1,6 @@
 import enum
 
-from .base import BaseObject
+from .base import SnowflakeObject
 from .emoji import CustomEmoji
 from .. import json
 
@@ -86,7 +86,7 @@ class GuildFeature(enum.Enum):
     WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
 
 
-class Guild(BaseObject):
+class Guild(SnowflakeObject):
     __slots__ = (
         'roles',
         'emojis',

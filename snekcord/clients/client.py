@@ -1,7 +1,7 @@
 from ..auth import Authorization
 from ..rest import RESTSession
 from ..states import (
-    BaseState,
+    BaseClientState,
     ChannelMessageState,
     ChannelState,
     EmojiState,
@@ -31,7 +31,7 @@ class Client:
         self.users = self.create_user_state()
         self.messages = self.create_message_state()
 
-    def enable_events(self, state: BaseState) -> None:
+    def enable_events(self, state: BaseClientState) -> None:
         raise NotImplementedError('This client does not support events.')
 
     def create_channel_state(self, *, guild=None) -> ChannelState:

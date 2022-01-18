@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 
 from .base_state import (
-    BaseState,
+    BaseClientState,
     BaseSubsidiaryState,
 )
 from ..builders import JSONBuilder
@@ -39,7 +39,7 @@ __all__ = ('RoleUnwrappable', 'RoleState', 'GuildRoleState')
 RoleUnwrappable = Union[Snowflake, Role, str, int, ObjectWrapper]
 
 
-class RoleState(BaseState):
+class RoleState(BaseClientState):
     @classmethod
     def unwrap_id(cls, object):
         if isinstance(object, Snowflake):
@@ -108,7 +108,7 @@ class RoleState(BaseState):
 
 
 class GuildRoleState(BaseSubsidiaryState):
-    def __init__(self, *, superstate: BaseState, guild: Guild) -> None:
+    def __init__(self, *, superstate: BaseClientState, guild: Guild) -> None:
         super().__init__(superstate=superstate)
         self.guild = guild
 

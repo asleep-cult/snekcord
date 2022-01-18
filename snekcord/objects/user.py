@@ -1,6 +1,6 @@
 import enum
 
-from .base import BaseObject
+from .base import SnowflakeObject
 from .. import json
 
 __all__ = ('UserFlags', 'PremiumType', 'User')
@@ -30,7 +30,7 @@ class PremiumType(enum.IntEnum):
     NITRO = 2
 
 
-class User(BaseObject):
+class User(SnowflakeObject):
     name = json.JSONField('username')
     discriminator = json.JSONField('discriminator')
     avatar = json.JSONField('avatar')

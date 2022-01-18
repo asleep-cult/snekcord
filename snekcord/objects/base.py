@@ -8,8 +8,9 @@ from ..snowflake import Snowflake
 
 if TYPE_CHECKING:
     from ..clients import Client
+    from ..states import BaseCachedState
 
-__all__ = ('BaseObject', 'ObjectWrapper')
+__all__ = ('SnowflakeObject', 'ObjectWrapper')
 
 
 class _IDField(json.JSONField):
@@ -23,10 +24,10 @@ class _IDField(json.JSONField):
         return str(value)
 
 
-class _ObjectMixin:
+class BaseObject:
     __slots__ = ()
 
-    def __init__(self, *, state) -> None:
+    def __init__(self, *, state: BaseCachedState) -> None:
         self.state = state
 
     def _get_id(self):
@@ -43,7 +44,7 @@ class _ObjectMixin:
         return await self.state.fetch(self.id)
 
 
-class BaseObject(json.JSONObject, _ObjectMixin):
+class SnowflakeObject(json.JSONObject, BaseObject):
     __slots__ = ('__weakref__', 'state')
 
     id = _IDField()
@@ -56,7 +57,7 @@ class BaseObject(json.JSONObject, _ObjectMixin):
         return self.id
 
 
-class ObjectWrapper(_ObjectMixin):
+class ObjectWrapper(BaseObject):
     __slots__ = ('__weakref__', 'state', 'id')
 
     def __init__(self, *, state, id) -> None:

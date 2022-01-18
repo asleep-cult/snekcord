@@ -19,15 +19,15 @@ class CustomEmoji(BaseObject):
         self.user = None
         self.roles = Collection()
 
+    @property
+    def guild(self):
+        return self.state.guild
+
     def __str__(self) -> str:
         if self.animated:
             return f'<a:{self.name}:{self.id}>'
         else:
             return f'<:{self.name}:{self.id}>'
-
-    @property
-    def guild(self):
-        return self.state.guild
 
     async def _update_user(self, data):
         self.user = await self.client.users.upsert(data)

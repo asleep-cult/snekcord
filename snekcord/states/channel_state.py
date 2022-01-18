@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from .base_state import (
-    BaseCachedState,
-    BaseState,
+    BaseCachedClientState,
+    BaseClientState,
     BaseSubsidiaryState,
 )
 from ..events import (
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 __all__ = ('ChannelState', 'GuildChannelState')
 
 
-class ChannelState(BaseCachedState):
+class ChannelState(BaseCachedClientState):
     @classmethod
     def unwrap_id(cls, object) -> Snowflake:
         if isinstance(object, Snowflake):
@@ -137,7 +137,7 @@ class ChannelState(BaseCachedState):
 
 
 class GuildChannelState(BaseSubsidiaryState):
-    def __init__(self, *, superstate: BaseState, guild: Guild) -> None:
+    def __init__(self, *, superstate: BaseClientState, guild: Guild) -> None:
         super().__init__(superstate=superstate)
         self.guild = guild
 

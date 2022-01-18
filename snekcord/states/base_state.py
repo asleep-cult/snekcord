@@ -18,10 +18,15 @@ if TYPE_CHECKING:
     from ..websockets import ShardWebSocket
     from ..clients.client import Client
 
-__all__ = ('BaseState',)
+__all__ = (
+    'BaseClientState',
+    'BaseCachedState',
+    'BaseCachedClientState',
+    'BaseSubsidiaryState',
+)
 
 
-class BaseState:
+class BaseClientState:
     def __init__(self, *, client: Client) -> None:
         self.client = client
         self._callbacks = defaultdict(list)
@@ -66,15 +71,18 @@ class BaseState:
             self.client.loop.create_task(callback(ret))
 
 
-class BaseCachedState(BaseState):
-    def __init__(self, *, client: Client) -> None:
-        super().__init__(client=client)
-        self.cache = Collection()
+class BaseCachedState:
+    def __init__(self, cache: Collection) -> None:
+        self.cache = cache
+
+    @classmethod
+    def unwrap_id(cls, object):
+        raise NotImplementedError
 
     def wrap_id(self, object):
         return ObjectWrapper(state=self, id=object)
 
-    def __contains__(self, object) -> bool:
+    def __contains__(self, object):
         return self.unwrap_id(object) in self.cache.keys()
 
     def __iter__(self):
@@ -90,14 +98,22 @@ class BaseCachedState(BaseState):
         raise NotImplementedError
 
 
-class BaseSubsidiaryState:
-    def __init__(self, *, superstate: BaseState) -> None:
-        self.superstate = superstate
+class BaseCachedClientState(BaseCachedState, BaseClientState):
+    def __init__(self, *, client: Client) -> None:
+        BaseCachedState.__init__(self, Collection())
+        BaseClientState.__init__(self, client=client)
 
-        if isinstance(superstate, BaseCachedState):
-            self.cache = WeakCollection()
+
+class BaseSubsidiaryState(BaseCachedState):
+    def __init__(self, *, superstate: BaseClientState) -> None:
+        if isinstance(superstate, BaseCachedClientState):
+            cache = WeakCollection()
         else:
-            self.cache = Collection()
+            cache = Collection()
+
+        super().__init__(cache)
+
+        self.superstate = superstate
 
     @property
     def client(self) -> Client:
@@ -107,25 +123,13 @@ class BaseSubsidiaryState:
         return self.superstate.unwrap_id(object)
 
     def wrap_id(self, object):
-        if isinstance(self.superstate, BaseCachedState):
+        if isinstance(self.superstate, BaseCachedClientState):
             return self.superstate.wrap_id(object)
 
         return ObjectWrapper(state=self, id=object)
 
-    def __contains__(self, object) -> bool:
-        return self.unwrap_id(object) in self.cache.keys()
-
-    def __iter__(self):
-        return iter(self.cache)
-
-    def get(self, object):
-        return self.cache.get(self.unwrap_id(object))
-
-    def pop(self, object):
-        return self.cache.pop(self.unwrap_id(object), None)
-
     async def upsert(self, data):
-        if not isinstance(self.superstate, BaseCachedState):
+        if not isinstance(self.superstate, BaseCachedClientState):
             raise NotImplementedError(
                 'Subsidiary state with non-cached superstate must implement upsert'
             )

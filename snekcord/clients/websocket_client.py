@@ -10,7 +10,7 @@ from ..rest.endpoints import (
     GET_GATEWAY,
     GET_GATEWAY_BOT,
 )
-from ..states import BaseState
+from ..states import BaseClientState
 from ..websockets.shard_websocket import ShardWebSocket
 
 __all__ = ('WebSocketClient',)
@@ -39,13 +39,13 @@ class WebSocketClient(Client):
         self._shards = {}
         self._events = {}
 
-    def enable_events(self, state: BaseState) -> None:
+    def enable_events(self, state: BaseClientState) -> None:
         self.intents |= state.get_intents()
 
         for event in state.get_events():
             self._events[event] = state
 
-    def get_state_for(self, event: str) -> Optional[BaseState]:
+    def get_state_for(self, event: str) -> Optional[BaseClientState]:
         return self._events.get(event)
 
     def get_shard(self, shard_id: int):

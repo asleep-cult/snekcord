@@ -1,4 +1,4 @@
-from .base import BaseObject
+from .base import SnowflakeObject
 from .. import json
 
 __all__ = ('RoleTags', 'Role')
@@ -19,7 +19,7 @@ class RoleTags(json.JSONObject):
         return self.role.client
 
 
-class Role(BaseObject):
+class Role(SnowflakeObject):
     __slots__ = ('tags',)
 
     name = json.JSONField('name')

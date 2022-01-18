@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 from typing import TYPE_CHECKING
 
-from .base import BaseObject
+from .base import SnowflakeObject
 from .. import json
 from ..collection import Collection
 from ..exceptions import UnknownObjectError
@@ -42,7 +42,7 @@ class ChannelType(enum.IntEnum):
     GUILD_STAGE_VOICE = 13
 
 
-class BaseChannel(BaseObject):
+class BaseChannel(SnowflakeObject):
     __slots__ = ()
 
     type = json.JSONField('type', ChannelType)

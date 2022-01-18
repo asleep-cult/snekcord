@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .base_state import BaseCachedState
+from .base_state import BaseCachedClientState
 from ..events import (
     BaseEvent,
     GuildAvailableEvent,
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 __all__ = ('GuildState',)
 
 
-class GuildState(BaseCachedState):
+class GuildState(BaseCachedClientState):
     @classmethod
     def unwrap_id(cls, object):
         if isinstance(object, Snowflake):
