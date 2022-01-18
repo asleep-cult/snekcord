@@ -322,13 +322,14 @@ class ShardWebSocket:
         self.ws = None
         self.beater = None
 
+        self._attempts = 0
         self._cancellation_queue = asyncio.Queue()
 
         self._sequence = -1
         self._session_id = None
         self._guilds = {}
-        self._hello_ev = asyncio.Event()
-        self._ready_ev = asyncio.Event()
+        self._hello_fut = None
+        self._ready_fut = None
 
     @property
     def latency(self):
@@ -344,17 +345,22 @@ class ShardWebSocket:
         self.beater = ShardBeater(self)
 
     async def wait_for_hello(self):
-        await asyncio.wait_for(self._hello_ev.wait(), timeout=30)
+        await asyncio.wait_for(self._hello_fut, timeout=30)
 
     async def wait_for_ready(self):
-        await asyncio.wait_for(self._ready_ev.wait(), timeout=30)
+        await asyncio.wait_for(self._ready_fut, timeout=30)
 
     def get_identify_properties(self):
         return {'$os': platform.system(), '$browser': 'snekcord', '$device': 'snekcord'}
 
     async def create_connection(self, *, reconnect=False):
+        self._attempts += 1
+
         self.create_websocket()
         self.create_beater()
+
+        self._hello_fut = self.loop.create_future()
+        self._ready_fut = self.loop.create_future()
 
         try:
             await self.ws.connect(self.url)
@@ -365,6 +371,9 @@ class ShardWebSocket:
             await self.wait_for_hello()
         except asyncio.TimeoutError:
             return await self.cancel(ShardCancellationToken.HELLO_TIMEOUT)
+        except asyncio.CancelledError:
+            assert not self._cancellation_queue.empty()
+            return
 
         if reconnect:
             await self.ws.send_resume(self.token, self._session_id, self._sequence)
@@ -375,9 +384,12 @@ class ShardWebSocket:
             await self.wait_for_ready()
         except asyncio.TimeoutError:
             return await self.cancel(ShardCancellationToken.READY_TIMEOUT)
+        except asyncio.CancelledError:
+            assert not self._cancellation_queue.empty()
+            return
 
     async def on_hello(self, data):
-        self._hello_ev.set()
+        self._hello_fut.set_result(None)
 
         interval = data.get('heartbeat_interval')
         if not isinstance(interval, int):
@@ -414,10 +426,10 @@ class ShardWebSocket:
                 for guild in guilds:
                     self._guilds[guild['id']] = ShardGuildStatus.UNKNOWN
 
-            return self._ready_ev.set()
+            return self._ready_fut.set_result(None)
 
         if event == 'RESUMED':
-            return self._ready_ev.set()
+            return self._ready_fut.set_result(None)
 
         if event == 'GUILD_CREATE':
             guild_id = data['id']
@@ -454,19 +466,32 @@ class ShardWebSocket:
         await self.cancel(ShardCancellationToken.INVALID_SESSION, reconnect)
 
     async def cancel(self, token, info=None):
+        if self._hello_fut is not None:
+            try:
+                self._hello_fut.cancel()
+            except asyncio.InvalidStateError:
+                self._hello_fut = None
+
+        if self._ready_fut is not None:
+            try:
+                self._ready_fut.cancel()
+            except asyncio.InvalidStateError:
+                self._ready_fut = None
+
         await self._cancellation_queue.put((token, info))
 
     async def start(self):
+        stopping = False
         reconnect = False
-        attempts = 0
 
-        while True:
-            attempts += 1
+        while not stopping:
             await self.create_connection(reconnect=reconnect)
 
             if self._cancellation_queue.empty():
-                logger.info(f'Shard established WebSocket connection after {attempts} attempt(s)')
-                attempts = 0
+                logger.info(
+                    f'Shard established WebSocket connection after {self._attempts} attempt(s)'
+                )
+                self._attempts = 0
 
             reconnect = False
             token, info = await self._cancellation_queue.get()
@@ -510,8 +535,10 @@ class ShardWebSocket:
                 await asyncio.sleep(random.random() * 5)
 
             elif token is ShardCancellationToken.SIGNAL_INTERRUPT:
+                stopping = True
+
                 logger.debug('Shard closing due to a signal interrupt')
-                return await self.ws.close(code=WS_NORMAL_CLOSURE)
+                await self.ws.close(code=WS_NORMAL_CLOSURE)
 
             elif token is ShardCancellationToken.CONNECTION_CLOSED:
                 if info[0] == ShardCloseCode.AUTHENTICATION_FAILED:
@@ -536,15 +563,23 @@ class ShardWebSocket:
                 except asyncio.TimeoutError:
                     token = None
 
+                if token is not None:
+                    token = token.name
+
                 if token is not ShardCancellationToken.CONNECTION_CLOSED:
                     logger.warning(
-                        f'Shard expected CONNECTION_CLOSED token but found {token!r} instead, '
+                        f'Shard expected CONNECTION_CLOSED token but found {token} instead, '
                         f'closing WebSocket forcefully'
                     )
+                    self.ws.detatch()
                     self.ws.stream.close()
 
             if self.beater is not None:
                 self.beater.stop()
 
-            if attempts > 1:
-                await asyncio.sleep(1 + random.random() * attempts)
+            while not self._cancellation_queue.empty():
+                token, _ = self._cancellation_queue.get_nowait()
+                logger.debug(f'Shard found unhandled token {token.name} in cancellation queue')
+
+            if self._attempts > 1:
+                await asyncio.sleep(1 + random.random() * self._attempts)

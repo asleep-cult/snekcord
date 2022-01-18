@@ -87,11 +87,13 @@ class WebSocketClient(Client):
             shards = gateway.get('shards', 1)
             self.shard_ids = list(range(shards))
 
+        tasks = []
+
         for shard_id in self.shard_ids:
             shard = ShardWebSocket(self, gateway['url'])
             self._shards[shard_id] = shard
 
-            self.loop.create_task(shard.start())
+            tasks.append(self.loop.create_task(shard.start()))
 
         future = self.loop.create_future()
 
@@ -136,7 +138,10 @@ class WebSocketClient(Client):
             signal.signal(signal.SIGINT, signal.default_int_handler)
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
-        for shard_id, shard in self._shards.items():
+        for shard in self._shards.values():
             await shard.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
 
-        await self.rest.aclose()
+        try:
+            await asyncio.gather(*tasks)
+        finally:
+            await self.rest.aclose()
