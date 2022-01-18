@@ -1,11 +1,11 @@
-from .base import BaseObject
+from .base import SnowflakeObject
 from .. import json
 from ..collection import Collection
 
 __all__ = ('CustomEmoji',)
 
 
-class CustomEmoji(BaseObject):
+class CustomEmoji(SnowflakeObject):
     __slots__ = ('user', 'roles')
 
     name = json.JSONField('name')

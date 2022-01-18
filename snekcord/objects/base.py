@@ -38,10 +38,10 @@ class BaseObject:
         return self.state.client
 
     def is_cached(self) -> bool:
-        return self.id in self.state.cache.keys()
+        return self._get_id() in self.state.cache.keys()
 
     async def fetch(self):
-        return await self.state.fetch(self.id)
+        return await self.state.fetch(self._get_id())
 
 
 class SnowflakeObject(json.JSONObject, BaseObject):
