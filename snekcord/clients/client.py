@@ -27,11 +27,11 @@ class Client:
 
         self.channels = self.create_channel_state()
         self.guilds = self.create_guild_state()
+        self.messages = self.create_message_state()
         self.roles = self.create_role_state()
         self.users = self.create_user_state()
-        self.messages = self.create_message_state()
 
-    def enable_events(self, state: BaseClientState) -> None:
+    def enable_events(self, state: BaseClientState, *, implicit: bool = False) -> None:
         raise NotImplementedError('This client does not support events.')
 
     def create_channel_state(self, *, guild=None) -> ChannelState:

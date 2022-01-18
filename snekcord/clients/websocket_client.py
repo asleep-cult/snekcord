@@ -39,11 +39,14 @@ class WebSocketClient(Client):
         self._shards = {}
         self._events = {}
 
-    def enable_events(self, state: BaseClientState) -> None:
-        self.intents |= state.get_intents()
+    def enable_events(self, state: BaseClientState, *, implicit: bool = False) -> None:
+        intents = state.get_intents()
 
-        for event in state.get_events():
-            self._events[event] = state
+        if not implicit or self.intents & intents:
+            self.intents |= intents
+
+            for event in state.get_events():
+                self._events[event] = state
 
     def get_state_for(self, event: str) -> Optional[BaseClientState]:
         return self._events.get(event)
@@ -63,6 +66,15 @@ class WebSocketClient(Client):
         return await self.rest.request(endpoint)
 
     async def connect(self) -> None:
+        for state in (
+            self.channels,
+            self.guilds,
+            self.messages,
+            self.roles,
+            # self.users,
+        ):
+            self.enable_events(state, implicit=True)
+
         if self.loop is None:
             self.loop = asyncio.get_running_loop()
 
