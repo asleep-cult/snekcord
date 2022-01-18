@@ -11,7 +11,10 @@ from ..rest.endpoints import (
     GET_GATEWAY_BOT,
 )
 from ..states import BaseClientState
-from ..websockets.shard_websocket import ShardWebSocket
+from ..websockets.shard_websocket import (
+    ShardCancellationToken,
+    ShardWebSocket,
+)
 
 __all__ = ('WebSocketClient',)
 
@@ -88,8 +91,7 @@ class WebSocketClient(Client):
             shard = ShardWebSocket(self, gateway['url'])
             self._shards[shard_id] = shard
 
-            await shard.connect()
-            logger.debug(f'Shard {shard_id + 1}/{self.shard_ids[-1] + 1} connected')
+            self.loop.create_task(shard.start())
 
         future = self.loop.create_future()
 
@@ -135,12 +137,6 @@ class WebSocketClient(Client):
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
         for shard_id, shard in self._shards.items():
-            if shard.ws is not None:
-                try:
-                    await shard.ws.close()
-                except Exception:
-                    logger.warning(f'Error while closing shard {shard_id}')
-                else:
-                    logger.debug(f'Shard {shard_id + 1}/{self.shard_ids[-1] + 1} closed')
+            await shard.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
 
         await self.rest.aclose()

@@ -27,12 +27,38 @@ class UnknownObjectError(LookupError):
 
 
 class ShardConnectError(Exception):
-    def __init__(self, shard, message):
-        self.shard = shard
+    def __init__(self, message, *, shard):
         self.message = message
+        self.shard = shard
 
     def __str__(self):
         return self.message
+
+
+class AuthenticationFailedError(Exception):
+    def __init__(self, *, shard):
+        self.shard = shard
+        self.token = self.shard.token
+
+    def __str__(self):
+        return 'Shard failed to authenticate. Make sure you are using the correct token.'
+
+
+class DisallowedIntentsError(Exception):
+    def __init__(self, *, shard):
+        self.shard = shard
+
+    def __str__(self):
+        return 'Shard enabled intents that are disallowed.'
+
+
+class ShardCloseError(Exception):
+    def __init__(self, code, *, shard):
+        self.code = code
+        self.shard = shard
+
+    def __repr__(self) -> str:
+        return f'Shard closed due to error ({self.code})'
 
 
 class RESTError(Exception):
