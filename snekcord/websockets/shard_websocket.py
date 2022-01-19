@@ -263,11 +263,11 @@ class ShardWebSocketClient(WebSocketClient):
 
         await self.shard.cancel(ShardCancellationToken.BINARY_RECEIVED)
 
-    async def on_close(self, code, data):
+    async def on_close(self, data, code):
         if self.detached:
             return logger.debug('WebSocket received close but it is detached')
 
-        await self.shard.cancel(ShardCancellationToken.CONNECTION_CLOSED, (code, data))
+        await self.shard.cancel(ShardCancellationToken.CONNECTION_CLOSED, (data, code))
 
     def detatch(self):
         self.detached = True
