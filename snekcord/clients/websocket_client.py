@@ -85,12 +85,16 @@ class WebSocketClient(Client):
 
         if self.shard_ids is None:
             shards = gateway.get('shards', 1)
+            sharded = shards > 1
+
             self.shard_ids = list(range(shards))
+        else:
+            sharded = True
 
         tasks = []
 
         for shard_id in self.shard_ids:
-            shard = ShardWebSocket(self, gateway['url'])
+            shard = ShardWebSocket(self, gateway['url'], shard_id, sharded=sharded)
             self._shards[shard_id] = shard
 
             tasks.append(self.loop.create_task(shard.start()))
