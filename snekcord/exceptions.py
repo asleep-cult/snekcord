@@ -61,6 +61,10 @@ class ShardCloseError(Exception):
         return f'Shard closed due to error ({self.code})'
 
 
+class PendingCancellationError(Exception):
+    pass
+
+
 class RESTError(Exception):
     def __init__(self, session, method, url, response, data):
         self.session = session
