@@ -7,7 +7,10 @@ from .base_events import BaseEvent
 
 if TYPE_CHECKING:
     from ..json import JSONData
-    from ..objects import Invite
+    from ..objects import (
+        ObjectWrapper,
+        Invite,
+    )
     from ..websockets import ShardWebSocket
 
 __all__ = ('InviteEvent', 'InviteCreateEvent', 'InviteDeleteEvent')
@@ -37,6 +40,14 @@ class InviteDeleteEvent(BaseEvent):
     ) -> None:
         super().__init__(shard=shard, payload=payload)
         self.invite = invite
+
+    @property
+    def guild(self) -> ObjectWrapper:
+        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
+
+    @property
+    def channel(self) -> ObjectWrapper:
+        return self.client.channels.wrap_id(self.payload.get('channel_id'))
 
     def __repr__(self) -> str:
         return f'<InviteDeleteEvent invite={self.invite!r}>'
