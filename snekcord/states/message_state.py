@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 from .base_state import (
@@ -8,7 +9,6 @@ from .base_state import (
 )
 from ..builders import JSONBuilder
 from ..collection import Collection
-from ..epochs import MessageEpoch
 from ..events import (
     BaseEvent,
     MessageBulkDeleteEvent,
@@ -24,6 +24,7 @@ from ..objects import (
     Message,
     ObjectWrapper,
 )
+from ..ordering import FetchOrdering
 from ..rest.endpoints import (
     CREATE_CHANNEL_MESSAGE,
     DELETE_CHANNEL_MESSAGES,
@@ -193,16 +194,28 @@ class ChannelMessageState(BaseSubState):
 
         return await self.upsert(data)
 
-    async def fetch_many(self, epoch: Optional[MessageEpoch] = None, *, limit: int = 100):
+    async def fetch_many(
+        self,
+        ordering: Optional[FetchOrdering] = None,
+        message: Optional[Union[MessageUnwrappable, datetime]] = None,
+        *,
+        limit: int = 100,
+    ) -> list[Message]:
         params = JSONBuilder()
 
-        if epoch is not None:
-            if not isinstance(epoch, MessageEpoch):
-                raise TypeError(
-                    f'epoch should be a MessageEpoch or None, got {epoch.__class__.__name__}'
-                )
+        if ordering is not None:
+            if message is None:
+                raise TypeError('ordering and message are mutually inclusive')
 
-            params.snowflake(epoch.key, epoch.snowflake)
+            if isinstance(message, datetime):
+                snowflake = Snowflake.build(message.timestamp())
+            else:
+                snowflake = self.unwrap_id(message)
+
+            params.snowflake(ordering.value, snowflake)
+        else:
+            if message is not None:
+                raise TypeError('message and ordering are mutually inclusive')
 
         params.int('limit', limit)
 
