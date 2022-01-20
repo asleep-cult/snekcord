@@ -384,7 +384,7 @@ dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 
 [[package]]
 name = "wsaio"
-version = "0.1.1"
+version = "1.0.0"
 description = "An event-driven WebSocket library for Python."
 category = "main"
 optional = false
@@ -393,7 +393,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "91ca32a90dfeace3244b9347bacec9b981c5a1c85f9f7090632ad5c7afe17c0a"
+content-hash = "87cd68f9c355801df8dc12d9b33c09d84982aa2232bb42d7aac014f8f2759af1"
 
 [metadata.files]
 anyio = [
@@ -640,5 +640,5 @@ win32-setctime = [
     {file = "win32_setctime-1.0.4.tar.gz", hash = "sha256:2b72b798fdc1d909fb3cc0d25e0be52a42f4848857e3588dd3947c6a18b42609"},
 ]
 wsaio = [
-    {file = "wsaio-0.1.1.tar.gz", hash = "sha256:4315f7f29187009830670dfe8e1aa470d70585da03e5c5c2139bc176a56737c0"},
+    {file = "wsaio-1.0.0.tar.gz", hash = "sha256:f22c4dfec5a284faf40310c3462c8d3faffd65100b322a27a9b5e13738d894cd"},
 ]
