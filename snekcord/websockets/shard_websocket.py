@@ -560,10 +560,10 @@ class ShardWebSocket:
 
             elif token is ShardCancellationToken.CONNECTION_CLOSED:
                 if info[1] == ShardCloseCode.AUTHENTICATION_FAILED:
-                    raise AuthenticationFailedError(shard=self)
+                    raise AuthenticationFailedError(self)
 
                 if info[1] == ShardCloseCode.DISALLOWED_INTENTS:
-                    raise DisallowedIntentsError(shard=self)
+                    raise DisallowedIntentsError(self)
 
                 if info[1] in (
                     ShardCloseCode.INVALID_SHARD,
@@ -571,7 +571,7 @@ class ShardWebSocket:
                     ShardCloseCode.INVALID_API_VERSION,
                     ShardCloseCode.INVALID_INTENTS,
                 ):
-                    raise ShardCloseError(ShardCloseCode(info[1]), shard=self)
+                    raise ShardCloseError(ShardCloseCode(info[1]), self)
 
                 logger.debug(f'Shard closed [{info[1]}]: {info[0].decode()}')
 

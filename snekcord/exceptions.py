@@ -27,7 +27,7 @@ class UnknownObjectError(LookupError):
 
 
 class ShardConnectError(Exception):
-    def __init__(self, message, *, shard):
+    def __init__(self, message, shard):
         self.message = message
         self.shard = shard
 
@@ -36,7 +36,7 @@ class ShardConnectError(Exception):
 
 
 class AuthenticationFailedError(Exception):
-    def __init__(self, *, shard):
+    def __init__(self, shard):
         self.shard = shard
         self.token = self.shard.token
 
@@ -45,7 +45,7 @@ class AuthenticationFailedError(Exception):
 
 
 class DisallowedIntentsError(Exception):
-    def __init__(self, *, shard):
+    def __init__(self, shard):
         self.shard = shard
 
     def __str__(self):
@@ -93,33 +93,39 @@ class RESTError(Exception):
     def is_bad_gateway(self):
         return self.status is HTTPStatus.BAD_GATEWAY
 
-    def _iter_errors(self, data, *, _keys=()):
-        if isinstance(data, dict):
-            for key, value in data.items():
-                if key == '_errors':
-                    yield _keys, value
-                else:
-                    yield from self._iter_errors(data, _keys=_keys + (key,))
+    def format_error(self, keys, error):
+        key = '.'.join(str(key) for key in keys)
 
-    def get_errors(self):
-        if isinstance(self.data, dict):
-            if 'errors' in self.data:
-                yield from self._iter_errors(self.data)
+        message = error.get('message', '<missing message>')
+        code = error.get('code', '<missing code>')
+
+        return f'\n{key}: {message} ({code})'
 
     def __str__(self):
         string = f'[{self.method} {self.url} => {self.status} {self.status.phrase}]'
 
-        for keys, errors in self.get_errors():
-            formatted = keys[0]
-            for key in keys[:1]:
-                if isinstance(key, int):
-                    formatted += f'[{key}]'
-                else:
-                    formatted += f'.{key}'
+        if isinstance(self.data, dict):
+            if 'errors' in self.data:
+                stack = []
 
-            for error in errors:
-                message = error.get('message', '<missing message>')
-                code = error.get('code', '<missing code>')
-                string += f'\n{formatted}: {message} ({code})'
+                errors = self.data['errors']
+                assert isinstance(errors, dict)
+
+                for key, value in errors.items():
+                    stack.append(((key,), value))
+
+                while stack:
+                    keys, errors = stack.pop()
+                    assert isinstance(errors, dict)
+
+                    for key, value in errors.items():
+                        if key == '_errors':
+                            assert isinstance(value, list)
+
+                            for error in value:
+                                assert isinstance(error, dict)
+                                string += self.format_error(keys, error)
+                        else:
+                            stack.append((keys + (key,), value))
 
         return string
