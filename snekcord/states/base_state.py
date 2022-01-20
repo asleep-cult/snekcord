@@ -72,8 +72,7 @@ class BaseClientState:
 
 
 class BaseCachedState:
-    def __init__(self, cache: Collection) -> None:
-        self.cache = cache
+    cache: Collection
 
     @classmethod
     def unwrap_id(cls, object):
@@ -100,18 +99,16 @@ class BaseCachedState:
 
 class BaseCachedClientState(BaseCachedState, BaseClientState):
     def __init__(self, *, client: Client) -> None:
-        BaseCachedState.__init__(self, Collection())
         BaseClientState.__init__(self, client=client)
+        self.cache = Collection()
 
 
 class BaseSubsidiaryState(BaseCachedState):
     def __init__(self, *, superstate: BaseClientState) -> None:
         if isinstance(superstate, BaseCachedClientState):
-            cache = WeakCollection()
+            self.cache = WeakCollection()
         else:
-            cache = Collection()
-
-        super().__init__(cache)
+            self.cache = Collection()
 
         self.superstate = superstate
 
