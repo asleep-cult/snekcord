@@ -199,7 +199,7 @@ class ChannelMessageState(BaseSubState):
         ordering: Optional[FetchOrdering] = None,
         message: Optional[Union[MessageUnwrappable, datetime]] = None,
         *,
-        limit: int = 100,
+        limit: MaybeUndefined[int] = undefined,
     ) -> list[Message]:
         params = JSONBuilder()
 
