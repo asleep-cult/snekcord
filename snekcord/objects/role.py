@@ -39,7 +39,7 @@ class Role(SnowflakeObject):
     def guild(self):
         return self.state.guild
 
-    def _update_tags(self, data):
+    async def update_tags(self, data):
         bot_id = data.get('bot_id')
         if bot_id is not None:
             self.tags.bot.set_id(bot_id)

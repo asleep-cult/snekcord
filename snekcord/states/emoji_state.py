@@ -45,11 +45,11 @@ class EmojiState(BaseCachedClientState):
 
         user = data.get('user')
         if user is not None:
-            await emoji._update_user(user)
+            await emoji.update_user(user)
 
         roles = data.get('roles')
         if roles is not None:
-            emoji._update_roles(roles)
+            await emoji.update_roles(roles)
 
         return emoji
 

@@ -51,12 +51,6 @@ class MessageState(BaseClientState):
 
     @classmethod
     def unwrap_id(cls, object: MessageUnwrappable) -> Snowflake:
-        """Converts an object into a message id.
-
-        Raises:
-            TypeError: The object is not a Snowflake, integer, string,
-                Message or ObjectWrapper created by a message state.
-        """
         if isinstance(object, Snowflake):
             return object
 
@@ -161,11 +155,11 @@ class ChannelMessageState(BaseSubState):
 
         author = data.get('author')
         if author is not None:
-            await message._update_author(author)
+            await message.update_author(author)
 
         member = data.get('member')
         if member is not None:
-            # await message._update_member(member)
+            # await message.update_member(member)
             pass
 
         guild_id = data.get('guild_id')

@@ -57,6 +57,19 @@ class SnowflakeObject(json.JSONObject, BaseObject):
         return self.id
 
 
+class CodeObject(json.JSONObject, BaseObject):
+    __slots__ = ('__weakref__', 'state')
+
+    code = json.JSONField('code', repr=True)
+
+    def __init__(self, *, state) -> None:
+        super().__init__(state=state)
+        self.state.cache[self.code] = self
+
+    def _get_id(self):
+        return self.code
+
+
 class ObjectWrapper(BaseObject):
     __slots__ = ('__weakref__', 'state', 'id')
 

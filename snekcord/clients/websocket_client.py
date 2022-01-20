@@ -72,6 +72,7 @@ class WebSocketClient(Client):
         for state in (
             self.channels,
             self.guilds,
+            self.invites,
             self.messages,
             self.roles,
             # self.users,

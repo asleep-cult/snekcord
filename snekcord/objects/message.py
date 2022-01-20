@@ -136,10 +136,10 @@ class Message(SnowflakeObject):
             DELETE_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
         )
 
-    async def _update_author(self, data):
+    async def update_author(self, data):
         self.author = await self.client.users.upsert(data)
 
-    async def _update_member(self, data):
+    async def update_member(self, data):
         try:
             guild = self.guild.unwrap()
         except UnknownObjectError:

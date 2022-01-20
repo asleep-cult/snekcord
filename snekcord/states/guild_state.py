@@ -71,20 +71,20 @@ class GuildState(BaseCachedClientState):
 
         roles = data.get('roles')
         if roles is not None:
-            await guild._update_roles(roles)
+            await guild.update_roles(roles)
 
         members = data.get('members')
         if members is not None:
-            # await guild._update_members(members)
+            # await guild.update_members(members)
             pass
 
         emojis = data.get('emojis')
         if emojis is not None:
-            await guild._update_emojis(emojis)
+            await guild.update_emojis(emojis)
 
         channels = data.get('channels')
         if channels is not None:
-            await guild._update_channels(channels)
+            await guild.update_channels(channels)
 
         return guild
 

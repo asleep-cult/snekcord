@@ -121,7 +121,7 @@ class GuildRoleState(BaseSubState):
 
         tags = data.get('tags')
         if tags is not None:
-            role._update_tags(tags)
+            await role.update_tags(tags)
 
         return role
 

@@ -137,7 +137,7 @@ class Guild(SnowflakeObject):
         self.rules_channel = self.client.channels.wrap_id(None)
         self.public_updates_channel = self.client.channels.wrap_id(None)
 
-    async def _update_roles(self, roles):
+    async def update_roles(self, roles):
         upserted = set()
         for role in roles:
             upserted.add(await self.roles.upsert(role))
@@ -146,11 +146,11 @@ class Guild(SnowflakeObject):
             if role not in upserted:
                 self.roles.cache.pop(role.id)
 
-    async def _update_members(self, members):
+    async def update_members(self, members):
         for member in members:
             await self.members.upsert(member)
 
-    async def _update_channels(self, channels):
+    async def update_channels(self, channels):
         upserted = set()
         for channel in channels:
             channel['guild_id'] = Guild.id.deconstruct(self.id)
@@ -160,7 +160,7 @@ class Guild(SnowflakeObject):
             if channel not in upserted:
                 self.channels.cache.pop(channel.id)
 
-    async def _update_emojis(self, emojis):
+    async def update_emojis(self, emojis):
         upserted = set()
         for emoji in emojis:
             emoji['guild_id'] = CustomEmoji.id.deconstruct(self.id)

@@ -29,12 +29,12 @@ class CustomEmoji(SnowflakeObject):
         else:
             return f'<:{self.name}:{self.id}>'
 
-    async def _update_user(self, data):
+    async def update_user(self, data):
         self.user = await self.client.users.upsert(data)
 
-    def _update_roles(self, roles):
+    async def update_roles(self, roles):
         self.roles.clear()
 
         for role in roles:
-            wrapper = self.guild.roles.wrap_id(role)
-            self.roles[wrapper.id] = wrapper
+            role = self.guild.roles.wrap_id(role)
+            self.roles[role.id] = role
