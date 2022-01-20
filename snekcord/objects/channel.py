@@ -1,21 +1,26 @@
 from __future__ import annotations
 
 import enum
+from collections import namedtuple
 from typing import TYPE_CHECKING
 
 from .base import SnowflakeObject
 from .. import json
+from ..builders import JSONBuilder
 from ..collection import Collection
 from ..exceptions import UnknownObjectError
 from ..rest.endpoints import (
     ADD_CHANNEL_PIN,
+    CREATE_CHANNEL_FOLLOWER,
+    DELETE_CHANNEL,
     GET_CHANNEL_PINS,
     REMOVE_CHANNEL_PIN,
+    TRIGGER_CHANNEL_TYPING,
 )
 
 if TYPE_CHECKING:
     from .message import Message
-    from ..states import MessageUnwrappable
+    from ..states import ChannelUnwrappable, MessageUnwrappable
 
 __all__ = (
     'ChannelType',
@@ -26,6 +31,8 @@ __all__ = (
     'CategoryChannel',
     'StoreChannel',
 )
+
+FollowedChannel = namedtuple('FollowedChannel', ('channel', 'webhook'))
 
 
 class ChannelType(enum.IntEnum):
@@ -84,6 +91,9 @@ class GuildChannel(BaseChannel):
         self.guild = self.client.guilds.wrap_id(None)
         self.parent = self.client.channels.wrap_id(None)
 
+    async def delete(self) -> None:
+        await self.client.rest.request(DELETE_CHANNEL, channel_id=self.id)
+
 
 class TextChannel(GuildChannel):
     __slots__ = ('messages',)
@@ -94,6 +104,23 @@ class TextChannel(GuildChannel):
     def __init__(self, *, state):
         super().__init__(state=state)
         self.messages = self.client.create_message_state(channel=self)
+
+    async def add_follower(self, channel: ChannelUnwrappable) -> FollowedChannel:
+        params = JSONBuilder()
+        params.snowflake('webhook_channel_id', self.state.unwrap_id(channel))
+
+        followed_channel = await self.client.rest.request(
+            CREATE_CHANNEL_FOLLOWER, channel_id=self.channel.id, params=params
+        )
+        assert isinstance(followed_channel, dict)
+
+        return FollowedChannel(
+            self.client.channels.wrap_id(followed_channel['channel_id']),
+            self.client.webhooks.wrap_id(followed_channel['webhook_id']),
+        )
+
+    async def trigger_typing(self) -> None:
+        await self.client.rest.request(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
 
     async def fetch_pins(self) -> list[Message]:
         data = await self.client.rest.request(GET_CHANNEL_PINS, channel_id=self.id)

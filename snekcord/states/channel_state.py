@@ -41,7 +41,12 @@ if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import ShardWebSocket
 
-__all__ = ('ChannelState', 'GuildChannelState')
+__all__ = (
+    'ChannelUnwrappable',
+    'ChannelPosition',
+    'ChannelState',
+    'GuildChannelState',
+)
 
 ChannelUnwrappable = Union[Snowflake, str, int, BaseChannel, ObjectWrapper]
 
@@ -89,6 +94,9 @@ class ChannelState(BaseCachedClientState):
             return StoreChannel
 
         if type is ChannelType.GUILD_TEXT:
+            return TextChannel
+
+        if type is ChannelType.GUILD_NEWS:
             return TextChannel
 
         if type is ChannelType.GUILD_VOICE:
