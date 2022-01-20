@@ -82,7 +82,7 @@ class InviteState(BaseCachedClientState):
         return InviteEvent
 
     def get_intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILD_INVITES
+        return WebSocketIntents.GUILDS | WebSocketIntents.GUILD_INVITES
 
     async def process_event(
         self, event: str, shard: ShardWebSocket, payload: JSONData

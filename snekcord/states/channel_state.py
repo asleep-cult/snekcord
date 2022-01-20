@@ -222,15 +222,15 @@ class GuildChannelState(BaseSubState):
     async def modify_positions(self, channels: dict[ChannelUnwrappable, ChannelPosition]) -> None:
         positions = []
 
-        for key, value in channels.items():
+        for channel, position in channels.items():
             body = JSONBuilder()
 
-            body.snowflake('id', self.unwrap_id(key))
-            body.int('position', value.position, nullable=True)
-            body.bool('lock_permissions', value.lock_permissions, nullable=True)
+            body.snowflake('id', self.unwrap_id(channel))
+            body.int('position', position.position, nullable=True)
+            body.bool('lock_permissions', position.lock_permissions, nullable=True)
 
-            if value.parent is not undefined:
-                body.snowflake('parent', self.unwrap_id(value.parent), nullable=True)
+            if position.parent is not undefined:
+                body.snowflake('parent', self.unwrap_id(position.parent), nullable=True)
 
             positions.append(body)
 

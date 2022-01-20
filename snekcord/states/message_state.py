@@ -84,7 +84,7 @@ class MessageState(BaseClientState):
         return MessageEvent
 
     def get_intents(self):
-        intents = WebSocketIntents.GUILD_MESSAGES
+        intents = WebSocketIntents.GUILDS | WebSocketIntents.GUILD_MESSAGES
 
         if self._direct_messages:
             intents |= WebSocketIntents.DIRECT_MESSAGES
