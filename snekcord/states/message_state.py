@@ -4,7 +4,7 @@ from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 from .base_state import (
     BaseClientState,
-    BaseSubsidiaryState,
+    BaseSubState,
 )
 from ..builders import JSONBuilder
 from ..collection import Collection
@@ -146,7 +146,7 @@ class MessageState(BaseClientState):
             return MessageBulkDeleteEvent(shard=shard, payload=payload, messages=messages)
 
 
-class ChannelMessageState(BaseSubsidiaryState):
+class ChannelMessageState(BaseSubState):
     def __init__(self, *, superstate: BaseClientState, channel: BaseChannel) -> None:
         super().__init__(superstate=superstate)
         self.channel = channel

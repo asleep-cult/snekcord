@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from .base_state import (
     BaseCachedClientState,
     BaseClientState,
-    BaseSubsidiaryState,
+    BaseSubState,
 )
 from ..events import (
     BaseEvent,
@@ -136,7 +136,7 @@ class ChannelState(BaseCachedClientState):
             )
 
 
-class GuildChannelState(BaseSubsidiaryState):
+class GuildChannelState(BaseSubState):
     def __init__(self, *, superstate: BaseClientState, guild: Guild) -> None:
         super().__init__(superstate=superstate)
         self.guild = guild

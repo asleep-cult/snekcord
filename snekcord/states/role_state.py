@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Union
 
 from .base_state import (
     BaseClientState,
-    BaseSubsidiaryState,
+    BaseSubState,
 )
 from ..builders import JSONBuilder
 from ..events import (
@@ -107,7 +107,7 @@ class RoleState(BaseClientState):
             return RoleDeleteEvent(shard=shard, payload=payload, role=role)
 
 
-class GuildRoleState(BaseSubsidiaryState):
+class GuildRoleState(BaseSubState):
     def __init__(self, *, superstate: BaseClientState, guild: Guild) -> None:
         super().__init__(superstate=superstate)
         self.guild = guild
