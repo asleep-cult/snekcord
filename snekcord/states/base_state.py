@@ -22,7 +22,7 @@ __all__ = (
     'BaseClientState',
     'BaseCachedState',
     'BaseCachedClientState',
-    'BaseSubsidiaryState',
+    'BaseSubState',
 )
 
 
@@ -103,7 +103,7 @@ class BaseCachedClientState(BaseCachedState, BaseClientState):
         self.cache = Collection()
 
 
-class BaseSubsidiaryState(BaseCachedState):
+class BaseSubState(BaseCachedState):
     def __init__(self, *, superstate: BaseClientState) -> None:
         if isinstance(superstate, BaseCachedClientState):
             self.cache = WeakCollection()
@@ -120,16 +120,14 @@ class BaseSubsidiaryState(BaseCachedState):
         return self.superstate.unwrap_id(object)
 
     def wrap_id(self, object):
-        if isinstance(self.superstate, BaseCachedClientState):
+        if isinstance(self.superstate, BaseCachedState):
             return self.superstate.wrap_id(object)
 
         return ObjectWrapper(state=self, id=object)
 
     async def upsert(self, data):
-        if not isinstance(self.superstate, BaseCachedClientState):
-            raise NotImplementedError(
-                'Subsidiary state with non-cached superstate must implement upsert'
-            )
+        if not isinstance(self.superstate, BaseCachedState):
+            raise NotImplementedError('substate with non-cached superstate must implement upsert')
 
         object = await self.superstate.upsert(data)
         self.cache[self.unwrap_id(object)] = object
