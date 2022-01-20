@@ -25,10 +25,6 @@ class RoleCreateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.role = role
 
-    @staticmethod
-    def get_type() -> RoleEvent:
-        return RoleEvent.CREATE
-
     def __repr__(self) -> str:
         return f'<RoleCreateEvent role={self.role!r}>'
 
@@ -42,10 +38,6 @@ class RoleUpdateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.role = role
 
-    @staticmethod
-    def get_type() -> RoleEvent:
-        return RoleEvent.UPDATE
-
     def __repr__(self) -> str:
         return f'<RoleUpdateEvent role={self.role!r}>'
 
@@ -58,10 +50,6 @@ class RoleDeleteEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
-
-    @staticmethod
-    def get_type() -> RoleEvent:
-        return RoleEvent.DELETE
 
     def __repr__(self) -> str:
         return f'<RoleDeleteEvent role={self.role!r}>'

@@ -17,10 +17,6 @@ class BaseEvent:
         self.shard = shard
         self.payload = payload
 
-    @staticmethod
-    def get_type():
-        raise NotImplementedError
-
     @property
     def client(self) -> Client:
         return self.shard.client

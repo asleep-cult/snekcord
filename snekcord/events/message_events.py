@@ -48,10 +48,6 @@ class MessageCreateEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.CREATE
-
     def __repr__(self) -> str:
         return f'<MessageCreateEvent message={self.message!r}>'
 
@@ -62,10 +58,6 @@ class MessageUpdateEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
-
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.UPDATE
 
     def __repr__(self) -> str:
         return f'<MessageUpdateEvent message={self.message!r}>'
@@ -78,10 +70,6 @@ class MessageDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.UPDATE
-
     def __repr__(self) -> str:
         return f'<MessageDeleteEvent message={self.message!r}>'
 
@@ -92,10 +80,6 @@ class MessageBulkDeleteEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, messages: Collection) -> None:
         super().__init__(shard=shard, payload=payload)
         self.messages = messages
-
-    @staticmethod
-    def get_type() -> MessageEvent:
-        return MessageEvent.UPDATE
 
     def __repr__(self) -> str:
         return f'<MessageBulkDeleteEvent messages={self.messages!r}>'

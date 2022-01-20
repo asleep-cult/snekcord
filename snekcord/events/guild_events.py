@@ -37,10 +37,6 @@ class GuildJoinEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @staticmethod
-    def get_type() -> GuildEvent:
-        return GuildEvent.JOIN
-
     def __repr__(self) -> str:
         return f'<GuildJoinEvent guild={self.guild!r}>'
 
@@ -51,10 +47,6 @@ class GuildAvailableEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
-
-    @staticmethod
-    def get_type() -> GuildEvent:
-        return GuildEvent.AVAILABLE
 
     def __repr__(self) -> str:
         return f'<GuildAvailableEvent guild={self.guild!r}>'
@@ -67,10 +59,6 @@ class GuildReceiveEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @staticmethod
-    def get_type() -> GuildEvent:
-        return GuildEvent.RECEIVE
-
     def __repr__(self) -> str:
         return f'<GuildReceiveEvent guild={self.guild!r}>'
 
@@ -81,10 +69,6 @@ class GuildUpdateEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
-
-    @staticmethod
-    def get_type() -> GuildEvent:
-        return GuildEvent.UPDATE
 
     def __repr__(self) -> str:
         return f'<GuildUpdateEvent guild={self.guild!r}>'
@@ -97,10 +81,6 @@ class GuildDeleteEvent(BaseEvent):
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
-    @staticmethod
-    def get_type() -> GuildEvent:
-        return GuildEvent.DELETE
-
     def __repr__(self) -> str:
         return f'<GuildDeleteEvent guild={self.guild!r}>'
 
@@ -111,10 +91,6 @@ class GuildUnavailableEvent(BaseEvent):
     def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
-
-    @staticmethod
-    def get_type() -> GuildEvent:
-        return GuildEvent.UNAVAILABLE
 
     def __repr__(self) -> str:
         return f'<GuildUnavailableEvent guild={self.guild!r}>'
