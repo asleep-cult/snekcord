@@ -252,7 +252,10 @@ class ChannelMessageState(BaseSubState):
         body.set('allowed_mentions', mentions, transformer=MessageMentions.to_dict)
 
         if reference is not undefined:
-            body['message_reference'] = {'message_id': self.unwrap_id(reference)}
+            message_reference = JSONBuilder()
+            message_reference.snowflake('message_id', self.unwrap_id(reference))
+
+            body['message_reference'] = message_reference
 
         data = await self.client.rest.request(
             CREATE_CHANNEL_MESSAGE, channel_id=self.channel.id, json=body
@@ -270,7 +273,9 @@ class ChannelMessageState(BaseSubState):
         if len(message_ids) > 100:
             raise TypeError('Cannot bulk delete > 100 messages')
 
-        params = {'message_ids': message_ids}
+        params = JSONBuilder()
+        params.snowflake_array(message_ids)
+
         await self.client.rest.request(
             DELETE_CHANNEL_MESSAGES, channel_id=self.channel.id, params=params
         )
