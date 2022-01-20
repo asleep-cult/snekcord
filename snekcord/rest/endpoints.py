@@ -125,7 +125,7 @@ BEGIN_GUILD_PRUNE = RESTEndpoint(POST, '/guilds/{guild_id}/prune')
 
 GET_GUILD_CHANNELS = RESTEndpoint(GET, '/guilds/{guild_id}/channels')
 CREATE_GUILD_CHANNEL = RESTEndpoint(POST, '/guilds/{guild_id}/channels')
-MODIFY_GUILD_CHANNELS = RESTEndpoint(PATCH, '/guilds/{guild_id}/channels')
+MODIFY_GUILD_CHANNEL_POSITIONS = RESTEndpoint(PATCH, '/guilds/{guild_id}/channels')
 
 GET_GUILD_MEMBERS = RESTEndpoint(GET, '/guilds/{guild_id}/members')
 SEARCH_GUILD_MEMBERS = RESTEndpoint(GET, '/guilds/{guild_id}/members/search')
