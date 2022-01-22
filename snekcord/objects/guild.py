@@ -2,7 +2,10 @@ import enum
 
 import attr
 
-from .base import SerializedObject, SnowflakeObject
+from .base import (
+    SerializedObject,
+    SnowflakeObject,
+)
 from .. import json
 
 __all__ = (
@@ -111,6 +114,12 @@ class SerializedGuild(SerializedObject):
     emoji_ids = json.JSONArray('emoji_ids')
     member_ids = json.JSONArray('member_ids')
     channel_ids = json.JSONArray('channel_ids')
+
+
+@attr.s(kw_only=True)
+class BaseGuild(SnowflakeObject):
+    name: str = attr.ib()
+    icon: str = attr.ib()
 
 
 @attr.s(kw_only=True)

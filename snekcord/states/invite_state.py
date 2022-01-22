@@ -7,7 +7,7 @@ from ..events import (
     BaseEvent,
     InviteCreateEvent,
     InviteDeleteEvent,
-    InviteEvent,
+    InviteEvents,
 )
 from ..intents import WebSocketIntents
 from ..objects import (
@@ -73,13 +73,13 @@ class InviteState(BaseCachedClientState):
         return invite
 
     def on_create(self):
-        return self.on(InviteEvent.CREATE)
+        return self.on(InviteEvents.CREATE)
 
     def on_delete(self):
-        return self.on(InviteEvent.DELETE)
+        return self.on(InviteEvents.DELETE)
 
-    def get_events(self) -> type[InviteEvent]:
-        return InviteEvent
+    def get_events(self) -> type[InviteEvents]:
+        return InviteEvents
 
     def get_intents(self) -> WebSocketIntents:
         return WebSocketIntents.GUILDS | WebSocketIntents.GUILD_INVITES
@@ -87,10 +87,10 @@ class InviteState(BaseCachedClientState):
     async def process_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
         event = self.cast_event(event)
 
-        if event is InviteEvent.CREATE:
+        if event is InviteEvents.CREATE:
             invite = await self.upsert(payload)
             return InviteCreateEvent(shard=shard, payload=payload, invite=invite)
 
-        if event is InviteEvent.DELETE:
+        if event is InviteEvents.DELETE:
             invite = self.pop(payload['code'])
             return InviteDeleteEvent(shard=shard, payload=payload, invite=invite)

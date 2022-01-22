@@ -32,7 +32,7 @@ class SerializedObject(Generic[SupportsUniqueT, UniqueT, ObjectT], JSONObject):
 class BaseObject(Generic[SupportsUniqueT, UniqueT]):
     """The base class for all Discord objects."""
 
-    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.field()
+    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.ib()
 
     @property
     def client(self) -> Client:
