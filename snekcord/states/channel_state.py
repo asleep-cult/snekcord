@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 from .base_state import (
-    BaseCachedClientState,
-    BaseClientState,
-    BaseSubState,
+    CachedEventState,
+    CachedStateView,
+    OnDecoratorT,
 )
 from ..builders import JSONBuilder
 from ..events import (
     BaseEvent,
     ChannelCreateEvent,
     ChannelDeleteEvent,
-    ChannelEvent,
+    ChannelEvents,
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
@@ -39,7 +39,7 @@ from ..undefined import MaybeUndefined, undefined
 
 if TYPE_CHECKING:
     from ..json import JSONData
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 __all__ = (
     'ChannelUnwrappable',
@@ -48,25 +48,10 @@ __all__ = (
     'GuildChannelState',
 )
 
-ChannelUnwrappable = Union[Snowflake, str, int, BaseChannel, ObjectWrapper]
+SupportsChannel = Union[Snowflake, str, int, BaseChannel, ObjectWrapper]
 
 
-class ChannelPosition:
-    __slots__ = ('position', 'lock_permissions', 'parent')
-
-    def __init__(
-        self,
-        *,
-        position: MaybeUndefined[Optional[int]] = undefined,
-        lock_permissions: MaybeUndefined[Optional[bool]] = undefined,
-        parent: MaybeUndefined[Optional[ChannelUnwrappable]] = undefined,
-    ) -> None:
-        self.position = position
-        self.lock_permissions = lock_permissions
-        self.parent = parent
-
-
-class ChannelState(BaseCachedClientState):
+class ChannelState(CachedEventState):
     @classmethod
     def unwrap_id(cls, object) -> Snowflake:
         if isinstance(object, Snowflake):
@@ -105,6 +90,7 @@ class ChannelState(BaseCachedClientState):
         return BaseChannel
 
     async def upsert(self, data):
+        """
         channel = self.get(data['id'])
         if channel is not None:
             channel.update(data)
@@ -120,43 +106,42 @@ class ChannelState(BaseCachedClientState):
             channel.parent.set_id(data.get('parent_id'))
 
         return channel
+        """
 
-    def on_create(self):
-        return self.on(ChannelEvent.CREATE)
+    def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
+        return self.on(ChannelEvents.CREATE)
 
-    def on_update(self):
-        return self.on(ChannelEvent.UPDATE)
+    def on_update(self) -> OnDecoratorT[ChannelUpdateEvent]:
+        return self.on(ChannelEvents.UPDATE)
 
-    def on_delete(self):
-        return self.on(ChannelEvent.DELETE)
+    def on_delete(self) -> OnDecoratorT[ChannelDeleteEvent]:
+        return self.on(ChannelEvents.DELETE)
 
-    def on_pins_update(self):
-        return self.on(ChannelEvent.PINS_UPDATE)
+    def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
+        return self.on(ChannelEvents.PINS_UPDATE)
 
-    def get_events(self) -> type[ChannelEvent]:
-        return ChannelEvent
+    def get_events(self) -> Iterable[str]:
+        return ChannelEvents
 
     def get_intents(self) -> WebSocketIntents:
         return WebSocketIntents.GUILDS
 
-    async def process_event(
-        self, event: str, shard: ShardWebSocket, payload: JSONData
-    ) -> BaseEvent:
-        event = self.cast_event(event)
+    async def process(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
+        event = ChannelEvents(event)
 
-        if event is ChannelEvent.CREATE:
+        if event is ChannelEvents.CREATE:
             channel = await self.upsert(payload)
             return ChannelCreateEvent(shard=shard, payload=payload, channel=channel)
 
-        if event is ChannelEvent.UPDATE:
+        if event is ChannelEvents.UPDATE:
             channel = await self.upsert(payload)
             return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
 
-        if event is ChannelEvent.DELETE:
+        if event is ChannelEvents.DELETE:
             channel = self.pop(payload['id'])
             return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
 
-        if event is ChannelEvent.PINS_UPDATE:
+        if event is ChannelEvents.PINS_UPDATE:
             channel = self.wrap_id(payload['channel_id'])
 
             timestamp = payload.get('timestamp')
@@ -168,14 +153,10 @@ class ChannelState(BaseCachedClientState):
             )
 
 
-class GuildChannelState(BaseSubState):
-    def __init__(self, *, superstate: BaseClientState, guild: Guild) -> None:
-        super().__init__(superstate=superstate)
-        self.guild = guild
-
-    async def upsert(self, data):
-        data['guild_id'] = Guild.id.deconstruct(self.guild.id)
-        return await super().upsert(data)
+class GuildChannelState(CachedStateView):
+    def __init__(self, *, state: ChannelState, guild: Guild) -> None:
+        super().__init__(state=state)
+        self.guilds = guild
 
     async def fetch_all(self) -> list[BaseChannel]:
         channels = await self.client.rest.request(GET_GUILD_CHANNELS, guild_id=self.guild.id)
@@ -219,6 +200,7 @@ class GuildChannelState(BaseSubState):
 
         return await self.upsert(channel)
 
+    """
     async def modify_positions(self, channels: dict[ChannelUnwrappable, ChannelPosition]) -> None:
         positions = []
 
@@ -237,3 +219,4 @@ class GuildChannelState(BaseSubState):
         await self.client.rest.request(
             MODIFY_GUILD_CHANNEL_POSITIONS, guild_id=self.guild.id, json=positions
         )
+    """

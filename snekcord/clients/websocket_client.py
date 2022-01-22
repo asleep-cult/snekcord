@@ -12,8 +12,8 @@ from ..rest.endpoints import (
 )
 from ..states import BaseClientState
 from ..websockets.shard_websocket import (
+    Shard,
     ShardCancellationToken,
-    ShardWebSocket,
 )
 
 __all__ = ('WebSocketClient',)
@@ -54,11 +54,14 @@ class WebSocketClient(Client):
     def get_state_for(self, event: str) -> Optional[BaseClientState]:
         return self._events.get(event)
 
-    def get_shard(self, shard_id: int):
+    def get_shard(self, shard_id: int) -> Shard:
         if shard_id not in self.shard_ids:
             raise ValueError(f'Invalid shard id: {shard_id!r}')
 
         return self._shards[shard_id]
+
+    def get_shards(self) -> list[Shard]:
+        return list(self._shards.values())
 
     async def fetch_gateway(self):
         if self.authorization.is_bot():
@@ -92,13 +95,11 @@ class WebSocketClient(Client):
         else:
             sharded = True
 
-        tasks = []
-
         for shard_id in self.shard_ids:
-            shard = ShardWebSocket(self, gateway['url'], shard_id, sharded=sharded)
-            self._shards[shard_id] = shard
+            shard = Shard(self, gateway['url'], shard_id, sharded=sharded)
+            shard.start()
 
-            tasks.append(self.loop.create_task(shard.start()))
+            self._shards[shard_id] = shard
 
         future = self.loop.create_future()
 
@@ -143,10 +144,8 @@ class WebSocketClient(Client):
             signal.signal(signal.SIGINT, signal.default_int_handler)
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
-        for shard in self._shards.values():
+        for shard in self.get_shards():
             await shard.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
+            await shard.join()
 
-        try:
-            await asyncio.gather(*tasks)
-        finally:
-            await self.rest.aclose()
+        await self.rest.aclose()

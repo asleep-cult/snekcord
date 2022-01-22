@@ -12,10 +12,10 @@ if TYPE_CHECKING:
         Message,
         ObjectWrapper,
     )
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 __all__ = (
-    'MessageEvent',
+    'MessageEvents',
     'BaseMessageEvent',
     'MessageCreateEvent',
     'MessageUpdateEvent',
@@ -24,7 +24,7 @@ __all__ = (
 )
 
 
-class MessageEvent(str, enum.Enum):
+class MessageEvents(str, enum.Enum):
     CREATE = 'MESSAGE_CREATE'
     UPDATE = 'MESSAGE_UPDATE'
     DELETE = 'MESSAGE_DELETE'
@@ -44,7 +44,7 @@ class BaseMessageEvent(BaseEvent):
 class MessageCreateEvent(BaseEvent):
     __slots__ = ('message',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, message: Message) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
@@ -55,7 +55,7 @@ class MessageCreateEvent(BaseEvent):
 class MessageUpdateEvent(BaseEvent):
     __slots__ = ('message',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, message: Message) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
@@ -66,7 +66,7 @@ class MessageUpdateEvent(BaseEvent):
 class MessageDeleteEvent(BaseEvent):
     __slots__ = ('message',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, message: Message) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
@@ -77,7 +77,7 @@ class MessageDeleteEvent(BaseEvent):
 class MessageBulkDeleteEvent(BaseEvent):
     __slots__ = ('messages',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, messages: Collection) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, messages: Collection) -> None:
         super().__init__(shard=shard, payload=payload)
         self.messages = messages
 

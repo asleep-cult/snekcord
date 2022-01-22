@@ -1,11 +1,12 @@
 import enum
 
-from .base import SnowflakeObject
-from .emoji import CustomEmoji
+import attr
+
+from .base import SerializedObject, SnowflakeObject
 from .. import json
 
 __all__ = (
-    'GuildMessageNotifications',
+    'GuildMessageNotificationsLevel',
     'GuildMFALevel',
     'GuildVerificationLevel',
     'GuildNSFWLevel',
@@ -16,7 +17,7 @@ __all__ = (
 )
 
 
-class GuildMessageNotifications(enum.IntEnum):
+class GuildMessageNotificationsLevel(enum.IntEnum):
     ALL_MESSAGES = 0
     ONLY_MENTIONS = 1
 
@@ -86,86 +87,54 @@ class GuildFeature(enum.Enum):
     WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
 
 
-class Guild(SnowflakeObject):
-    __slots__ = (
-        'roles',
-        'emojis',
-        'members',
-        'channels',
-        'owner',
-        'afk_channel',
-        'widget_channel',
-        'system_channel',
-        'rules_channel',
-        'public_updates_channel',
-    )
-
+class SerializedGuild(SerializedObject):
     name = json.JSONField('name')
     icon = json.JSONField('icon')
     splash = json.JSONField('splash')
     discovery_splash = json.JSONField('discovery_splash')
     afk_timeout = json.JSONField('afk_timeout')
-    features = json.JSONArray('features', GuildFeature)
-    system_channel_flags = json.JSONField('system_channel_flags', GuildSystemChannelFlags)
-    verification_level = json.JSONField('verification_level', GuildVerificationLevel)
-    message_notifications_level = json.JSONField(
-        'default_message_notifications', GuildMessageNotifications
-    )
-    explicit_content_filter = json.JSONField('explicit_content_filter', GuildExplicitContentFilter)
-    mfa_level = json.JSONField('mfa_level', GuildMFALevel)
-    nsfw_level = json.JSONField('nsfw_level', GuildNSFWLevel)
-    premium_tier = json.JSONField('premium_tier', GuildPremiumTier)
+    features = json.JSONArray('features')
+    system_channel_flags = json.JSONField('system_channel_flags')
+    verification_level = json.JSONField('verification_level')
+    message_notifications_level = json.JSONField('default_message_notifications')
+    explicit_content_filter = json.JSONField('explicit_content_filter')
+    mfa_level = json.JSONField('mfa_level')
+    nsfw_level = json.JSONField('nsfw_level')
+    premium_tier = json.JSONField('premium_tier')
     large = json.JSONField('large')
     unavailable = json.JSONField('unavailable')
     max_presences = json.JSONField('max_presences')
     max_members = json.JSONField('max_members')
     description = json.JSONField('description')
     preferred_locale = json.JSONField('preferred_locale')
+    role_ids = json.JSONArray('role_ids')
+    emoji_ids = json.JSONArray('emoji_ids')
+    member_ids = json.JSONArray('member_ids')
+    channel_ids = json.JSONArray('channel_ids')
 
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
 
-        self.roles = self.client.create_role_state(guild=self)
-        self.emojis = self.client.create_emoji_state(guild=self)
-        self.members = self.client.create_member_state(guild=self)
-        self.channels = self.client.create_channel_state(guild=self)
-
-        self.owner = self.client.users.wrap_id(None)
-        self.afk_channel = self.client.channels.wrap_id(None)
-        self.widget_channel = self.client.channels.wrap_id(None)
-        self.system_channel = self.client.channels.wrap_id(None)
-        self.rules_channel = self.client.channels.wrap_id(None)
-        self.public_updates_channel = self.client.channels.wrap_id(None)
-
-    async def update_roles(self, roles):
-        upserted = set()
-        for role in roles:
-            upserted.add(await self.roles.upsert(role))
-
-        for role in self.roles:
-            if role not in upserted:
-                self.roles.cache.pop(role.id)
-
-    async def update_members(self, members):
-        for member in members:
-            await self.members.upsert(member)
-
-    async def update_channels(self, channels):
-        upserted = set()
-        for channel in channels:
-            channel['guild_id'] = Guild.id.deconstruct(self.id)
-            upserted.add(await self.channels.upsert(channel))
-
-        for channel in self.channels:
-            if channel not in upserted:
-                self.channels.cache.pop(channel.id)
-
-    async def update_emojis(self, emojis):
-        upserted = set()
-        for emoji in emojis:
-            emoji['guild_id'] = CustomEmoji.id.deconstruct(self.id)
-            upserted.add(await self.emojis.upsert(emoji))
-
-        for emoji in self.emojis:
-            if emoji not in upserted:
-                self.emojis.cache.pop(emoji.id)
+@attr.s(kw_only=True)
+class Guild(SnowflakeObject):
+    name: str = attr.ib()
+    icon: str = attr.ib()
+    splash: str = attr.ib()
+    discovery_splash: str = attr.ib()
+    afk_timeout: int = attr.ib()
+    features: list[GuildFeature] = attr.ib()
+    system_channel_flags: GuildSystemChannelFlags = attr.ib()
+    verification_level: GuildVerificationLevel = attr.ib()
+    message_notifications_level: GuildMessageNotificationsLevel = attr.ib()
+    explicit_content_filter: GuildExplicitContentFilter = attr.ib()
+    mfa_level: GuildMFALevel = attr.ib()
+    nsfw_level: GuildNSFWLevel = attr.ib()
+    premium_tier: GuildPremiumTier = attr.ib()
+    large: bool = attr.ib()
+    unavailable: bool = attr.ib()
+    max_presences: int = attr.ib()
+    max_members: int = attr.ib()
+    description: str = attr.ib()
+    preferred_locale: str = attr.ib()
+    roles = attr.ib()
+    emojis = attr.ib()
+    members = attr.ib()
+    channels = attr.ib()

@@ -1,7 +1,6 @@
 import enum
 from typing import TypeVar, Union
 
-
 __all__ = ('undefined',)
 
 T = TypeVar('T')
@@ -12,5 +11,4 @@ class UndefinedType(enum.Enum):
 
 
 undefined = UndefinedType.undefined
-
 MaybeUndefined = Union[UndefinedType, T]

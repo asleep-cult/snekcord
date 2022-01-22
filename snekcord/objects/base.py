@@ -1,100 +1,53 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Generic, TYPE_CHECKING, TypeVar
 
-from .. import json
-from ..exceptions import UnknownObjectError
+import attr
+
+from ..json import JSONObject
 from ..snowflake import Snowflake
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from ..clients import Client
-    from ..states import BaseCachedState
+    from ..states import CachedState
 
-__all__ = ('SnowflakeObject', 'ObjectWrapper')
+__all__ = ('SerializedObject',)
 
-
-class _IDField(json.JSONField):
-    def __init__(self) -> None:
-        super().__init__('id', repr=True)
-
-    def construct(self, value: str) -> Snowflake:
-        return Snowflake(value)
-
-    def deconstruct(self, value: Snowflake) -> str:
-        return str(value)
+SupportsUniqueT = TypeVar('SupportsUniqueT')
+UniqueT = TypeVar('UniqueT')
+ObjectT = TypeVar('ObjectT')
 
 
-class BaseObject:
-    __slots__ = ()
-
-    def __init__(self, *, state: BaseCachedState) -> None:
+class SerializedObject(Generic[SupportsUniqueT, UniqueT, ObjectT], JSONObject):
+    def __init__(self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT]) -> None:
         self.state = state
 
-    def _get_id(self):
-        raise NotImplementedError
+    async def commit(self) -> None:
+        """Commit the current version of the object to the cache."""
+
+
+@attr.s(kw_only=True)
+class BaseObject(Generic[SupportsUniqueT, UniqueT]):
+    """The base class for all Discord objects."""
+
+    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.field()
 
     @property
     def client(self) -> Client:
         return self.state.client
 
-    def is_cached(self) -> bool:
-        return self._get_id() in self.state.cache.keys()
 
-    async def fetch(self):
-        return await self.state.fetch(self._get_id())
+@attr.s(hash=True, kw_only=True)
+class SnowflakeObject(Generic[SupportsUniqueT], BaseObject[SupportsUniqueT, Snowflake]):
+    """The base class for all objects with an id."""
 
-
-class SnowflakeObject(json.JSONObject, BaseObject):
-    __slots__ = ('__weakref__', 'state')
-
-    id = _IDField()
-
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
-        self.state.cache[self.id] = self
-
-    def _get_id(self):
-        return self.id
+    id: Snowflake = attr.field(hash=True, repr=True)
 
 
-class CodeObject(json.JSONObject, BaseObject):
-    __slots__ = ('__weakref__', 'state')
+@attr.s(hash=True, kw_only=True)
+class CodeObject(Generic[SupportsUniqueT], BaseObject[SupportsUniqueT, str]):
+    """The base class for all objects with a code."""
 
-    code = json.JSONField('code', repr=True)
-
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
-        self.state.cache[self.code] = self
-
-    def _get_id(self):
-        return self.code
-
-
-class ObjectWrapper(BaseObject):
-    __slots__ = ('__weakref__', 'state', 'id')
-
-    def __init__(self, *, state, id) -> None:
-        super().__init__(state=state)
-        self.set_id(id)
-
-    def __repr__(self) -> str:
-        return f'<ObjectWrapper id={self.id}>'
-
-    def _get_id(self):
-        return self.id
-
-    def set_id(self, id):
-        if id is not None:
-            self.id = self.state.unwrap_id(id)
-        else:
-            self.id = None
-
-    def unwrap(self):
-        if self.id is None:
-            raise UnknownObjectError(None)
-
-        object = self.state.get(self.id)
-        if object is None:
-            raise UnknownObjectError(self.id)
-
-        return object
+    code: str = attr.field(hash=True, repr=True)

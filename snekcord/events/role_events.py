@@ -11,17 +11,17 @@ if TYPE_CHECKING:
         ObjectWrapper,
         Role,
     )
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 
-class RoleEvent(str, enum.Enum):
+class RoleEvents(str, enum.Enum):
     CREATE = 'GUILD_ROLE_CREATE'
     UPDATE = 'GUILD_ROLE_UPDATE'
     DELETE = 'GUILD_ROLE_DELETE'
 
 
 class RoleCreateEvent(BaseEvent):
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, role: Role) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
 
@@ -34,7 +34,7 @@ class RoleCreateEvent(BaseEvent):
 
 
 class RoleUpdateEvent(BaseEvent):
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, role: Role) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
 
@@ -47,7 +47,7 @@ class RoleUpdateEvent(BaseEvent):
 
 
 class RoleDeleteEvent(BaseEvent):
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, role: Role) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
 

@@ -11,12 +11,12 @@ if TYPE_CHECKING:
         ObjectWrapper,
         Invite,
     )
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
-__all__ = ('InviteEvent', 'InviteCreateEvent', 'InviteDeleteEvent')
+__all__ = ('InviteEvents', 'InviteCreateEvent', 'InviteDeleteEvent')
 
 
-class InviteEvent(str, enum.Enum):
+class InviteEvents(str, enum.Enum):
     CREATE = 'INVITE_CREATE'
     DELETE = 'INVITE_DELETE'
 
@@ -24,7 +24,7 @@ class InviteEvent(str, enum.Enum):
 class InviteCreateEvent(BaseEvent):
     __slots__ = ('invite',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, invite: Invite) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, invite: Invite) -> None:
         super().__init__(shard=shard, payload=payload)
         self.invite = invite
 
@@ -35,9 +35,7 @@ class InviteCreateEvent(BaseEvent):
 class InviteDeleteEvent(BaseEvent):
     __slots__ = ('invite',)
 
-    def __init__(
-        self, *, shard: ShardWebSocket, payload: JSONData, invite: Optional[Invite]
-    ) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, invite: Optional[Invite]) -> None:
         super().__init__(shard=shard, payload=payload)
         self.invite = invite
 

@@ -37,7 +37,7 @@ from ..undefined import MaybeUndefined, UndefinedType, undefined
 if TYPE_CHECKING:
     from ..clients import Client
     from ..json import JSONData
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 __all__ = ('MessageUnwrappable', 'MessageState', 'ChannelMessageState')
 
@@ -95,9 +95,7 @@ class MessageState(BaseClientState):
         self._direct_messages = direct_messages
         return super().listen()
 
-    async def process_event(
-        self, event: str, shard: ShardWebSocket, payload: JSONData
-    ) -> BaseEvent:
+    async def process_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
         event = self.cast_event(event)
 
         if event is MessageEvent.CREATE:

@@ -1,40 +1,36 @@
-from .base import SnowflakeObject
+import attr
+
+from .base import (
+    SerializedObject,
+    SnowflakeObject,
+)
 from .. import json
-from ..collection import Collection
+from ..snowflake import Snowflake
 
 __all__ = ('CustomEmoji',)
 
 
-class CustomEmoji(SnowflakeObject):
-    __slots__ = ('user', 'roles')
-
+class SerializedCustomEmoji(SerializedObject):
+    id = json.JSONField('id')
     name = json.JSONField('name')
     require_colons = json.JSONField('require_colons')
     managed = json.JSONField('managed')
     animated = json.JSONField('animated')
-    available = json.JSONField('available')
+    available = json.JSONField('animated')
+    user_id = json.JSONField('user_id')
+    role_ids = json.JSONArray('role_ids')
 
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
-        self.user = None
-        self.roles = Collection()
+
+@attr.s(kw_only=True)
+class CustomEmoji(SnowflakeObject):
+    name: str = attr.ib()
+    require_colons: bool = attr.ib()
+    managed: bool = attr.ib()
+    animated: bool = attr.ib()
+    available: bool = attr.ib()
+    user_id: Snowflake = attr.ib()
+    role = attr.ib()
 
     @property
     def guild(self):
         return self.state.guild
-
-    def __str__(self) -> str:
-        if self.animated:
-            return f'<a:{self.name}:{self.id}>'
-        else:
-            return f'<:{self.name}:{self.id}>'
-
-    async def update_user(self, data):
-        self.user = await self.client.users.upsert(data)
-
-    async def update_roles(self, roles):
-        self.roles.clear()
-
-        for role in roles:
-            role = self.guild.roles.wrap_id(role)
-            self.roles[role.id] = role

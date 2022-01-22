@@ -8,10 +8,10 @@ from .base_events import BaseEvent
 if TYPE_CHECKING:
     from ..objects import Guild
     from ..json import JSONData
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 __all__ = (
-    'GuildEvent',
+    'GuildEvents',
     'GuildJoinEvent',
     'GuildAvailableEvent',
     'GuildReceiveEvent',
@@ -21,7 +21,7 @@ __all__ = (
 )
 
 
-class GuildEvent(str, enum.Enum):
+class GuildEvents(str, enum.Enum):
     JOIN = 'GUILD_JOIN'
     AVAILABLE = 'GUILD_AVAILABLE'
     RECEIVE = 'GUILD_RECEIVE'
@@ -33,7 +33,7 @@ class GuildEvent(str, enum.Enum):
 class GuildJoinEvent(BaseEvent):
     __slots__ = ('guild',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
@@ -44,7 +44,7 @@ class GuildJoinEvent(BaseEvent):
 class GuildAvailableEvent(BaseEvent):
     __slots__ = ('guild',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
@@ -55,7 +55,7 @@ class GuildAvailableEvent(BaseEvent):
 class GuildReceiveEvent(BaseEvent):
     __slots__ = ('guild',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
@@ -66,7 +66,7 @@ class GuildReceiveEvent(BaseEvent):
 class GuildUpdateEvent(BaseEvent):
     __slots__ = ('guild',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
@@ -77,7 +77,7 @@ class GuildUpdateEvent(BaseEvent):
 class GuildDeleteEvent(BaseEvent):
     __slots__ = ('guild',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 
@@ -88,7 +88,7 @@ class GuildDeleteEvent(BaseEvent):
 class GuildUnavailableEvent(BaseEvent):
     __slots__ = ('guild',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, guild: Guild) -> None:
         super().__init__(shard=shard, payload=payload)
         self.guild = guild
 

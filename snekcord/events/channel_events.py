@@ -13,10 +13,10 @@ if TYPE_CHECKING:
         ObjectWrapper,
     )
     from ..json import JSONData
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 __all__ = (
-    'ChannelEvent',
+    'ChannelEvents',
     'BaseChannelEvent',
     'ChannelCreateEvent',
     'ChannelUpdateEvent',
@@ -25,7 +25,7 @@ __all__ = (
 )
 
 
-class ChannelEvent(str, enum.Enum):
+class ChannelEvents(str, enum.Enum):
     CREATE = 'CHANNEL_DELETE'
     UPDATE = 'CHANNEL_UPDATE'
     DELETE = 'CHANNEL_DELETE'
@@ -41,7 +41,7 @@ class BaseChannelEvent(BaseEvent):
 class ChannelCreateEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -52,7 +52,7 @@ class ChannelCreateEvent(BaseChannelEvent):
 class ChannelUpdateEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -63,7 +63,7 @@ class ChannelUpdateEvent(BaseChannelEvent):
 class ChannelDeleteEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, channel: BaseChannel) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONData, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -77,7 +77,7 @@ class ChannelPinsUpdateEvent(BaseChannelEvent):
     def __init__(
         self,
         *,
-        shard: ShardWebSocket,
+        shard: Shard,
         payload: JSONData,
         channel: ObjectWrapper,
         timestamp: datetime,

@@ -32,8 +32,8 @@ from ..undefined import undefined
 __all__ = (
     'ShardOpcode',
     'ShardCloseCode',
+    'Shard',
     'ShardWebSocket',
-    'ShardWebSocketClient',
 )
 
 
@@ -104,8 +104,8 @@ def set_exception(future, exception) -> None:
         return None
 
 
-class ShardWebSocketClient(WebSocketClient):
-    def __init__(self, shard: ShardWebSocket) -> None:
+class ShardWebSocket(WebSocketClient):
+    def __init__(self, shard: Shard) -> None:
         super().__init__(loop=shard.loop)
         self.shard = shard
         self.detached = False
@@ -323,7 +323,7 @@ class ShardBeater:
         self.stopping = True
 
 
-class ShardWebSocket:
+class Shard:
     def __init__(self, client, url, shard_id, *, sharded=False):
         self.client = client
         self.url = url
@@ -346,6 +346,8 @@ class ShardWebSocket:
         self._hello_fut = None
         self._ready_fut = None
 
+        self._task = None
+
     @property
     def latency(self):
         if self.beater is None:
@@ -354,7 +356,7 @@ class ShardWebSocket:
             return self.beater.latency
 
     def create_websocket(self):
-        self.ws = ShardWebSocketClient(self)
+        self.ws = ShardWebSocket(self)
 
     def create_beater(self):
         self.beater = ShardBeater(self)
@@ -493,7 +495,13 @@ class ShardWebSocket:
         if self._ready_fut is not None:
             set_exception(self._ready_fut, PendingCancellationError)
 
-    async def start(self):
+    def start(self) -> None:
+        self._task = self.loop.create_task(self.run())
+
+    async def join(self) -> None:
+        await self._task
+
+    async def run(self):
         stopping = False
         reconnect = False
 

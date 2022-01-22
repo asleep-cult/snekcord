@@ -22,7 +22,7 @@ __all__ = ('Client',)
 
 
 class Client:
-    def __init__(self, authorization):
+    def __init__(self, authorization: Union[Authorization, str]) -> None:
         if isinstance(authorization, Authorization):
             self.authorizaition = authorization
         else:

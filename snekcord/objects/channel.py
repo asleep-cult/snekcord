@@ -1,28 +1,27 @@
 from __future__ import annotations
 
 import enum
-from collections import namedtuple
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import Optional, TYPE_CHECKING
 
-from .base import SnowflakeObject
+import attr
+
+from .base import (
+    SerializedObject,
+    SnowflakeObject,
+)
 from .. import json
-from ..builders import JSONBuilder
-from ..collection import Collection
-from ..exceptions import UnknownObjectError
 from ..rest.endpoints import (
-    ADD_CHANNEL_PIN,
-    CREATE_CHANNEL_FOLLOWER,
     DELETE_CHANNEL,
-    GET_CHANNEL_PINS,
-    REMOVE_CHANNEL_PIN,
     TRIGGER_CHANNEL_TYPING,
 )
+from ..snowflake import Snowflake
 
 if TYPE_CHECKING:
-    from .message import Message
-    from ..states import ChannelUnwrappable, MessageUnwrappable
+    from ..states import ChannelMessageState
 
 __all__ = (
+    'SerializedChannel',
     'ChannelType',
     'BaseChannel',
     'GuildChannel',
@@ -32,7 +31,33 @@ __all__ = (
     'StoreChannel',
 )
 
-FollowedChannel = namedtuple('FollowedChannel', ('channel', 'webhook'))
+
+class SerializedChannel(SerializedObject):
+    id = json.JSONField('id')
+    type = json.JSONField('type')
+    guild_id = json.JSONField('guild_id')
+    position = json.JSONField('position')
+    permission_overwrites = json.JSONField('permission_overwrites')
+    name = json.JSONField('name')
+    topic = json.JSONField('topic')
+    nsfw = json.JSONField('nsfw')
+    last_message_id = json.JSONField('last_message_id')
+    bitrate = json.JSONField('bitrate')
+    user_limit = json.JSONField('user_limit')
+    rate_limit_per_user = json.JSONField('rate_limit_per_user')
+    recipient_ids = json.JSONArray('recipient_ids')
+    icon = json.JSONField('icon')
+    owner_id = json.JSONField('owner_id')
+    application_id = json.JSONField('application_id')
+    parent_id = json.JSONField('parent_id')
+    last_pin_timestamp = json.JSONField('last_pin_timestamp')
+    rtc_origin = json.JSONField('rtc_origin')
+    viedo_quality_mode = json.JSONField('video_quality_mode')
+    message_count = json.JSONField('message_count')
+    member_count = json.JSONField('member_count')
+    thread_metadata = json.JSONField('thread_metadate')
+    member = json.JSONField('member')
+    default_auto_archive_duration = json.JSONField('default_auto_archive_duration')
 
 
 class ChannelType(enum.IntEnum):
@@ -49,10 +74,11 @@ class ChannelType(enum.IntEnum):
     GUILD_STAGE_VOICE = 13
 
 
+@attr.s(kw_only=True)
 class BaseChannel(SnowflakeObject):
-    __slots__ = ()
+    """The base class for all channels."""
 
-    type = json.JSONField('type', ChannelType)
+    type: ChannelType = attr.ib(hash=False, repr=True)
 
     def is_text(self) -> bool:
         return self.type is ChannelType.GUILD_TEXT
@@ -79,92 +105,44 @@ class BaseChannel(SnowflakeObject):
         return self.type is ChannelType.GROUP_DM
 
 
+@attr.s(kw_only=True)
 class GuildChannel(BaseChannel):
-    __slots__ = ('guild', 'parent', 'permissions')
+    """The base class for all guild channels."""
 
-    name = json.JSONField('name')
-    position = json.JSONField('position')
-    nsfw = json.JSONField('nsfw')
-
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.guild = self.client.guilds.wrap_id(None)
-        self.parent = self.client.channels.wrap_id(None)
+    guild_id: Snowflake = attr.ib()
+    parent_id: Snowflake = attr.ib()
+    name: str = attr.ib()
+    position: int = attr.ib()
+    nsfw: bool = attr.ib()
 
     async def delete(self) -> None:
         await self.client.rest.request(DELETE_CHANNEL, channel_id=self.id)
 
 
+@attr.s(kw_only=True)
 class TextChannel(GuildChannel):
-    __slots__ = ('messages',)
+    rate_limit_per_user: int = attr.ib()
+    last_message_id: Snowflake = attr.ib()
+    default_auto_archive_duration: int = attr.ib()
+    last_pin_timestamp: Optional[datetime] = attr.ib()
+    messages: ChannelMessageState = attr.ib()
 
-    slowmode = json.JSONField('rate_limit_per_user')
-    topic = json.JSONField('topic')
-
-    def __init__(self, *, state):
-        super().__init__(state=state)
+    def __attr_post_init__(self) -> None:
         self.messages = self.client.create_message_state(channel=self)
-
-    async def add_follower(self, channel: ChannelUnwrappable) -> FollowedChannel:
-        params = JSONBuilder()
-        params.snowflake('webhook_channel_id', self.state.unwrap_id(channel))
-
-        followed_channel = await self.client.rest.request(
-            CREATE_CHANNEL_FOLLOWER, channel_id=self.channel.id, params=params
-        )
-        assert isinstance(followed_channel, dict)
-
-        return FollowedChannel(
-            self.client.channels.wrap_id(followed_channel['channel_id']),
-            self.client.webhooks.wrap_id(followed_channel['webhook_id']),
-        )
 
     async def trigger_typing(self) -> None:
         await self.client.rest.request(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
 
-    async def fetch_pins(self) -> list[Message]:
-        data = await self.client.rest.request(GET_CHANNEL_PINS, channel_id=self.id)
-        assert isinstance(data, list)
 
-        return [await self.messages.upsert(message) for message in data]
-
-    async def add_pin(self, message: MessageUnwrappable) -> None:
-        message_id = self.client.messages.unwrap_id(message)
-
-        await self.client.rest.request(ADD_CHANNEL_PIN, channel_id=self.id, message_id=message_id)
-
-    async def remove_pin(self, message: MessageUnwrappable) -> None:
-        message_id = self.client.messages.unwrap_id(message)
-
-        await self.client.rest.request(
-            REMOVE_CHANNEL_PIN, channel_id=self.id, message_id=message_id
-        )
-
-
-class VoiceChannel(BaseChannel):
-    __slots__ = ()
-
-    bitrate = json.JSONField('bitrate')
-    user_limit = json.JSONField('user_limit')
-    rtc_region = json.JSONField('rtc_region')
+@attr.s(kw_only=True)
+class VoiceChannel(GuildChannel):
+    bitrate: int = attr.ib()
+    user_limit: int = attr.ib()
+    rtc_origin: str = attr.ib()
 
 
 class CategoryChannel(GuildChannel):
     __slots__ = ()
-
-    def get_children(self):
-        children = Collection()
-
-        try:
-            guild = self.guild.unwrap()
-        except UnknownObjectError:
-            return children
-
-        for channel in guild.channels:
-            if channel.parent.id == self.id:
-                children[channel.id] = channel
-
-        return children
 
 
 class StoreChannel(GuildChannel):

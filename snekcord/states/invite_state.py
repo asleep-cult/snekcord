@@ -17,7 +17,7 @@ from ..objects import (
 
 if TYPE_CHECKING:
     from ..json import JSONData
-    from ..websockets import ShardWebSocket
+    from ..websockets import Shard
 
 __all__ = ('InviteState',)
 
@@ -84,9 +84,7 @@ class InviteState(BaseCachedClientState):
     def get_intents(self) -> WebSocketIntents:
         return WebSocketIntents.GUILDS | WebSocketIntents.GUILD_INVITES
 
-    async def process_event(
-        self, event: str, shard: ShardWebSocket, payload: JSONData
-    ) -> BaseEvent:
+    async def process_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
         event = self.cast_event(event)
 
         if event is InviteEvent.CREATE:
