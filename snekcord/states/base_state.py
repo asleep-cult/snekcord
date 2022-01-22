@@ -36,7 +36,7 @@ UniqueT = TypeVar('UniqueT')
 SerializedObjectT = TypeVar('SerializedObjectT', bound=SerializedObject)
 ObjectT = TypeVar('ObjectT')
 
-EventT = TypeVar('EventT', bound=BaseEvent)
+EventT = TypeVar('EventT', bound='BaseEvent')
 OnCallbackT = Callable[[EventT], Awaitable[None]]
 OnDecoratorT = Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 

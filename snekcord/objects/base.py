@@ -21,6 +21,8 @@ ObjectT = TypeVar('ObjectT')
 
 
 class SerializedObject(Generic[SupportsUniqueT, UniqueT, ObjectT], JSONObject):
+    """The base class for serialized objects in cache."""
+
     def __init__(self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT]) -> None:
         self.state = state
 

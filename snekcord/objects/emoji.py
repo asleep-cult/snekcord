@@ -11,6 +11,8 @@ __all__ = ('CustomEmoji',)
 
 
 class SerializedCustomEmoji(SerializedObject):
+    """Represents a serialized custom emoji in cache."""
+
     id = json.JSONField('id')
     name = json.JSONField('name')
     require_colons = json.JSONField('require_colons')
@@ -29,7 +31,7 @@ class CustomEmoji(SnowflakeObject):
     animated: bool = attr.ib()
     available: bool = attr.ib()
     user_id: Snowflake = attr.ib()
-    role = attr.ib()
+    roles = attr.ib()
 
     @property
     def guild(self):

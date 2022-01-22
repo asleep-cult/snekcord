@@ -2,16 +2,12 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 import attr
 
 from .base import CodeObject, SerializedObject
 from .. import json
 from ..snowflake import Snowflake
-
-if TYPE_CHECKING:
-    from .user import User
 
 
 class SerializedInvite(SerializedObject):

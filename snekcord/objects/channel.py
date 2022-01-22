@@ -33,6 +33,8 @@ __all__ = (
 
 
 class SerializedChannel(SerializedObject):
+    """Represents a serialized channel in cache."""
+
     id = json.JSONField('id')
     type = json.JSONField('type')
     guild_id = json.JSONField('guild_id')
