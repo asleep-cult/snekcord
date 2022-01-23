@@ -13,15 +13,20 @@ if TYPE_CHECKING:
     from ..clients import Client
     from ..states import CachedState
 
-__all__ = ('SerializedObject',)
+__all__ = (
+    'CachedObject',
+    'BaseObject',
+    'SnowflakeObject',
+    'CodeObject',
+)
 
 SupportsUniqueT = TypeVar('SupportsUniqueT')
 UniqueT = TypeVar('UniqueT')
 ObjectT = TypeVar('ObjectT')
 
 
-class SerializedObject(Generic[SupportsUniqueT, UniqueT, ObjectT], JSONObject):
-    """The base class for serialized objects in cache."""
+class CachedObject(Generic[SupportsUniqueT, UniqueT, ObjectT], JSONObject):
+    """The base class for objects from cache."""
 
     def __init__(self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT]) -> None:
         self.state = state

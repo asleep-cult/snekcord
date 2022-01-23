@@ -19,10 +19,11 @@ if TYPE_CHECKING:
     from ..events import BaseEvent
     from ..intents import WebSocketIntents
     from ..json import JSONData
-    from ..objects import SerializedObject
+    from ..objects import CachedObject
     from ..websockets import Shard
 else:
-    SerializedObject = TypeVar('SerializedObject')
+    BaseEvenet = TypeVar('BaseEvent')
+    SerializedObject = TypeVar('CachedObject')
 
 __all__ = (
     'EventState',
@@ -33,10 +34,10 @@ __all__ = (
 
 SupportsUniqueT = TypeVar('SupportsUniqueT')
 UniqueT = TypeVar('UniqueT')
-SerializedObjectT = TypeVar('SerializedObjectT', bound=SerializedObject)
+CachedObjectT = TypeVar('CachedObjectT', bound=CachedObject)
 ObjectT = TypeVar('ObjectT')
 
-EventT = TypeVar('EventT', bound='BaseEvent')
+EventT = TypeVar('EventT', bound=BaseEvent)
 OnCallbackT = Callable[[EventT], Awaitable[None]]
 OnDecoratorT = Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
@@ -141,11 +142,11 @@ class CachedState(Generic[SupportsUniqueT, UniqueT, ObjectT]):
 
 
 class CachedEventState(
-    Generic[SupportsUniqueT, UniqueT, SerializedObjectT, ObjectT],
+    Generic[SupportsUniqueT, UniqueT, CachedObjectT, ObjectT],
     EventState[SupportsUniqueT, UniqueT],
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
-    cache: CacheProvider[UniqueT, SerializedObjectT]
+    cache: CacheProvider[UniqueT, CachedObjectT]
 
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
@@ -159,17 +160,17 @@ class CachedEventState(
 
     async def __aiter__(self) -> AsyncIterator[ObjectT]:
         async for item in self.cache.iterate():
-            yield self.deserialize(item)
+            yield self.from_cached(item)
 
     async def get(self, object: SupportsUniqueT) -> Optional[ObjectT]:
         object = await self.cache.get(self.to_unique(object))
-        return self.deserialize(object)
+        return self.from_cached(object)
 
     async def delete(self, object: SupportsUniqueT) -> Optional[ObjectT]:
         object = await self.cache.delete(self.to_unique(object))
-        return self.deserialize(object)
+        return self.from_cached(object)
 
-    def deserialize(self, object: SerializedObjectT) -> ObjectT:
+    def from_cached(self, cached: CachedObjectT) -> ObjectT:
         raise NotImplementedError
 
 

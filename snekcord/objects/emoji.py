@@ -1,7 +1,7 @@
 import attr
 
 from .base import (
-    SerializedObject,
+    CachedObject,
     SnowflakeObject,
 )
 from .. import json
@@ -10,8 +10,8 @@ from ..snowflake import Snowflake
 __all__ = ('CustomEmoji',)
 
 
-class SerializedCustomEmoji(SerializedObject):
-    """Represents a serialized custom emoji in cache."""
+class CachedCustomEmoji(CachedObject):
+    """Represents a custom emoji from cache."""
 
     id = json.JSONField('id')
     name = json.JSONField('name')

@@ -7,7 +7,7 @@ from typing import Optional, TYPE_CHECKING
 import attr
 
 from .base import (
-    SerializedObject,
+    CachedObject,
     SnowflakeObject,
 )
 from .. import json
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from ..states import ChannelMessageState
 
 __all__ = (
-    'SerializedChannel',
+    'CachedChannel',
     'ChannelType',
     'BaseChannel',
     'GuildChannel',
@@ -32,8 +32,8 @@ __all__ = (
 )
 
 
-class SerializedChannel(SerializedObject):
-    """Represents a serialized channel in cache."""
+class CachedChannel(CachedObject):
+    """Represents a channel from cache."""
 
     id = json.JSONField('id')
     type = json.JSONField('type')
@@ -57,8 +57,7 @@ class SerializedChannel(SerializedObject):
     viedo_quality_mode = json.JSONField('video_quality_mode')
     message_count = json.JSONField('message_count')
     member_count = json.JSONField('member_count')
-    thread_metadata = json.JSONField('thread_metadate')
-    member = json.JSONField('member')
+    thread_metadata = json.JSONField('thread_metadata')
     default_auto_archive_duration = json.JSONField('default_auto_archive_duration')
 
 
@@ -127,7 +126,7 @@ class TextChannel(GuildChannel):
     last_message_id: Snowflake = attr.ib()
     default_auto_archive_duration: int = attr.ib()
     last_pin_timestamp: Optional[datetime] = attr.ib()
-    messages: ChannelMessageState = attr.ib()
+    messages: ChannelMessageState = attr.ib(init=False)
 
     def __attr_post_init__(self) -> None:
         self.messages = self.client.create_message_state(channel=self)

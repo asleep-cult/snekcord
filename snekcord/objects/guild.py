@@ -1,16 +1,26 @@
 import enum
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import attr
 
 from .base import (
-    SerializedObject,
+    CachedObject,
     SnowflakeObject,
 )
 from .. import json
 from ..snowflake import Snowflake
 
+if TYPE_CHECKING:
+    from ..states import (
+        ChannelStateView,
+        EmojiStateView,
+        MemberStateView,
+        RoleStateView,
+    )
+
 __all__ = (
+    'CachedGuild',
     'GuildMessageNotificationsLevel',
     'GuildMFALevel',
     'GuildVerificationLevel',
@@ -22,7 +32,7 @@ __all__ = (
 )
 
 
-class SerializedGuild(SerializedObject):
+class CachedGuild(CachedObject):
     name = json.JSONField('name')
     icon = json.JSONField('icon')
     splash = json.JSONField('splash')
@@ -178,19 +188,17 @@ class _GuildFields:
     public_updates_channel_id: Snowflake = attr.ib()
     max_video_channel_users: int = attr.ib()
     nsfw_level: GuildNSFWLevel = attr.ib()
+    roles: RoleStateView = attr.ib()
+    emojis: EmojiStateView = attr.ib()
 
 
 @attr.s(kw_only=True)
 class RESTGuild(_GuildFields):
-    roles = attr.ib()
-    emojis = attr.ib()
-    presence_count = attr.ib()
-    member_count = attr.ib()
+    presence_count: int = attr.ib()
+    member_count: int = attr.ib()
 
 
 @attr.s(kw_only=True)
 class Guild(_GuildFields):
-    roles = attr.ib()
-    emojis = attr.ib()
-    members = attr.ib()
-    channels = attr.ib()
+    members: MemberStateView = attr.ib()
+    channels: ChannelStateView = attr.ib()
