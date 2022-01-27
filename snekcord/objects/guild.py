@@ -194,13 +194,6 @@ class Guild(PartialGuild):
     members: MemberStateView = attr.ib()
     channels: ChannelStateView = attr.ib()
 
-    def to_rest(self, *, presence_count: int, member_count: int) -> RESTGuild:
-        return RESTGuild(
-            presence_count=presence_count,
-            member_count=member_count,
-            **attr.asdict(self),
-        )
-
 
 @attr.s(kw_only=True)
 class RESTGuild(Guild):
