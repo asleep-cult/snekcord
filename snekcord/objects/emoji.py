@@ -1,18 +1,13 @@
 import attr
 
-from .base import (
-    CachedObject,
-    SnowflakeObject,
-)
+from .base import SnowflakeObject
 from .. import json
 from ..snowflake import Snowflake
 
 __all__ = ('CustomEmoji',)
 
 
-class CachedCustomEmoji(CachedObject):
-    """Represents a custom emoji from cache."""
-
+class CachedCustomEmoji(json.JSONObject):
     id = json.JSONField('id')
     name = json.JSONField('name')
     require_colons = json.JSONField('require_colons')

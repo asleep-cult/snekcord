@@ -1,4 +1,8 @@
 from datetime import datetime
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 __all__ = ('Snowflake',)
 
@@ -15,11 +19,18 @@ _INCREMENT_MASK = 0xFFF
 
 class Snowflake(int):
     @classmethod
-    def build(cls, timestamp=None, worker_id=0, process_id=0, increment=0):
-        if timestamp is None:
+    def build(
+        cls,
+        time: Optional[datetime] = None,
+        *,
+        worker_id: int = 0,
+        process_id: int = 0,
+        increment: int = 0
+    ) -> Self:
+        if time is None:
             timestamp = datetime.now().timestamp()
-        elif isinstance(timestamp, datetime):
-            timestamp = timestamp.timestamp()
+        else:
+            timestamp = time.timestamp()
 
         timestamp = int((timestamp * 1000) - _SNOWFLAKE_EPOCH)
 
@@ -31,20 +42,20 @@ class Snowflake(int):
         )
 
     @property
-    def timestamp(self):
+    def timestamp(self) -> float:
         return ((self >> _TIMESTAMP_SHIFT) + _SNOWFLAKE_EPOCH) / 1000
 
     @property
-    def worker_id(self):
+    def worker_id(self) -> int:
         return (self & _WORKER_ID_MASK) >> _WORKER_ID_SHIFT
 
     @property
-    def process_id(self):
+    def process_id(self) -> int:
         return (self & _PROCESS_ID_MASK) >> _PROCESS_ID_SHIFT
 
     @property
-    def increment(self):
+    def increment(self) -> int:
         return self & _INCREMENT_MASK
 
-    def to_datetime(self):
+    def to_datetime(self) -> datetime:
         return datetime.fromtimestamp(self.timestamp)

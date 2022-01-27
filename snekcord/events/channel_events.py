@@ -75,12 +75,7 @@ class ChannelPinsUpdateEvent(BaseChannelEvent):
     __slots__ = ('channel', 'timestamp')
 
     def __init__(
-        self,
-        *,
-        shard: Shard,
-        payload: JSONData,
-        channel: ObjectWrapper,
-        timestamp: datetime,
+        self, *, shard: Shard, payload: JSONData, channel: ObjectWrapper, timestamp: datetime
     ) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel

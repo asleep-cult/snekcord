@@ -1,4 +1,6 @@
 ## snekcord!
+A higly customizable Discord API wrapper.
+
 ```py
 import asyncio
 import snekcord
@@ -8,7 +10,7 @@ client.messages.listen()
 
 @client.messages.on_create()
 async def message_create(evt: snekcord.MessageCreateEvent):
-    channel = evt.channel.unwrap()
+    channel = await evt.channel.unwrap()
 
     if evt.message.content == 'ping':
         await channel.messages.create(content='pong')

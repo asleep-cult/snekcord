@@ -9,7 +9,6 @@ from typing import (
     Generic,
     Iterable,
     Optional,
-    Protocol,
     TYPE_CHECKING,
     TypeVar,
 )
@@ -19,7 +18,6 @@ if TYPE_CHECKING:
     from ..events import BaseEvent
     from ..intents import WebSocketIntents
     from ..json import JSONData
-    from ..objects import CachedObject
     from ..websockets import Shard
 else:
     BaseEvenet = TypeVar('BaseEvent')
@@ -29,12 +27,11 @@ __all__ = (
     'EventState',
     'CachedState',
     'CachedEventState',
-    'CachedStateView',
 )
 
 SupportsUniqueT = TypeVar('SupportsUniqueT')
 UniqueT = TypeVar('UniqueT')
-CachedObjectT = TypeVar('CachedObjectT', bound=CachedObject)
+CachedObjectT = TypeVar('CachedObjectT')
 ObjectT = TypeVar('ObjectT')
 
 EventT = TypeVar('EventT', bound=BaseEvent)
@@ -74,51 +71,48 @@ class EventState(Generic[SupportsUniqueT, UniqueT]):
 
         return decorator
 
-    async def process(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
+    async def create_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
         raise NotImplementedError
 
     async def dispatch(self, event: str, shard: Shard, paylaod: JSONData) -> None:
-        ret = await self.process(event, shard, paylaod)
+        ret = await self.create_event(event, shard, paylaod)
 
         for callback in self._callbacks[event]:
             self.client.loop.create_task(callback(ret))
 
 
-class CacheProvider(Protocol[UniqueT, ObjectT]):
+class BaseCache(Generic[UniqueT, CachedObjectT]):
     def contains(self, key: UniqueT) -> bool:
-        """Returns True if `key` specifies an existing relationship."""
+        raise NotImplementedError
 
-    async def iterate(self) -> AsyncIterator[ObjectT]:
-        """Returns an iterator of all objects in the cache."""
+    async def iterate(self) -> AsyncIterator[CachedObjectT]:
+        raise NotImplementedError
 
-    async def get(self, key: UniqueT) -> Optional[ObjectT]:
-        """Returns the object of the relationship specified by `key` or None."""
+    async def get(self, key: UniqueT) -> Optional[CachedObjectT]:
+        raise NotImplementedError
 
-    async def set(self, key: UniqueT, object: ObjectT) -> None:
-        """Creates a new relationship between `key` and `object`."""
+    async def set(self, key: UniqueT, object: CachedObjectT) -> None:
+        raise NotImplementedError
 
-    async def delete(self, key: UniqueT) -> Optional[ObjectT]:
-        """Deletes the relationship specified by `key` and returns the object or None."""
+    async def delete(self, key: UniqueT) -> Optional[CachedObjectT]:
+        raise NotImplementedError
 
 
-class MemoryCache(CacheProvider[UniqueT, ObjectT]):
+class MemoryCache(BaseCache[UniqueT, CachedObjectT]):
     def __init__(self) -> None:
-        self.map: dict[UniqueT, ObjectT] = {}
+        self.map: dict[UniqueT, CachedObjectT] = {}
 
-    def contains(self, key: UniqueT) -> bool:
-        return key in self.map
-
-    async def iterate(self) -> AsyncIterator[ObjectT]:
+    async def iterate(self) -> AsyncIterator[CachedObjectT]:
         for object in self.map.values():
             yield object
 
-    async def get(self, key: UniqueT) -> Optional[ObjectT]:
+    async def get(self, key: UniqueT) -> Optional[CachedObjectT]:
         return self.map.get(key)
 
-    async def set(self, key: UniqueT, object: ObjectT) -> None:
+    async def set(self, key: UniqueT, object: CachedObjectT) -> None:
         self.map[key] = object
 
-    async def delete(self, key: UniqueT) -> Optional[ObjectT]:
+    async def delete(self, key: UniqueT) -> Optional[CachedObjectT]:
         return self.map.pop(key, None)
 
 
@@ -137,23 +131,18 @@ class CachedState(Generic[SupportsUniqueT, UniqueT, ObjectT]):
     async def get(self, object: SupportsUniqueT) -> Optional[ObjectT]:
         raise NotImplementedError
 
-    def view(self, keys: list[UniqueT]) -> CachedStateView[SupportsUniqueT, UniqueT, ObjectT]:
-        return CachedStateView(state=self, keys=keys)
-
 
 class CachedEventState(
     Generic[SupportsUniqueT, UniqueT, CachedObjectT, ObjectT],
     EventState[SupportsUniqueT, UniqueT],
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
-    cache: CacheProvider[UniqueT, CachedObjectT]
-
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
-        self.create_cache()
+        self.cache = self.create_cache()
 
-    def create_cache(self) -> None:
-        self.cache = MemoryCache()
+    def create_cache(self) -> BaseCache[UniqueT, CachedObjectT]:
+        return MemoryCache()
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
@@ -164,37 +153,15 @@ class CachedEventState(
 
     async def get(self, object: SupportsUniqueT) -> Optional[ObjectT]:
         object = await self.cache.get(self.to_unique(object))
-        return self.from_cached(object)
+
+        if object is not None:
+            return self.from_cached(object)
 
     async def delete(self, object: SupportsUniqueT) -> Optional[ObjectT]:
         object = await self.cache.delete(self.to_unique(object))
-        return self.from_cached(object)
+
+        if object is not None:
+            return self.from_cached(object)
 
     def from_cached(self, cached: CachedObjectT) -> ObjectT:
         raise NotImplementedError
-
-
-class CachedStateView(
-    Generic[SupportsUniqueT, UniqueT, ObjectT],
-    CachedState[SupportsUniqueT, UniqueT, ObjectT],
-):
-    def __init__(
-        self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT], keys: list[UniqueT]
-    ) -> None:
-        self.state = state
-        self.keys = keys
-
-    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
-        return self.state.to_unique(object)
-
-    def __contains__(self, object: SupportsUniqueT) -> bool:
-        return self.to_unique(object) in self.keys
-
-    async def __aiter__(self) -> AsyncIterator[ObjectT]:
-        for key in self.keys:
-            yield await self.state.get(key)
-
-    async def get(self, object: SupportsUniqueT) -> Optional[ObjectT]:
-        key = self.to_unique(object)
-        if key not in self.keys:
-            return await self.state.get(key)

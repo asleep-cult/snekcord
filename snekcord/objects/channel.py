@@ -6,10 +6,7 @@ from typing import Optional, TYPE_CHECKING
 
 import attr
 
-from .base import (
-    CachedObject,
-    SnowflakeObject,
-)
+from .base import SnowflakeObject
 from .. import json
 from ..rest.endpoints import (
     DELETE_CHANNEL,
@@ -32,9 +29,7 @@ __all__ = (
 )
 
 
-class CachedChannel(CachedObject):
-    """Represents a channel from cache."""
-
+class CachedChannel(json.JSONObject):
     id = json.JSONField('id')
     type = json.JSONField('type')
     guild_id = json.JSONField('guild_id')
@@ -77,8 +72,6 @@ class ChannelType(enum.IntEnum):
 
 @attr.s(kw_only=True)
 class BaseChannel(SnowflakeObject):
-    """The base class for all channels."""
-
     type: ChannelType = attr.ib(hash=False, repr=True)
 
     def is_text(self) -> bool:
@@ -108,8 +101,6 @@ class BaseChannel(SnowflakeObject):
 
 @attr.s(kw_only=True)
 class GuildChannel(BaseChannel):
-    """The base class for all guild channels."""
-
     guild_id: Snowflake = attr.ib()
     parent_id: Snowflake = attr.ib()
     name: str = attr.ib()

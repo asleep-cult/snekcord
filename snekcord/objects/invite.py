@@ -5,12 +5,12 @@ from datetime import datetime
 
 import attr
 
-from .base import CachedObject, CodeObject
+from .base import CodeObject
 from .. import json
 from ..snowflake import Snowflake
 
 
-class CachedInvite(CachedObject):
+class CachedInvite(json.JSONObject):
     code = json.JSONField('code')
     guild_id = json.JSONField('guild_id')
     channel_id = json.JSONField('channel_id')

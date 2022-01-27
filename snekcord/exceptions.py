@@ -18,6 +18,14 @@ class InvalidFieldError(Exception):
         return f'Invalid data for field {self.field._name!r}'
 
 
+class InvalidResponseError(Exception):
+    def __init__(self, data):
+        self.data = data
+
+    def __str__(self):
+        return 'API responded with unsupported data'
+
+
 class UnknownObjectError(LookupError):
     def __init__(self, id):
         self.id = id

@@ -1,144 +1,93 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Union
 
-from .base_state import BaseCachedClientState
+from .base_state import (
+    CachedEventState,
+    OnDecoratorT,
+)
 from ..events import (
-    BaseEvent,
     GuildAvailableEvent,
     GuildDeleteEvent,
-    GuildEvent,
+    GuildEvents,
     GuildJoinEvent,
     GuildReceiveEvent,
+    GuildUnavailableEvent,
     GuildUpdateEvent,
 )
-from ..intents import WebSocketIntents
+from ..exceptions import InvalidResponseError
 from ..objects import (
+    CachedGuild,
     Guild,
-    ObjectWrapper,
+    PartialGuild,
+    RESTGuild,
+    SnowflakeWrapper,
 )
-from ..rest.endpoints import (
-    GET_GUILD,
-)
+from ..rest.endpoints import GET_GUILD
 from ..snowflake import Snowflake
 
-if TYPE_CHECKING:
-    from ..json import JSONData
-    from ..websockets import Shard
-
-__all__ = ('GuildState',)
+SupportsGuildID = Union[Snowflake, str, int, PartialGuild, 'GuildIDWrapper']
+GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
 
 
-class GuildState(BaseCachedClientState):
-    @classmethod
-    def unwrap_id(cls, object):
+class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild]):
+    def to_unique(self, object: SupportsGuildID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
 
-        if isinstance(object, (int, str)):
+        elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, Guild):
+        elif isinstance(object, SnowflakeWrapper):
+            assert isinstance(object.state, GuildState)
             return object.id
 
-        if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
-                return object
+        elif isinstance(object, PartialGuild):
+            return object.id
 
-            raise TypeError('Expected ObjectWrapper created by GuildState')
+        raise TypeError('Expected Snowflake, str, int, SnowflakeWrapper, or PartialGuild')
 
-        raise TypeError('Expected Snowflake, int, str, Guild or ObjectWrapper')
-
-    async def upsert(self, data):
-        guild = self.get(data['id'])
-        if guild is not None:
-            guild.update(data)
+    async def upsert(self, data) -> Guild:
+        guild = await self.cache.get(data['id'])
+        if guild is None:
+            guild = CachedGuild.unmarshal(data)
         else:
-            guild = Guild.unmarshal(data, state=self)
+            guild.update(data)
 
-        owner_id = data.get('owner_id')
-        if owner_id is not None:
-            guild.owner.set_id(owner_id)
+        await self.cache.set(Snowflake(guild.id), guild)
+        return self.from_cached(guild)
 
-        if 'widget_channel_id' in data:
-            guild.widget_channel.set_id(data['widget_channel_id'])
+    async def upsert_rest(self, data) -> RESTGuild:
+        guild = await self.upsert(data)
 
-        if 'system_channel_id' in data:
-            guild.system_channel.set_id(data['system_channel_id'])
+        return RESTGuild.from_guild(
+            guild,
+            presence_count=data.get('approximate_presence_count'),
+            member_count=data.get('approximate_member_count'),
+        )
 
-        if 'rules_channel_id' in data:
-            guild.rules_channel.set_id(data['rules_channel_id'])
+    async def fetch(self, guild: SupportsGuildID) -> RESTGuild:
+        data = await self.client.rest.request(GET_GUILD, guild_id=self.to_unique(guild))
 
-        roles = data.get('roles')
-        if roles is not None:
-            await guild.update_roles(roles)
-
-        members = data.get('members')
-        if members is not None:
-            # await guild.update_members(members)
-            pass
-
-        emojis = data.get('emojis')
-        if emojis is not None:
-            await guild.update_emojis(emojis)
-
-        channels = data.get('channels')
-        if channels is not None:
-            await guild.update_channels(channels)
-
-        return guild
-
-    async def fetch(self, guild):
-        guild_id = self.unwrap_id(guild)
-
-        data = await self.client.rest.request(GET_GUILD, guild_id=guild_id)
-        assert isinstance(data, dict)
+        if not isinstance(data, dict):
+            raise InvalidResponseError(data)
 
         return await self.upsert(data)
 
-    def on_join(self):
-        return self.on(GuildEvent.JOIN)
+    def on_join(self) -> OnDecoratorT[GuildJoinEvent]:
+        return self.on(GuildEvents.JOIN)
 
-    def on_available(self):
-        return self.on(GuildEvent.AVAILABLE)
+    def on_available(self) -> OnDecoratorT[GuildAvailableEvent]:
+        return self.on(GuildEvents.AVAILABLE)
 
-    def on_receive(self):
-        return self.on(GuildEvent.RECEIVE)
+    def on_receive(self) -> OnDecoratorT[GuildReceiveEvent]:
+        return self.on(GuildEvents.RECEIVE)
 
-    def on_update(self):
-        return self.on(GuildEvent.UPDATE)
+    def on_update(self) -> OnDecoratorT[GuildUpdateEvent]:
+        return self.on(GuildEvents.UPDATE)
 
-    def on_delete(self):
-        return self.on(GuildEvent.DELETE)
+    def on_delete(self) -> OnDecoratorT[GuildDeleteEvent]:
+        return self.on(GuildEvents.DELETE)
 
-    def on_unavailable(self):
-        return self.on(GuildEvent.UNAVAILABLE)
-
-    def get_events(self) -> type[GuildEvent]:
-        return GuildEvent
-
-    def get_intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
-
-    async def process_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
-        event = self.cast_event(event)
-
-        if event is GuildEvent.JOIN:
-            guild = await self.upsert(payload)
-            return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
-
-        if event is GuildEvent.AVAILABLE:
-            guild = await self.upsert(payload)
-            return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
-
-        if event is GuildEvent.RECEIVE:
-            guild = await self.upsert(payload)
-            return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
-
-        if event is GuildEvent.UPDATE:
-            guild = await self.upsert(payload)
-            return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
-
-        if event is GuildEvent.DELETE:
-            guild = self.pop(payload['id'])
-            return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)
+    def on_unavailable(self) -> OnDecoratorT[GuildUnavailableEvent]:
+        return self.on(GuildEvents.UNAVAILABLE)

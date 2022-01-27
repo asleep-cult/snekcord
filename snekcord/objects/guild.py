@@ -1,13 +1,12 @@
+from __future__ import annotations
+
 import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
 
 import attr
 
-from .base import (
-    CachedObject,
-    SnowflakeObject,
-)
+from .base import SnowflakeObject
 from .. import json
 from ..snowflake import Snowflake
 
@@ -28,11 +27,15 @@ __all__ = (
     'GuildExplicitContentFilter',
     'GuildPremiumTier',
     'GuildSystemChannelFlags',
+    'PartialGuild',
+    'GuildPreview',
     'Guild',
+    'RESTGuild',
 )
 
 
-class CachedGuild(CachedObject):
+class CachedGuild(json.JSONObject):
+    id = json.JSONField('id')
     name = json.JSONField('name')
     icon = json.JSONField('icon')
     splash = json.JSONField('splash')
@@ -54,9 +57,6 @@ class CachedGuild(CachedObject):
     system_channel_flags = json.JSONField('system_channel_flags')
     rules_channel_id = json.JSONField('rules_channel_id')
     joined_at = json.JSONField('joined_at')
-    large = json.JSONField('large')
-    unavailable = json.JSONField('unavailable')
-    member_count = json.JSONField('member_count')
     voice_state_ids = json.JSONArray('voice_state_ids')
     member_ids = json.JSONArray('member_ids')
     channel_ids = json.JSONArray('channel_ids')
@@ -160,7 +160,8 @@ class GuildPreview(PartialGuild):
     emojis = attr.ib()
 
 
-class _GuildFields:
+@attr.s(kw_only=True)
+class Guild(PartialGuild):
     splash: str = attr.ib()
     discovery_splash: str = attr.ib()
     owner_id: Snowflake = attr.ib()
@@ -190,15 +191,22 @@ class _GuildFields:
     nsfw_level: GuildNSFWLevel = attr.ib()
     roles: RoleStateView = attr.ib()
     emojis: EmojiStateView = attr.ib()
+    members: MemberStateView = attr.ib()
+    channels: ChannelStateView = attr.ib()
+
+    def to_rest(self, *, presence_count: int, member_count: int) -> RESTGuild:
+        return RESTGuild(
+            presence_count=presence_count,
+            member_count=member_count,
+            **attr.asdict(self),
+        )
 
 
 @attr.s(kw_only=True)
-class RESTGuild(_GuildFields):
+class RESTGuild(Guild):
     presence_count: int = attr.ib()
     member_count: int = attr.ib()
 
-
-@attr.s(kw_only=True)
-class Guild(_GuildFields):
-    members: MemberStateView = attr.ib()
-    channels: ChannelStateView = attr.ib()
+    @classmethod
+    def from_guild(cls, guild: Guild, *, presence_count: int, member_count: int) -> RESTGuild:
+        return cls(presence_count=presence_count, member_count=member_count, **attr.asdict(guild))

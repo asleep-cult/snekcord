@@ -8,6 +8,7 @@ from .base_state import (
     OnDecoratorT,
 )
 from ..events import (
+    BaseEvent,
     ChannelCreateEvent,
     ChannelDeleteEvent,
     ChannelEvents,
@@ -19,6 +20,7 @@ from ..objects import (
     CachedChannel,
     CategoryChannel,
     ChannelType,
+    SnowflakeWrapper,
     TextChannel,
     VoiceChannel,
 )
@@ -28,21 +30,26 @@ if TYPE_CHECKING:
     from ..json import JSONData
     from ..websockets import Shard
 
-SupportsChannel = Union[Snowflake, str, int, BaseChannel]
+SupportsChannelID = Union[Snowflake, str, int, BaseChannel, 'ChannelIDWrapper']
+ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
-class ChannelState(CachedEventState[SupportsChannel, Snowflake, CachedChannel, BaseChannel]):
-    def to_unique(self, object: SupportsChannel) -> Snowflake:
+class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, BaseChannel]):
+    def to_unique(self, object: SupportsChannelID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
 
-        if isinstance(object, (str, int)):
+        elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, BaseChannel):
+        elif isinstance(object, SnowflakeWrapper):
+            assert isinstance(object.state, ChannelState)
             return object.id
 
-        raise TypeError('Expected Snowflake, str, int or BaseChannel')
+        elif isinstance(object, BaseChannel):
+            return object.id
+
+        raise TypeError('Expected Snowflake, str, int, SnowflakeWrapper, or BaseChannel')
 
     async def upsert(self, data) -> BaseChannel:
         channel = await self.cache.get(data['id'])
@@ -51,14 +58,11 @@ class ChannelState(CachedEventState[SupportsChannel, Snowflake, CachedChannel, B
         else:
             channel.update(data)
 
-        await channel.commit()
+        await self.cache.set(Snowflake(channel.id), channel)
         return self.from_cached(channel)
 
     def from_cached(self, cached: CachedChannel) -> BaseChannel:
-        try:
-            type = ChannelType(cached.type)
-        except TypeError:
-            type = int(cached.type)
+        type = ChannelType(cached.type)
 
         if type is ChannelType.GUILD_CATEGORY:
             return CategoryChannel(
@@ -117,7 +121,7 @@ class ChannelState(CachedEventState[SupportsChannel, Snowflake, CachedChannel, B
     def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
         return self.on(ChannelEvents.PINS_UPDATE)
 
-    async def process(self, event: str, shard: Shard, payload: JSONData) -> None:
+    async def create_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
         event = ChannelEvents(event)
 
         if event is ChannelEvents.CREATE:
