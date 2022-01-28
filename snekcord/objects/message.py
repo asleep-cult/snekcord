@@ -1,23 +1,54 @@
 from __future__ import annotations
 
 import enum
+import typing
 from datetime import datetime
-from types import NoneType
-from typing import Optional
 
-from .base import SnowflakeObject
-from .. import json
-from ..builders import JSONBuilder
-from ..exceptions import UnknownObjectError
-from ..mentions import MessageMentions
-from ..rest.endpoints import (
-    CROSSPOST_CHANNEL_MESSAGE,
-    DELETE_CHANNEL_MESSAGE,
-    MODIFY_CHANNEL_MESSAGE,
+import attr
+
+from ..cache import CachedModel
+from ..objects import SnowflakeObject
+from ..undefined import MaybeUndefined
+
+if typing.TYPE_CHECKING:
+    from ..states import (
+        ApplicationIDWrapper,
+        ChannelIDWrapper,
+        GuildIDWrapper,
+        UserIDWrapper,
+        WebhookIDWrapper,
+    )
+
+__all__ = (
+    'CachedMessage',
+    'MessageType',
+    'MessageFlags',
+    'Message',
 )
-from ..undefined import MaybeUndefined, UndefinedType, undefined
 
-__all__ = ('MessageType', 'MessageFlags', 'Message')
+
+class CachedMessage(CachedModel):
+    id: str
+    channel_id: str
+    guild_id: MaybeUndefined[str]
+    author_id: MaybeUndefined[str]
+    content: typing.Optional[str]
+    timestamp: str
+    edited_timestamp: typing.Optional[str]
+    tts: bool
+    mention_everyone: bool
+    # mentions, mention_roles, mention_channels
+    # attachments, embeds, reactions
+    nonce: MaybeUndefined[typing.Union[int, str]]
+    pinned: bool
+    webhook_id: MaybeUndefined[str]
+    type: int
+    # activity, application
+    application_id: MaybeUndefined[str]
+    # message_reference
+    flags: MaybeUndefined[int]
+    # referenced_message, interaction, thread
+    # components, sticker_items
 
 
 class MessageType(enum.IntEnum):
@@ -58,91 +89,18 @@ class MessageFlags(enum.IntFlag):
     LOADING = 1 << 7
 
 
+@attr.s(kw_only=True)
 class Message(SnowflakeObject):
-    __slots__ = ('author', 'member', 'webhook', 'application')
-
-    type = json.JSONField('type', MessageType, repr=True)
-    flags = json.JSONField('flags', MessageFlags, repr=True)
-    content = json.JSONField('content')
-    created_at = json.JSONField('timestamp', datetime.fromisoformat)
-    edited_at = json.JSONField('edited_timestamp', datetime.fromisoformat)
-    tts = json.JSONField('tts')
-    # mentions
-    # attachments, embeds, reactions
-    nonce = json.JSONField('nonce')
-    pinned = json.JSONField('pinned')
-    # activity
-    # message_reference, referenced_message
-    # interaction
-    # thread
-    # components
-    # sticker_items
-
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.author = None
-        self.member = None
-        # self.webhook = self.client.webhooks.wrap_id(None)
-        # self.application = self.client.applications.wrap_id(None)
-
-    @property
-    def channel(self):
-        return self.state.channel
-
-    @property
-    def guild(self):
-        return self.channel.guild
-
-    async def crosspost(self) -> Message:
-        data = await self.client.rest.request(
-            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
-        )
-        assert isinstance(data, dict)
-
-        return await self.state.upsert(data)
-
-    async def modify(
-        self,
-        *,
-        content: MaybeUndefined[Optional[str]] = undefined,
-        embeds=undefined,
-        flags: MaybeUndefined[Optional[MessageFlags]] = undefined,
-        mentions: MaybeUndefined[Optional[MessageMentions]] = undefined,
-        components=undefined,
-        attachments=undefined,
-    ) -> None:
-        body = JSONBuilder()
-
-        body.str('content', content, nullable=True)
-        body.int('flags', flags, nullable=True)
-
-        if not isinstance(mentions, (MessageMentions, UndefinedType, NoneType)):
-            cls = mentions.__class__
-            raise TypeError(
-                f'mentions should be MessageMentions, undefined or None, got {cls.__name__!r}'
-            )
-
-        body.set('allowed_mentions', mentions, transformer=MessageMentions.to_dict)
-
-        data = await self.client.rest.request(
-            MODIFY_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id, json=body
-        )
-        assert isinstance(data, dict)
-
-        return await self.state.upsert(data)
-
-    async def delete(self) -> None:
-        await self.client.rest.request(
-            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
-        )
-
-    async def update_author(self, data):
-        self.author = await self.client.users.upsert(data)
-
-    async def update_member(self, data):
-        try:
-            guild = self.guild.unwrap()
-        except UnknownObjectError:
-            self.member = None
-        else:
-            self.member = await guild.members.upsert(data)
+    channel: ChannelIDWrapper = attr.ib()
+    guild: GuildIDWrapper = attr.ib()
+    author: UserIDWrapper = attr.ib()
+    content: typing.Optional[str] = attr.ib()
+    timestamp: datetime = attr.ib()
+    edited_timestamp: typing.Optional[datetime] = attr.ib()
+    tts: bool = attr.ib()
+    nonce: typing.Optional[typing.Union[int, str]] = attr.ib()
+    pinned: bool = attr.ib()
+    webhook: WebhookIDWrapper = attr.ib()
+    type: typing.Union[MessageType, int] = attr.ib()
+    application: ApplicationIDWrapper = attr.ib()
+    flags: MessageFlags = attr.ib()

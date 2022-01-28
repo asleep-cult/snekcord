@@ -1,51 +1,39 @@
-from .base import SnowflakeObject
-from .. import json
+import typing
 
-__all__ = ('RoleTags', 'Role')
+import attr
 
-
-class RoleTags(json.JSONObject):
-    __slots__ = ('role', 'bot', 'integration')
-
-    premium_subscriper = json.JSONField('premium_subscriber')
-
-    def __init__(self, *, role):
-        self.role = role
-        self.bot = self.client.users.wrap_id(None)
-        # self.integration = self.role.guild.integrations.wrap_id(None)
-
-    @property
-    def client(self):
-        return self.role.client
+from ..cache import CachedModel
+from ..objects import SnowflakeObject
+from ..undefined import MaybeUndefined
 
 
+class CachedRoleTags(typing.TypedDict, total=False):
+    bot_id: str
+    integration_id: str
+    premium_subscriber: None
+
+
+class CachedRole(CachedModel):
+    name: str
+    color: int
+    hoist: bool
+    icon: typing.Optional[MaybeUndefined[str]]
+    unicode_emoji: typing.Optional[str]
+    position: int
+    permissions: str
+    managed: bool
+    mentionable: bool
+    tags: CachedRoleTags
+
+
+@attr.s(kw_only=True)
 class Role(SnowflakeObject):
-    __slots__ = ('tags',)
-
-    name = json.JSONField('name')
-    color = json.JSONField('color')
-    hoist = json.JSONField('hoist')
-    icon = json.JSONField('icon')
-    emoji = json.JSONField('unicode_emoji')
-    # permissions
-    managed = json.JSONField('managed')
-    mentionable = json.JSONField('mentionable')
-
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.tags = RoleTags(role=self)
-
-    @property
-    def guild(self):
-        return self.state.guild
-
-    async def update_tags(self, data):
-        bot_id = data.get('bot_id')
-        if bot_id is not None:
-            self.tags.bot.set_id(bot_id)
-
-        integration_id = data.get('integration_id')
-        if integration_id is not None:
-            self.tags.integration.set_id(integration_id)
-
-        self.tags.update(data)
+    name: str = attr.ib()
+    color: int = attr.ib()
+    hoist: bool = attr.ib()
+    icon: typing.Optional[str] = attr.ib()
+    unicode_emoji: typing.Optional[str] = attr.ib()
+    position: int = attr.ib()
+    permissions: str = attr.ib()
+    managed: bool = attr.ib()
+    # tags

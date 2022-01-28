@@ -1,9 +1,36 @@
 import enum
+import typing
+
+import attr
 
 from .base import SnowflakeObject
-from .. import json
+from ..cache import CachedModel
+from ..undefined import MaybeUndefined
 
-__all__ = ('UserFlags', 'PremiumType', 'User')
+__all__ = (
+    'CachedUser',
+    'UserFlags',
+    'PremiumType',
+    'User',
+)
+
+
+class CachedUser(CachedModel):
+    id: str
+    username: str
+    discriminator: str
+    avatar: typing.Optional[str]
+    bot: MaybeUndefined[bool]
+    system: MaybeUndefined[bool]
+    mfa_enabled: MaybeUndefined[bool]
+    banner: MaybeUndefined[typing.Optional[str]]
+    accent_color: MaybeUndefined[typing.Optional[int]]
+    locale: MaybeUndefined[str]
+    verified: MaybeUndefined[str]
+    email: MaybeUndefined[typing.Optional[str]]
+    flags: MaybeUndefined[int]
+    premium_type: MaybeUndefined[int]
+    public_flags: MaybeUndefined[int]
 
 
 class UserFlags(enum.IntFlag):
@@ -30,18 +57,19 @@ class PremiumType(enum.IntEnum):
     NITRO = 2
 
 
+@attr.s(kw_only=True)
 class User(SnowflakeObject):
-    name = json.JSONField('username')
-    discriminator = json.JSONField('discriminator')
-    avatar = json.JSONField('avatar')
-    bot = json.JSONField('bot')
-    system = json.JSONField('system')
-    mfa_enabled = json.JSONField('mfa_enabled')
-    banner = json.JSONField('banner')
-    accent_color = json.JSONField('accent_color')
-    locale = json.JSONField('locale')
-    verified = json.JSONField('verified')
-    email = json.JSONField('email')
-    flags = json.JSONField('flags', UserFlags)
-    premium_type = json.JSONField('premium_type', PremiumType)
-    public_flags = json.JSONField('public_flags', UserFlags)
+    username: str = attr.ib()
+    discriminator: str = attr.ib()
+    avatar: typing.Optional[str] = attr.ib()
+    bot: typing.Optional[bool] = attr.ib()
+    system: typing.Optional[bool] = attr.ib()
+    mfa_enabled: typing.Optional[bool] = attr.ib()
+    banner: typing.Optional[str] = attr.ib()
+    accent_color: typing.Optional[int] = attr.ib()
+    locale: typing.Optional[str] = attr.ib()
+    verified: typing.Optional[bool] = attr.ib()
+    email: typing.Optional[str] = attr.ib()
+    flags: typing.Optional[UserFlags] = attr.ib()
+    premium_type: typing.Optional[PremiumType] = attr.ib()
+    public_flags: typing.Optional[UserFlags] = attr.ib()
