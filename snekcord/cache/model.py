@@ -53,6 +53,7 @@ class CachedModel:
         for name, field in self.__model_fields__.items():
             if name in data:
                 self.__model_data__[name] = data[name]
+
             elif name not in self.__model_data__:
                 if field.nullable:
                     self.__model_data__[name] = None

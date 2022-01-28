@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from ..cache import (
     CacheDriver,
-    MemoryCacheDriver,
+    DefaultCacheDriver,
 )
 
 if typing.TYPE_CHECKING:
@@ -103,7 +103,7 @@ class CachedEventState(
         self.cache = self.create_driver()
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedObjectT]:
-        return MemoryCacheDriver()
+        return DefaultCacheDriver()
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
