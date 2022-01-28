@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-from types import NoneType
 
 from ..exceptions import IncompleteDataError
 from ..undefined import UndefinedType, undefined
@@ -17,10 +16,13 @@ __all__ = ('CachedModel',)
 class ModelField:
     def __init__(self, name: str, type: typing.Any) -> None:
         self.name = name
-        self.nullable = NoneType in typing.get_args(type)
+        self.nullable = type(None) in typing.get_args(type)
         self.optional = UndefinedType in typing.get_args(type)
 
     def __get__(self, instance: typing.Optional[CachedModel], cls: type[CachedModel]) -> typing.Any:
+        if instance is None:
+            return self
+
         if self.name not in instance.__model_data__:
             if not self.optional:
                 raise AttributeError(f'{cls.__name__!r} object has no attribute {self.name!r}')
