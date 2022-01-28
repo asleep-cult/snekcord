@@ -4,10 +4,7 @@ import typing
 from types import NoneType
 
 from ..exceptions import IncompleteDataError
-from ..undefined import (
-    UndefinedType,
-    undefined,
-)
+from ..undefined import UndefinedType, undefined
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
@@ -56,12 +53,10 @@ class CachedModel:
         for name, field in self.__model_fields__.items():
             if name in data:
                 self.__model_data__[name] = data[name]
-            else:
-                if name in self.__model_data__:
-                    continue
-
+            elif name not in self.__model_data__:
                 if field.nullable:
                     self.__model_data__[name] = None
+
                 elif not partial and not field.optional:
                     raise IncompleteDataError(self)
 
@@ -72,5 +67,9 @@ class CachedModel:
     def from_json(cls, data: JSONObject, **kwargs: typing.Any) -> Self:
         self = cls.__new__(cls)
         self.update(data)
-        cls.__init__(self, **kwargs)
+
+        ret = cls.__init__(self, **kwargs)
+        if ret is not None:
+            raise TypeError(f'__init__() should return None, not {ret.__class__.__name__!r}')
+
         return self
