@@ -26,7 +26,7 @@ from ..objects import (
 from ..rest.endpoints import GET_GUILD
 from ..snowflake import Snowflake
 
-SupportsGuildID = Union[Snowflake, str, int, PartialGuild, 'GuildIDWrapper']
+SupportsGuildID = Union[Snowflake, str, int, PartialGuild]
 GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
 
 
@@ -38,23 +38,21 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        elif isinstance(object, SnowflakeWrapper):
-            assert isinstance(object.state, GuildState)
-            return object.id
-
         elif isinstance(object, PartialGuild):
             return object.id
 
-        raise TypeError('Expected Snowflake, str, int, SnowflakeWrapper, or PartialGuild')
+        raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
     async def upsert(self, data) -> Guild:
-        guild = await self.cache.get(data['id'])
-        if guild is None:
-            guild = CachedGuild.unmarshal(data)
-        else:
-            guild.update(data)
+        guild_id = Snowflake(data['id'])
+        guild = await self.cache.get(guild_id)
 
-        await self.cache.set(Snowflake(guild.id), guild)
+        if guild is None:
+            guild = CachedGuild.from_json(data)
+            await self.cache.create(guild_id, guild)
+        else:
+            await self.cache.update(guild_id, guild)
+
         return self.from_cached(guild)
 
     async def upsert_rest(self, data) -> RESTGuild:

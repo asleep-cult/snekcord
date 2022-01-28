@@ -1,28 +1,31 @@
 from __future__ import annotations
 
 import enum
+import typing
 from datetime import datetime
 
 import attr
 
 from .base import CodeObject
-from .. import json
+from ..cache import CachedModel
 from ..snowflake import Snowflake
+from ..undefined import MaybeUndefined
 
 
-class CachedInvite(json.JSONObject):
-    code = json.JSONField('code')
-    guild_id = json.JSONField('guild_id')
-    channel_id = json.JSONField('channel_id')
-    inviter_id = json.JSONField('inviter_id')
-    target_type = json.JSONField('target_type')
-    target_id = json.JSONField('target_id')
-    expires_at = json.JSONField('expires_at')
-    uses = json.JSONField('uses')
-    max_uses = json.JSONField('max_uses')
-    max_age = json.JSONField('max_age')
-    temporary = json.JSONField('temporary')
-    created_at = json.JSONField('created_at')
+class CachedInvite(CachedModel):
+    code: str
+    guild_id: MaybeUndefined[str]
+    channel_id: typing.Optional[str]
+    inviter_id: MaybeUndefined[str]
+    target_type: MaybeUndefined[int]
+    target_user_id: MaybeUndefined[str]
+    target_application_id: MaybeUndefined[str]
+    expires_at: MaybeUndefined[typing.Optional[str]]
+    uses: int
+    max_uses: int
+    max_age: int
+    temporary: bool
+    created_at: str
 
 
 class InviteTargetType(enum.IntEnum):

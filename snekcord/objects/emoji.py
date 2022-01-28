@@ -1,21 +1,23 @@
+import typing
+
 import attr
 
 from .base import SnowflakeObject
-from .. import json
+from ..cache import CachedModel
 from ..snowflake import Snowflake
 
 __all__ = ('CustomEmoji',)
 
 
-class CachedCustomEmoji(json.JSONObject):
-    id = json.JSONField('id')
-    name = json.JSONField('name')
-    require_colons = json.JSONField('require_colons')
-    managed = json.JSONField('managed')
-    animated = json.JSONField('animated')
-    available = json.JSONField('animated')
-    user_id = json.JSONField('user_id')
-    role_ids = json.JSONArray('role_ids')
+class CachedCustomEmoji(CachedModel):
+    id: str
+    name: str
+    require_colons: bool
+    managed: bool
+    animated: bool
+    available: bool
+    user_id: str
+    role_ids: typing.List[str]
 
 
 @attr.s(kw_only=True)

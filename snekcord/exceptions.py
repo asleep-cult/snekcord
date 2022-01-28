@@ -17,12 +17,20 @@ class InvalidResponseError(Exception):
         return 'API responded with unsupported data'
 
 
-class UnknownObjectError(LookupError):
+class UnknownSnowflakeError(Exception):
     def __init__(self, id):
         self.id = id
 
     def __str__(self):
         return f'Object with id {self.id} is not cached'
+
+
+class UnknownCodeError(Exception):
+    def __init__(self, code: str) -> None:
+        self.code = code
+
+    def __str__(self):
+        return f'Object with code {self.code} is not cached'
 
 
 class ShardConnectError(Exception):

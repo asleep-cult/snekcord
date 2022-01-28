@@ -1,22 +1,24 @@
 from __future__ import annotations
 
 import enum
+import typing
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 import attr
 
 from .base import SnowflakeObject
-from .. import json
+from ..cache import CachedModel
 from ..snowflake import Snowflake
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from ..states import (
         ChannelStateView,
         EmojiStateView,
         MemberStateView,
         RoleStateView,
     )
+
+    from ..undefined import MaybeUndefined
 
 __all__ = (
     'CachedGuild',
@@ -34,44 +36,44 @@ __all__ = (
 )
 
 
-class CachedGuild(json.JSONObject):
-    id = json.JSONField('id')
-    name = json.JSONField('name')
-    icon = json.JSONField('icon')
-    splash = json.JSONField('splash')
-    discovery_splash = json.JSONField('discovery_splash')
-    owner_id = json.JSONField('owner_id')
-    afk_channel_id = json.JSONField('afk_channel_id')
-    afk_timeout = json.JSONField('afk_timeout')
-    widget_enabled = json.JSONField('widget_enabled')
-    widget_channel_id = json.JSONField('widget_channel_id')
-    verification_level = json.JSONField('verification_level')
-    message_notifications_level = json.JSONField('default_message_notifications')
-    explicit_content_filter = json.JSONField('explicit_content_filter')
-    role_ids = json.JSONArray('role_ids')
-    emoji_ids = json.JSONArray('emoji_ids')
-    features = json.JSONArray('features')
-    mfa_level = json.JSONField('mfa_level')
-    application_id = json.JSONField('application_id')
-    system_channel_id = json.JSONField('system_channel_id')
-    system_channel_flags = json.JSONField('system_channel_flags')
-    rules_channel_id = json.JSONField('rules_channel_id')
-    joined_at = json.JSONField('joined_at')
-    voice_state_ids = json.JSONArray('voice_state_ids')
-    member_ids = json.JSONArray('member_ids')
-    channel_ids = json.JSONArray('channel_ids')
-    thread_ids = json.JSONArray('thread_ids')
-    max_presences = json.JSONField('max_presences')
-    max_members = json.JSONField('max_members')
-    vanity_url_code = json.JSONField('vanity_url_code')
-    description = json.JSONField('description')
-    banner = json.JSONField('banner')
-    premium_tier = json.JSONField('premium_tier')
-    premium_subscription_count = json.JSONField('premium_subscription_count')
-    preferred_locale = json.JSONField('preferred_locale')
-    public_updates_channel_id = json.JSONField('public_updates_channel_id')
-    max_video_channel_users = json.JSONField('max_video_channel_users')
-    nsfw_level = json.JSONField('nsfw_level')
+class CachedGuild(CachedModel):
+    id: str
+    name: str
+    icon: typing.Optional[str]
+    splash: typing.Optional[str]
+    discovery_splash: typing.Optional[str]
+    owner_id: str
+    afk_channel_id: typing.Optional[str]
+    afk_timeout: int
+    widget_enabled: MaybeUndefined[bool]
+    widget_channel_id: MaybeUndefined[typing.Optional[str]]
+    verification_level: int
+    default_message_notifications: int
+    explicit_content_filter: int
+    role_ids: typing.List[str]
+    emoji_ids: typing.List[str]
+    features: typing.List[str]
+    mfa_level: int
+    application_id: typing.Optional[str]
+    system_channel_id: typing.Optional[str]
+    system_channel_flags: int
+    rules_channel_id: typing.Optional[int]
+    joined_at: MaybeUndefined[str]
+    voice_state_ids: typing.List[str]
+    member_ids: typing.List[str]
+    channel_ids: typing.List[str]
+    thread_ids: typing.List[str]
+    max_presences: MaybeUndefined[int]
+    max_members: MaybeUndefined[int]
+    vanity_url_code: typing.Optional[str]
+    description: typing.Optional[str]
+    banner: typing.Optional[str]
+    premium_tier: int
+    premium_subscription_count: MaybeUndefined[int]
+    preferred_locale: str
+    public_updates_channel_id: typing.Optional[str]
+    max_video_channel_users: MaybeUndefined[int]
+    nsfw_level: int
 
 
 class GuildMessageNotificationsLevel(enum.IntEnum):

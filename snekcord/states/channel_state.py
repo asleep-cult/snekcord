@@ -20,8 +20,8 @@ from ..objects import (
     CachedChannel,
     CategoryChannel,
     ChannelType,
-    SnowflakeWrapper,
     TextChannel,
+    SnowflakeWrapper,
     VoiceChannel,
 )
 from ..snowflake import Snowflake
@@ -30,7 +30,7 @@ if typing.TYPE_CHECKING:
     from ..json import JSONObject
     from ..websockets import Shard
 
-SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel, 'ChannelIDWrapper']
+SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel]
 ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
@@ -42,14 +42,10 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        elif isinstance(object, SnowflakeWrapper):
-            assert isinstance(object.state, ChannelState)
-            return object.id
-
         elif isinstance(object, BaseChannel):
             return object.id
 
-        raise TypeError('Expected Snowflake, str, int, SnowflakeWrapper, or BaseChannel')
+        raise TypeError('Expected Snowflake, str, int, or BaseChannel')
 
     async def upsert(self, data) -> BaseChannel:
         channel_id = Snowflake(data['id'])
