@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import enum
+import typing
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
 
 import attr
 
 from .base import SnowflakeObject
-from .. import json
+from ..cache import CachedModel
 from ..rest.endpoints import (
     DELETE_CHANNEL,
     TRIGGER_CHANNEL_TYPING,
 )
 from ..snowflake import Snowflake
+from ..undefined import MaybeUndefined
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from ..states import ChannelMessageState
 
 __all__ = (
@@ -29,31 +30,27 @@ __all__ = (
 )
 
 
-class CachedChannel(json.JSONObject):
-    id = json.JSONField('id')
-    type = json.JSONField('type')
-    guild_id = json.JSONField('guild_id')
-    position = json.JSONField('position')
-    permission_overwrites = json.JSONField('permission_overwrites')
-    name = json.JSONField('name')
-    topic = json.JSONField('topic')
-    nsfw = json.JSONField('nsfw')
-    last_message_id = json.JSONField('last_message_id')
-    bitrate = json.JSONField('bitrate')
-    user_limit = json.JSONField('user_limit')
-    rate_limit_per_user = json.JSONField('rate_limit_per_user')
-    recipient_ids = json.JSONArray('recipient_ids')
-    icon = json.JSONField('icon')
-    owner_id = json.JSONField('owner_id')
-    application_id = json.JSONField('application_id')
-    parent_id = json.JSONField('parent_id')
-    last_pin_timestamp = json.JSONField('last_pin_timestamp')
-    rtc_origin = json.JSONField('rtc_origin')
-    viedo_quality_mode = json.JSONField('video_quality_mode')
-    message_count = json.JSONField('message_count')
-    member_count = json.JSONField('member_count')
-    thread_metadata = json.JSONField('thread_metadata')
-    default_auto_archive_duration = json.JSONField('default_auto_archive_duration')
+class CachedChannel(CachedModel):
+    id: str
+    type: int
+    guild_id: MaybeUndefined[str]
+    position: MaybeUndefined[int]
+    permission_overwrites: MaybeUndefined[typing.List]
+    name: MaybeUndefined[str]
+    topic: MaybeUndefined[typing.Optional[str]]
+    nsfw: MaybeUndefined[bool]
+    last_message_id: MaybeUndefined[typing.Optional[str]]
+    bitrate: MaybeUndefined[int]
+    user_limit: MaybeUndefined[int]
+    rate_limit_per_user: MaybeUndefined[int]
+    recipient_ids: MaybeUndefined[typing.List[str]]
+    icon: MaybeUndefined[typing.Optional[str]]
+    owner_id: MaybeUndefined[str]
+    application_id: MaybeUndefined[str]
+    parent_id: MaybeUndefined[typing.Optional[str]]
+    last_pin_timestamp: MaybeUndefined[typing.Optional[str]]
+    rtc_region: MaybeUndefined[typing.Optional[str]]
+    viedo_quality_mode: MaybeUndefined[int]
 
 
 class ChannelType(enum.IntEnum):
@@ -116,7 +113,7 @@ class TextChannel(GuildChannel):
     rate_limit_per_user: int = attr.ib()
     last_message_id: Snowflake = attr.ib()
     default_auto_archive_duration: int = attr.ib()
-    last_pin_timestamp: Optional[datetime] = attr.ib()
+    last_pin_timestamp: typing.Optional[datetime] = attr.ib()
     messages: ChannelMessageState = attr.ib(init=False)
 
     def __attr_post_init__(self) -> None:
@@ -130,7 +127,7 @@ class TextChannel(GuildChannel):
 class VoiceChannel(GuildChannel):
     bitrate: int = attr.ib()
     user_limit: int = attr.ib()
-    rtc_origin: str = attr.ib()
+    rtc_region: str = attr.ib()
 
 
 class CategoryChannel(GuildChannel):

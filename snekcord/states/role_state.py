@@ -11,7 +11,7 @@ from ..events import (
     BaseEvent,
     RoleCreateEvent,
     RoleDeleteEvent,
-    RoleEvent,
+    RoleEvents,
     RoleUpdateEvent,
 )
 from ..intents import WebSocketIntents
@@ -31,7 +31,7 @@ from ..undefined import (
 )
 
 if TYPE_CHECKING:
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..websockets import Shard
 
 __all__ = ('RoleUnwrappable', 'RoleState', 'GuildRoleState')
@@ -60,24 +60,24 @@ class RoleState(BaseClientState):
         raise TypeError('Expectes Snowflake, int, str, Role or ObjectWrapper')
 
     def on_create(self):
-        return self.on(RoleEvent.CREATE)
+        return self.on(RoleEvents.CREATE)
 
     def on_update(self):
-        return self.on(RoleEvent.UPDATE)
+        return self.on(RoleEvents.UPDATE)
 
     def on_delete(self):
-        return self.on(RoleEvent.DELETE)
+        return self.on(RoleEvents.DELETE)
 
-    def get_events(self) -> type[RoleEvent]:
-        return RoleEvent
+    def get_events(self) -> type[RoleEvents]:
+        return RoleEvents
 
     def get_intents(self) -> WebSocketIntents:
         return WebSocketIntents.GUILDS
 
-    async def process_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
+    async def process_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         event = self.cast_event(event)
 
-        if event is RoleEvent.CREATE:
+        if event is RoleEvents.CREATE:
             guild = self.client.guilds.get(payload['guild_id'])
             if guild is not None:
                 role = await guild.roles.upsert(payload['role'])
@@ -86,7 +86,7 @@ class RoleState(BaseClientState):
 
             return RoleCreateEvent(shard=shard, payload=payload, role=role)
 
-        if event is RoleEvent.UPDATE:
+        if event is RoleEvents.UPDATE:
             guild = self.client.guilds.get(payload['guild_id'])
             if guild is not None:
                 role = await guild.roles.upsert(payload['role'])
@@ -95,7 +95,7 @@ class RoleState(BaseClientState):
 
             return RoleUpdateEvent(shard=shard, payload=payload, role=role)
 
-        if event is RoleEvent.DELETE:
+        if event is RoleEvents.DELETE:
             guild = self.client.guilds.get(payload['guild_id'])
             if guild is not None:
                 role = guild.roles.pop(payload['role_id'])

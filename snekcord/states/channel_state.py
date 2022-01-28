@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import typing
 from datetime import datetime
-from typing import TYPE_CHECKING, Union
 
 from .base_state import (
     CachedEventState,
@@ -26,11 +26,11 @@ from ..objects import (
 )
 from ..snowflake import Snowflake
 
-if TYPE_CHECKING:
-    from ..json import JSONData
+if typing.TYPE_CHECKING:
+    from ..json import JSONObject
     from ..websockets import Shard
 
-SupportsChannelID = Union[Snowflake, str, int, BaseChannel, 'ChannelIDWrapper']
+SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel, 'ChannelIDWrapper']
 ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
@@ -52,13 +52,16 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         raise TypeError('Expected Snowflake, str, int, SnowflakeWrapper, or BaseChannel')
 
     async def upsert(self, data) -> BaseChannel:
-        channel = await self.cache.get(data['id'])
+        channel_id = Snowflake(data['id'])
+        channel = await self.cache.get(channel_id)
+
         if channel is None:
-            channel = CachedChannel.unmarshal(data)
+            channel = CachedChannel.from_json(data)
+            await self.cache.create(Snowflake(channel_id), channel)
         else:
             channel.update(data)
+            await self.cache.update(channel_id, channel)
 
-        await self.cache.set(Snowflake(channel.id), channel)
         return self.from_cached(channel)
 
     def from_cached(self, cached: CachedChannel) -> BaseChannel:
@@ -104,7 +107,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 nsfw=cached.nsfw,
                 bitrate=cached.bitrate,
                 user_limit=cached.user_limit,
-                rtc_origin=cached.rtc_origin,
+                rtc_region=cached.rtc_region,
             )
 
         return BaseChannel(state=self, id=Snowflake(cached.id), type=type)
@@ -121,7 +124,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
         return self.on(ChannelEvents.PINS_UPDATE)
 
-    async def create_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         event = ChannelEvents(event)
 
         if event is ChannelEvents.CREATE:

@@ -1,27 +1,23 @@
 from __future__ import annotations
 
 import asyncio
+import typing
 from collections import defaultdict
-from typing import (
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Generic,
-    Iterable,
-    Optional,
-    TYPE_CHECKING,
-    TypeVar,
+
+from ..cache import (
+    CacheDriver,
+    MemoryCacheDriver,
 )
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..events import BaseEvent
     from ..intents import WebSocketIntents
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..websockets import Shard
 else:
-    BaseEvenet = TypeVar('BaseEvent')
-    SerializedObject = TypeVar('CachedObject')
+    BaseEvenet = typing.TypeVar('BaseEvent')
+    SerializedObject = typing.TypeVar('CachedObject')
 
 __all__ = (
     'EventState',
@@ -29,17 +25,17 @@ __all__ = (
     'CachedEventState',
 )
 
-SupportsUniqueT = TypeVar('SupportsUniqueT')
-UniqueT = TypeVar('UniqueT')
-CachedObjectT = TypeVar('CachedObjectT')
-ObjectT = TypeVar('ObjectT')
+SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
+UniqueT = typing.TypeVar('UniqueT')
+CachedObjectT = typing.TypeVar('CachedObjectT')
+ObjectT = typing.TypeVar('ObjectT')
 
-EventT = TypeVar('EventT', bound=BaseEvent)
-OnCallbackT = Callable[[EventT], Awaitable[None]]
-OnDecoratorT = Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
+EventT = typing.TypeVar('EventT', bound=BaseEvent)
+OnCallbackT = typing.Callable[[EventT], typing.Awaitable[None]]
+OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 
-class EventState(Generic[SupportsUniqueT, UniqueT]):
+class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
     def __init__(self, *, client: Client) -> None:
         self.client = client
 
@@ -49,7 +45,7 @@ class EventState(Generic[SupportsUniqueT, UniqueT]):
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
 
-    def get_events(self) -> Iterable[str]:
+    def get_events(self) -> typing.Iterable[str]:
         raise NotImplementedError
 
     def get_intents(self) -> WebSocketIntents:
@@ -71,52 +67,17 @@ class EventState(Generic[SupportsUniqueT, UniqueT]):
 
         return decorator
 
-    async def create_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         raise NotImplementedError
 
-    async def dispatch(self, event: str, shard: Shard, paylaod: JSONData) -> None:
+    async def dispatch(self, event: str, shard: Shard, paylaod: JSONObject) -> None:
         ret = await self.create_event(event, shard, paylaod)
 
         for callback in self._callbacks[event]:
             self.client.loop.create_task(callback(ret))
 
 
-class BaseCache(Generic[UniqueT, CachedObjectT]):
-    def contains(self, key: UniqueT) -> bool:
-        raise NotImplementedError
-
-    async def iterate(self) -> AsyncIterator[CachedObjectT]:
-        raise NotImplementedError
-
-    async def get(self, key: UniqueT) -> Optional[CachedObjectT]:
-        raise NotImplementedError
-
-    async def set(self, key: UniqueT, object: CachedObjectT) -> None:
-        raise NotImplementedError
-
-    async def delete(self, key: UniqueT) -> Optional[CachedObjectT]:
-        raise NotImplementedError
-
-
-class MemoryCache(BaseCache[UniqueT, CachedObjectT]):
-    def __init__(self) -> None:
-        self.map: dict[UniqueT, CachedObjectT] = {}
-
-    async def iterate(self) -> AsyncIterator[CachedObjectT]:
-        for object in self.map.values():
-            yield object
-
-    async def get(self, key: UniqueT) -> Optional[CachedObjectT]:
-        return self.map.get(key)
-
-    async def set(self, key: UniqueT, object: CachedObjectT) -> None:
-        self.map[key] = object
-
-    async def delete(self, key: UniqueT) -> Optional[CachedObjectT]:
-        return self.map.pop(key, None)
-
-
-class CachedState(Generic[SupportsUniqueT, UniqueT, ObjectT]):
+class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     client: Client
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
@@ -125,39 +86,39 @@ class CachedState(Generic[SupportsUniqueT, UniqueT, ObjectT]):
     def __contains__(self, object: SupportsUniqueT) -> bool:
         raise NotImplementedError
 
-    async def __aiter__(self) -> AsyncIterator[ObjectT]:
+    async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         raise NotImplementedError
 
-    async def get(self, object: SupportsUniqueT) -> Optional[ObjectT]:
+    async def get(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
         raise NotImplementedError
 
 
 class CachedEventState(
-    Generic[SupportsUniqueT, UniqueT, CachedObjectT, ObjectT],
+    typing.Generic[SupportsUniqueT, UniqueT, CachedObjectT, ObjectT],
     EventState[SupportsUniqueT, UniqueT],
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
-        self.cache = self.create_cache()
+        self.cache = self.create_driver()
 
-    def create_cache(self) -> BaseCache[UniqueT, CachedObjectT]:
-        return MemoryCache()
+    def create_driver(self) -> CacheDriver[UniqueT, CachedObjectT]:
+        return MemoryCacheDriver()
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
 
-    async def __aiter__(self) -> AsyncIterator[ObjectT]:
+    async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         async for item in self.cache.iterate():
             yield self.from_cached(item)
 
-    async def get(self, object: SupportsUniqueT) -> Optional[ObjectT]:
+    async def get(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
         object = await self.cache.get(self.to_unique(object))
 
         if object is not None:
             return self.from_cached(object)
 
-    async def delete(self, object: SupportsUniqueT) -> Optional[ObjectT]:
+    async def delete(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
         object = await self.cache.delete(self.to_unique(object))
 
         if object is not None:

@@ -6,7 +6,7 @@ from typing import Optional, TYPE_CHECKING
 from .base_events import BaseEvent
 
 if TYPE_CHECKING:
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..objects import (
         ObjectWrapper,
         Invite,
@@ -24,7 +24,7 @@ class InviteEvents(str, enum.Enum):
 class InviteCreateEvent(BaseEvent):
     __slots__ = ('invite',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, invite: Invite) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, invite: Invite) -> None:
         super().__init__(shard=shard, payload=payload)
         self.invite = invite
 
@@ -35,7 +35,7 @@ class InviteCreateEvent(BaseEvent):
 class InviteDeleteEvent(BaseEvent):
     __slots__ = ('invite',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, invite: Optional[Invite]) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, invite: Optional[Invite]) -> None:
         super().__init__(shard=shard, payload=payload)
         self.invite = invite
 

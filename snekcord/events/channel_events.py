@@ -12,7 +12,7 @@ if TYPE_CHECKING:
         BaseChannel,
         ObjectWrapper,
     )
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..websockets import Shard
 
 __all__ = (
@@ -41,7 +41,7 @@ class BaseChannelEvent(BaseEvent):
 class ChannelCreateEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, channel: BaseChannel) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -52,7 +52,7 @@ class ChannelCreateEvent(BaseChannelEvent):
 class ChannelUpdateEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, channel: BaseChannel) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -63,7 +63,7 @@ class ChannelUpdateEvent(BaseChannelEvent):
 class ChannelDeleteEvent(BaseChannelEvent):
     __slots__ = ('channel',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, channel: BaseChannel) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, channel: BaseChannel) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel
 
@@ -75,7 +75,7 @@ class ChannelPinsUpdateEvent(BaseChannelEvent):
     __slots__ = ('channel', 'timestamp')
 
     def __init__(
-        self, *, shard: Shard, payload: JSONData, channel: ObjectWrapper, timestamp: datetime
+        self, *, shard: Shard, payload: JSONObject, channel: ObjectWrapper, timestamp: datetime
     ) -> None:
         super().__init__(shard=shard, payload=payload)
         self.channel = channel

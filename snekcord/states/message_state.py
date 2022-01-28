@@ -14,7 +14,7 @@ from ..events import (
     MessageBulkDeleteEvent,
     MessageCreateEvent,
     MessageDeleteEvent,
-    MessageEvent,
+    MessageEvents,
     MessageUpdateEvent,
 )
 from ..intents import WebSocketIntents
@@ -36,7 +36,7 @@ from ..undefined import MaybeUndefined, UndefinedType, undefined
 
 if TYPE_CHECKING:
     from ..clients import Client
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..websockets import Shard
 
 __all__ = ('MessageUnwrappable', 'MessageState', 'ChannelMessageState')
@@ -69,19 +69,19 @@ class MessageState(BaseClientState):
         raise TypeError('Expected Snowflake, int, str, Message or ObjectWrapper')
 
     def on_create(self):
-        return self.on(MessageEvent.CREATE)
+        return self.on(MessageEvents.CREATE)
 
     def on_update(self):
-        return self.on(MessageEvent.UPDATE)
+        return self.on(MessageEvents.UPDATE)
 
     def on_delete(self):
-        return self.on(MessageEvent.DELETE)
+        return self.on(MessageEvents.DELETE)
 
     def on_bulk_delete(self):
-        return self.on(MessageEvent.BULK_DELETE)
+        return self.on(MessageEvents.BULK_DELETE)
 
-    def get_events(self) -> type[MessageEvent]:
-        return MessageEvent
+    def get_events(self) -> type[MessageEvents]:
+        return MessageEvents
 
     def get_intents(self):
         intents = WebSocketIntents.GUILDS | WebSocketIntents.GUILD_MESSAGES
@@ -95,10 +95,10 @@ class MessageState(BaseClientState):
         self._direct_messages = direct_messages
         return super().listen()
 
-    async def process_event(self, event: str, shard: Shard, payload: JSONData) -> BaseEvent:
+    async def process_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         event = self.cast_event(event)
 
-        if event is MessageEvent.CREATE:
+        if event is MessageEvents.CREATE:
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
                 message = await channel.messages.upsert(payload)
@@ -107,7 +107,7 @@ class MessageState(BaseClientState):
 
             return MessageCreateEvent(shard=shard, payload=payload, message=message)
 
-        if event is MessageEvent.UPDATE:
+        if event is MessageEvents.UPDATE:
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
                 message = await channel.messages.upsert(payload)
@@ -116,7 +116,7 @@ class MessageState(BaseClientState):
 
             return MessageUpdateEvent(shard=shard, payload=payload, message=message)
 
-        if event is MessageEvent.DELETE:
+        if event is MessageEvents.DELETE:
             channel = self.client.channels.get(payload['channel_id'])
             if channel is not None:
                 message = channel.messages.pop(payload['id'])
@@ -125,7 +125,7 @@ class MessageState(BaseClientState):
 
             return MessageDeleteEvent(shard=shard, payload=payload, message=message)
 
-        if event is MessageEvent.BULK_DELETE:
+        if event is MessageEvents.BULK_DELETE:
             messages = Collection()
 
             channel = self.client.channels.get(payload['channel_id'])
@@ -144,7 +144,7 @@ class ChannelMessageState(BaseSubState):
         super().__init__(superstate=superstate)
         self.channel = channel
 
-    async def upsert(self, data: JSONData) -> Message:
+    async def upsert(self, data: JSONObject) -> Message:
         message = self.get(data['id'])
         if message is not None:
             message.update(data)

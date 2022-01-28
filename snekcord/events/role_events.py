@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from .base_events import BaseEvent
 
 if TYPE_CHECKING:
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..objects import (
         ObjectWrapper,
         Role,
@@ -21,7 +21,7 @@ class RoleEvents(str, enum.Enum):
 
 
 class RoleCreateEvent(BaseEvent):
-    def __init__(self, *, shard: Shard, payload: JSONData, role: Role) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
 
@@ -34,7 +34,7 @@ class RoleCreateEvent(BaseEvent):
 
 
 class RoleUpdateEvent(BaseEvent):
-    def __init__(self, *, shard: Shard, payload: JSONData, role: Role) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
 
@@ -47,7 +47,7 @@ class RoleUpdateEvent(BaseEvent):
 
 
 class RoleDeleteEvent(BaseEvent):
-    def __init__(self, *, shard: Shard, payload: JSONData, role: Role) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, role: Role) -> None:
         super().__init__(shard=shard, payload=payload)
         self.role = role
 

@@ -7,7 +7,7 @@ from .base_events import BaseEvent
 
 if TYPE_CHECKING:
     from ..collection import Collection
-    from ..json import JSONData
+    from ..json import JSONObject
     from ..objects import (
         Message,
         ObjectWrapper,
@@ -44,7 +44,7 @@ class BaseMessageEvent(BaseEvent):
 class MessageCreateEvent(BaseEvent):
     __slots__ = ('message',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, message: Message) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
@@ -55,7 +55,7 @@ class MessageCreateEvent(BaseEvent):
 class MessageUpdateEvent(BaseEvent):
     __slots__ = ('message',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, message: Message) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
@@ -66,7 +66,7 @@ class MessageUpdateEvent(BaseEvent):
 class MessageDeleteEvent(BaseEvent):
     __slots__ = ('message',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, message: Message) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, message: Message) -> None:
         super().__init__(shard=shard, payload=payload)
         self.message = message
 
@@ -77,7 +77,7 @@ class MessageDeleteEvent(BaseEvent):
 class MessageBulkDeleteEvent(BaseEvent):
     __slots__ = ('messages',)
 
-    def __init__(self, *, shard: Shard, payload: JSONData, messages: Collection) -> None:
+    def __init__(self, *, shard: Shard, payload: JSONObject, messages: Collection) -> None:
         super().__init__(shard=shard, payload=payload)
         self.messages = messages
 
