@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import typing
+import weakref
 from collections import defaultdict
 
 from ..cache import (
@@ -98,12 +99,24 @@ class CachedEventState(  # type: ignore
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
         self.cache = self.create_driver()
+        self.locks: weakref.WeakValueDictionary[
+            UniqueT, asyncio.Lock
+        ] = weakref.WeakValueDictionary()
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedObjectT]:
         return DefaultCacheDriver()
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
+
+    def synchronize(self, object: SupportsUniqueT) -> asyncio.Lock:
+        key = self.to_unique(object)
+
+        lock = self.locks.get(key)
+        if lock is None:
+            lock = self.locks[key] = asyncio.Lock()
+
+        return lock
 
     async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         async for item in self.cache.iterate():

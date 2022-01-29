@@ -59,14 +59,16 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
     async def upsert(self, data) -> Guild:
         guild_id = Snowflake(data['id'])
-        guild = await self.cache.get(guild_id)
 
-        if guild is None:
-            guild = CachedGuild.from_json(data)
-            await self.cache.create(guild_id, guild)
-        else:
-            guild.update(data)
-            await self.cache.update(guild_id, guild)
+        async with self.synchronize(guild_id):
+            guild = await self.cache.get(guild_id)
+
+            if guild is None:
+                guild = CachedGuild.from_json(data)
+                await self.cache.create(guild_id, guild)
+            else:
+                guild.update(data)
+                await self.cache.update(guild_id, guild)
 
         return self.from_cached(guild)
 

@@ -36,14 +36,16 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
 
     async def upsert(self, data: JSONObject) -> CustomEmoji:
         emoji_id = Snowflake(data['id'])
-        emoji = await self.cache.get(emoji_id)
 
-        if emoji is None:
-            emoji = CachedCustomEmoji.from_json(data)
-            await self.cache.create(emoji_id, emoji)
-        else:
-            emoji.update(data)
-            await self.cache.update(emoji_id, emoji)
+        async with self.synchronize(emoji_id):
+            emoji = await self.cache.get(emoji_id)
+
+            if emoji is None:
+                emoji = CachedCustomEmoji.from_json(data)
+                await self.cache.create(emoji_id, emoji)
+            else:
+                emoji.update(data)
+                await self.cache.update(emoji_id, emoji)
 
         return self.from_cached(emoji)
 

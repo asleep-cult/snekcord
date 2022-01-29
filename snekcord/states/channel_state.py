@@ -51,14 +51,16 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
     async def upsert(self, data) -> BaseChannel:
         channel_id = Snowflake(data['id'])
-        channel = await self.cache.get(channel_id)
 
-        if channel is None:
-            channel = CachedChannel.from_json(data)
-            await self.cache.create(channel_id, channel)
-        else:
-            channel.update(data)
-            await self.cache.update(channel_id, channel)
+        async with self.synchronize(channel_id):
+            channel = await self.cache.get(channel_id)
+
+            if channel is None:
+                channel = CachedChannel.from_json(data)
+                await self.cache.create(channel_id, channel)
+            else:
+                channel.update(data)
+                await self.cache.update(channel_id, channel)
 
         return self.from_cached(channel)
 
