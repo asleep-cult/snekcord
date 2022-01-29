@@ -65,6 +65,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             guild = CachedGuild.from_json(data)
             await self.cache.create(guild_id, guild)
         else:
+            guild.update(data)
             await self.cache.update(guild_id, guild)
 
         return self.from_cached(guild)
