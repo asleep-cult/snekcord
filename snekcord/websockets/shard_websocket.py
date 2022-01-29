@@ -22,11 +22,6 @@ from ..exceptions import (
     ShardCloseError,
 )
 from ..json import dump_json, load_json
-from ..states import (
-    ChannelState,
-    GuildState,
-    UserState,
-)
 from ..undefined import undefined
 
 __all__ = (
@@ -159,7 +154,7 @@ class ShardWebSocket(WebSocketClient):
     ):
         data = JSONBuilder()
 
-        guild_id = GuildState.unwrap_id(guild)
+        guild_id = self.shard.client.guilds.to_unique(guild)
         data.snowflake(guild_id)
 
         if query is not None:
@@ -178,7 +173,7 @@ class ShardWebSocket(WebSocketClient):
 
             user_ids = set()
             for user in users:
-                user_ids.add(UserState.unwrap_id(user))
+                user_ids.add(self.shard.client.users.to_unique(user))
 
             data.snowflake_array('users', user_ids)
 
@@ -200,12 +195,12 @@ class ShardWebSocket(WebSocketClient):
     async def update_voice_state(self, guild, channel, *, mute=False, deaf=False):
         data = JSONBuilder()
 
-        data.snowflake('guild_id', GuildState.unwrap_id(guild))
+        data.snowflake('guild_id', self.shard.client.guilds.to_unique(guild))
 
         if channel is not None:
-            channel = ChannelState.unwrap_id(channel)
+            channel = self.shard.client.channels.to_unique(channel)
 
-        channel_id = ChannelState.unwrap_id(channel)
+        channel_id = self.shard.client.channeld.to_unique(channel)
         data.snowflake('channel_id', channel_id, nullable=True)
 
         data.bool('self_mute', mute)
