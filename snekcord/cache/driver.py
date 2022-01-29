@@ -9,7 +9,7 @@ CachedObjectT = typing.TypeVar('CachedObjectT')
 
 
 class CacheDriver(typing.Generic[UniqueT, CachedObjectT]):
-    async def iterate(self) -> typing.AsyncIterator[CachedObjectT]:
+    def iterate(self) -> typing.AsyncIterator[CachedObjectT]:
         raise NotImplementedError
 
     async def create(self, key: UniqueT, object: CachedObjectT) -> None:

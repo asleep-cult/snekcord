@@ -200,9 +200,15 @@ class Guild(PartialGuild):
 
 @attr.s(kw_only=True)
 class RESTGuild(Guild):
-    presence_count: int = attr.ib()
-    member_count: int = attr.ib()
+    presence_count: typing.Optional[int] = attr.ib()
+    member_count: typing.Optional[int] = attr.ib()
 
     @classmethod
-    def from_guild(cls, guild: Guild, *, presence_count: int, member_count: int) -> RESTGuild:
+    def from_guild(
+        cls,
+        guild: Guild,
+        *,
+        presence_count: typing.Optional[int],
+        member_count: typing.Optional[int],
+    ) -> RESTGuild:
         return cls(presence_count=presence_count, member_count=member_count, **attr.asdict(guild))

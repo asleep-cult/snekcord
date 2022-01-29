@@ -57,7 +57,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
-    async def upsert(self, data) -> Guild:
+    async def upsert(self, data: JSONObject) -> Guild:
         guild_id = Snowflake(data['id'])
 
         async with self.synchronize(guild_id):
@@ -72,7 +72,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         return self.from_cached(guild)
 
-    async def upsert_rest(self, data) -> RESTGuild:
+    async def upsert_rest(self, data: JSONObject) -> RESTGuild:
         guild = await self.upsert(data)
 
         return RESTGuild.from_guild(
@@ -88,7 +88,6 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         features = [convert_enum(GuildFeature, feature) for feature in cached.features]
 
         joined_at = undefined.nullify(cached.joined_at)
-
         if joined_at is not None:
             joined_at = datetime.fromisoformat(joined_at)
 

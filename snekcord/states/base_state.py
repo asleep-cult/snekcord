@@ -12,13 +12,14 @@ from ..cache import (
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
+    from ..cache import CachedModel
     from ..events import BaseEvent
     from ..intents import WebSocketIntents
     from ..json import JSONObject
     from ..websockets import Shard
 else:
-    BaseEvenet = typing.TypeVar('BaseEvent')
-    SerializedObject = typing.TypeVar('CachedObject')
+    BaseEvenet = typing.NewType('BaseEvent', typing.Any)
+    CachedModel = typing.NewType('CachedModel', typing.Any)
 
 __all__ = (
     'EventState',
@@ -28,7 +29,7 @@ __all__ = (
 
 SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
 UniqueT = typing.TypeVar('UniqueT')
-CachedObjectT = typing.TypeVar('CachedObjectT')
+CachedModelT = typing.TypeVar('CachedModelT', bound=CachedModel)
 ObjectT = typing.TypeVar('ObjectT')
 
 EventT = typing.TypeVar('EventT', bound=BaseEvent)
@@ -37,11 +38,12 @@ OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 
 class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
+    _callbacks: defaultdict[str, list[OnCallbackT[BaseEvent]]]
+
     def __init__(self, *, client: Client) -> None:
         self.client = client
 
         self._callbacks = defaultdict(list)
-        self._waiters = defaultdict(list)
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
@@ -75,7 +77,7 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
         ret = await self.create_event(event, shard, paylaod)
 
         for callback in self._callbacks[event]:
-            self.client.loop.create_task(callback(ret))
+            asyncio.create_task(callback(ret))
 
 
 class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
@@ -84,7 +86,7 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
 
-    async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
+    def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         raise NotImplementedError
 
     async def get(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
@@ -92,18 +94,18 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
 
 
 class CachedEventState(  # type: ignore
-    typing.Generic[SupportsUniqueT, UniqueT, CachedObjectT, ObjectT],
+    typing.Generic[SupportsUniqueT, UniqueT, CachedModelT, ObjectT],
     EventState[SupportsUniqueT, UniqueT],
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
+    locks: weakref.WeakValueDictionary[UniqueT, asyncio.Lock]
+
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
         self.cache = self.create_driver()
-        self.locks: weakref.WeakValueDictionary[
-            UniqueT, asyncio.Lock
-        ] = weakref.WeakValueDictionary()
+        self.locks = weakref.WeakValueDictionary()
 
-    def create_driver(self) -> CacheDriver[UniqueT, CachedObjectT]:
+    def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
         return DefaultCacheDriver()
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
@@ -134,7 +136,7 @@ class CachedEventState(  # type: ignore
         if object is not None:
             return self.from_cached(object)
 
-    def from_cached(self, cached: CachedObjectT) -> ObjectT:
+    def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError
 
 

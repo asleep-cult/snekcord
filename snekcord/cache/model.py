@@ -48,6 +48,11 @@ class CachedModel:
 
         cls.__dict__.update(cls.__model_fields__)
 
+    def __new__(cls, *args: typing.Any, **kwargs: typing.Any) -> Self:
+        self = object.__new__(cls)
+        self.__model_data__ = {}
+        return self
+
     def get_fields(self) -> dict[str, ModelField]:
         return self.__model_fields__
 
@@ -71,8 +76,5 @@ class CachedModel:
         self = cls.__new__(cls)
         self.update(data)
 
-        ret = cls.__init__(self, **kwargs)
-        if ret is not None:
-            raise TypeError(f'__init__() should return None, not {ret.__class__.__name__!r}')
-
+        cls.__init__(self, **kwargs)
         return self
