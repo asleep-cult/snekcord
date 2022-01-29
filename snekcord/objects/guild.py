@@ -8,14 +8,16 @@ import attr
 
 from .base import SnowflakeObject
 from ..cache import CachedModel
-from ..snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
     from ..states import (
+        ApplicationIDWrapper,
+        ChannelIDWrapper,
         GuildChannelsView,
         GuildEmojisView,
         GuildMembersView,
         GuildRolesView,
+        UserIDWrapper,
     )
     from ..undefined import MaybeUndefined
 
@@ -28,6 +30,7 @@ __all__ = (
     'GuildExplicitContentFilter',
     'GuildPremiumTier',
     'GuildSystemChannelFlags',
+    'GuildFeature',
     'PartialGuild',
     'GuildPreview',
     'Guild',
@@ -154,7 +157,7 @@ class PartialGuild(SnowflakeObject):
 class GuildPreview(PartialGuild):
     splash: str = attr.ib()
     discovery_splash = attr.ib()
-    features: list[GuildFeature] = attr.ib()
+    features: typing.List[GuildFeature] = attr.ib()
     presence_count: int = attr.ib()
     member_count: int = attr.ib()
     description: str = attr.ib()
@@ -165,18 +168,18 @@ class GuildPreview(PartialGuild):
 class Guild(PartialGuild):
     splash: str = attr.ib()
     discovery_splash: str = attr.ib()
-    owner_id: Snowflake = attr.ib()
-    afk_channel_id: Snowflake = attr.ib()
+    owner: UserIDWrapper = attr.ib()
+    afk_channel: ChannelIDWrapper = attr.ib()
     afk_timeout: int = attr.ib()
     widget_enabled: bool = attr.ib()
-    widget_channel_id: Snowflake = attr.ib()
-    verification_level: GuildVerificationLevel = attr.ib()
-    message_notifications_level: GuildMessageNotificationsLevel = attr.ib()
-    explicit_content_filter: GuildExplicitContentFilter = attr.ib()
-    features: list[GuildFeature] = attr.ib()
+    widget_channel: ChannelIDWrapper = attr.ib()
+    verification_level: typing.Union[GuildVerificationLevel, int] = attr.ib()
+    message_notifications_level: typing.Union[GuildMessageNotificationsLevel, int] = attr.ib()
+    explicit_content_filter: typing.Union[GuildExplicitContentFilter, int] = attr.ib()
+    features: typing.List[typing.Union[GuildFeature, str]] = attr.ib()
     mfa_level: GuildMFALevel = attr.ib()
-    application_id: Snowflake = attr.ib()
-    system_channel_id: Snowflake = attr.ib()
+    # application: ApplicationIDWrapper = attr.ib()
+    system_channel: ChannelIDWrapper = attr.ib()
     system_channel_flags: GuildSystemChannelFlags = attr.ib()
     joined_at: datetime = attr.ib()
     max_presences: int = attr.ib()
@@ -184,16 +187,16 @@ class Guild(PartialGuild):
     vanity_url_code: str = attr.ib()
     description: str = attr.ib()
     banner: str = attr.ib()
-    premium_tier: GuildPremiumTier = attr.ib()
+    premium_tier: typing.Union[GuildPremiumTier, int] = attr.ib()
     premium_subscription_count: int = attr.ib()
     preferred_locale: str = attr.ib()
-    public_updates_channel_id: Snowflake = attr.ib()
+    public_updates_channel: ChannelIDWrapper = attr.ib()
     max_video_channel_users: int = attr.ib()
-    nsfw_level: GuildNSFWLevel = attr.ib()
-    roles: RoleStateView = attr.ib()
-    emojis: EmojiStateView = attr.ib()
-    members: MemberStateView = attr.ib()
-    channels: ChannelStateView = attr.ib()
+    nsfw_level: typing.Union[GuildNSFWLevel, int] = attr.ib()
+    roles: GuildRolesView = attr.ib()
+    emojis: GuildEmojisView = attr.ib()
+    members: GuildMembersView = attr.ib()
+    channels: GuildChannelsView = attr.ib()
 
 
 @attr.s(kw_only=True)

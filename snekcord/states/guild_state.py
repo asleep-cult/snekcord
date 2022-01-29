@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from typing import Union
+import typing
+from datetime import datetime
 
 from .base_state import (
     CachedEventState,
     OnDecoratorT,
 )
+from ..enum import convert_enum
 from ..events import (
+    BaseEvent,
     GuildAvailableEvent,
     GuildDeleteEvent,
     GuildEvents,
@@ -15,18 +18,29 @@ from ..events import (
     GuildUnavailableEvent,
     GuildUpdateEvent,
 )
-from ..exceptions import InvalidResponseError
 from ..objects import (
     CachedGuild,
     Guild,
+    GuildExplicitContentFilter,
+    GuildFeature,
+    GuildMFALevel,
+    GuildMessageNotificationsLevel,
+    GuildNSFWLevel,
+    GuildPremiumTier,
+    GuildSystemChannelFlags,
+    GuildVerificationLevel,
     PartialGuild,
     RESTGuild,
     SnowflakeWrapper,
 )
-from ..rest.endpoints import GET_GUILD
 from ..snowflake import Snowflake
+from ..undefined import undefined
 
-SupportsGuildID = Union[Snowflake, str, int, PartialGuild]
+if typing.TYPE_CHECKING:
+    from ..json import JSONObject
+    from ..websockets import Shard
+
+SupportsGuildID = typing.Union[Snowflake, str, int, PartialGuild]
 GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
 
 
@@ -64,13 +78,59 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             member_count=data.get('approximate_member_count'),
         )
 
-    async def fetch(self, guild: SupportsGuildID) -> RESTGuild:
-        data = await self.client.rest.request(GET_GUILD, guild_id=self.to_unique(guild))
+    def from_cached(self, cached: CachedGuild) -> Guild:
+        guild_id = Snowflake(cached.id)
 
-        if not isinstance(data, dict):
-            raise InvalidResponseError(data)
+        widget_channel_id = undefined.nullify(cached.widget_channel_id)
+        features = [convert_enum(GuildFeature, feature) for feature in cached.features]
 
-        return await self.upsert(data)
+        joined_at = undefined.nullify(cached.joined_at)
+
+        if joined_at is not None:
+            joined_at = datetime.fromisoformat(joined_at)
+
+        return Guild(
+            state=self,
+            id=guild_id,
+            name=cached.name,
+            icon=cached.icon,
+            splash=cached.splash,
+            discovery_splash=cached.discovery_splash,
+            owner=SnowflakeWrapper(cached.owner_id, state=self.client.users),
+            afk_channel=SnowflakeWrapper(cached.afk_channel_id, state=self.client.users),
+            afk_timeout=cached.afk_timeout,
+            widget_enabled=cached.widget_enabled,
+            widget_channel=SnowflakeWrapper(widget_channel_id, state=self.client.channels),
+            verification_level=convert_enum(GuildVerificationLevel, cached.verification_level),
+            message_notifications_level=convert_enum(
+                GuildMessageNotificationsLevel, cached.default_message_notifications
+            ),
+            explicit_content_filter=convert_enum(
+                GuildExplicitContentFilter, cached.explicit_content_filter
+            ),
+            features=features,
+            mfa_level=convert_enum(GuildMFALevel, cached.mfa_level),
+            system_channel=SnowflakeWrapper(cached.system_channel_id, state=self.client.channels),
+            system_channel_flags=GuildSystemChannelFlags(cached.system_channel_id),
+            joined_at=joined_at,
+            max_presences=undefined.nullify(cached.max_presences),
+            max_members=undefined.nullify(cached.max_members),
+            vanity_url_code=cached.vanity_url_code,
+            description=cached.description,
+            banner=cached.banner,
+            premium_tier=convert_enum(GuildPremiumTier, cached.premium_tier),
+            premium_subscription_count=undefined.nullify(cached.premium_subscription_count),
+            preferred_locale=cached.preferred_locale,
+            public_updates_channel=SnowflakeWrapper(
+                cached.public_updates_channel_id, state=self.client.channels
+            ),
+            max_video_channel_users=undefined.nullify(cached.max_video_channel_users),
+            nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
+            roles=self.client.roles.view(cached.channel_ids, guild_id),
+            emojis=self.client.emojis.view(cached.emoji_ids, guild_id),
+            members=self.client.members.view(cached.member_ids, guild_id),
+            channels=self.client.channels.view(cached.channel_ids, guild_id),
+        )
 
     def on_join(self) -> OnDecoratorT[GuildJoinEvent]:
         return self.on(GuildEvents.JOIN)
@@ -89,3 +149,22 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
     def on_unavailable(self) -> OnDecoratorT[GuildUnavailableEvent]:
         return self.on(GuildEvents.UNAVAILABLE)
+
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
+        event = GuildEvents(event)
+
+        if event is GuildEvents.JOIN:
+            guild = await self.upsert(payload)
+            return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvents.AVAILABLE:
+            guild = await self.upsert(payload)
+            return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvents.RECEIVE:
+            guild = await self.upsert(payload)
+            return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
+
+        if event is GuildEvents.DELETE:
+            guild = await self.delete(payload['id'])
+            return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)

@@ -29,7 +29,3 @@ class CustomEmoji(SnowflakeObject):
     available: bool = attr.ib()
     user_id: Snowflake = attr.ib()
     roles = attr.ib()
-
-    @property
-    def guild(self):
-        return self.state.guild

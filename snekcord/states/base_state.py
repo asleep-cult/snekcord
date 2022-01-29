@@ -90,7 +90,7 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
         raise NotImplementedError
 
 
-class CachedEventState(
+class CachedEventState(  # type: ignore
     typing.Generic[SupportsUniqueT, UniqueT, CachedObjectT, ObjectT],
     EventState[SupportsUniqueT, UniqueT],
     CachedState[SupportsUniqueT, UniqueT, ObjectT],

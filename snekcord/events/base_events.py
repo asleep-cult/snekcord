@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import typing
 
-if TYPE_CHECKING:
+import attr
+
+if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
@@ -10,12 +12,10 @@ if TYPE_CHECKING:
 __all__ = ('BaseEvent',)
 
 
+@attr.s(kw_only=True)
 class BaseEvent:
-    __slots__ = ('shard', 'payload')
-
-    def __init__(self, *, shard: Shard, payload: JSONObject) -> None:
-        self.shard = shard
-        self.payload = payload
+    shard: Shard = attr.ib()
+    payload: JSONObject = attr.ib()
 
     @property
     def client(self) -> Client:

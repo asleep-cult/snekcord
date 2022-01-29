@@ -30,6 +30,8 @@ if typing.TYPE_CHECKING:
     from ..json import JSONObject
     from ..websockets import Shard
 
+__all__ = ('ChannelState', 'SupportsChannelID', 'ChannelIDWrapper')
+
 SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel]
 ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
@@ -125,15 +127,30 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         if event is ChannelEvents.CREATE:
             channel = await self.upsert(payload)
-            return ChannelCreateEvent(shard=shard, payload=payload, channel=channel)
+            return ChannelCreateEvent(
+                shard=shard,
+                payload=payload,
+                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
+                channel=channel,
+            )
 
         if event is ChannelEvents.UPDATE:
             channel = await self.upsert(payload)
-            return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
+            return ChannelUpdateEvent(
+                shard=shard,
+                payload=payload,
+                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
+                channel=channel,
+            )
 
         if event is ChannelEvents.DELETE:
             channel = await self.delete(payload['id'])
-            return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
+            return ChannelDeleteEvent(
+                shard=shard,
+                payload=payload,
+                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
+                channel=channel,
+            )
 
         if event is ChannelEvents.PINS_UPDATE:
             channel = await self.get(payload['channel_id'])
@@ -143,5 +160,9 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 timestamp = datetime.fromisoformat(timestamp)
 
             return ChannelPinsUpdateEvent(
-                shard=shard, payload=payload, channel=channel, timestamp=timestamp
+                shard=shard,
+                payload=payload,
+                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
+                channel=channel,
+                timestamp=timestamp,
             )

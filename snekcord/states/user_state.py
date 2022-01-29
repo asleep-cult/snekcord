@@ -1,49 +1,9 @@
-from .base_state import BaseCachedClientState
-from ..objects import (
-    ObjectWrapper,
-    User,
-)
-from ..rest.endpoints import (
-    GET_USER,
-)
+import typing
+
+from ..objects import SnowflakeWrapper, User
 from ..snowflake import Snowflake
 
-__all__ = ('UserState',)
+__all__ = ('SupportsUserID', 'UserIDWrapper')
 
-
-class UserState(BaseCachedClientState):
-    @classmethod
-    def unwrap_id(cls, object) -> Snowflake:
-        if isinstance(object, Snowflake):
-            return object
-
-        if isinstance(object, (int, str)):
-            return Snowflake(object)
-
-        if isinstance(object, User):
-            return object.id
-
-        if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
-                return object.id
-
-            raise TypeError('Expected ObjectWrapper created by UserState')
-
-        raise TypeError('Expected Snowflake, int, str, User or ObjectWrapper')
-
-    async def upsert(self, data):
-        user = self.get(data['id'])
-        if user is not None:
-            user.update(data)
-        else:
-            user = User.unmarshal(data, state=self)
-
-        return user
-
-    async def fetch(self, user):
-        user_id = self.unwrap_id(user)
-
-        data = await self.client.request(GET_USER, user_id=user_id)
-        assert isinstance(data, dict)
-
-        return await self.upsert(data)
+SupportsUserID = typing.Union[Snowflake, str, int, User]
+UserIDWrapper = SnowflakeWrapper[SupportsUserID, User]

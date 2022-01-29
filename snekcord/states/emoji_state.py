@@ -59,14 +59,22 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
             user=SnowflakeWrapper(cached.user_id, state=self.client.users),
         )
 
+    def view(
+        self, guild: SupportsGuildID, emojis: typing.Iterable[SupportsEmojiID]
+    ) -> GuildEmojisView:
+        guild_id = self.client.guilds.to_unique(guild)
+        emoji_ids = frozenset(self.client.emojis.to_unique(emoji) for emoji in emojis)
+
+        return GuildEmojisView(state=self, guild_id=guild_id, emoji_ids=emoji_ids)
+
 
 class GuildEmojisView(CachedStateView[SupportsEmojiID, Snowflake, CustomEmoji]):
     def __init__(
-        self, *, state: EmojiState, guild: SupportsGuildID, emojis: typing.Iterable[SupportsEmojiID]
+        self, *, state: EmojiState, guild_id: Snowflake, emojis: typing.FrozenSet[Snowflake]
     ) -> None:
         super().__init__(state=state)
-        self.guild_id = self.client.guilds.to_unique(guild)
-        self.emoji_ids = frozenset(self.client.emojis.to_unique(emoji) for emoji in emojis)
+        self.guild_id = guild_id
+        self.emoji_ids = emojis
 
     def _get_keys(self) -> typing.FrozenSet[Snowflake]:
         return self.emoji_ids
