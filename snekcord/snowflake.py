@@ -1,7 +1,7 @@
+import typing
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
 __all__ = ('Snowflake',)
@@ -21,11 +21,11 @@ class Snowflake(int):
     @classmethod
     def build(
         cls,
-        time: Optional[datetime] = None,
+        time: typing.Optional[datetime] = None,
         *,
         worker_id: int = 0,
         process_id: int = 0,
-        increment: int = 0
+        increment: int = 0,
     ) -> Self:
         if time is None:
             timestamp = datetime.now().timestamp()
