@@ -15,7 +15,9 @@ if typing.TYPE_CHECKING:
         ApplicationIDWrapper,
         ChannelIDWrapper,
         GuildIDWrapper,
+        MessageState,
         UserIDWrapper,
+        SupportsMessageID,
         WebhookIDWrapper,
     )
 
@@ -90,7 +92,9 @@ class MessageFlags(enum.IntFlag):
 
 
 @attr.s(kw_only=True)
-class Message(SnowflakeObject):
+class Message(SnowflakeObject[SupportsMessageID]):
+    state: MessageState
+
     channel: ChannelIDWrapper = attr.ib()
     guild: GuildIDWrapper = attr.ib()
     author: UserIDWrapper = attr.ib()

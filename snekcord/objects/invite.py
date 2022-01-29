@@ -11,6 +11,12 @@ from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
+if typing.TYPE_CHECKING:
+    from ..states import (
+        InviteState,
+        SupportsInviteCode,
+    )
+
 
 class CachedInvite(CachedModel):
     code: str
@@ -34,7 +40,9 @@ class InviteTargetType(enum.IntEnum):
 
 
 @attr.s(kw_only=True)
-class Invite(CodeObject):
+class Invite(CodeObject[SupportsInviteCode]):
+    state: InviteState
+
     guild_id: Snowflake = attr.ib()
     channel_id: Snowflake = attr.ib()
     inviter_id: Snowflake = attr.ib()

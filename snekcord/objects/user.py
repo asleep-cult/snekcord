@@ -7,6 +7,12 @@ from .base import SnowflakeObject
 from ..cache import CachedModel
 from ..undefined import MaybeUndefined
 
+if typing.TYPE_CHECKING:
+    from ..states import (
+        SupportsUserID,
+        UserState,
+    )
+
 __all__ = (
     'CachedUser',
     'UserFlags',
@@ -58,7 +64,9 @@ class PremiumType(enum.IntEnum):
 
 
 @attr.s(kw_only=True)
-class User(SnowflakeObject):
+class User(SnowflakeObject[SupportsUserID]):
+    state: UserState
+
     username: str = attr.ib()
     discriminator: str = attr.ib()
     avatar: typing.Optional[str] = attr.ib()

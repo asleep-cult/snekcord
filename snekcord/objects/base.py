@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import Generic, TYPE_CHECKING, TypeVar
+import typing
 
 import attr
 
 from ..exceptions import UnknownCodeError, UnknownSnowflakeError
 from ..snowflake import Snowflake
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
+    from typing_extensions import Self
+
     from ..clients import Client
     from ..states import CachedState
 
@@ -19,19 +21,19 @@ __all__ = (
     'CodeWrapper',
 )
 
-SupportsUniqueT = TypeVar('SupportsUniqueT')
-UniqueT = TypeVar('UniqueT')
-ObjectT = TypeVar('ObjectT')
+SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
+UniqueT = typing.TypeVar('UniqueT')
+ObjectT = typing.TypeVar('ObjectT')
 
 SnowflakeState = CachedState[SupportsUniqueT, Snowflake, ObjectT]
 CodeState = CachedState[SupportsUniqueT, str, ObjectT]
 
 
 @attr.s(kw_only=True)
-class BaseObject(Generic[SupportsUniqueT, UniqueT, ObjectT]):
+class BaseObject(typing.Generic[SupportsUniqueT, UniqueT]):
     """The base class for all Discord objects."""
 
-    state: CachedState[SupportsUniqueT, UniqueT, ObjectT] = attr.ib()
+    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.ib()
 
     @property
     def client(self) -> Client:
@@ -39,26 +41,26 @@ class BaseObject(Generic[SupportsUniqueT, UniqueT, ObjectT]):
 
 
 @attr.s(hash=True, kw_only=True)
-class SnowflakeObject(BaseObject[SupportsUniqueT, Snowflake, ObjectT]):
+class SnowflakeObject(BaseObject[SupportsUniqueT, Snowflake]):
     """The base class for all objects with an id."""
 
     id: Snowflake = attr.field(hash=True, repr=True)
 
 
 @attr.s(hash=True, kw_only=True)
-class CodeObject(BaseObject[SupportsUniqueT, str, ObjectT]):
+class CodeObject(BaseObject[SupportsUniqueT, str]):
     """The base class for all objects with a code."""
 
     code: str = attr.field(hash=True, repr=True)
 
 
-class SnowflakeWrapper(BaseObject[SupportsUniqueT, Snowflake, ObjectT]):
+class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a Snowflake allowing for retrieval of the underlying object."""
 
     def __init__(
         self, id: SupportsUniqueT, *, state: SnowflakeState[SupportsUniqueT, ObjectT]
     ) -> None:
-        super().__init__(state=state)
+        self.state = state
         self.id = self.state.to_unique(id) if id is not None else None
 
     async def unwrap(self) -> ObjectT:
@@ -89,13 +91,13 @@ class SnowflakeWrapper(BaseObject[SupportsUniqueT, Snowflake, ObjectT]):
         return object
 
 
-class CodeWrapper(BaseObject[SupportsUniqueT, str, ObjectT]):
+class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a code allowing for retrieval of the underlying object."""
 
     def __init__(
         self, code: SupportsUniqueT, *, state: CodeState[SupportsUniqueT, ObjectT]
     ) -> None:
-        super().__init__(state=state)
+        self.state = state
         self.code = self.state.to_unique(code) if code is not None else None
 
     async def unwrap(self) -> ObjectT:

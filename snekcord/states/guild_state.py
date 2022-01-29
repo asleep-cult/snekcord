@@ -128,10 +128,10 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             ),
             max_video_channel_users=undefined.nullify(cached.max_video_channel_users),
             nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
-            roles=self.client.roles.view(cached.channel_ids, guild_id),
-            emojis=self.client.emojis.view(cached.emoji_ids, guild_id),
-            members=self.client.members.view(cached.member_ids, guild_id),
-            channels=self.client.channels.view(cached.channel_ids, guild_id),
+            roles=self.client.create_guild_roles_view(cached.role_ids, guild_id),
+            emojis=self.client.create_guild_emojis_view(cached.emoji_ids, guild_id),
+            members=self.client.create_guild_members_view(cached.member_ids, guild_id),
+            channels=self.client.create_guild_channels_view(cached.channel_ids, guild_id),
         )
 
     def on_join(self) -> OnDecoratorT[GuildJoinEvent]:

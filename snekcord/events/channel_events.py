@@ -48,7 +48,8 @@ class ChannelDeleteEvent(BaseEvent):
     channel: typing.Optional[BaseChannel] = attr.ib()
 
 
+@attr.s(kw_only=True)
 class ChannelPinsUpdateEvent(BaseEvent):
     guild: GuildIDWrapper = attr.ib()
     channel: typing.Optional[BaseChannel] = attr.ib()
-    timestamp: datetime
+    timestamp: typing.Optional[datetime] = attr.ib()

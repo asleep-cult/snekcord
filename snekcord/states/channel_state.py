@@ -51,7 +51,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         raise TypeError('Expected Snowflake, str, int, or BaseChannel')
 
-    async def upsert(self, data) -> BaseChannel:
+    async def upsert(self, data: JSONObject) -> BaseChannel:
         channel_id = Snowflake(data['id'])
 
         async with self.synchronize(channel_id):
@@ -117,7 +117,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rate_limit_per_user=cached.rate_limit_per_user,
                 last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
                 last_pin_timestamp=last_pin_timestamp,
-                messages=self.client.messages.view(channel_id),
+                messages=self.client.create_channel_messages_view(channel_id),
             )
 
         if type is ChannelType.GUILD_VOICE:

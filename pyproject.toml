@@ -22,3 +22,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.blue]
 line-length = 100
+
+[tool.pyright]
+reportUnnecessaryIsInstance = false

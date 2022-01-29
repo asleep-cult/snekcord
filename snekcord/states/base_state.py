@@ -54,11 +54,11 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
     def get_intents(self) -> WebSocketIntents:
         raise NotImplementedError
 
-    def on(self, event: str) -> OnDecoratorT[BaseEvent]:
+    def on(self, event: str) -> OnDecoratorT[EventT]:
         if event not in self.get_events():
             raise TypeError(f'Invalid event: {event!r}')
 
-        def decorator(callback: OnCallbackT[BaseEvent]) -> OnCallbackT[BaseEvent]:
+        def decorator(callback: OnCallbackT[EventT]) -> OnCallbackT[EventT]:
             if not asyncio.iscoroutinefunction(callback):
                 raise TypeError('The callback should be a coroutine function')
 
@@ -140,22 +140,25 @@ class CachedEventState(  # type: ignore
 
 
 class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
-    def __init__(self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT]) -> None:
+    def __init__(
+        self,
+        *,
+        state: CachedState[SupportsUniqueT, UniqueT, ObjectT],
+        keys: typing.Iterable[SupportsUniqueT],
+    ) -> None:
         self.state = state
         self.client = self.state.client
-
-    def _get_keys(self) -> typing.FrozenSet[UniqueT]:
-        raise NotImplementedError
+        self.keys = frozenset(self.to_unique(key) for key in keys)
 
     def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
         return self.state.to_unique(object)
 
     def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
-        iterator = (await self.state.get(key) for key in self._get_keys())
+        iterator = (await self.state.get(key) for key in self.keys)
         return (object async for object in iterator if object is not None)
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         key = self.to_unique(object)
 
-        if key in self._get_keys():
+        if key in self.keys:
             return await self.state.get(key)

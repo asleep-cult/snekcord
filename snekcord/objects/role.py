@@ -6,6 +6,12 @@ from ..cache import CachedModel
 from ..objects import SnowflakeObject
 from ..undefined import MaybeUndefined
 
+if typing.TYPE_CHECKING:
+    from ..states import (
+        RoleState,
+        SupportsRoleID,
+    )
+
 
 class CachedRoleTags(typing.TypedDict, total=False):
     bot_id: str
@@ -27,7 +33,9 @@ class CachedRole(CachedModel):
 
 
 @attr.s(kw_only=True)
-class Role(SnowflakeObject):
+class Role(SnowflakeObject[SupportsRoleID]):
+    state: RoleState
+
     name: str = attr.ib()
     color: int = attr.ib()
     hoist: bool = attr.ib()

@@ -50,9 +50,11 @@ class GuildUpdateEvent(BaseEvent):
     guild: Guild = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildDeleteEvent(BaseEvent):
     guild: typing.Optional[Guild] = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildUnavailableEvent(BaseEvent):
     guild: typing.Optional[Guild] = attr.ib()

@@ -16,6 +16,8 @@ if typing.TYPE_CHECKING:
         GuildEmojisView,
         GuildMembersView,
         GuildRolesView,
+        GuildState,
+        SupportsGuildID,
         UserIDWrapper,
     )
     from ..undefined import MaybeUndefined
@@ -148,7 +150,9 @@ class GuildFeature(enum.Enum):
 
 
 @attr.s(kw_only=True)
-class PartialGuild(SnowflakeObject):
+class PartialGuild(SnowflakeObject[SupportsGuildID]):
+    state: GuildState
+
     name: str = attr.ib()
     icon: typing.Optional[str] = attr.ib()
 
@@ -180,7 +184,7 @@ class Guild(PartialGuild):
     # application: ApplicationIDWrapper = attr.ib()
     system_channel: ChannelIDWrapper = attr.ib()
     system_channel_flags: GuildSystemChannelFlags = attr.ib()
-    joined_at: datetime = attr.ib()
+    joined_at: typing.Optional[datetime] = attr.ib()
     max_presences: typing.Optional[int] = attr.ib()
     max_members: typing.Optional[int] = attr.ib()
     vanity_url_code: typing.Optional[str] = attr.ib()
