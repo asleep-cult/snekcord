@@ -1,68 +1,72 @@
-from .base_state import BaseCachedClientState
-from ..objects import (
-    CustomEmoji,
-    ObjectWrapper,
+from __future__ import annotations
+
+import typing
+
+from .base_state import (
+    CachedEventState,
+    CachedStateView,
 )
-from ..rest.endpoints import (
-    GET_GUILD_EMOJI,
-    GET_GUILD_EMOJIS,
+from ..objects import (
+    CachedCustomEmoji,
+    CustomEmoji,
+    SnowflakeWrapper,
 )
 from ..snowflake import Snowflake
 
-__all__ = ('EmojiState',)
+if typing.TYPE_CHECKING:
+    from .guild_state import SupportsGuildID
+    from ..json import JSONObject
+
+SupportsEmojiID = typing.Union[Snowflake, str, int, CustomEmoji]
+EmojiIDWrapper = SnowflakeWrapper[SupportsEmojiID, CustomEmoji]
 
 
-class EmojiState(BaseCachedClientState):
-    def __init__(self, *, client, guild) -> None:
-        super().__init__(client=client)
-        self.guild = guild
-
-    @classmethod
-    def unwrap_id(cls, object):
+class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji, CustomEmoji]):
+    def to_unique(self, object: SupportsEmojiID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
 
-        if isinstance(object, (str, int)):
+        elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, CustomEmoji):
+        elif isinstance(object, CustomEmoji):
             return object.id
 
-        if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
-                return object.id
+        raise TypeError('Expected Snowflake, str, int, or CustomEmoji')
 
-            raise TypeError('Expected ObjectWrapper created by EmojiState')
+    async def upsert(self, data: JSONObject) -> CustomEmoji:
+        emoji_id = Snowflake(data['id'])
+        emoji = await self.cache.get(emoji_id)
 
-        raise TypeError('Expected Snowflake, str, int. CustomEmoji or ObjectWrapper')
-
-    async def upsert(self, data):
-        emoji = self.get(data['id'])
-        if emoji is not None:
-            emoji.update(data)
+        if emoji is None:
+            emoji = CachedCustomEmoji.from_json(data)
+            await self.cache.create(emoji_id, emoji)
         else:
-            emoji = CustomEmoji.unmarshal(data, state=self)
+            emoji.update(data)
+            await self.cache.update(emoji_id, emoji)
 
-        user = data.get('user')
-        if user is not None:
-            await emoji.update_user(user)
+        return self.from_cached(emoji)
 
-        roles = data.get('roles')
-        if roles is not None:
-            await emoji.update_roles(roles)
+    def from_cached(self, cached: CachedCustomEmoji) -> CustomEmoji:
+        return CustomEmoji(
+            state=self,
+            id=Snowflake(cached.id),
+            name=cached.name,
+            require_colons=cached.require_colons,
+            managed=cached.managed,
+            animated=cached.animated,
+            available=cached.available,
+            user=SnowflakeWrapper(cached.user_id, state=self.client.users),
+        )
 
-        return emoji
 
-    async def fetch(self, emoji):
-        emoji_id = self.unwrap_id(emoji)
+class GuildEmojisView(CachedStateView[SupportsEmojiID, Snowflake, CustomEmoji]):
+    def __init__(
+        self, *, state: EmojiState, guild: SupportsGuildID, emojis: typing.Iterable[SupportsEmojiID]
+    ) -> None:
+        super().__init__(state=state)
+        self.guild_id = self.client.guilds.to_unique(guild)
+        self.emoji_ids = frozenset(self.client.emojis.to_unique(emoji) for emoji in emojis)
 
-        data = await self.client.request(GET_GUILD_EMOJI, guild_id=self.guild.id, emoji_id=emoji_id)
-        assert isinstance(data, dict)
-
-        return await self.upsert(data)
-
-    async def fetch_all(self):
-        data = await self.client.request(GET_GUILD_EMOJIS, guild_id=self.guild.id)
-        assert isinstance(data, list)
-
-        return [await self.upsert(emoji) for emoji in data]
+    def _get_keys(self) -> typing.FrozenSet[Snowflake]:
+        return self.emoji_ids

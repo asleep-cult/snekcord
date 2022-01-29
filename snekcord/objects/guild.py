@@ -12,12 +12,11 @@ from ..snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        ChannelStateView,
-        EmojiStateView,
-        MemberStateView,
-        RoleStateView,
+        GuildChannelsView,
+        GuildEmojisView,
+        GuildMembersView,
+        GuildRolesView,
     )
-
     from ..undefined import MaybeUndefined
 
 __all__ = (

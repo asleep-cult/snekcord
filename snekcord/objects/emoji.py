@@ -6,7 +6,7 @@ from .base import SnowflakeObject
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 
-__all__ = ('CustomEmoji',)
+__all__ = ('CachedCustomEmoji', 'CustomEmoji')
 
 
 class CachedCustomEmoji(CachedModel):

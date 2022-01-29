@@ -20,8 +20,8 @@ from ..objects import (
     CachedChannel,
     CategoryChannel,
     ChannelType,
-    TextChannel,
     SnowflakeWrapper,
+    TextChannel,
     VoiceChannel,
 )
 from ..snowflake import Snowflake
@@ -53,7 +53,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         if channel is None:
             channel = CachedChannel.from_json(data)
-            await self.cache.create(Snowflake(channel_id), channel)
+            await self.cache.create(channel_id, channel)
         else:
             channel.update(data)
             await self.cache.update(channel_id, channel)

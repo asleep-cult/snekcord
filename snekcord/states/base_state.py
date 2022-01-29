@@ -58,12 +58,12 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
         if event not in self.get_events():
             raise TypeError(f'Invalid event: {event!r}')
 
-        def decorator(func: OnCallbackT[BaseEvent]) -> OnCallbackT[BaseEvent]:
-            if not asyncio.iscoroutinefunction(func):
+        def decorator(callback: OnCallbackT[BaseEvent]) -> OnCallbackT[BaseEvent]:
+            if not asyncio.iscoroutinefunction(callback):
                 raise TypeError('The callback should be a coroutine function')
 
-            self._callbacks[event].append(func)
-            return func
+            self._callbacks[event].append(callback)
+            return callback
 
         return decorator
 
@@ -81,9 +81,6 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     client: Client
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
-        raise NotImplementedError
-
-    def __contains__(self, object: SupportsUniqueT) -> bool:
         raise NotImplementedError
 
     async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
@@ -126,3 +123,28 @@ class CachedEventState(
 
     def from_cached(self, cached: CachedObjectT) -> ObjectT:
         raise NotImplementedError
+
+
+class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
+    def __init__(self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT]) -> None:
+        self.state = state
+
+    @property
+    def client(self) -> Client:
+        return self.state.client
+
+    def _get_keys(self) -> typing.FrozenSet[UniqueT]:
+        raise NotImplementedError
+
+    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
+        return self.state.to_unique(object)
+
+    def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
+        iterator = (await self.state.get(key) for key in self._get_keys())
+        return (object async for object in iterator if object is not None)
+
+    async def get(self, object: SupportsUniqueT) -> ObjectT:
+        key = self.to_unique(object)
+
+        if key in self._get_keys():
+            return await self.state.get(key)
