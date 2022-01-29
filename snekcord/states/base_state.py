@@ -54,9 +54,6 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
     def get_intents(self) -> WebSocketIntents:
         raise NotImplementedError
 
-    def listen(self) -> None:
-        self.client.enable_events(self)
-
     def on(self, event: str) -> OnDecoratorT[BaseEvent]:
         if event not in self.get_events():
             raise TypeError(f'Invalid event: {event!r}')
@@ -83,13 +80,13 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
 class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     client: Client
 
-    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
+    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
         raise NotImplementedError
 
     def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         raise NotImplementedError
 
-    async def get(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
+    async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         raise NotImplementedError
 
 
@@ -108,7 +105,7 @@ class CachedEventState(  # type: ignore
     def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
         return DefaultCacheDriver()
 
-    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
+    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
         raise NotImplementedError
 
     def synchronize(self, object: SupportsUniqueT) -> asyncio.Lock:
@@ -124,17 +121,19 @@ class CachedEventState(  # type: ignore
         async for item in self.cache.iterate():
             yield self.from_cached(item)
 
-    async def get(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
-        object = await self.cache.get(self.to_unique(object))
+    async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        cached = await self.cache.get(self.to_unique(object))
 
-        if object is not None:
-            return self.from_cached(object)
+        if cached is not None:
+            return self.from_cached(cached)
 
-    async def delete(self, object: SupportsUniqueT) -> typing.Optional[ObjectT]:
-        object = await self.cache.delete(self.to_unique(object))
+    async def delete(
+        self, object: typing.Union[UniqueT, SupportsUniqueT]
+    ) -> typing.Optional[ObjectT]:
+        cached = await self.cache.delete(self.to_unique(object))
 
-        if object is not None:
-            return self.from_cached(object)
+        if cached is not None:
+            return self.from_cached(cached)
 
     def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError
@@ -143,22 +142,19 @@ class CachedEventState(  # type: ignore
 class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
     def __init__(self, *, state: CachedState[SupportsUniqueT, UniqueT, ObjectT]) -> None:
         self.state = state
-
-    @property
-    def client(self) -> Client:
-        return self.state.client
+        self.client = self.state.client
 
     def _get_keys(self) -> typing.FrozenSet[UniqueT]:
         raise NotImplementedError
 
-    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
+    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
         return self.state.to_unique(object)
 
     def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         iterator = (await self.state.get(key) for key in self._get_keys())
         return (object async for object in iterator if object is not None)
 
-    async def get(self, object: SupportsUniqueT) -> ObjectT:
+    async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         key = self.to_unique(object)
 
         if key in self._get_keys():
