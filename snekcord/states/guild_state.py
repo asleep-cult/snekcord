@@ -18,6 +18,7 @@ from ..events import (
     GuildUnavailableEvent,
     GuildUpdateEvent,
 )
+from ..json import JSONObject
 from ..objects import (
     CachedGuild,
     Guild,
@@ -37,7 +38,6 @@ from ..snowflake import Snowflake
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
-    from ..json import JSONObject
     from ..websockets import Shard
 
 SupportsGuildID = typing.Union[Snowflake, str, int, PartialGuild]
@@ -57,20 +57,46 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
+    async def add_objects(self, data: JSONObject, cached: CachedGuild) -> None:
+        roles = data.get('roles')
+        if roles is not None:
+            await cached.add_roles(self, roles)
+
+        emojis = data.get('emojis')
+        if emojis is not None:
+            await cached.add_emojis(self, emojis)
+
+        channels = data.get('channels')
+        if channels is not None:
+            await cached.add_channels(self, channels)
+
+        members = data.get('members')
+        if members is not None:
+            await cached.add_memebers(self, members)
+
     async def upsert(self, data: JSONObject) -> Guild:
         guild_id = Snowflake(data['id'])
 
         async with self.synchronize(guild_id):
-            guild = await self.cache.get(guild_id)
+            cached = await self.cache.get(guild_id)
 
-            if guild is None:
-                guild = CachedGuild.from_json(data)
-                await self.cache.create(guild_id, guild)
+            if cached is None:
+                data['role_ids'] = []
+                data['emoji_ids'] = []
+                data['channel_ids'] = []
+                data['member_ids'] = []
+
+                cached = CachedGuild.from_json(data)
+                await self.add_objects(data, cached)
+
+                await self.cache.create(guild_id, cached)
             else:
-                guild.update(data)
-                await self.cache.update(guild_id, guild)
+                cached.update(data)
+                await self.add_objects(data, cached)
 
-        return self.from_cached(guild)
+                await self.cache.update(guild_id, cached)
+
+        return self.from_cached(cached)
 
     async def upsert_rest(self, data: JSONObject) -> RESTGuild:
         guild = await self.upsert(data)

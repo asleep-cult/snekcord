@@ -21,13 +21,16 @@ class ModelField:
 
     def __get__(self, instance: typing.Optional[CachedModel], cls: type[CachedModel]) -> typing.Any:
         if instance is None:
-            return self
+            raise AttributeError(f'type object {cls.__name__!r} has no attribute {self.name!r}')
 
         if self.name not in instance.__model_data__:
             if not self.optional:
                 raise AttributeError(f'{cls.__name__!r} object has no attribute {self.name!r}')
 
         return instance.__model_data__.get(self.name, undefined)
+
+    def __set__(self, instance: CachedModel, value: typing.Any) -> None:
+        instance.__model_data__[self.name] = value
 
     def __repr__(self) -> str:
         return f'ModelField(name={self.name}, nullable={self.nullable}, optional={self.optional!r})'
