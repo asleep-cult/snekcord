@@ -112,7 +112,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             features=features,
             mfa_level=convert_enum(GuildMFALevel, cached.mfa_level),
             system_channel=SnowflakeWrapper(cached.system_channel_id, state=self.client.channels),
-            system_channel_flags=GuildSystemChannelFlags(cached.system_channel_id),
+            system_channel_flags=GuildSystemChannelFlags(cached.system_channel_flags),
             joined_at=joined_at,
             max_presences=undefined.nullify(cached.max_presences),
             max_members=undefined.nullify(cached.max_members),
