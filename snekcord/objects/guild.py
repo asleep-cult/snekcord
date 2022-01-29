@@ -11,7 +11,6 @@ from ..cache import CachedModel
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        ApplicationIDWrapper,
         ChannelIDWrapper,
         GuildChannelsView,
         GuildEmojisView,
@@ -151,12 +150,12 @@ class GuildFeature(enum.Enum):
 @attr.s(kw_only=True)
 class PartialGuild(SnowflakeObject):
     name: str = attr.ib()
-    icon: str = attr.ib()
+    icon: typing.Optional[str] = attr.ib()
 
 
 class GuildPreview(PartialGuild):
-    splash: str = attr.ib()
-    discovery_splash = attr.ib()
+    splash: typing.Optional[str] = attr.ib()
+    discovery_splash: typing.Optional[str] = attr.ib()
     features: typing.List[GuildFeature] = attr.ib()
     presence_count: int = attr.ib()
     member_count: int = attr.ib()
@@ -166,12 +165,12 @@ class GuildPreview(PartialGuild):
 
 @attr.s(kw_only=True)
 class Guild(PartialGuild):
-    splash: str = attr.ib()
-    discovery_splash: str = attr.ib()
+    splash: typing.Optional[str] = attr.ib()
+    discovery_splash: typing.Optional[str] = attr.ib()
     owner: UserIDWrapper = attr.ib()
     afk_channel: ChannelIDWrapper = attr.ib()
     afk_timeout: int = attr.ib()
-    widget_enabled: bool = attr.ib()
+    widget_enabled: typing.Optional[bool] = attr.ib()
     widget_channel: ChannelIDWrapper = attr.ib()
     verification_level: typing.Union[GuildVerificationLevel, int] = attr.ib()
     message_notifications_level: typing.Union[GuildMessageNotificationsLevel, int] = attr.ib()
@@ -182,16 +181,16 @@ class Guild(PartialGuild):
     system_channel: ChannelIDWrapper = attr.ib()
     system_channel_flags: GuildSystemChannelFlags = attr.ib()
     joined_at: datetime = attr.ib()
-    max_presences: int = attr.ib()
-    max_members: int = attr.ib()
-    vanity_url_code: str = attr.ib()
-    description: str = attr.ib()
-    banner: str = attr.ib()
+    max_presences: typing.Optional[int] = attr.ib()
+    max_members: typing.Optional[int] = attr.ib()
+    vanity_url_code: typing.Optional[str] = attr.ib()
+    description: typing.Optional[str] = attr.ib()
+    banner: typing.Optional[str] = attr.ib()
     premium_tier: typing.Union[GuildPremiumTier, int] = attr.ib()
-    premium_subscription_count: int = attr.ib()
+    premium_subscription_count: typing.Optional[int] = attr.ib()
     preferred_locale: str = attr.ib()
     public_updates_channel: ChannelIDWrapper = attr.ib()
-    max_video_channel_users: int = attr.ib()
+    max_video_channel_users: typing.Optional[int] = attr.ib()
     nsfw_level: typing.Union[GuildNSFWLevel, int] = attr.ib()
     roles: GuildRolesView = attr.ib()
     emojis: GuildEmojisView = attr.ib()
