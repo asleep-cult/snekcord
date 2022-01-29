@@ -12,11 +12,15 @@ from ..rest.endpoints import (
     DELETE_CHANNEL,
     TRIGGER_CHANNEL_TYPING,
 )
-from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
-    from ..states import ChannelMessageState
+    from ..states import (
+        ChannelMessagesView,
+        ChannelIDWrapper,
+        GuildIDWrapper,
+        MessageIDWrapper,
+    )
 
 __all__ = (
     'CachedChannel',
@@ -69,7 +73,7 @@ class ChannelType(enum.IntEnum):
 
 @attr.s(kw_only=True)
 class BaseChannel(SnowflakeObject):
-    type: ChannelType = attr.ib(hash=False, repr=True)
+    type: typing.Union[ChannelType, int] = attr.ib(hash=False, repr=True)
 
     def is_text(self) -> bool:
         return self.type is ChannelType.GUILD_TEXT
@@ -98,8 +102,8 @@ class BaseChannel(SnowflakeObject):
 
 @attr.s(kw_only=True)
 class GuildChannel(BaseChannel):
-    guild_id: Snowflake = attr.ib()
-    parent_id: Snowflake = attr.ib()
+    guild: GuildIDWrapper = attr.ib()
+    parent: ChannelIDWrapper = attr.ib()
     name: str = attr.ib()
     position: int = attr.ib()
     nsfw: bool = attr.ib()
@@ -111,13 +115,9 @@ class GuildChannel(BaseChannel):
 @attr.s(kw_only=True)
 class TextChannel(GuildChannel):
     rate_limit_per_user: int = attr.ib()
-    last_message_id: Snowflake = attr.ib()
-    default_auto_archive_duration: int = attr.ib()
+    last_message: MessageIDWrapper = attr.ib()
     last_pin_timestamp: typing.Optional[datetime] = attr.ib()
-    messages: ChannelMessageState = attr.ib(init=False)
-
-    def __attr_post_init__(self) -> None:
-        self.messages = self.client.create_message_state(channel=self)
+    messages: ChannelMessagesView = attr.ib()
 
     async def trigger_typing(self) -> None:
         await self.client.rest.request(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
@@ -127,7 +127,7 @@ class TextChannel(GuildChannel):
 class VoiceChannel(GuildChannel):
     bitrate: int = attr.ib()
     user_limit: int = attr.ib()
-    rtc_region: str = attr.ib()
+    rtc_region: typing.Optional[str] = attr.ib()
 
 
 class CategoryChannel(GuildChannel):

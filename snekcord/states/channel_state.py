@@ -7,6 +7,7 @@ from .base_state import (
     CachedEventState,
     OnDecoratorT,
 )
+from ..enum import convert_enum
 from ..events import (
     BaseEvent,
     ChannelCreateEvent,
@@ -25,6 +26,7 @@ from ..objects import (
     VoiceChannel,
 )
 from ..snowflake import Snowflake
+from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from ..json import JSONObject
@@ -65,43 +67,77 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         return self.from_cached(channel)
 
     def from_cached(self, cached: CachedChannel) -> BaseChannel:
-        type = ChannelType(cached.type)
+        channel_id = Snowflake(cached.id)
+        type = convert_enum(ChannelType, cached.type)
 
         if type is ChannelType.GUILD_CATEGORY:
+            assert (
+                cached.guild_id is not undefined
+                and cached.parent_id is not undefined
+                and cached.name is not undefined
+                and cached.position is not undefined
+                and cached.nsfw is not undefined
+            ), 'Invalid GUILD_CATEGORY channel'
+
             return CategoryChannel(
                 state=self,
-                id=Snowflake(cached.id),
+                id=channel_id,
                 type=type,
-                guild_id=Snowflake(cached.guild_id),
-                parent_id=Snowflake(cached.parent_id),
+                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw,
             )
 
         if type is ChannelType.GUILD_TEXT:
+            assert (
+                cached.guild_id is not undefined
+                and cached.parent_id is not undefined
+                and cached.name is not undefined
+                and cached.position is not undefined
+                and cached.nsfw is not undefined
+                and cached.rate_limit_per_user is not undefined
+                and cached.last_message_id is not undefined
+            ), 'Invalid GUILD_TEXT channel'
+
+            last_pin_timestamp = undefined.nullify(cached.last_pin_timestamp)
+            if last_pin_timestamp is not None:
+                last_pin_timestamp = datetime.fromisoformat(last_pin_timestamp)
+
             return TextChannel(
                 state=self,
-                id=Snowflake(cached.id),
+                id=channel_id,
                 type=type,
-                guild_id=Snowflake(cached.guild_id),
-                parent_id=Snowflake(cached.parent_id),
+                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw,
                 rate_limit_per_user=cached.rate_limit_per_user,
-                last_message_id=Snowflake(cached.last_message_id),
-                default_auto_archive_duration=cached.default_auto_archive_duration,
-                last_pin_timestamp=datetime.fromisoformat(cached.last_pin_timestamp),
+                last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
+                last_pin_timestamp=last_pin_timestamp,
+                messages=self.client.messages.view(channel_id),
             )
 
         if type is ChannelType.GUILD_VOICE:
+            assert (
+                cached.guild_id is not undefined
+                and cached.parent_id is not undefined
+                and cached.name is not undefined
+                and cached.position is not undefined
+                and cached.nsfw is not undefined
+                and cached.bitrate is not undefined
+                and cached.user_limit is not undefined
+                and cached.rtc_region is not undefined
+            ), 'Invalid GUILD_VOICE channel'
+
             return VoiceChannel(
                 state=self,
-                id=Snowflake(cached.id),
+                id=channel_id,
                 type=type,
-                guild_id=Snowflake(cached.guild_id),
-                parent_id=Snowflake(cached.parent_id),
+                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw,
@@ -110,7 +146,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rtc_region=cached.rtc_region,
             )
 
-        return BaseChannel(state=self, id=Snowflake(cached.id), type=type)
+        return BaseChannel(state=self, id=channel_id, type=type)
 
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
         return self.on(ChannelEvents.CREATE)
@@ -127,32 +163,19 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         event = ChannelEvents(event)
 
+        guild = SnowflakeWrapper(payload['guild_id'], state=self.client.guilds)
+
         if event is ChannelEvents.CREATE:
             channel = await self.upsert(payload)
-            return ChannelCreateEvent(
-                shard=shard,
-                payload=payload,
-                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
-                channel=channel,
-            )
+            return ChannelCreateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         if event is ChannelEvents.UPDATE:
             channel = await self.upsert(payload)
-            return ChannelUpdateEvent(
-                shard=shard,
-                payload=payload,
-                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
-                channel=channel,
-            )
+            return ChannelUpdateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         if event is ChannelEvents.DELETE:
             channel = await self.delete(payload['id'])
-            return ChannelDeleteEvent(
-                shard=shard,
-                payload=payload,
-                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
-                channel=channel,
-            )
+            return ChannelDeleteEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         if event is ChannelEvents.PINS_UPDATE:
             channel = await self.get(payload['channel_id'])
@@ -162,9 +185,5 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 timestamp = datetime.fromisoformat(timestamp)
 
             return ChannelPinsUpdateEvent(
-                shard=shard,
-                payload=payload,
-                guild=SnowflakeWrapper(payload['guild_id'], state=self.client.guilds),
-                channel=channel,
-                timestamp=timestamp,
+                shard=shard, payload=payload, guild=guild, channel=channel, timestamp=timestamp
             )
