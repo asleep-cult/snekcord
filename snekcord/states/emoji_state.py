@@ -17,6 +17,12 @@ if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
     from ..json import JSONObject
 
+__all__ = (
+    'SupportsEmojiID',
+    'EmojiIDWrapper',
+    'EmojiState',
+)
+
 SupportsEmojiID = typing.Union[Snowflake, str, int, CustomEmoji]
 EmojiIDWrapper = SnowflakeWrapper[SupportsEmojiID, CustomEmoji]
 
@@ -36,11 +42,10 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
 
     async def upsert(self, data: JSONObject) -> CustomEmoji:
         emoji_id = Snowflake(data['id'])
+        user = data['user']
 
-        user = data.get('user')
-        if user is not None:
-            data['user_id'] = user['id']
-            await self.client.users.upsert(user)
+        data['user_id'] = user['id']
+        await self.client.users.upsert(user)
 
         async with self.synchronize(emoji_id):
             emoji = await self.cache.get(emoji_id)

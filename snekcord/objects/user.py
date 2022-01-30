@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import typing
 
@@ -12,6 +14,8 @@ if typing.TYPE_CHECKING:
         SupportsUserID,
         UserState,
     )
+else:
+    SupportsUserID = typing.NewType('SupportsUserID', typing.Any)
 
 __all__ = (
     'CachedUser',

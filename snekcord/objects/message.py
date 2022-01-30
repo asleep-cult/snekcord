@@ -20,6 +20,8 @@ if typing.TYPE_CHECKING:
         SupportsMessageID,
         WebhookIDWrapper,
     )
+else:
+    SupportsMessageID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
     'CachedMessage',

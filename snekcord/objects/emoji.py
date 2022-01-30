@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 import attr
@@ -12,6 +14,8 @@ if typing.TYPE_CHECKING:
         SupportsEmojiID,
         UserIDWrapper,
     )
+else:
+    SupportsEmojiID = typing.NewType('SupportsEmojiID', typing.Any)
 
 __all__ = ('CachedCustomEmoji', 'CustomEmoji')
 

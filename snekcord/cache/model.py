@@ -14,10 +14,10 @@ __all__ = ('CachedModel',)
 
 
 class ModelField:
-    def __init__(self, name: str, type: typing.Any) -> None:
+    def __init__(self, name: str, annotation: typing.Any) -> None:
         self.name = name
-        self.nullable = type(None) in typing.get_args(type)
-        self.optional = UndefinedType in typing.get_args(type)
+        self.nullable = type(None) in typing.get_args(annotation)
+        self.optional = UndefinedType in typing.get_args(annotation)
 
     def __get__(self, instance: typing.Optional[CachedModel], cls: type[CachedModel]) -> typing.Any:
         if instance is None:
@@ -46,10 +46,10 @@ class CachedModel:
         cls.__model_fields__ = {}
 
         annotations = typing.get_type_hints(cls)
-        for name, type in annotations.items():
-            cls.__model_fields__[name] = ModelField(name, type)
-
-        cls.__dict__.update(cls.__model_fields__)
+        for name, annotation in annotations.items():
+            if not name.startswith('__') and not name.endswith('__'):
+                cls.__model_fields__[name] = ModelField(name, annotation)
+                setattr(cls, name, cls.__model_fields__[name])
 
     def __new__(cls, *args: typing.Any, **kwargs: typing.Any) -> Self:
         self = object.__new__(cls)

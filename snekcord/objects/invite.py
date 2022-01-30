@@ -16,6 +16,8 @@ if typing.TYPE_CHECKING:
         InviteState,
         SupportsInviteCode,
     )
+else:
+    SupportsInviteCode = typing.NewType('SupportsInviteCode', typing.Any)
 
 
 class CachedInvite(CachedModel):

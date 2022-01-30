@@ -40,6 +40,12 @@ from ..undefined import undefined
 if typing.TYPE_CHECKING:
     from ..websockets import Shard
 
+__all__ = (
+    'SupportsGuildID',
+    'GuildIDWrapper',
+    'GuildState',
+)
+
 SupportsGuildID = typing.Union[Snowflake, str, int, PartialGuild]
 GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
 
@@ -81,10 +87,14 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             cached = await self.cache.get(guild_id)
 
             if cached is None:
-                data['role_ids'] = []
-                data['emoji_ids'] = []
-                data['channel_ids'] = []
-                data['member_ids'] = []
+                data.update(
+                    {
+                        'role_ids': [],
+                        'emoji_ids': [],
+                        'channel_ids': [],
+                        'member_ids': [],
+                    }
+                )
 
                 cached = CachedGuild.from_json(data)
                 await self.add_objects(data, cached)

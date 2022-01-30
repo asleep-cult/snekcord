@@ -1,5 +1,7 @@
 import enum
 
+__all__ = ('WebSocketIntents',)
+
 
 class WebSocketIntents(enum.IntFlag):
     GUILDS = 1 << 0

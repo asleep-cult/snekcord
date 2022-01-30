@@ -8,6 +8,7 @@ import attr
 
 from .base import SnowflakeObject
 from ..cache import CachedModel
+from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
     from ..json import JSONObject
@@ -21,7 +22,8 @@ if typing.TYPE_CHECKING:
         SupportsGuildID,
         UserIDWrapper,
     )
-    from ..undefined import MaybeUndefined
+else:
+    SupportsGuildID = typing.NewType('SupportsChannelID', typing.NewType)
 
 __all__ = (
     'CachedGuild',
@@ -95,7 +97,7 @@ class CachedGuild(CachedModel):
 
         self.emoji_ids = emoji_ids
         for emoji in emojis:
-            await self.client.emojis.upsert(emoji)
+            await state.client.emojis.upsert(emoji)
 
     async def add_channels(self, state: GuildState, channels: typing.List[JSONObject]) -> None:
         channel_ids = [channel['id'] for channel in channels]

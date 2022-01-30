@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 import attr
@@ -11,6 +13,8 @@ if typing.TYPE_CHECKING:
         RoleState,
         SupportsRoleID,
     )
+else:
+    SupportsRoleID = typing.NewType('SupportsRoleID', typing.NewType)
 
 
 class CachedRoleTags(typing.TypedDict, total=False):

@@ -32,7 +32,11 @@ if typing.TYPE_CHECKING:
     from ..json import JSONObject
     from ..websockets import Shard
 
-__all__ = ('ChannelState', 'SupportsChannelID', 'ChannelIDWrapper')
+__all__ = (
+    'SupportsChannelID',
+    'ChannelIDWrapper',
+    'ChannelState',
+)
 
 SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel]
 ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]

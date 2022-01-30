@@ -23,6 +23,8 @@ if typing.TYPE_CHECKING:
         MessageIDWrapper,
         SupportsChannelID,
     )
+else:
+    SupportsChannelID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
     'CachedChannel',

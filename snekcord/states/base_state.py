@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
     from ..json import JSONObject
     from ..websockets import Shard
 else:
-    BaseEvenet = typing.NewType('BaseEvent', typing.Any)
+    BaseEvent = typing.NewType('BaseEvent', typing.Any)
     CachedModel = typing.NewType('CachedModel', typing.Any)
 
 __all__ = (

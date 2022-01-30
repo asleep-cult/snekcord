@@ -8,7 +8,11 @@ from ..objects import (
 )
 from ..snowflake import Snowflake
 
-__all__ = ('SupportsUserID', 'UserIDWrapper')
+__all__ = (
+    'SupportsUserID',
+    'UserIDWrapper',
+    'UserState',
+)
 
 SupportsUserID = typing.Union[Snowflake, str, int, User]
 UserIDWrapper = SnowflakeWrapper[SupportsUserID, User]
