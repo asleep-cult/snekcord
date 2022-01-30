@@ -56,8 +56,6 @@ class CachedGuild(CachedModel):
     verification_level: int
     default_message_notifications: int
     explicit_content_filter: int
-    role_ids: typing.List[str]
-    emoji_ids: typing.List[str]
     features: typing.List[str]
     mfa_level: int
     application_id: typing.Optional[str]
@@ -65,10 +63,6 @@ class CachedGuild(CachedModel):
     system_channel_flags: int
     rules_channel_id: typing.Optional[int]
     joined_at: MaybeUndefined[str]
-    voice_state_ids: typing.List[str]
-    member_ids: typing.List[str]
-    channel_ids: typing.List[str]
-    thread_ids: typing.List[str]
     max_presences: MaybeUndefined[int]
     max_members: MaybeUndefined[int]
     vanity_url_code: typing.Optional[str]

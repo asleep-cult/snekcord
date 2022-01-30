@@ -60,20 +60,7 @@ class CachedChannel(CachedModel):
     parent_id: MaybeUndefined[typing.Optional[str]]
     last_pin_timestamp: MaybeUndefined[typing.Optional[str]]
     rtc_region: MaybeUndefined[typing.Optional[str]]
-    viedo_quality_mode: MaybeUndefined[int]
-    message_ids: typing.List[str]
-
-    async def add_message(self, state: ChannelState, message: JSONObject) -> None:
-        self.message_ids.append(message['id'])
-        await state.client.messages.upsert(message)
-
-    async def add_multiple_messages(
-        self, state: ChannelState, messages: typing.List[JSONObject]
-    ) -> None:
-        self.message_ids.extend(message['id'] for message in messages)
-
-        for message in messages:
-            await state.client.messages.upsert(message)
+    video_quality_mode: MaybeUndefined[int]
 
 
 class ChannelType(enum.IntEnum):
