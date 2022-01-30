@@ -6,6 +6,7 @@ import attr
 
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
+from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
@@ -24,6 +25,7 @@ class CachedRoleTags(typing.TypedDict, total=False):
 
 
 class CachedRole(CachedModel):
+    id: Snowflake
     name: str
     color: int
     hoist: bool

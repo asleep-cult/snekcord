@@ -95,12 +95,12 @@ class CachedEventState(  # type: ignore
     EventState[SupportsUniqueT, UniqueT],
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
-    locks: weakref.WeakValueDictionary[UniqueT, asyncio.Lock]
+    locks: defaultdict[UniqueT, asyncio.Lock]
 
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
         self.cache = self.create_driver()
-        self.locks = weakref.WeakValueDictionary()
+        self.locks = defaultdict(asyncio.Lock, weakref.WeakValueDictionary())
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
         return DefaultCacheDriver()
@@ -109,23 +109,17 @@ class CachedEventState(  # type: ignore
         raise NotImplementedError
 
     def synchronize(self, object: SupportsUniqueT) -> asyncio.Lock:
-        key = self.to_unique(object)
-
-        lock = self.locks.get(key)
-        if lock is None:
-            lock = self.locks[key] = asyncio.Lock()
-
-        return lock
+        return self.locks[self.to_unique(object)]
 
     async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         async for item in self.cache.iterate():
-            yield self.from_cached(item)
+            yield await self.from_cached(item)
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         cached = await self.cache.get(self.to_unique(object))
 
         if cached is not None:
-            return self.from_cached(cached)
+            return await self.from_cached(cached)
 
     async def delete(
         self, object: typing.Union[UniqueT, SupportsUniqueT]
@@ -133,9 +127,9 @@ class CachedEventState(  # type: ignore
         cached = await self.cache.delete(self.to_unique(object))
 
         if cached is not None:
-            return self.from_cached(cached)
+            return await self.from_cached(cached)
 
-    def from_cached(self, cached: CachedModelT) -> ObjectT:
+    async def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError
 
 

@@ -62,17 +62,15 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             channel = await self.cache.get(channel_id)
 
             if channel is None:
-                data['message_ids'] = []
-
                 channel = CachedChannel.from_json(data)
                 await self.cache.create(channel_id, channel)
             else:
                 channel.update(data)
                 await self.cache.update(channel_id, channel)
 
-        return self.from_cached(channel)
+        return await self.from_cached(channel)
 
-    def from_cached(self, cached: CachedChannel) -> BaseChannel:
+    async def from_cached(self, cached: CachedChannel) -> BaseChannel:
         channel_id = Snowflake(cached.id)
         type = convert_enum(ChannelType, cached.type)
 

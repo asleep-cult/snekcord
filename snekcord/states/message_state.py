@@ -43,9 +43,11 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
     async def upsert(self, data: JSONObject) -> Message:
         message_id = Snowflake(data['id'])
-        author = data['author']
+        data['id'] = message_id
 
+        author = data['author']
         data['author_id'] = author['id']
+
         await self.client.users.upsert(author)
 
         async with self.synchronize(message_id):
@@ -58,9 +60,9 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
                 cached.update(data)
                 await self.cache.update(message_id, cached)
 
-        return self.from_cached(cached)
+        return await self.from_cached(cached)
 
-    def from_cached(self, cached: CachedMessage) -> Message:
+    async def from_cached(self, cached: CachedMessage) -> Message:
         emited_timestamp = cached.edited_timestamp
         if emited_timestamp is not None:
             emited_timestamp = datetime.fromisoformat(emited_timestamp)

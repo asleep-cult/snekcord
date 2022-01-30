@@ -40,6 +40,7 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
 
     async def upsert(self, data: JSONObject) -> User:
         user_id = Snowflake(data['id'])
+        data['id'] = user_id
 
         async with self.synchronize(user_id):
             cached = await self.cache.get(user_id)
@@ -51,9 +52,9 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
                 cached.update(data)
                 await self.cache.update(user_id, cached)
 
-        return self.from_cached(cached)
+        return await self.from_cached(cached)
 
-    def from_cached(self, cached: CachedUser) -> User:
+    async def from_cached(self, cached: CachedUser) -> User:
         flags = undefined.nullify(cached.flags)
         if flags is not None:
             flags = UserFlags(flags)

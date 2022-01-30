@@ -7,6 +7,10 @@ from .base_state import (
     CachedEventState,
     OnDecoratorT,
 )
+from ..cache import (
+    RefStore,
+    SnowflakeRefStore,
+)
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -38,6 +42,7 @@ from ..snowflake import Snowflake
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
+    from ..clients import Client
     from ..websockets import Shard
 
 __all__ = (
@@ -51,6 +56,25 @@ GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
 
 
 class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild]):
+    def __init__(self, *, client: Client) -> None:
+        super().__init__(client=client)
+        self.role_refstore = self.create_role_refstore()
+        self.emoji_refstore = self.create_emoji_refstore()
+        self.channel_refstore = self.create_channel_refstore()
+        self.member_refstore = self.create_member_refstore()
+
+    def create_role_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeRefStore()
+
+    def create_emoji_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeRefStore()
+
+    def create_channel_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeRefStore()
+
+    def create_member_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeRefStore()
+
     def to_unique(self, object: SupportsGuildID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
@@ -63,46 +87,21 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
-    async def add_objects(self, data: JSONObject, cached: CachedGuild) -> None:
-        roles = data.get('roles')
-        if roles is not None:
-            await cached.set_roles(self, roles)
-
-        emojis = data.get('emojis')
-        if emojis is not None:
-            await cached.set_emojis(self, emojis)
-
-        channels = data.get('channels')
-        if channels is not None:
-            await cached.set_channels(self, channels)
-
-        members = data.get('members')
-        if members is not None:
-            await cached.add_multiple_members(self, members)
-
     async def upsert(self, data: JSONObject) -> Guild:
         guild_id = Snowflake(data['id'])
+        data['id'] = guild_id
 
         async with self.synchronize(guild_id):
             cached = await self.cache.get(guild_id)
 
             if cached is None:
-                data['role_ids'] = []
-                data['emoji_ids'] = []
-                data['channel_ids'] = []
-                data['member_ids'] = []
-
                 cached = CachedGuild.from_json(data)
-                await self.add_objects(data, cached)
-
                 await self.cache.create(guild_id, cached)
             else:
                 cached.update(data)
-                await self.add_objects(data, cached)
-
                 await self.cache.update(guild_id, cached)
 
-        return self.from_cached(cached)
+        return await self.from_cached(cached)
 
     async def upsert_rest(self, data: JSONObject) -> RESTGuild:
         guild = await self.upsert(data)
@@ -113,9 +112,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             member_count=data.get('approximate_member_count'),
         )
 
-    def from_cached(self, cached: CachedGuild) -> Guild:
-        guild_id = Snowflake(cached.id)
-
+    async def from_cached(self, cached: CachedGuild) -> Guild:
         widget_channel_id = undefined.nullify(cached.widget_channel_id)
         features = [convert_enum(GuildFeature, feature) for feature in cached.features]
 
@@ -123,9 +120,14 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         if joined_at is not None:
             joined_at = datetime.fromisoformat(joined_at)
 
+        role_ids = await self.role_refstore.get(cached.id)
+        emoji_ids = await self.emoji_refstore.get(cached.id)
+        member_ids = await self.member_refstore.get(cached.id)
+        channel_ids = await self.channel_refstore.get(cached.id)
+
         return Guild(
             state=self,
-            id=guild_id,
+            id=cached.id,
             name=cached.name,
             icon=cached.icon,
             splash=cached.splash,
@@ -160,10 +162,10 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             ),
             max_video_channel_users=undefined.nullify(cached.max_video_channel_users),
             nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
-            roles=self.client.create_guild_roles_view(cached.role_ids, guild_id),
-            emojis=self.client.create_guild_emojis_view(cached.emoji_ids, guild_id),
-            members=self.client.create_guild_members_view(cached.member_ids, guild_id),
-            channels=self.client.create_guild_channels_view(cached.channel_ids, guild_id),
+            roles=self.client.create_guild_roles_view(role_ids, cached.id),
+            emojis=self.client.create_guild_emojis_view(emoji_ids, cached.id),
+            members=self.client.create_guild_members_view(member_ids, cached.id),
+            channels=self.client.create_guild_channels_view(channel_ids, cached.id),
         )
 
     def on_join(self) -> OnDecoratorT[GuildJoinEvent]:
@@ -191,14 +193,14 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             guild = await self.upsert(payload)
             return GuildJoinEvent(shard=shard, payload=payload, guild=guild)
 
-        if event is GuildEvents.AVAILABLE:
+        elif event is GuildEvents.AVAILABLE:
             guild = await self.upsert(payload)
             return GuildAvailableEvent(shard=shard, payload=payload, guild=guild)
 
-        if event is GuildEvents.RECEIVE:
+        elif event is GuildEvents.RECEIVE:
             guild = await self.upsert(payload)
             return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
 
-        if event is GuildEvents.DELETE:
+        elif event is GuildEvents.DELETE:
             guild = await self.delete(payload['id'])
             return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)

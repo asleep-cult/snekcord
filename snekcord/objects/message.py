@@ -8,6 +8,7 @@ import attr
 
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
+from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
@@ -32,7 +33,7 @@ __all__ = (
 
 
 class CachedMessage(CachedModel):
-    id: str
+    id: Snowflake
     channel_id: str
     guild_id: MaybeUndefined[str]
     author_id: MaybeUndefined[str]

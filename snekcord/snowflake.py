@@ -6,7 +6,9 @@ from datetime import datetime
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-__all__ = ('Snowflake',)
+__all__ = ('Snowflake', 'SnowflakeIterator')
+
+T = typing.TypeVar('T')
 
 _SNOWFLAKE_EPOCH = 1420070400000
 
@@ -61,3 +63,11 @@ class Snowflake(int):
 
     def to_datetime(self) -> datetime:
         return datetime.fromtimestamp(self.timestamp)
+
+
+class SnowflakeIterator:
+    def __init__(self, iterable: typing.Iterable[typing.SupportsInt]) -> None:
+        self.iterable = iterable
+
+    def __iter__(self) -> typing.Iterator[Snowflake]:
+        return map(Snowflake, self.iterable)

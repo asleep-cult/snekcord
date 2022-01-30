@@ -8,10 +8,10 @@ import attr
 
 from .base import SnowflakeObject
 from ..cache import CachedModel
+from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
-    from ..json import JSONObject
     from ..states import (
         ChannelIDWrapper,
         GuildChannelsView,
@@ -43,7 +43,7 @@ __all__ = (
 
 
 class CachedGuild(CachedModel):
-    id: str
+    id: Snowflake
     name: str
     icon: typing.Optional[str]
     splash: typing.Optional[str]
@@ -80,46 +80,6 @@ class CachedGuild(CachedModel):
     public_updates_channel_id: typing.Optional[str]
     max_video_channel_users: MaybeUndefined[int]
     nsfw_level: int
-
-    async def set_roles(self, state: GuildState, roles: typing.List[JSONObject]) -> None:
-        role_ids = [role['id'] for role in roles]
-        for role_id in set(self.role_ids) - set(role_ids):
-            await state.client.roles.delete(role_id)
-
-        self.role_ids = role_ids
-        for role in roles:
-            await state.client.roles.upsert(role)
-
-    async def set_emojis(self, state: GuildState, emojis: typing.List[JSONObject]) -> None:
-        emoji_ids = [emoji['id'] for emoji in emojis]
-        for emoji_id in set(self.emoji_ids) - set(emoji_ids):
-            await state.client.emojis.delete(emoji_id)
-
-        self.emoji_ids = emoji_ids
-        for emoji in emojis:
-            await state.client.emojis.upsert(emoji)
-
-    async def set_channels(self, state: GuildState, channels: typing.List[JSONObject]) -> None:
-        channel_ids = [channel['id'] for channel in channels]
-        for channel_id in set(self.channel_ids) - set(channel_ids):
-            await state.client.channels.delete(channel_id)
-
-        self.channel_ids = channel_ids
-        for channel in channels:
-            channel['guild_id'] = self.id
-            await state.client.channels.upsert(channel)
-
-    async def add_member(self, state: GuildState, member: JSONObject) -> None:
-        self.member_ids.append(member['id'])
-        await state.client.members.upsert(member)
-
-    async def add_multiple_members(
-        self, state: GuildState, members: typing.List[JSONObject]
-    ) -> None:
-        self.member_ids.extend(member['id'] for member in members)
-
-        for member in members:
-            await state.client.members.upsert(member)
 
 
 class GuildMessageNotificationsLevel(enum.IntEnum):

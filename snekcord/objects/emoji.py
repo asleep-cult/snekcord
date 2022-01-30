@@ -6,6 +6,7 @@ import attr
 
 from .base import SnowflakeObject
 from ..cache import CachedModel
+from ..snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
     from ..states import (
@@ -21,7 +22,7 @@ __all__ = ('CachedCustomEmoji', 'CustomEmoji')
 
 
 class CachedCustomEmoji(CachedModel):
-    id: str
+    id: Snowflake
     name: str
     require_colons: bool
     managed: bool

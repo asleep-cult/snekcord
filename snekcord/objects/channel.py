@@ -12,6 +12,7 @@ from ..rest.endpoints import (
     DELETE_CHANNEL,
     TRIGGER_CHANNEL_TYPING,
 )
+from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
@@ -40,7 +41,7 @@ __all__ = (
 
 
 class CachedChannel(CachedModel):
-    id: str
+    id: Snowflake
     type: int
     guild_id: MaybeUndefined[str]
     position: MaybeUndefined[int]

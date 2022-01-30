@@ -7,6 +7,7 @@ import attr
 
 from .base import SnowflakeObject
 from ..cache import CachedModel
+from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
@@ -26,7 +27,7 @@ __all__ = (
 
 
 class CachedUser(CachedModel):
-    id: str
+    id: Snowflake
     username: str
     discriminator: str
     avatar: typing.Optional[str]
