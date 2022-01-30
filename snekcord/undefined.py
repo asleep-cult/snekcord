@@ -14,6 +14,9 @@ class UndefinedType(enum.Enum):
     def nullify(self, value: MaybeUndefined[T]) -> typing.Optional[T]:
         return value if value is not undefined else None
 
+    def __bool__(self) -> typing.Literal[False]:
+        return False
+
 
 undefined = UndefinedType.undefined
 MaybeUndefined = typing.Union[typing.Literal[undefined], T]

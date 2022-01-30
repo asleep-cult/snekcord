@@ -5,6 +5,7 @@ from datetime import datetime
 
 from .base_state import (
     CachedEventState,
+    CachedStateView,
     OnDecoratorT,
 )
 from ..cache import (
@@ -33,6 +34,7 @@ from ..snowflake import Snowflake
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
+    from .guild_state import SupportsGuildID
     from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
@@ -41,6 +43,7 @@ __all__ = (
     'SupportsChannelID',
     'ChannelIDWrapper',
     'ChannelState',
+    'GuildChannelsView',
 )
 
 SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel]
@@ -68,7 +71,12 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         raise TypeError('Expected Snowflake, str, int, or BaseChannel')
 
     async def upsert(self, data: JSONObject) -> BaseChannel:
-        channel_id = Snowflake(data['id'])
+        channel_id = Snowflake.into(data, 'id')
+        assert channel_id is not None
+
+        guild_id = Snowflake.into(data, 'guild_id')
+        if guild_id is not None:
+            await self.client.guilds.channel_refstore.add(guild_id, channel_id)
 
         async with self.synchronize(channel_id):
             channel = await self.cache.get(channel_id)
@@ -94,7 +102,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 and cached.parent_id is not undefined
                 and cached.name is not undefined
                 and cached.position is not undefined
-                and cached.nsfw is not undefined
             ), 'Invalid GUILD_CATEGORY channel'
 
             return CategoryChannel(
@@ -105,7 +112,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
-                nsfw=cached.nsfw,
+                nsfw=undefined.nullify(cached.nsfw),
             )
 
         if type is ChannelType.GUILD_TEXT:
@@ -114,7 +121,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 and cached.parent_id is not undefined
                 and cached.name is not undefined
                 and cached.position is not undefined
-                and cached.nsfw is not undefined
                 and cached.rate_limit_per_user is not undefined
                 and cached.last_message_id is not undefined
             ), 'Invalid GUILD_TEXT channel'
@@ -131,7 +137,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
-                nsfw=cached.nsfw,
+                nsfw=cached.nsfw if cached.nsfw is not undefined else False,
                 rate_limit_per_user=cached.rate_limit_per_user,
                 last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
                 last_pin_timestamp=last_pin_timestamp,
@@ -144,7 +150,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 and cached.parent_id is not undefined
                 and cached.name is not undefined
                 and cached.position is not undefined
-                and cached.nsfw is not undefined
                 and cached.bitrate is not undefined
                 and cached.user_limit is not undefined
                 and cached.rtc_region is not undefined
@@ -158,13 +163,17 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
-                nsfw=cached.nsfw,
+                nsfw=cached.nsfw if cached.nsfw is not undefined else False,
                 bitrate=cached.bitrate,
                 user_limit=cached.user_limit,
                 rtc_region=cached.rtc_region,
             )
 
         return BaseChannel(state=self, id=channel_id, type=type)
+
+    async def remove_refs(self, object: CachedChannel) -> None:
+        if object.guild_id is not undefined:
+            await self.client.guilds.channel_refstore.remove(object.guild_id, object.id)
 
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
         return self.on(ChannelEvents.CREATE)
@@ -187,15 +196,15 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             channel = await self.upsert(payload)
             return ChannelCreateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
-        if event is ChannelEvents.UPDATE:
+        elif event is ChannelEvents.UPDATE:
             channel = await self.upsert(payload)
             return ChannelUpdateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
-        if event is ChannelEvents.DELETE:
+        elif event is ChannelEvents.DELETE:
             channel = await self.delete(payload['id'])
             return ChannelDeleteEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
-        if event is ChannelEvents.PINS_UPDATE:
+        elif event is ChannelEvents.PINS_UPDATE:
             channel = await self.get(payload['channel_id'])
 
             timestamp = payload.get('timestamp')
@@ -205,3 +214,15 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             return ChannelPinsUpdateEvent(
                 shard=shard, payload=payload, guild=guild, channel=channel, timestamp=timestamp
             )
+
+
+class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChannel]):
+    def __init__(
+        self,
+        *,
+        state: ChannelState,
+        channels: typing.Iterable[SupportsChannelID],
+        guild: SupportsGuildID,
+    ) -> None:
+        super().__init__(state=state, keys=channels)
+        self.guild_id = self.client.guilds.to_unique(guild)

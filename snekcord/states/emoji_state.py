@@ -12,6 +12,7 @@ from ..objects import (
     SnowflakeWrapper,
 )
 from ..snowflake import Snowflake
+from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
@@ -42,13 +43,17 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         raise TypeError('Expected Snowflake, str, int, or CustomEmoji')
 
     async def upsert(self, data: JSONObject) -> CustomEmoji:
-        emoji_id = Snowflake(data['id'])
-        data['id'] = emoji_id
+        emoji_id = Snowflake.into(data, 'id')
+        assert emoji_id is not None
 
-        user = data['user']
-        data['user_id'] = Snowflake(user['id'])
+        guild_id = Snowflake.into(data, 'guild_id')
+        if guild_id is not None:
+            await self.client.guilds.emoji_refstore.add(guild_id, emoji_id)
 
-        await self.client.users.upsert(user)
+        user = data.get('user')
+        if user is not None:
+            data['user_id'] = Snowflake(user['id'])
+            await self.client.users.upsert(user)
 
         async with self.synchronize(emoji_id):
             emoji = await self.cache.get(emoji_id)
@@ -63,17 +68,24 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         return await self.from_cached(emoji)
 
     async def from_cached(self, cached: CachedCustomEmoji) -> CustomEmoji:
+        user_id = undefined.nullify(cached.user_id)
+
         return CustomEmoji(
             state=self,
             id=Snowflake(cached.id),
+            guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
             name=cached.name,
             require_colons=cached.require_colons,
             managed=cached.managed,
             animated=cached.animated,
             available=cached.available,
-            user=SnowflakeWrapper(cached.user_id, state=self.client.users),
-            roles=self.client.create_emoji_roles_view(cached.role_ids),
+            user=SnowflakeWrapper(user_id, state=self.client.users),
+            # roles=self.client.create_emoji_roles_view(cached.role_ids),
         )
+
+    async def remove_refs(self, object: CachedCustomEmoji) -> None:
+        if object.guild_id is not None:
+            await self.client.guilds.emoji_refstore.remove(object.guild_id, object.id)
 
 
 class GuildEmojisView(CachedStateView[SupportsEmojiID, Snowflake, CustomEmoji]):

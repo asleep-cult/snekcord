@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import array
 import contextlib
-import functools
 import typing
 from collections import defaultdict
 
@@ -52,7 +53,7 @@ class SnowflakeRefStore(RefStore[UniqueT, Snowflake]):
     refs: defaultdict[UniqueT, array.array[int]]
 
     def __init__(self) -> None:
-        self.refs = defaultdict(functools.partial(array.array[int], 'Q'))
+        self.refs = defaultdict(lambda: array.array('Q'))
 
     async def get(self, key: UniqueT) -> typing.Iterable[Snowflake]:
         return SnowflakeIterator(self.refs[key])

@@ -8,7 +8,9 @@ from ..states import (
     ChannelMessagesView,
     ChannelState,
     EmojiState,
+    GuildChannelsView,
     GuildEmojisView,
+    GuildRolesView,
     GuildState,
     InviteState,
     MessageState,
@@ -17,6 +19,7 @@ from ..states import (
     SupportsEmojiID,
     SupportsGuildID,
     SupportsMessageID,
+    SupportsRoleID,
     UserState,
 )
 
@@ -66,7 +69,17 @@ class Client:
     ) -> ChannelMessagesView:
         return ChannelMessagesView(state=self.messages, messages=messages, channel=channel)
 
+    def create_guild_channels_view(
+        self, channels: typing.Iterable[SupportsChannelID], guild: SupportsGuildID
+    ) -> GuildChannelsView:
+        return GuildChannelsView(state=self.channels, channels=channels, guild=guild)
+
     def create_guild_emojis_view(
         self, emojis: typing.Iterable[SupportsEmojiID], guild: SupportsGuildID
     ) -> GuildEmojisView:
         return GuildEmojisView(state=self.emojis, emojis=emojis, guild=guild)
+
+    def create_guild_roles_view(
+        self, roles: typing.Iterable[SupportsRoleID], guild: SupportsGuildID
+    ) -> GuildRolesView:
+        return GuildRolesView(state=self.roles, roles=roles, guild=guild)

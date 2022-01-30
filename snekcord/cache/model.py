@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 from ..exceptions import IncompleteDataError
-from ..undefined import UndefinedType, undefined
+from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
@@ -17,7 +17,7 @@ class ModelField:
     def __init__(self, name: str, annotation: typing.Any) -> None:
         self.name = name
         self.nullable = type(None) in typing.get_args(annotation)
-        self.optional = UndefinedType in typing.get_args(annotation)
+        self.optional = typing.Literal[undefined] in typing.get_args(annotation)
 
     def __get__(self, instance: typing.Optional[CachedModel], cls: type[CachedModel]) -> typing.Any:
         if instance is None:
@@ -69,6 +69,7 @@ class CachedModel:
                     self.__model_data__[name] = None
 
                 elif not partial and not field.optional:
+                    print(f'Field {name} is missing {field.optional}')
                     raise IncompleteDataError(self)
 
     def to_json(self) -> JSONObject:

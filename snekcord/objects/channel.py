@@ -16,7 +16,6 @@ from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
-    from ..json import JSONObject
     from ..states import (
         ChannelMessagesView,
         ChannelState,
@@ -43,7 +42,7 @@ __all__ = (
 class CachedChannel(CachedModel):
     id: Snowflake
     type: int
-    guild_id: MaybeUndefined[str]
+    guild_id: MaybeUndefined[Snowflake]
     position: MaybeUndefined[int]
     # permission_overwrites: MaybeUndefined[typing.List]
     name: MaybeUndefined[str]
@@ -114,7 +113,7 @@ class GuildChannel(BaseChannel):
     parent: ChannelIDWrapper = attr.ib()
     name: str = attr.ib()
     position: int = attr.ib()
-    nsfw: bool = attr.ib()
+    nsfw: typing.Optional[bool] = attr.ib()
 
     async def delete(self) -> None:
         await self.client.rest.request(DELETE_CHANNEL, channel_id=self.id)

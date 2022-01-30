@@ -12,6 +12,7 @@ from ..undefined import MaybeUndefined
 if typing.TYPE_CHECKING:
     from ..states import (
         RoleState,
+        GuildIDWrapper,
         SupportsRoleID,
     )
 else:
@@ -26,6 +27,7 @@ class CachedRoleTags(typing.TypedDict, total=False):
 
 class CachedRole(CachedModel):
     id: Snowflake
+    guild_id: typing.Optional[Snowflake]
     name: str
     color: int
     hoist: bool
@@ -35,13 +37,14 @@ class CachedRole(CachedModel):
     permissions: str
     managed: bool
     mentionable: bool
-    tags: CachedRoleTags
+    tags: MaybeUndefined[CachedRoleTags]
 
 
 @attr.s(kw_only=True)
 class Role(SnowflakeObject[SupportsRoleID]):
     state: RoleState
 
+    guild: GuildIDWrapper = attr.ib()
     name: str = attr.ib()
     color: int = attr.ib()
     hoist: bool = attr.ib()

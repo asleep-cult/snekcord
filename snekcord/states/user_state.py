@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 from .base_state import CachedEventState
@@ -39,8 +41,8 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
         raise TypeError('Expectes, Snowflake, str, int, or User')
 
     async def upsert(self, data: JSONObject) -> User:
-        user_id = Snowflake(data['id'])
-        data['id'] = user_id
+        user_id = Snowflake.into(data, 'id')
+        assert user_id is not None
 
         async with self.synchronize(user_id):
             cached = await self.cache.get(user_id)

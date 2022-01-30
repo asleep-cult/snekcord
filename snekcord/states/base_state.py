@@ -55,8 +55,8 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
         raise NotImplementedError
 
     def on(self, event: str) -> OnDecoratorT[EventT]:
-        if event not in self.get_events():
-            raise TypeError(f'Invalid event: {event!r}')
+        # if event not in self.get_events():
+        #    raise TypeError(f'Invalid event: {event!r}')
 
         def decorator(callback: OnCallbackT[EventT]) -> OnCallbackT[EventT]:
             if not asyncio.iscoroutinefunction(callback):
@@ -117,7 +117,6 @@ class CachedEventState(  # type: ignore
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         cached = await self.cache.get(self.to_unique(object))
-
         if cached is not None:
             return await self.from_cached(cached)
 
@@ -127,7 +126,11 @@ class CachedEventState(  # type: ignore
         cached = await self.cache.delete(self.to_unique(object))
 
         if cached is not None:
+            await self.remove_refs(cached)
             return await self.from_cached(cached)
+
+    async def remove_refs(self, object: CachedModelT) -> None:
+        return None
 
     async def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError
@@ -153,6 +156,5 @@ class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         key = self.to_unique(object)
-
         if key in self.keys:
             return await self.state.get(key)

@@ -10,7 +10,6 @@ from ..rest.endpoints import (
     GET_GATEWAY,
     GET_GATEWAY_BOT,
 )
-from ..states import BaseClientState
 from ..websockets.shard_websocket import (
     Shard,
     ShardCancellationToken,
@@ -42,7 +41,7 @@ class WebSocketClient(Client):
         self._shards = {}
         self._events = {}
 
-    def enable_events(self, state: BaseClientState, *, implicit: bool = False) -> None:
+    def enable_events(self, state, *, implicit: bool = False) -> None:
         intents = state.get_intents()
 
         if not implicit or self.intents & intents:
@@ -51,7 +50,7 @@ class WebSocketClient(Client):
             for event in state.get_events():
                 self._events[event] = state
 
-    def get_state_for(self, event: str) -> Optional[BaseClientState]:
+    def get_state_for(self, event: str):
         return self._events.get(event)
 
     def get_shard(self, shard_id: int) -> Shard:
@@ -72,16 +71,6 @@ class WebSocketClient(Client):
         return await self.rest.request(endpoint)
 
     async def connect(self) -> None:
-        for state in (
-            self.channels,
-            self.guilds,
-            self.invites,
-            self.messages,
-            self.roles,
-            # self.users,
-        ):
-            self.enable_events(state, implicit=True)
-
         if self.loop is None:
             self.loop = asyncio.get_running_loop()
 

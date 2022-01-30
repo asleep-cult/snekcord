@@ -1,8 +1,22 @@
+from __future__ import annotations
+
 import typing
 from datetime import datetime
 
-from .base_state import CachedEventState, CachedStateView
+from .base_state import (
+    CachedEventState,
+    CachedStateView,
+    OnDecoratorT,
+)
 from ..enum import convert_enum
+from ..events import (
+    BaseEvent,
+    MessageBulkDeleteEvent,
+    MessageCreateEvent,
+    MessageDeleteEvent,
+    MessageEvents,
+    MessageUpdateEvent,
+)
 from ..objects import (
     CachedMessage,
     Message,
@@ -10,12 +24,16 @@ from ..objects import (
     MessageType,
     SnowflakeWrapper,
 )
+from ..rest.endpoints import (
+    CREATE_CHANNEL_MESSAGE,
+)
 from ..snowflake import Snowflake
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from .channel_state import SupportsChannelID
     from ..json import JSONObject
+    from ..websockets import Shard
 
 __all__ = (
     'SupportsMessageID',
@@ -42,13 +60,17 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         raise TypeError('Expected Snowflake, str, int, or Message')
 
     async def upsert(self, data: JSONObject) -> Message:
-        message_id = Snowflake(data['id'])
-        data['id'] = message_id
+        message_id = Snowflake.into(data, 'id')
+        assert message_id is not None
 
-        author = data['author']
-        data['author_id'] = author['id']
+        channel_id = Snowflake.into(data, 'channel_id')
+        if channel_id is not None:
+            await self.client.channels.message_refstore.add(channel_id, message_id)
 
-        await self.client.users.upsert(author)
+        author = data.get('author')
+        if author is not None:
+            data['author_id'] = Snowflake(author['id'])
+            await self.client.users.upsert(author)
 
         async with self.synchronize(message_id):
             cached = await self.cache.get(message_id)
@@ -86,6 +108,59 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             flags=MessageFlags(cached.flags),
         )
 
+    async def remove_refs(self, object: CachedMessage) -> None:
+        if object.channel_id is not None:
+            await self.client.channels.message_refstore.remove(object.channel_id, object.id)
+
+    def on_create(self) -> OnDecoratorT[MessageCreateEvent]:
+        return self.on(MessageEvents.CREATE)
+
+    def on_update(self) -> OnDecoratorT[MessageUpdateEvent]:
+        return self.on(MessageEvents.UPDATE)
+
+    def on_delete(self) -> OnDecoratorT[MessageDeleteEvent]:
+        return self.on(MessageEvents.DELETE)
+
+    def on_bulk_delete(self) -> OnDecoratorT[MessageBulkDeleteEvent]:
+        return self.on(MessageEvents.BULK_DELETE)
+
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
+        event = MessageEvents(event)
+
+        guild = SnowflakeWrapper(payload.get('guild_id'), state=self.client.guilds)
+        channel = SnowflakeWrapper(payload.get('channel_id'), state=self.client.channels)
+
+        if event is MessageEvents.CREATE:
+            message = await self.upsert(payload)
+            return MessageCreateEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, message=message
+            )
+
+        elif event is MessageEvents.UPDATE:
+            message = await self.upsert(payload)
+            return MessageUpdateEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, message=message
+            )
+
+        elif event is MessageEvents.DELETE:
+            message = await self.delete(payload['id'])
+            return MessageDeleteEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, message=message
+            )
+
+        elif event is MessageEvents.BULK_DELETE:
+            messages: typing.List[Message] = []
+
+            for message_id in payload['ids']:
+                message = await self.delete(message_id)
+
+                if message is not None:
+                    messages.append(message)
+
+            return MessageBulkDeleteEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, messages=messages
+            )
+
 
 class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]):
     def __init__(
@@ -97,3 +172,8 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     ) -> None:
         super().__init__(state=state, keys=messages)
         self.channel_id = self.client.channels.to_unique(channel)
+
+    async def create(self, *, content: str) -> None:
+        await self.client.rest.request(
+            CREATE_CHANNEL_MESSAGE, channel_id=self.channel_id, json={'content': str(content)}
+        )

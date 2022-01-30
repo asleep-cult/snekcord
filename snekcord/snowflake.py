@@ -6,6 +6,8 @@ from datetime import datetime
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
+    from .json import JSONObject
+
 __all__ = ('Snowflake', 'SnowflakeIterator')
 
 T = typing.TypeVar('T')
@@ -44,6 +46,13 @@ class Snowflake(int):
             | (process_id << _PROCESS_ID_SHIFT)
             | increment
         )
+
+    @classmethod
+    def into(cls, data: JSONObject, key: str) -> typing.Optional[Self]:
+        value = data.get(key)
+        if value is not None:
+            value = data[key] = cls(value)
+            return value
 
     @property
     def timestamp(self) -> float:

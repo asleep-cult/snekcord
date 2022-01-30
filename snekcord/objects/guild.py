@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
         ChannelIDWrapper,
         GuildChannelsView,
         GuildEmojisView,
-        GuildMembersView,
+        # GuildMembersView,
         GuildRolesView,
         GuildState,
         SupportsGuildID,
@@ -195,7 +195,7 @@ class Guild(PartialGuild):
     nsfw_level: typing.Union[GuildNSFWLevel, int] = attr.ib()
     roles: GuildRolesView = attr.ib()
     emojis: GuildEmojisView = attr.ib()
-    members: GuildMembersView = attr.ib()
+    # members: GuildMembersView = attr.ib()
     channels: GuildChannelsView = attr.ib()
 
 

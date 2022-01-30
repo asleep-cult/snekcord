@@ -88,8 +88,8 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
     async def upsert(self, data: JSONObject) -> Guild:
-        guild_id = Snowflake(data['id'])
-        data['id'] = guild_id
+        guild_id = Snowflake.into(data, 'id')
+        assert guild_id is not None
 
         for role in data['roles']:
             role['guild_id'] = guild_id
@@ -104,10 +104,10 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
                 channel['guild_id'] = guild_id
                 await self.client.channels.upsert(channel)
 
-        if 'members' in data:
-            for member in data['members']:
-                member['guild_id'] = guild_id
-                await self.client.members.upsert(member)
+        # if 'members' in data:
+        #    for member in data['members']:
+        #        member['guild_id'] = guild_id
+        #        await self.client.members.upsert(member)
 
         async with self.synchronize(guild_id):
             cached = await self.cache.get(guild_id)
@@ -140,7 +140,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         role_ids = await self.role_refstore.get(cached.id)
         emoji_ids = await self.emoji_refstore.get(cached.id)
-        member_ids = await self.member_refstore.get(cached.id)
+        # member_ids = await self.member_refstore.get(cached.id)
         channel_ids = await self.channel_refstore.get(cached.id)
 
         return Guild(
@@ -182,7 +182,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
             roles=self.client.create_guild_roles_view(role_ids, cached.id),
             emojis=self.client.create_guild_emojis_view(emoji_ids, cached.id),
-            members=self.client.create_guild_members_view(member_ids, cached.id),
+            # members=self.client.create_guild_members_view(member_ids, cached.id),
             channels=self.client.create_guild_channels_view(channel_ids, cached.id),
         )
 
@@ -219,6 +219,12 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             guild = await self.upsert(payload)
             return GuildReceiveEvent(shard=shard, payload=payload, guild=guild)
 
+        elif event is GuildEvents.UPDATE:
+            guild = await self.upsert(payload)
+            return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
+
         elif event is GuildEvents.DELETE:
             guild = await self.delete(payload['id'])
             return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)
+
+        assert False

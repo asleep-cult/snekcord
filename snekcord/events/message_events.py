@@ -1,22 +1,21 @@
 from __future__ import annotations
 
 import enum
-from typing import TYPE_CHECKING
+import typing
+
+import attr
 
 from .base_events import BaseEvent
 
-if TYPE_CHECKING:
-    from ..collection import Collection
-    from ..json import JSONObject
-    from ..objects import (
-        Message,
-        ObjectWrapper,
+if typing.TYPE_CHECKING:
+    from ..objects import Message
+    from ..states import (
+        ChannelIDWrapper,
+        GuildIDWrapper,
     )
-    from ..websockets import Shard
 
 __all__ = (
     'MessageEvents',
-    'BaseMessageEvent',
     'MessageCreateEvent',
     'MessageUpdateEvent',
     'MessageDeleteEvent',
@@ -31,55 +30,29 @@ class MessageEvents(str, enum.Enum):
     BULK_DELETE = 'MESSAGE_DELETE_BULK'
 
 
-class BaseMessageEvent(BaseEvent):
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
-
-    @property
-    def channel(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('channel_id'))
-
-
+@attr.s(kw_only=True)
 class MessageCreateEvent(BaseEvent):
-    __slots__ = ('message',)
-
-    def __init__(self, *, shard: Shard, payload: JSONObject, message: Message) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.message = message
-
-    def __repr__(self) -> str:
-        return f'<MessageCreateEvent message={self.message!r}>'
+    guild: GuildIDWrapper = attr.ib()
+    channel: ChannelIDWrapper = attr.ib()
+    message: Message = attr.ib()
 
 
+@attr.s(kw_only=True)
 class MessageUpdateEvent(BaseEvent):
-    __slots__ = ('message',)
-
-    def __init__(self, *, shard: Shard, payload: JSONObject, message: Message) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.message = message
-
-    def __repr__(self) -> str:
-        return f'<MessageUpdateEvent message={self.message!r}>'
+    guild: GuildIDWrapper = attr.ib()
+    channel: ChannelIDWrapper = attr.ib()
+    message: Message = attr.ib()
 
 
+@attr.s(kw_only=True)
 class MessageDeleteEvent(BaseEvent):
-    __slots__ = ('message',)
-
-    def __init__(self, *, shard: Shard, payload: JSONObject, message: Message) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.message = message
-
-    def __repr__(self) -> str:
-        return f'<MessageDeleteEvent message={self.message!r}>'
+    guild: GuildIDWrapper = attr.ib()
+    channel: ChannelIDWrapper = attr.ib()
+    message: typing.Optional[Message] = attr.ib()
 
 
+@attr.s(kw_only=True)
 class MessageBulkDeleteEvent(BaseEvent):
-    __slots__ = ('messages',)
-
-    def __init__(self, *, shard: Shard, payload: JSONObject, messages: Collection) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.messages = messages
-
-    def __repr__(self) -> str:
-        return f'<MessageBulkDeleteEvent messages={self.messages!r}>'
+    guild: GuildIDWrapper = attr.ib()
+    channel: ChannelIDWrapper = attr.ib()
+    messages: typing.List[Message] = attr.ib()

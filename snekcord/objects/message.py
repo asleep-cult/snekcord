@@ -34,9 +34,9 @@ __all__ = (
 
 class CachedMessage(CachedModel):
     id: Snowflake
-    channel_id: str
-    guild_id: MaybeUndefined[str]
-    author_id: MaybeUndefined[str]
+    channel_id: Snowflake
+    guild_id: MaybeUndefined[Snowflake]
+    author_id: MaybeUndefined[Snowflake]
     content: typing.Optional[str]
     timestamp: str
     edited_timestamp: typing.Optional[str]
