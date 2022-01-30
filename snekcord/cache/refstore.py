@@ -19,9 +19,6 @@ class RefStore(typing.Generic[UniqueT, RefT]):
     async def add(self, key: UniqueT, ref: RefT) -> None:
         raise NotImplementedError
 
-    async def add_multiple(self, key: UniqueT, refs: typing.Iterable[RefT]) -> None:
-        raise NotImplementedError
-
     async def remove(self, key: UniqueT, ref: RefT) -> None:
         raise NotImplementedError
 
@@ -40,9 +37,6 @@ class DefaultRefStore(RefStore[UniqueT, RefT]):
 
     async def add(self, key: UniqueT, ref: RefT) -> None:
         self.refs[key].append(ref)
-
-    async def add_multiple(self, key: UniqueT, refs: typing.Iterable[RefT]) -> None:
-        self.refs[key].extend(refs)
 
     async def remove(self, key: UniqueT, ref: RefT) -> None:
         refs = self.refs.get(key)
@@ -65,9 +59,6 @@ class SnowflakeRefStore(RefStore[UniqueT, Snowflake]):
 
     async def add(self, key: UniqueT, ref: Snowflake) -> None:
         self.refs[key].append(ref)
-
-    async def add_multiple(self, key: UniqueT, refs: typing.Iterable[Snowflake]) -> None:
-        self.refs[key].extend(refs)
 
     async def remove(self, key: UniqueT, ref: Snowflake) -> None:
         refs = self.refs.get(key)
