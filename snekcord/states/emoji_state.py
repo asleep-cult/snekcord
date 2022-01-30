@@ -21,6 +21,7 @@ __all__ = (
     'SupportsEmojiID',
     'EmojiIDWrapper',
     'EmojiState',
+    'GuildEmojisView',
 )
 
 SupportsEmojiID = typing.Union[Snowflake, str, int, CustomEmoji]

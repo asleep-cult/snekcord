@@ -55,7 +55,10 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a Snowflake allowing for retrieval of the underlying object."""
 
     def __init__(
-        self, id: SupportsUniqueT, *, state: CachedState[SupportsUniqueT, Snowflake, ObjectT]
+        self,
+        id: typing.Optional[SupportsUniqueT],
+        *,
+        state: CachedState[SupportsUniqueT, Snowflake, ObjectT],
     ) -> None:
         self.state = state
         self.id = self.state.to_unique(id) if id is not None else None
@@ -92,7 +95,10 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a code allowing for retrieval of the underlying object."""
 
     def __init__(
-        self, code: SupportsUniqueT, *, state: CachedState[SupportsUniqueT, str, ObjectT]
+        self,
+        code: typing.Optional[SupportsUniqueT],
+        *,
+        state: CachedState[SupportsUniqueT, str, ObjectT],
     ) -> None:
         self.state = state
         self.code = self.state.to_unique(code) if code is not None else None

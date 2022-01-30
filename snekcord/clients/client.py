@@ -5,12 +5,18 @@ import typing
 from ..auth import Authorization
 from ..rest import RESTSession
 from ..states import (
+    ChannelMessagesView,
     ChannelState,
     EmojiState,
+    GuildEmojisView,
     GuildState,
     InviteState,
     MessageState,
     RoleState,
+    SupportsChannelID,
+    SupportsEmojiID,
+    SupportsGuildID,
+    SupportsMessageID,
     UserState,
 )
 
@@ -54,3 +60,13 @@ class Client:
 
     def create_user_state(self) -> UserState:
         return UserState(client=self)
+
+    def create_channel_messages_view(
+        self, messages: typing.Iterable[SupportsMessageID], channel: SupportsChannelID
+    ) -> ChannelMessagesView:
+        return ChannelMessagesView(state=self.messages, messages=messages, channel=channel)
+
+    def create_guild_emojis_view(
+        self, emojis: typing.Iterable[SupportsEmojiID], guild: SupportsGuildID
+    ) -> GuildEmojisView:
+        return GuildEmojisView(state=self.emojis, emojis=emojis, guild=guild)

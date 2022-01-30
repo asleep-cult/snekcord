@@ -15,6 +15,7 @@ from ..rest.endpoints import (
 from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
+    from ..json import JSONObject
     from ..states import (
         ChannelMessagesView,
         ChannelState,
@@ -43,7 +44,7 @@ class CachedChannel(CachedModel):
     type: int
     guild_id: MaybeUndefined[str]
     position: MaybeUndefined[int]
-    permission_overwrites: MaybeUndefined[typing.List]
+    # permission_overwrites: MaybeUndefined[typing.List]
     name: MaybeUndefined[str]
     topic: MaybeUndefined[typing.Optional[str]]
     nsfw: MaybeUndefined[bool]
@@ -59,6 +60,19 @@ class CachedChannel(CachedModel):
     last_pin_timestamp: MaybeUndefined[typing.Optional[str]]
     rtc_region: MaybeUndefined[typing.Optional[str]]
     viedo_quality_mode: MaybeUndefined[int]
+    message_ids: typing.List[str]
+
+    async def add_message(self, state: ChannelState, message: JSONObject) -> None:
+        self.message_ids.append(message['id'])
+        await state.client.messages.upsert(message)
+
+    async def add_multiple_messages(
+        self, state: ChannelState, messages: typing.List[JSONObject]
+    ) -> None:
+        self.message_ids.extend(message['id'] for message in messages)
+
+        for message in messages:
+            await state.client.messages.upsert(message)
 
 
 class ChannelType(enum.IntEnum):

@@ -12,13 +12,13 @@ from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        ApplicationIDWrapper,
+        # ApplicationIDWrapper,
         ChannelIDWrapper,
         GuildIDWrapper,
         MessageState,
         UserIDWrapper,
         SupportsMessageID,
-        WebhookIDWrapper,
+        # WebhookIDWrapper,
     )
 else:
     SupportsMessageID = typing.NewType('SupportsChannelID', typing.Any)
@@ -106,7 +106,7 @@ class Message(SnowflakeObject[SupportsMessageID]):
     tts: bool = attr.ib()
     nonce: typing.Optional[typing.Union[int, str]] = attr.ib()
     pinned: bool = attr.ib()
-    webhook: WebhookIDWrapper = attr.ib()
+    # webhook: WebhookIDWrapper = attr.ib()
     type: typing.Union[MessageType, int] = attr.ib()
-    application: ApplicationIDWrapper = attr.ib()
+    # application: ApplicationIDWrapper = attr.ib()
     flags: MessageFlags = attr.ib()

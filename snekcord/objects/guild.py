@@ -81,7 +81,7 @@ class CachedGuild(CachedModel):
     max_video_channel_users: MaybeUndefined[int]
     nsfw_level: int
 
-    async def add_roles(self, state: GuildState, roles: typing.List[JSONObject]) -> None:
+    async def set_roles(self, state: GuildState, roles: typing.List[JSONObject]) -> None:
         role_ids = [role['id'] for role in roles]
         for role_id in set(self.role_ids) - set(role_ids):
             await state.client.roles.delete(role_id)
@@ -90,7 +90,7 @@ class CachedGuild(CachedModel):
         for role in roles:
             await state.client.roles.upsert(role)
 
-    async def add_emojis(self, state: GuildState, emojis: typing.List[JSONObject]) -> None:
+    async def set_emojis(self, state: GuildState, emojis: typing.List[JSONObject]) -> None:
         emoji_ids = [emoji['id'] for emoji in emojis]
         for emoji_id in set(self.emoji_ids) - set(emoji_ids):
             await state.client.emojis.delete(emoji_id)
@@ -99,7 +99,7 @@ class CachedGuild(CachedModel):
         for emoji in emojis:
             await state.client.emojis.upsert(emoji)
 
-    async def add_channels(self, state: GuildState, channels: typing.List[JSONObject]) -> None:
+    async def set_channels(self, state: GuildState, channels: typing.List[JSONObject]) -> None:
         channel_ids = [channel['id'] for channel in channels]
         for channel_id in set(self.channel_ids) - set(channel_ids):
             await state.client.channels.delete(channel_id)
@@ -109,7 +109,13 @@ class CachedGuild(CachedModel):
             channel['guild_id'] = self.id
             await state.client.channels.upsert(channel)
 
-    async def add_memebers(self, state: GuildState, members: typing.List[JSONObject]) -> None:
+    async def add_member(self, state: GuildState, member: JSONObject) -> None:
+        self.member_ids.append(member['id'])
+        await state.client.members.upsert(member)
+
+    async def add_multiple_members(
+        self, state: GuildState, members: typing.List[JSONObject]
+    ) -> None:
         self.member_ids.extend(member['id'] for member in members)
 
         for member in members:
@@ -217,7 +223,7 @@ class Guild(PartialGuild):
     message_notifications_level: typing.Union[GuildMessageNotificationsLevel, int] = attr.ib()
     explicit_content_filter: typing.Union[GuildExplicitContentFilter, int] = attr.ib()
     features: typing.List[typing.Union[GuildFeature, str]] = attr.ib()
-    mfa_level: GuildMFALevel = attr.ib()
+    mfa_level: typing.Union[GuildMFALevel, int] = attr.ib()
     # application: ApplicationIDWrapper = attr.ib()
     system_channel: ChannelIDWrapper = attr.ib()
     system_channel_flags: GuildSystemChannelFlags = attr.ib()

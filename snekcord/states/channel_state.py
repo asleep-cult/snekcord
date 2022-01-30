@@ -62,6 +62,8 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             channel = await self.cache.get(channel_id)
 
             if channel is None:
+                data['message_ids'] = []
+
                 channel = CachedChannel.from_json(data)
                 await self.cache.create(channel_id, channel)
             else:
@@ -121,7 +123,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rate_limit_per_user=cached.rate_limit_per_user,
                 last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
                 last_pin_timestamp=last_pin_timestamp,
-                messages=self.client.create_channel_messages_view(channel_id),
+                messages=self.client.create_channel_messages_view(cached.message_ids, channel_id),
             )
 
         if type is ChannelType.GUILD_VOICE:

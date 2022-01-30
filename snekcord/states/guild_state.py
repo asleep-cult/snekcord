@@ -66,19 +66,19 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
     async def add_objects(self, data: JSONObject, cached: CachedGuild) -> None:
         roles = data.get('roles')
         if roles is not None:
-            await cached.add_roles(self, roles)
+            await cached.set_roles(self, roles)
 
         emojis = data.get('emojis')
         if emojis is not None:
-            await cached.add_emojis(self, emojis)
+            await cached.set_emojis(self, emojis)
 
         channels = data.get('channels')
         if channels is not None:
-            await cached.add_channels(self, channels)
+            await cached.set_channels(self, channels)
 
         members = data.get('members')
         if members is not None:
-            await cached.add_memebers(self, members)
+            await cached.add_multiple_members(self, members)
 
     async def upsert(self, data: JSONObject) -> Guild:
         guild_id = Snowflake(data['id'])
@@ -87,14 +87,10 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             cached = await self.cache.get(guild_id)
 
             if cached is None:
-                data.update(
-                    {
-                        'role_ids': [],
-                        'emoji_ids': [],
-                        'channel_ids': [],
-                        'member_ids': [],
-                    }
-                )
+                data['role_ids'] = []
+                data['emoji_ids'] = []
+                data['channel_ids'] = []
+                data['member_ids'] = []
 
                 cached = CachedGuild.from_json(data)
                 await self.add_objects(data, cached)
@@ -135,9 +131,9 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             splash=cached.splash,
             discovery_splash=cached.discovery_splash,
             owner=SnowflakeWrapper(cached.owner_id, state=self.client.users),
-            afk_channel=SnowflakeWrapper(cached.afk_channel_id, state=self.client.users),
+            afk_channel=SnowflakeWrapper(cached.afk_channel_id, state=self.client.channels),
             afk_timeout=cached.afk_timeout,
-            widget_enabled=cached.widget_enabled,
+            widget_enabled=undefined.nullify(cached.widget_enabled),
             widget_channel=SnowflakeWrapper(widget_channel_id, state=self.client.channels),
             verification_level=convert_enum(GuildVerificationLevel, cached.verification_level),
             message_notifications_level=convert_enum(

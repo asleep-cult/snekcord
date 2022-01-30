@@ -36,7 +36,7 @@ class CachedUser(CachedModel):
     banner: MaybeUndefined[typing.Optional[str]]
     accent_color: MaybeUndefined[typing.Optional[int]]
     locale: MaybeUndefined[str]
-    verified: MaybeUndefined[str]
+    verified: MaybeUndefined[bool]
     email: MaybeUndefined[typing.Optional[str]]
     flags: MaybeUndefined[int]
     premium_type: MaybeUndefined[int]
@@ -83,5 +83,5 @@ class User(SnowflakeObject[SupportsUserID]):
     verified: typing.Optional[bool] = attr.ib()
     email: typing.Optional[str] = attr.ib()
     flags: typing.Optional[UserFlags] = attr.ib()
-    premium_type: typing.Optional[PremiumType] = attr.ib()
+    premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib()
     public_flags: typing.Optional[UserFlags] = attr.ib()
