@@ -91,6 +91,24 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         guild_id = Snowflake(data['id'])
         data['id'] = guild_id
 
+        for role in data['roles']:
+            role['guild_id'] = guild_id
+            await self.client.roles.upsert(role)
+
+        for emoji in data['emojis']:
+            emoji['guild_id'] = guild_id
+            await self.client.emojis.upsert(emoji)
+
+        if 'channels' in data:
+            for channel in data['channels']:
+                channel['guild_id'] = guild_id
+                await self.client.channels.upsert(channel)
+
+        if 'members' in data:
+            for member in data['members']:
+                member['guild_id'] = guild_id
+                await self.client.members.upsert(member)
+
         async with self.synchronize(guild_id):
             cached = await self.cache.get(guild_id)
 

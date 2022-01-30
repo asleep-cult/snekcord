@@ -7,6 +7,10 @@ from .base_state import (
     CachedEventState,
     OnDecoratorT,
 )
+from ..cache import (
+    RefStore,
+    SnowflakeRefStore,
+)
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -29,6 +33,7 @@ from ..snowflake import Snowflake
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
+    from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
 
@@ -43,6 +48,13 @@ ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
 class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, BaseChannel]):
+    def __init__(self, *, client: Client) -> None:
+        super().__init__(client=client)
+        self.message_refstore = self.create_message_refstore()
+
+    def create_message_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeRefStore()
+
     def to_unique(self, object: SupportsChannelID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
@@ -73,6 +85,8 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     async def from_cached(self, cached: CachedChannel) -> BaseChannel:
         channel_id = Snowflake(cached.id)
         type = convert_enum(ChannelType, cached.type)
+
+        message_ids = await self.message_refstore.get(cached.id)
 
         if type is ChannelType.GUILD_CATEGORY:
             assert (
@@ -121,7 +135,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rate_limit_per_user=cached.rate_limit_per_user,
                 last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
                 last_pin_timestamp=last_pin_timestamp,
-                messages=self.client.create_channel_messages_view(cached.message_ids, channel_id),
+                messages=self.client.create_channel_messages_view(message_ids, channel_id),
             )
 
         if type is ChannelType.GUILD_VOICE:
