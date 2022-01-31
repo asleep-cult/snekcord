@@ -14,7 +14,6 @@ if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..cache import CachedModel
     from ..events import BaseEvent
-    from ..intents import WebSocketIntents
     from ..json import JSONObject
     from ..websockets import Shard
 else:
@@ -50,10 +49,6 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
     @property
     def events(self) -> typing.Tuple[str]:
         return tuple()
-
-    @property
-    def intents(self) -> WebSocketIntents:
-        return WebSocketIntents.NONE
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
@@ -137,7 +132,9 @@ class CachedEventState(  # type: ignore
             return await self.from_cached(cached)
 
     async def remove_refs(self, object: CachedModelT) -> None:
-        return None
+        """Removes any references to object from the corresponding RefStores.
+        This is called as part of the deletion routine and should not be called
+        manually."""
 
     async def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError

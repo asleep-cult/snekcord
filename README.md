@@ -7,7 +7,10 @@ import snekcord
 
 client = snekcord.WebSocketClient(
     "Bot <TOKEN>"
-    intents=snekcord.WebSocketIntents.GUILDS | snekcord.WebSocketIntents.GUILD_MESSAGES
+    intents=(
+        snekcord.WebSocketIntents.GUILDS
+        | snekcord.WebSocketIntents.GUILD_MESSAGES
+    )
 )
 
 @client.messages.on_create()
