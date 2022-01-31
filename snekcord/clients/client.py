@@ -8,6 +8,7 @@ from ..states import (
     ChannelMessagesView,
     ChannelState,
     EmojiState,
+    EventState,
     GuildChannelsView,
     GuildEmojisView,
     GuildRolesView,
@@ -32,6 +33,8 @@ class Client:
             self.authorization = authorization
         else:
             self.authorization = Authorization.parse(authorization)
+
+        self.events: typing.Dict[str, EventState[typing.Any, typing.Any]] = {}
 
         self.rest = RESTSession(authorization=self.authorization)
 

@@ -101,7 +101,7 @@ class Message(SnowflakeObject[SupportsMessageID]):
     channel: ChannelIDWrapper = attr.ib()
     guild: GuildIDWrapper = attr.ib()
     author: UserIDWrapper = attr.ib()
-    content: typing.Optional[str] = attr.ib()
+    content: typing.Optional[str] = attr.ib(repr=False)
     timestamp: datetime = attr.ib()
     edited_timestamp: typing.Optional[datetime] = attr.ib()
     tts: bool = attr.ib()

@@ -469,7 +469,7 @@ class Shard:
             else:
                 self._guilds.pop(guild_id, None)
 
-        state = self.client.get_state_for(event)
+        state = self.client.get_event(event)
         if state is not None:
             await state.dispatch(event, self, data)
         else:

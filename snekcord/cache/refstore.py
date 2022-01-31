@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from ..snowflake import Snowflake, SnowflakeIterator
 
-__all__ = ('RefStore', 'DefaultRefStore', 'SnowflakeRefStore')
+__all__ = ('RefStore', 'MemoryRefStore', 'SnowflakeMemoryRefStore')
 
 UniqueT = typing.TypeVar('UniqueT')
 RefT = typing.TypeVar('RefT')
@@ -27,7 +27,7 @@ class RefStore(typing.Generic[UniqueT, RefT]):
         raise NotImplementedError
 
 
-class DefaultRefStore(RefStore[UniqueT, RefT]):
+class MemoryRefStore(RefStore[UniqueT, RefT]):
     refs: defaultdict[UniqueT, typing.List[RefT]]
 
     def __init__(self) -> None:
@@ -49,7 +49,7 @@ class DefaultRefStore(RefStore[UniqueT, RefT]):
         self.refs.pop(key, None)
 
 
-class SnowflakeRefStore(RefStore[UniqueT, Snowflake]):
+class SnowflakeMemoryRefStore(RefStore[UniqueT, Snowflake]):
     refs: defaultdict[UniqueT, array.array[int]]
 
     def __init__(self) -> None:

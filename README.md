@@ -6,7 +6,11 @@ import asyncio
 import snekcord
 
 client = snekcord.WebSocketClient("Bot <TOKEN>")
-client.messages.listen()
+client.enable_events(
+    client.guilds,
+    client.messages,
+    direct_messages=True,
+)
 
 @client.messages.on_create()
 async def message_create(evt: snekcord.MessageCreateEvent):

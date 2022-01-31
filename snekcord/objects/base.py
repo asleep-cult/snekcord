@@ -37,18 +37,18 @@ class BaseObject(typing.Generic[SupportsUniqueT, UniqueT]):
         return self.state.client
 
 
-@attr.s(hash=True, kw_only=True)
+@attr.s(kw_only=True, hash=True, eq=True)
 class SnowflakeObject(BaseObject[SupportsUniqueT, Snowflake]):
     """The base class for all objects with an id."""
 
-    id: Snowflake = attr.field(hash=True, repr=True)
+    id: Snowflake = attr.ib(hash=True, eq=True, repr=True)
 
 
-@attr.s(hash=True, kw_only=True)
+@attr.s(kw_only=True, hash=True, eq=True)
 class CodeObject(BaseObject[SupportsUniqueT, str]):
     """The base class for all objects with a code."""
 
-    code: str = attr.field(hash=True, repr=True)
+    code: str = attr.field(hash=True, eq=True, repr=True)
 
 
 class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):

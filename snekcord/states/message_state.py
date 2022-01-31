@@ -17,6 +17,7 @@ from ..events import (
     MessageEvents,
     MessageUpdateEvent,
 )
+from ..intents import WebSocketIntents
 from ..objects import (
     CachedMessage,
     Message,
@@ -47,6 +48,14 @@ MessageIDWrapper = SnowflakeWrapper[SupportsMessageID, Message]
 
 
 class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage, Message]):
+    @property
+    def events(self) -> typing.Tuple[str]:
+        return tuple(MessageEvents)
+
+    @property
+    def intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILD_MESSAGES
+
     def to_unique(self, object: SupportsMessageID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object

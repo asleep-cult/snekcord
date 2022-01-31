@@ -38,31 +38,35 @@ OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 
 class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
-    _callbacks: defaultdict[str, list[OnCallbackT[BaseEvent]]]
+    callbacks: defaultdict[str, list[OnCallbackT[BaseEvent]]]
 
     def __init__(self, *, client: Client) -> None:
         self.client = client
+        self.callbacks = defaultdict(list)
 
-        self._callbacks = defaultdict(list)
+        for event in self.events:
+            self.client.events[event] = self
+
+    @property
+    def events(self) -> typing.Tuple[str]:
+        return tuple()
+
+    @property
+    def intents(self) -> WebSocketIntents:
+        return WebSocketIntents.NONE
 
     def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
 
-    def get_events(self) -> typing.Iterable[str]:
-        raise NotImplementedError
-
-    def get_intents(self) -> WebSocketIntents:
-        raise NotImplementedError
-
     def on(self, event: str) -> OnDecoratorT[EventT]:
-        # if event not in self.get_events():
-        #    raise TypeError(f'Invalid event: {event!r}')
+        if event not in self.events:
+            raise TypeError(f'Invalid event: {event!r}')
 
         def decorator(callback: OnCallbackT[EventT]) -> OnCallbackT[EventT]:
             if not asyncio.iscoroutinefunction(callback):
                 raise TypeError('The callback should be a coroutine function')
 
-            self._callbacks[event].append(callback)
+            self.callbacks[event].append(callback)
             return callback
 
         return decorator
@@ -73,7 +77,7 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
     async def dispatch(self, event: str, shard: Shard, paylaod: JSONObject) -> None:
         ret = await self.create_event(event, shard, paylaod)
 
-        for callback in self._callbacks[event]:
+        for callback in self.callbacks[event]:
             asyncio.create_task(callback(ret))
 
 

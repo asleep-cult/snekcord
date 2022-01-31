@@ -4,6 +4,7 @@ __all__ = ('WebSocketIntents',)
 
 
 class WebSocketIntents(enum.IntFlag):
+    NONE = 0
     GUILDS = 1 << 0
     GUILD_MEMBERS = 1 << 1
     GUILD_BANS = 1 << 2

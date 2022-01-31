@@ -10,7 +10,7 @@ from .base_state import (
 )
 from ..cache import (
     RefStore,
-    SnowflakeRefStore,
+    SnowflakeMemoryRefStore,
 )
 from ..enum import convert_enum
 from ..events import (
@@ -21,6 +21,7 @@ from ..events import (
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
+from ..intents import WebSocketIntents
 from ..objects import (
     BaseChannel,
     CachedChannel,
@@ -55,8 +56,16 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         super().__init__(client=client)
         self.message_refstore = self.create_message_refstore()
 
+    @property
+    def events(self) -> typing.Tuple[str]:
+        return tuple(ChannelEvents)
+
+    @property
+    def intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILDS
+
     def create_message_refstore(self) -> RefStore[Snowflake, Snowflake]:
-        return SnowflakeRefStore()
+        return SnowflakeMemoryRefStore()
 
     def to_unique(self, object: SupportsChannelID) -> Snowflake:
         if isinstance(object, Snowflake):

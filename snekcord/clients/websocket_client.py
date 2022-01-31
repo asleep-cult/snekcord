@@ -1,59 +1,65 @@
+from __future__ import annotations
+
 import asyncio
 import signal
 import socket
-from typing import Optional
+import typing
 
 from loguru import logger
 
 from .client import Client
+from ..auth import Authorization
+from ..intents import WebSocketIntents
 from ..rest.endpoints import (
     GET_GATEWAY,
     GET_GATEWAY_BOT,
 )
-from ..websockets.shard_websocket import (
-    Shard,
-    ShardCancellationToken,
-)
+from ..states import EventState
+from ..websockets.shard_websocket import Shard, ShardCancellationToken
+
+if typing.TYPE_CHECKING:
+    from ..json import JSONObject
 
 __all__ = ('WebSocketClient',)
 
 
 class WebSocketClient(Client):
-    def __init__(self, authorization, *, loop=None, shard_ids=None):
+    def __init__(
+        self,
+        authorization: typing.Union[Authorization, str],
+        *,
+        shard_ids: typing.Optional[typing.Iterable[int]] = None,
+    ) -> None:
         super().__init__(authorization)
 
         if not self.authorization.ws_connectable():
-            raise TypeError(f'Cannot connect to gateway using {authorization.type.name} token')
+            raise TypeError(f'Cannot connect to gateway using {self.authorization.type.name} token')
 
-        if loop is not None:
-            if not isinstance(loop, asyncio.AbstractEventLoop):
-                raise TypeError('loop should be an abstract event loop')
+        self.shard_ids = tuple(shard_ids) if shard_ids is not None else None
+        self.intents = WebSocketIntents.NONE
 
-        self.loop = loop
+        self._shards: typing.Dict[int, Shard] = {}
 
-        if shard_ids is not None:
-            self.shard_ids = [int(shard_id) for shard_id in shard_ids]
-        else:
-            self.shard_ids = None
+    def enable_events(
+        self,
+        *states: EventState[typing.Any, typing.Any],
+        direct_messages: bool = False,
+        direct_message_reactions: bool = False,
+        direct_message_typing: bool = False,
+    ) -> None:
+        for state in states:
+            self.intents |= state.intents
 
-        self.intents = 0
+        if direct_messages:
+            self.intents |= WebSocketIntents.DIRECT_MESSAGES
 
-        self._shards = {}
-        self._events = {}
-
-    def enable_events(self, state, *, implicit: bool = False) -> None:
-        intents = state.get_intents()
-
-        if not implicit or self.intents & intents:
-            self.intents |= intents
-
-            for event in state.get_events():
-                self._events[event] = state
-
-    def get_state_for(self, event: str):
-        return self._events.get(event)
+    def get_event(self, event: str) -> typing.Optional[EventState[typing.Any, typing.Any]]:
+        return self.events.get(event)
 
     def get_shard(self, shard_id: int) -> Shard:
+        if self.shard_ids is None:
+            raise RuntimeError('cannot get shard before connecting')
+
         if shard_id not in self.shard_ids:
             raise ValueError(f'Invalid shard id: {shard_id!r}')
 
@@ -62,7 +68,7 @@ class WebSocketClient(Client):
     def get_shards(self) -> list[Shard]:
         return list(self._shards.values())
 
-    async def fetch_gateway(self):
+    async def fetch_gateway(self) -> JSONObject:
         if self.authorization.is_bot():
             endpoint = GET_GATEWAY_BOT
         else:
@@ -71,8 +77,7 @@ class WebSocketClient(Client):
         return await self.rest.request(endpoint)
 
     async def connect(self) -> None:
-        if self.loop is None:
-            self.loop = asyncio.get_running_loop()
+        self.loop = asyncio.get_running_loop()
 
         gateway = await self.fetch_gateway()
 
@@ -86,9 +91,9 @@ class WebSocketClient(Client):
 
         for shard_id in self.shard_ids:
             shard = Shard(self, gateway['url'], shard_id, sharded=sharded)
-            shard.start()
-
             self._shards[shard_id] = shard
+
+            shard.start()
 
         future = self.loop.create_future()
 
@@ -109,14 +114,14 @@ class WebSocketClient(Client):
             ssock, csock = socket.socketpair()
             signal.set_wakeup_fd(ssock.fileno())
 
-            def signal_handler(task):
+            def signal_handler(task: asyncio.Task[bytes]) -> None:
                 signums = set(task.result())
                 if signums.intersection((signal.SIGINT, signal.SIGTERM)):
                     set_future_result()
                 else:
                     signal_reader()
 
-            def signal_reader():
+            def signal_reader() -> None:
                 task = self.loop.create_task(self.loop.sock_recv(csock, 4096))
                 task.add_done_callback(signal_handler)
 
@@ -133,8 +138,11 @@ class WebSocketClient(Client):
             signal.signal(signal.SIGINT, signal.default_int_handler)
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
+        await self.cleanup()
+
+    async def cleanup(self) -> None:
         for shard in self.get_shards():
             await shard.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
-            await shard.join()
 
+        await asyncio.gather(*(shard.join() for shard in self.get_shards()))
         await self.rest.aclose()

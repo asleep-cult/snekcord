@@ -6,6 +6,7 @@ from .base_state import (
     CachedEventState,
     CachedStateView,
 )
+from ..intents import WebSocketIntents
 from ..objects import (
     CachedCustomEmoji,
     CustomEmoji,
@@ -30,6 +31,10 @@ EmojiIDWrapper = SnowflakeWrapper[SupportsEmojiID, CustomEmoji]
 
 
 class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji, CustomEmoji]):
+    @property
+    def intents(self) -> WebSocketIntents:
+        return WebSocketIntents.GUILD_EMOJIS_AND_STICKERS
+
     def to_unique(self, object: SupportsEmojiID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
