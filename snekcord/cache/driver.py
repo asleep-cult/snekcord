@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing
 
-__all__ = ('CacheDriver', 'DefaultCacheDriver')
+__all__ = ('CacheDriver', 'MemoryCacheDriver')
 
 UniqueT = typing.TypeVar('UniqueT')
 CachedObjectT = typing.TypeVar('CachedObjectT')
@@ -25,7 +25,7 @@ class CacheDriver(typing.Generic[UniqueT, CachedObjectT]):
         raise NotImplementedError
 
 
-class DefaultCacheDriver(CacheDriver[UniqueT, CachedObjectT]):
+class MemoryCacheDriver(CacheDriver[UniqueT, CachedObjectT]):
     def __init__(self) -> None:
         self.map: dict[UniqueT, CachedObjectT] = {}
 

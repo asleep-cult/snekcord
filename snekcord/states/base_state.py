@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from ..cache import (
     CacheDriver,
-    DefaultCacheDriver,
+    MemoryCacheDriver,
 )
 
 if typing.TYPE_CHECKING:
@@ -105,7 +105,7 @@ class CachedEventState(  # type: ignore
         self.locks = defaultdict(asyncio.Lock, weakref.WeakValueDictionary())
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
-        return DefaultCacheDriver()
+        return MemoryCacheDriver()
 
     def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
         raise NotImplementedError
