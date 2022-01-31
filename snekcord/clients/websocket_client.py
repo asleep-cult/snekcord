@@ -28,6 +28,7 @@ class WebSocketClient(Client):
         self,
         authorization: typing.Union[Authorization, str],
         *,
+        intents: WebSocketIntents,
         shard_ids: typing.Optional[typing.Iterable[int]] = None,
     ) -> None:
         super().__init__(authorization)
@@ -36,22 +37,9 @@ class WebSocketClient(Client):
             raise TypeError(f'Cannot connect to gateway using {self.authorization.type.name} token')
 
         self.shard_ids = tuple(shard_ids) if shard_ids is not None else None
-        self.intents = WebSocketIntents.NONE
+        self.intents = intents
 
         self._shards: typing.Dict[int, Shard] = {}
-
-    def enable_events(
-        self,
-        *states: EventState[typing.Any, typing.Any],
-        direct_messages: bool = False,
-        direct_message_reactions: bool = False,
-        direct_message_typing: bool = False,
-    ) -> None:
-        for state in states:
-            self.intents |= state.intents
-
-        if direct_messages:
-            self.intents |= WebSocketIntents.DIRECT_MESSAGES
 
     def get_event(self, event: str) -> typing.Optional[EventState[typing.Any, typing.Any]]:
         return self.events.get(event)

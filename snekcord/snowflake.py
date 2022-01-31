@@ -52,7 +52,8 @@ class Snowflake(int):
         value = data.get(key)
         if value is not None:
             value = data[key] = cls(value)
-            return value
+
+        return value
 
     @property
     def timestamp(self) -> float:

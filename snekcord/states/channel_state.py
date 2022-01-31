@@ -21,7 +21,6 @@ from ..events import (
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
-from ..intents import WebSocketIntents
 from ..objects import (
     BaseChannel,
     CachedChannel,
@@ -59,10 +58,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     @property
     def events(self) -> typing.Tuple[str]:
         return tuple(ChannelEvents)
-
-    @property
-    def intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
 
     def create_message_refstore(self) -> RefStore[Snowflake, Snowflake]:
         return SnowflakeMemoryRefStore()

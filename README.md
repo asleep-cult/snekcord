@@ -5,11 +5,9 @@ A higly customizable Discord API wrapper.
 import asyncio
 import snekcord
 
-client = snekcord.WebSocketClient("Bot <TOKEN>")
-client.enable_events(
-    client.guilds,
-    client.messages,
-    direct_messages=True,
+client = snekcord.WebSocketClient(
+    "Bot <TOKEN>"
+    intents=snekcord.WebSocketIntents.GUILDS | snekcord.WebSocketIntents.GUILD_MESSAGES
 )
 
 @client.messages.on_create()

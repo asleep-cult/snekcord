@@ -38,7 +38,7 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
         elif isinstance(object, User):
             return object.id
 
-        raise TypeError('Expectes, Snowflake, str, int, or User')
+        raise TypeError('Expected, Snowflake, str, int, or User')
 
     async def upsert(self, data: JSONObject) -> User:
         user_id = Snowflake.into(data, 'id')

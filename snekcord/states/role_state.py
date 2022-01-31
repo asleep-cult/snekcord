@@ -6,7 +6,6 @@ from .base_state import CachedEventState, CachedStateView
 from ..events import (
     RoleEvents,
 )
-from ..intents import WebSocketIntents
 from ..objects import (
     CachedRole,
     Role,
@@ -34,10 +33,6 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
     @property
     def events(self) -> typing.Tuple[str]:
         return tuple(RoleEvents)
-
-    @property
-    def intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
 
     def to_unique(self, object: SupportsRoleID) -> Snowflake:
         if isinstance(object, Snowflake):

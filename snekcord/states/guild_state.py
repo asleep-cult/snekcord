@@ -22,7 +22,6 @@ from ..events import (
     GuildUnavailableEvent,
     GuildUpdateEvent,
 )
-from ..intents import WebSocketIntents
 from ..json import JSONObject
 from ..objects import (
     CachedGuild,
@@ -68,10 +67,6 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
     @property
     def events(self) -> typing.Tuple[str]:
         return tuple(GuildEvents)
-
-    @property
-    def intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
 
     def create_role_refstore(self) -> RefStore[Snowflake, Snowflake]:
         return SnowflakeMemoryRefStore()
