@@ -89,6 +89,9 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         raise NotImplementedError
 
+    async def all(self) -> list[ObjectT]:
+        return [object async for object in self]
+
 
 class CachedEventState(  # type: ignore
     typing.Generic[SupportsUniqueT, UniqueT, CachedModelT, ObjectT],
