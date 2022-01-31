@@ -1,239 +1,232 @@
 from __future__ import annotations
 
+import typing
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, Union
 
 from .base_state import (
-    BaseCachedClientState,
-    BaseClientState,
-    BaseSubState,
+    CachedEventState,
+    CachedStateView,
+    OnDecoratorT,
 )
-from ..builders import JSONBuilder
+from ..cache import (
+    RefStore,
+    SnowflakeMemoryRefStore,
+)
+from ..enum import convert_enum
 from ..events import (
     BaseEvent,
     ChannelCreateEvent,
     ChannelDeleteEvent,
-    ChannelEvent,
+    ChannelEvents,
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
-from ..intents import WebSocketIntents
 from ..objects import (
     BaseChannel,
+    CachedChannel,
     CategoryChannel,
     ChannelType,
-    Guild,
-    GuildChannel,
-    ObjectWrapper,
-    StoreChannel,
+    SnowflakeWrapper,
     TextChannel,
     VoiceChannel,
 )
-from ..rest.endpoints import (
-    CREATE_GUILD_CHANNEL,
-    GET_GUILD_CHANNELS,
-    MODIFY_GUILD_CHANNEL_POSITIONS,
-)
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined, undefined
+from ..undefined import undefined
 
-if TYPE_CHECKING:
-    from ..json import JSONData
-    from ..websockets import ShardWebSocket
+if typing.TYPE_CHECKING:
+    from .guild_state import SupportsGuildID
+    from ..clients import Client
+    from ..json import JSONObject
+    from ..websockets import Shard
 
 __all__ = (
-    'ChannelUnwrappable',
-    'ChannelPosition',
+    'SupportsChannelID',
+    'ChannelIDWrapper',
     'ChannelState',
-    'GuildChannelState',
+    'GuildChannelsView',
 )
 
-ChannelUnwrappable = Union[Snowflake, str, int, BaseChannel, ObjectWrapper]
+SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel]
+ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
-class ChannelPosition:
-    __slots__ = ('position', 'lock_permissions', 'parent')
+class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, BaseChannel]):
+    def __init__(self, *, client: Client) -> None:
+        super().__init__(client=client)
+        self.message_refstore = self.create_message_refstore()
 
-    def __init__(
-        self,
-        *,
-        position: MaybeUndefined[Optional[int]] = undefined,
-        lock_permissions: MaybeUndefined[Optional[bool]] = undefined,
-        parent: MaybeUndefined[Optional[ChannelUnwrappable]] = undefined,
-    ) -> None:
-        self.position = position
-        self.lock_permissions = lock_permissions
-        self.parent = parent
+    @property
+    def events(self) -> typing.Tuple[str]:
+        return tuple(ChannelEvents)
 
+    def create_message_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeMemoryRefStore()
 
-class ChannelState(BaseCachedClientState):
-    @classmethod
-    def unwrap_id(cls, object) -> Snowflake:
+    def to_unique(self, object: SupportsChannelID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
 
-        if isinstance(object, (str, int)):
+        elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, BaseChannel):
+        elif isinstance(object, BaseChannel):
             return object.id
 
-        if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
-                return object.id
+        raise TypeError('Expected Snowflake, str, int, or BaseChannel')
 
-            raise TypeError('Expected ObjectWrapper created by ChannelState')
+    async def upsert(self, data: JSONObject) -> BaseChannel:
+        channel_id = Snowflake.into(data, 'id')
+        assert channel_id is not None
 
-        raise TypeError('Expected Snowflake, str, int, BaseChannel or ObjectWrapper')
+        guild_id = Snowflake.into(data, 'guild_id')
+        if guild_id is not None:
+            await self.client.guilds.channel_refstore.add(guild_id, channel_id)
 
-    def get_type(self, type):
+        async with self.synchronize(channel_id):
+            channel = await self.cache.get(channel_id)
+
+            if channel is None:
+                channel = CachedChannel.from_json(data)
+                await self.cache.create(channel_id, channel)
+            else:
+                channel.update(data)
+                await self.cache.update(channel_id, channel)
+
+        return await self.from_cached(channel)
+
+    async def from_cached(self, cached: CachedChannel) -> BaseChannel:
+        channel_id = Snowflake(cached.id)
+        type = convert_enum(ChannelType, cached.type)
+
+        message_ids = await self.message_refstore.get(cached.id)
+
         if type is ChannelType.GUILD_CATEGORY:
-            return CategoryChannel
+            assert (
+                cached.guild_id is not undefined
+                and cached.parent_id is not undefined
+                and cached.name is not undefined
+                and cached.position is not undefined
+            ), 'Invalid GUILD_CATEGORY channel'
 
-        if type is ChannelType.GUILD_STORE:
-            return StoreChannel
+            return CategoryChannel(
+                state=self,
+                id=channel_id,
+                type=type,
+                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
+                name=cached.name,
+                position=cached.position,
+                nsfw=undefined.nullify(cached.nsfw),
+            )
 
         if type is ChannelType.GUILD_TEXT:
-            return TextChannel
+            assert (
+                cached.guild_id is not undefined
+                and cached.parent_id is not undefined
+                and cached.name is not undefined
+                and cached.position is not undefined
+                and cached.rate_limit_per_user is not undefined
+                and cached.last_message_id is not undefined
+            ), 'Invalid GUILD_TEXT channel'
 
-        if type is ChannelType.GUILD_NEWS:
-            return TextChannel
+            last_pin_timestamp = undefined.nullify(cached.last_pin_timestamp)
+            if last_pin_timestamp is not None:
+                last_pin_timestamp = datetime.fromisoformat(last_pin_timestamp)
+
+            return TextChannel(
+                state=self,
+                id=channel_id,
+                type=type,
+                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
+                name=cached.name,
+                position=cached.position,
+                nsfw=cached.nsfw if cached.nsfw is not undefined else False,
+                rate_limit_per_user=cached.rate_limit_per_user,
+                last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
+                last_pin_timestamp=last_pin_timestamp,
+                messages=self.client.create_channel_messages_view(message_ids, channel_id),
+            )
 
         if type is ChannelType.GUILD_VOICE:
-            return VoiceChannel
+            assert (
+                cached.guild_id is not undefined
+                and cached.parent_id is not undefined
+                and cached.name is not undefined
+                and cached.position is not undefined
+                and cached.bitrate is not undefined
+                and cached.user_limit is not undefined
+                and cached.rtc_region is not undefined
+            ), 'Invalid GUILD_VOICE channel'
 
-        return BaseChannel
+            return VoiceChannel(
+                state=self,
+                id=channel_id,
+                type=type,
+                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
+                name=cached.name,
+                position=cached.position,
+                nsfw=cached.nsfw if cached.nsfw is not undefined else False,
+                bitrate=cached.bitrate,
+                user_limit=cached.user_limit,
+                rtc_region=cached.rtc_region,
+            )
 
-    async def upsert(self, data):
-        channel = self.get(data['id'])
-        if channel is not None:
-            channel.update(data)
-        else:
-            type = self.get_type(ChannelType(data['type']))
-            channel = type.unmarshal(data, state=self)
+        return BaseChannel(state=self, id=channel_id, type=type)
 
-        if isinstance(channel, GuildChannel):
-            guild_id = data.get('guild_id')
-            if guild_id is not None:
-                channel.guild.set_id(guild_id)
+    async def remove_refs(self, object: CachedChannel) -> None:
+        if object.guild_id is not undefined:
+            await self.client.guilds.channel_refstore.remove(object.guild_id, object.id)
 
-            channel.parent.set_id(data.get('parent_id'))
+    def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
+        return self.on(ChannelEvents.CREATE)
 
-        return channel
+    def on_update(self) -> OnDecoratorT[ChannelUpdateEvent]:
+        return self.on(ChannelEvents.UPDATE)
 
-    def on_create(self):
-        return self.on(ChannelEvent.CREATE)
+    def on_delete(self) -> OnDecoratorT[ChannelDeleteEvent]:
+        return self.on(ChannelEvents.DELETE)
 
-    def on_update(self):
-        return self.on(ChannelEvent.UPDATE)
+    def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
+        return self.on(ChannelEvents.PINS_UPDATE)
 
-    def on_delete(self):
-        return self.on(ChannelEvent.DELETE)
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
+        event = ChannelEvents(event)
 
-    def on_pins_update(self):
-        return self.on(ChannelEvent.PINS_UPDATE)
+        guild = SnowflakeWrapper(payload['guild_id'], state=self.client.guilds)
 
-    def get_events(self) -> type[ChannelEvent]:
-        return ChannelEvent
-
-    def get_intents(self) -> WebSocketIntents:
-        return WebSocketIntents.GUILDS
-
-    async def process_event(
-        self, event: str, shard: ShardWebSocket, payload: JSONData
-    ) -> BaseEvent:
-        event = self.cast_event(event)
-
-        if event is ChannelEvent.CREATE:
+        if event is ChannelEvents.CREATE:
             channel = await self.upsert(payload)
-            return ChannelCreateEvent(shard=shard, payload=payload, channel=channel)
+            return ChannelCreateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
-        if event is ChannelEvent.UPDATE:
+        elif event is ChannelEvents.UPDATE:
             channel = await self.upsert(payload)
-            return ChannelUpdateEvent(shard=shard, payload=payload, channel=channel)
+            return ChannelUpdateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
-        if event is ChannelEvent.DELETE:
-            channel = self.pop(payload['id'])
-            return ChannelDeleteEvent(shard=shard, payload=payload, channel=channel)
+        elif event is ChannelEvents.DELETE:
+            channel = await self.delete(payload['id'])
+            return ChannelDeleteEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
-        if event is ChannelEvent.PINS_UPDATE:
-            channel = self.wrap_id(payload['channel_id'])
+        elif event is ChannelEvents.PINS_UPDATE:
+            channel = await self.get(payload['channel_id'])
 
             timestamp = payload.get('timestamp')
             if timestamp is not None:
                 timestamp = datetime.fromisoformat(timestamp)
 
             return ChannelPinsUpdateEvent(
-                shard=shard, payload=payload, channel=channel, timestmap=timestamp
+                shard=shard, payload=payload, guild=guild, channel=channel, timestamp=timestamp
             )
 
 
-class GuildChannelState(BaseSubState):
-    def __init__(self, *, superstate: BaseClientState, guild: Guild) -> None:
-        super().__init__(superstate=superstate)
-        self.guild = guild
-
-    async def upsert(self, data):
-        data['guild_id'] = Guild.id.deconstruct(self.guild.id)
-        return await super().upsert(data)
-
-    async def fetch_all(self) -> list[BaseChannel]:
-        channels = await self.client.rest.request(GET_GUILD_CHANNELS, guild_id=self.guild.id)
-        assert isinstance(channels, list)
-
-        return [await self.upsert(channel) for channel in channels]
-
-    async def create(
+class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChannel]):
+    def __init__(
         self,
         *,
-        name: str,
-        type: MaybeUndefined[ChannelType] = undefined,
-        topic: MaybeUndefined[str] = undefined,
-        bitrate: MaybeUndefined[int] = undefined,
-        user_limit: MaybeUndefined[int] = undefined,
-        slowmode: MaybeUndefined[int] = undefined,
-        position: MaybeUndefined[int] = undefined,
-        permissions=undefined,
-        parent: MaybeUndefined[ChannelUnwrappable] = undefined,
-        nsfw: MaybeUndefined[bool] = undefined,
-    ) -> BaseChannel:
-        body = JSONBuilder()
-
-        body.str('name', name)
-        body.int('type', type)
-        body.str('topic', topic)
-        body.int('bitrate', bitrate)
-        body.int('user_limit', user_limit)
-        body.int('rate_limit_per_user', slowmode)
-        body.int('position', position)
-
-        if parent is not undefined:
-            body.snowflake('parent', self.unwrap_id(parent))
-
-        body.bool('nsfw', nsfw)
-
-        channel = await self.client.rest.request(
-            CREATE_GUILD_CHANNEL, guild_id=self.guild.id, json=body
-        )
-        assert isinstance(channel, dict)
-
-        return await self.upsert(channel)
-
-    async def modify_positions(self, channels: dict[ChannelUnwrappable, ChannelPosition]) -> None:
-        positions = []
-
-        for channel, position in channels.items():
-            body = JSONBuilder()
-
-            body.snowflake('id', self.unwrap_id(channel))
-            body.int('position', position.position, nullable=True)
-            body.bool('lock_permissions', position.lock_permissions, nullable=True)
-
-            if position.parent is not undefined:
-                body.snowflake('parent', self.unwrap_id(position.parent), nullable=True)
-
-            positions.append(body)
-
-        await self.client.rest.request(
-            MODIFY_GUILD_CHANNEL_POSITIONS, guild_id=self.guild.id, json=positions
-        )
+        state: ChannelState,
+        channels: typing.Iterable[SupportsChannelID],
+        guild: SupportsGuildID,
+    ) -> None:
+        super().__init__(state=state, keys=channels)
+        self.guild_id = self.client.guilds.to_unique(guild)

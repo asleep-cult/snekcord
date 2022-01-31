@@ -1,100 +1,137 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import typing
 
-from .. import json
-from ..exceptions import UnknownObjectError
+import attr
+
+from ..exceptions import UnknownCodeError, UnknownSnowflakeError
 from ..snowflake import Snowflake
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
+    from typing_extensions import Self
+
     from ..clients import Client
-    from ..states import BaseCachedState
+    from ..states import CachedState
 
-__all__ = ('SnowflakeObject', 'ObjectWrapper')
+__all__ = (
+    'BaseObject',
+    'SnowflakeObject',
+    'CodeObject',
+    'SnowflakeWrapper',
+    'CodeWrapper',
+)
+
+SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
+UniqueT = typing.TypeVar('UniqueT')
+ObjectT = typing.TypeVar('ObjectT')
 
 
-class _IDField(json.JSONField):
-    def __init__(self) -> None:
-        super().__init__('id', repr=True)
+@attr.s(kw_only=True, slots=True)
+class BaseObject(typing.Generic[SupportsUniqueT, UniqueT]):
+    """The base class for all Discord objects."""
 
-    def construct(self, value: str) -> Snowflake:
-        return Snowflake(value)
-
-    def deconstruct(self, value: Snowflake) -> str:
-        return str(value)
-
-
-class BaseObject:
-    __slots__ = ()
-
-    def __init__(self, *, state: BaseCachedState) -> None:
-        self.state = state
-
-    def _get_id(self):
-        raise NotImplementedError
+    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.ib(repr=False, eq=False, hash=False)
 
     @property
     def client(self) -> Client:
         return self.state.client
 
-    def is_cached(self) -> bool:
-        return self._get_id() in self.state.cache.keys()
 
-    async def fetch(self):
-        return await self.state.fetch(self._get_id())
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
+class SnowflakeObject(BaseObject[SupportsUniqueT, Snowflake]):
+    """The base class for all objects with an id."""
 
-
-class SnowflakeObject(json.JSONObject, BaseObject):
-    __slots__ = ('__weakref__', 'state')
-
-    id = _IDField()
-
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
-        self.state.cache[self.id] = self
-
-    def _get_id(self):
-        return self.id
+    id: Snowflake = attr.ib(repr=True, eq=True, hash=True)
 
 
-class CodeObject(json.JSONObject, BaseObject):
-    __slots__ = ('__weakref__', 'state')
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
+class CodeObject(BaseObject[SupportsUniqueT, str]):
+    """The base class for all objects with a code."""
 
-    code = json.JSONField('code', repr=True)
-
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
-        self.state.cache[self.code] = self
-
-    def _get_id(self):
-        return self.code
+    code: str = attr.field(repr=True, eq=True, hash=True)
 
 
-class ObjectWrapper(BaseObject):
-    __slots__ = ('__weakref__', 'state', 'id')
+class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
+    """A wrapper for a Snowflake allowing for retrieval of the underlying object."""
 
-    def __init__(self, *, state, id) -> None:
-        super().__init__(state=state)
-        self.set_id(id)
+    def __init__(
+        self,
+        id: typing.Optional[SupportsUniqueT],
+        *,
+        state: CachedState[SupportsUniqueT, Snowflake, ObjectT],
+    ) -> None:
+        self.state = state
+        self.id = self.state.to_unique(id) if id is not None else None
 
     def __repr__(self) -> str:
-        return f'<ObjectWrapper id={self.id}>'
+        return f'SnowflakeWrapper(id={self.id})'
 
-    def _get_id(self):
-        return self.id
+    async def unwrap(self) -> ObjectT:
+        """Attempts to retrieve the object from cache.
 
-    def set_id(self, id):
-        if id is not None:
-            self.id = self.state.unwrap_id(id)
-        else:
-            self.id = None
+        Example
+        -------
+        .. code-block:: python
 
-    def unwrap(self):
+            >>> user = SnowflakeWrapper(506618674921340958, state=client.users)
+            >>> await user.unwrap()
+            User(id=506618674921340958, name='ToxicKidz', discriminator='4376')
+
+        Raises
+        ------
+        TypeError
+            The wrapper is empty; i.e. the ID is None.
+        UnknownSnowflakeError
+            The object is not in cache or it does not exist.
+        """
         if self.id is None:
-            raise UnknownObjectError(None)
+            raise TypeError('unwrap() called on empty wrapper')
 
-        object = self.state.get(self.id)
+        object = await self.state.get(self.id)
         if object is None:
-            raise UnknownObjectError(self.id)
+            raise UnknownSnowflakeError(self.id)
+
+        return object
+
+
+class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
+    """A wrapper for a code allowing for retrieval of the underlying object."""
+
+    def __init__(
+        self,
+        code: typing.Optional[SupportsUniqueT],
+        *,
+        state: CachedState[SupportsUniqueT, str, ObjectT],
+    ) -> None:
+        self.state = state
+        self.code = self.state.to_unique(code) if code is not None else None
+
+    def __repr__(self) -> str:
+        return f'CodeWrapper(code={self.code!r})'
+
+    async def unwrap(self) -> ObjectT:
+        """Attempts to retrieve the object from cache.
+
+        Example
+        -------
+        .. code-block:: python
+
+            >>> invite = CodeWrapper('kAe2m4hdZ7', state=client.invites)
+            >>> await invite.unwrap()
+            Invite(code='kAe2m4hdZ7', uses=28)
+
+        Raises
+        ------
+        TypeError
+            The wrapper is empty; i.e. the code is None.
+        UnknownCodeError
+            The object is not in cache or it does not exist.
+        """
+        if self.code is None:
+            raise TypeError('unwrap() called on empty wrapper')
+
+        object = await self.state.get(self.code)
+        if object is None:
+            raise UnknownCodeError(self.code)
 
         return object

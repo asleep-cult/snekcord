@@ -1,7 +1,11 @@
 import enum
 
+__all__ = ('WebSocketIntents',)
+
 
 class WebSocketIntents(enum.IntFlag):
+    NONE = 0
+
     GUILDS = 1 << 0
     GUILD_MEMBERS = 1 << 1
     GUILD_BANS = 1 << 2
@@ -18,3 +22,20 @@ class WebSocketIntents(enum.IntFlag):
     DIRECT_MESSAGE_REACTIONS = 1 << 13
     DIRECT_MESSAGE_TYPING = 1 << 14
     GUILD_SCHEDULED_EVENTS = 1 << 16
+
+    UNPRIVILEGED = (
+        GUILDS
+        | GUILD_BANS
+        | GUILD_EMOJIS_AND_STICKERS
+        | GUILD_INTEGRATIONS
+        | GUILD_WEBHOOKS
+        | GUILD_INVITES
+        | GUILD_VOICE_STATES
+        | GUILD_MESSAGES
+        | GUILD_MESSAGE_REACTIONS
+        | GUILD_MESSAGE_TYPING
+        | DIRECT_MESSAGES
+        | DIRECT_MESSAGE_REACTIONS
+        | DIRECT_MESSAGE_TYPING
+        | GUILD_SCHEDULED_EVENTS
+    )

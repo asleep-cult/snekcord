@@ -1,135 +1,164 @@
 from __future__ import annotations
 
 import asyncio
-import enum
+import typing
+import weakref
 from collections import defaultdict
-from typing import TYPE_CHECKING
 
-from ..collection import (
-    Collection,
-    WeakCollection,
+from ..cache import (
+    CacheDriver,
+    MemoryCacheDriver,
 )
-from ..objects import ObjectWrapper
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
+    from ..clients import Client
+    from ..cache import CachedModel
     from ..events import BaseEvent
-    from ..intents import WebSocketIntents
-    from ..json import JSONData
-    from ..websockets import ShardWebSocket
-    from ..clients.client import Client
+    from ..json import JSONObject
+    from ..websockets import Shard
+else:
+    BaseEvent = typing.NewType('BaseEvent', typing.Any)
+    CachedModel = typing.NewType('CachedModel', typing.Any)
 
 __all__ = (
-    'BaseClientState',
-    'BaseCachedState',
-    'BaseCachedClientState',
-    'BaseSubState',
+    'EventState',
+    'CachedState',
+    'CachedEventState',
 )
 
+SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
+UniqueT = typing.TypeVar('UniqueT')
+CachedModelT = typing.TypeVar('CachedModelT', bound=CachedModel)
+ObjectT = typing.TypeVar('ObjectT')
 
-class BaseClientState:
+EventT = typing.TypeVar('EventT', bound=BaseEvent)
+OnCallbackT = typing.Callable[[EventT], typing.Awaitable[None]]
+OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
+
+
+class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
+    callbacks: defaultdict[str, list[OnCallbackT[BaseEvent]]]
+
     def __init__(self, *, client: Client) -> None:
         self.client = client
-        self._callbacks = defaultdict(list)
-        self._waiters = defaultdict(list)
+        self.callbacks = defaultdict(list)
 
-    @classmethod
-    def unwrap_id(cls, object):
+        for event in self.events:
+            self.client.events[event] = self
+
+    @property
+    def events(self) -> typing.Tuple[str]:
+        return tuple()
+
+    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
         raise NotImplementedError
 
-    def get_events(self) -> type[enum.Enum]:
-        raise NotImplementedError
+    def on(self, event: str) -> OnDecoratorT[EventT]:
+        if event not in self.events:
+            raise TypeError(f'Invalid event: {event!r}')
 
-    def cast_event(self, event: str) -> enum.Enum:
-        return self.get_events()(event)
+        def decorator(callback: OnCallbackT[EventT]) -> OnCallbackT[EventT]:
+            if not asyncio.iscoroutinefunction(callback):
+                raise TypeError('The callback should be a coroutine function')
 
-    def get_intents(self) -> WebSocketIntents:
-        raise NotImplementedError
-
-    def listen(self):
-        self.client.enable_events(self)
-
-    def on(self, event: str):
-        event = self.cast_event(event)
-
-        def decorator(func):
-            if not asyncio.iscoroutinefunction(func):
-                raise TypeError('The callback should be a coroutine function.')
-
-            self._callbacks[event].append(func)
+            self.callbacks[event].append(callback)
+            return callback
 
         return decorator
 
-    async def process_event(
-        self, event: str, shard: ShardWebSocket, payload: JSONData
-    ) -> BaseEvent:
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         raise NotImplementedError
 
-    async def dispatch(self, event: str, shard: ShardWebSocket, payload: JSONData) -> None:
-        ret = await self.process_event(event, shard, payload)
+    async def dispatch(self, event: str, shard: Shard, paylaod: JSONObject) -> None:
+        ret = await self.create_event(event, shard, paylaod)
 
-        for callback in self._callbacks[event]:
-            self.client.loop.create_task(callback(ret))
+        for callback in self.callbacks[event]:
+            asyncio.create_task(callback(ret))
 
 
-class BaseCachedState:
-    cache: Collection
+class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
+    client: Client
 
-    @classmethod
-    def unwrap_id(cls, object):
+    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
         raise NotImplementedError
 
-    def wrap_id(self, object):
-        return ObjectWrapper(state=self, id=object)
-
-    def __contains__(self, object):
-        return self.unwrap_id(object) in self.cache.keys()
-
-    def __iter__(self):
-        return iter(self.cache)
-
-    def get(self, object):
-        return self.cache.get(self.unwrap_id(object))
-
-    def pop(self, object):
-        return self.cache.pop(self.unwrap_id(object), None)
-
-    async def upsert(self, data):
+    def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         raise NotImplementedError
 
+    async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        raise NotImplementedError
 
-class BaseCachedClientState(BaseCachedState, BaseClientState):
+    async def all(self) -> list[ObjectT]:
+        return [object async for object in self]
+
+
+class CachedEventState(  # type: ignore
+    typing.Generic[SupportsUniqueT, UniqueT, CachedModelT, ObjectT],
+    EventState[SupportsUniqueT, UniqueT],
+    CachedState[SupportsUniqueT, UniqueT, ObjectT],
+):
+    locks: defaultdict[UniqueT, asyncio.Lock]
+
     def __init__(self, *, client: Client) -> None:
-        BaseClientState.__init__(self, client=client)
-        self.cache = Collection()
+        super().__init__(client=client)
+        self.cache = self.create_driver()
+        self.locks = defaultdict(asyncio.Lock, weakref.WeakValueDictionary())
+
+    def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
+        return MemoryCacheDriver()
+
+    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
+        raise NotImplementedError
+
+    def synchronize(self, object: SupportsUniqueT) -> asyncio.Lock:
+        return self.locks[self.to_unique(object)]
+
+    async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
+        async for item in self.cache.iterate():
+            yield await self.from_cached(item)
+
+    async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        cached = await self.cache.get(self.to_unique(object))
+        if cached is not None:
+            return await self.from_cached(cached)
+
+    async def delete(
+        self, object: typing.Union[UniqueT, SupportsUniqueT]
+    ) -> typing.Optional[ObjectT]:
+        cached = await self.cache.delete(self.to_unique(object))
+
+        if cached is not None:
+            await self.remove_refs(cached)
+            return await self.from_cached(cached)
+
+    async def remove_refs(self, object: CachedModelT) -> None:
+        """Removes any references to object from the corresponding RefStores.
+        This is called as part of the deletion routine and should not be called
+        manually."""
+
+    async def from_cached(self, cached: CachedModelT) -> ObjectT:
+        raise NotImplementedError
 
 
-class BaseSubState(BaseCachedState):
-    def __init__(self, *, superstate: BaseClientState) -> None:
-        if isinstance(superstate, BaseCachedClientState):
-            self.cache = WeakCollection()
-        else:
-            self.cache = Collection()
+class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
+    def __init__(
+        self,
+        *,
+        state: CachedState[SupportsUniqueT, UniqueT, ObjectT],
+        keys: typing.Iterable[SupportsUniqueT],
+    ) -> None:
+        self.state = state
+        self.client = self.state.client
+        self.keys = frozenset(self.to_unique(key) for key in keys)
 
-        self.superstate = superstate
+    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
+        return self.state.to_unique(object)
 
-    @property
-    def client(self) -> Client:
-        return self.superstate.client
+    def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
+        iterator = (await self.state.get(key) for key in self.keys)
+        return (object async for object in iterator if object is not None)
 
-    def unwrap_id(self, object):
-        return self.superstate.unwrap_id(object)
-
-    def wrap_id(self, object):
-        if isinstance(self.superstate, BaseCachedState):
-            return self.superstate.wrap_id(object)
-
-        return ObjectWrapper(state=self, id=object)
-
-    async def upsert(self, data):
-        if not isinstance(self.superstate, BaseCachedState):
-            raise NotImplementedError('substate with non-cached superstate must implement upsert')
-
-        object = await self.superstate.upsert(data)
-        self.cache[self.unwrap_id(object)] = object
-
-        return object
+    async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        key = self.to_unique(object)
+        if key in self.keys:
+            return await self.state.get(key)

@@ -1,22 +1,82 @@
+from __future__ import annotations
+
 import enum
+import typing
+from datetime import datetime
+
+import attr
 
 from .base import SnowflakeObject
-from .emoji import CustomEmoji
-from .. import json
+from ..cache import CachedModel
+from ..snowflake import Snowflake
+from ..undefined import MaybeUndefined
+
+if typing.TYPE_CHECKING:
+    from ..states import (
+        ChannelIDWrapper,
+        GuildChannelsView,
+        GuildEmojisView,
+        # GuildMembersView,
+        GuildRolesView,
+        GuildState,
+        SupportsGuildID,
+        UserIDWrapper,
+    )
+else:
+    SupportsGuildID = typing.NewType('SupportsChannelID', typing.NewType)
 
 __all__ = (
-    'GuildMessageNotifications',
+    'CachedGuild',
+    'GuildMessageNotificationsLevel',
     'GuildMFALevel',
     'GuildVerificationLevel',
     'GuildNSFWLevel',
     'GuildExplicitContentFilter',
     'GuildPremiumTier',
     'GuildSystemChannelFlags',
+    'GuildFeature',
+    'PartialGuild',
+    'GuildPreview',
     'Guild',
+    'RESTGuild',
 )
 
 
-class GuildMessageNotifications(enum.IntEnum):
+class CachedGuild(CachedModel):
+    id: Snowflake
+    name: str
+    icon: typing.Optional[str]
+    splash: typing.Optional[str]
+    discovery_splash: typing.Optional[str]
+    owner_id: str
+    afk_channel_id: typing.Optional[str]
+    afk_timeout: int
+    widget_enabled: MaybeUndefined[bool]
+    widget_channel_id: MaybeUndefined[typing.Optional[str]]
+    verification_level: int
+    default_message_notifications: int
+    explicit_content_filter: int
+    features: typing.List[str]
+    mfa_level: int
+    application_id: typing.Optional[str]
+    system_channel_id: typing.Optional[str]
+    system_channel_flags: int
+    rules_channel_id: typing.Optional[int]
+    joined_at: MaybeUndefined[str]
+    max_presences: MaybeUndefined[int]
+    max_members: MaybeUndefined[int]
+    vanity_url_code: typing.Optional[str]
+    description: typing.Optional[str]
+    banner: typing.Optional[str]
+    premium_tier: int
+    premium_subscription_count: MaybeUndefined[int]
+    preferred_locale: str
+    public_updates_channel_id: typing.Optional[str]
+    max_video_channel_users: MaybeUndefined[int]
+    nsfw_level: int
+
+
+class GuildMessageNotificationsLevel(enum.IntEnum):
     ALL_MESSAGES = 0
     ONLY_MENTIONS = 1
 
@@ -86,86 +146,70 @@ class GuildFeature(enum.Enum):
     WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED'
 
 
-class Guild(SnowflakeObject):
-    __slots__ = (
-        'roles',
-        'emojis',
-        'members',
-        'channels',
-        'owner',
-        'afk_channel',
-        'widget_channel',
-        'system_channel',
-        'rules_channel',
-        'public_updates_channel',
-    )
+@attr.s(kw_only=True)
+class PartialGuild(SnowflakeObject[SupportsGuildID]):
+    state: GuildState
 
-    name = json.JSONField('name')
-    icon = json.JSONField('icon')
-    splash = json.JSONField('splash')
-    discovery_splash = json.JSONField('discovery_splash')
-    afk_timeout = json.JSONField('afk_timeout')
-    features = json.JSONArray('features', GuildFeature)
-    system_channel_flags = json.JSONField('system_channel_flags', GuildSystemChannelFlags)
-    verification_level = json.JSONField('verification_level', GuildVerificationLevel)
-    message_notifications_level = json.JSONField(
-        'default_message_notifications', GuildMessageNotifications
-    )
-    explicit_content_filter = json.JSONField('explicit_content_filter', GuildExplicitContentFilter)
-    mfa_level = json.JSONField('mfa_level', GuildMFALevel)
-    nsfw_level = json.JSONField('nsfw_level', GuildNSFWLevel)
-    premium_tier = json.JSONField('premium_tier', GuildPremiumTier)
-    large = json.JSONField('large')
-    unavailable = json.JSONField('unavailable')
-    max_presences = json.JSONField('max_presences')
-    max_members = json.JSONField('max_members')
-    description = json.JSONField('description')
-    preferred_locale = json.JSONField('preferred_locale')
+    name: str = attr.ib()
+    icon: typing.Optional[str] = attr.ib()
 
-    def __init__(self, *, state) -> None:
-        super().__init__(state=state)
 
-        self.roles = self.client.create_role_state(guild=self)
-        self.emojis = self.client.create_emoji_state(guild=self)
-        self.members = self.client.create_member_state(guild=self)
-        self.channels = self.client.create_channel_state(guild=self)
+class GuildPreview(PartialGuild):
+    splash: typing.Optional[str] = attr.ib()
+    discovery_splash: typing.Optional[str] = attr.ib()
+    features: typing.List[GuildFeature] = attr.ib()
+    presence_count: int = attr.ib()
+    member_count: int = attr.ib()
+    description: str = attr.ib()
+    emojis = attr.ib()
 
-        self.owner = self.client.users.wrap_id(None)
-        self.afk_channel = self.client.channels.wrap_id(None)
-        self.widget_channel = self.client.channels.wrap_id(None)
-        self.system_channel = self.client.channels.wrap_id(None)
-        self.rules_channel = self.client.channels.wrap_id(None)
-        self.public_updates_channel = self.client.channels.wrap_id(None)
 
-    async def update_roles(self, roles):
-        upserted = set()
-        for role in roles:
-            upserted.add(await self.roles.upsert(role))
+@attr.s(kw_only=True)
+class Guild(PartialGuild):
+    splash: typing.Optional[str] = attr.ib()
+    discovery_splash: typing.Optional[str] = attr.ib()
+    owner: UserIDWrapper = attr.ib()
+    afk_channel: ChannelIDWrapper = attr.ib()
+    afk_timeout: int = attr.ib()
+    widget_enabled: typing.Optional[bool] = attr.ib()
+    widget_channel: ChannelIDWrapper = attr.ib()
+    verification_level: typing.Union[GuildVerificationLevel, int] = attr.ib()
+    message_notifications_level: typing.Union[GuildMessageNotificationsLevel, int] = attr.ib()
+    explicit_content_filter: typing.Union[GuildExplicitContentFilter, int] = attr.ib()
+    features: typing.List[typing.Union[GuildFeature, str]] = attr.ib()
+    mfa_level: typing.Union[GuildMFALevel, int] = attr.ib()
+    # application: ApplicationIDWrapper = attr.ib()
+    system_channel: ChannelIDWrapper = attr.ib()
+    system_channel_flags: GuildSystemChannelFlags = attr.ib()
+    joined_at: typing.Optional[datetime] = attr.ib()
+    max_presences: typing.Optional[int] = attr.ib()
+    max_members: typing.Optional[int] = attr.ib()
+    vanity_url_code: typing.Optional[str] = attr.ib()
+    description: typing.Optional[str] = attr.ib()
+    banner: typing.Optional[str] = attr.ib()
+    premium_tier: typing.Union[GuildPremiumTier, int] = attr.ib()
+    premium_subscription_count: typing.Optional[int] = attr.ib()
+    preferred_locale: str = attr.ib()
+    public_updates_channel: ChannelIDWrapper = attr.ib()
+    max_video_channel_users: typing.Optional[int] = attr.ib()
+    nsfw_level: typing.Union[GuildNSFWLevel, int] = attr.ib()
+    roles: GuildRolesView = attr.ib()
+    emojis: GuildEmojisView = attr.ib()
+    # members: GuildMembersView = attr.ib()
+    channels: GuildChannelsView = attr.ib()
 
-        for role in self.roles:
-            if role not in upserted:
-                self.roles.cache.pop(role.id)
 
-    async def update_members(self, members):
-        for member in members:
-            await self.members.upsert(member)
+@attr.s(kw_only=True)
+class RESTGuild(Guild):
+    presence_count: typing.Optional[int] = attr.ib()
+    member_count: typing.Optional[int] = attr.ib()
 
-    async def update_channels(self, channels):
-        upserted = set()
-        for channel in channels:
-            channel['guild_id'] = Guild.id.deconstruct(self.id)
-            upserted.add(await self.channels.upsert(channel))
-
-        for channel in self.channels:
-            if channel not in upserted:
-                self.channels.cache.pop(channel.id)
-
-    async def update_emojis(self, emojis):
-        upserted = set()
-        for emoji in emojis:
-            emoji['guild_id'] = CustomEmoji.id.deconstruct(self.id)
-            upserted.add(await self.emojis.upsert(emoji))
-
-        for emoji in self.emojis:
-            if emoji not in upserted:
-                self.emojis.cache.pop(emoji.id)
+    @classmethod
+    def from_guild(
+        cls,
+        guild: Guild,
+        *,
+        presence_count: typing.Optional[int],
+        member_count: typing.Optional[int],
+    ) -> RESTGuild:
+        return cls(presence_count=presence_count, member_count=member_count, **attr.asdict(guild))

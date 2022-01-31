@@ -1,51 +1,56 @@
-from .base import SnowflakeObject
-from .. import json
+from __future__ import annotations
 
-__all__ = ('RoleTags', 'Role')
+import typing
+
+import attr
+
+from ..cache import CachedModel
+from ..objects import SnowflakeObject
+from ..snowflake import Snowflake
+from ..undefined import MaybeUndefined
+
+if typing.TYPE_CHECKING:
+    from ..states import (
+        RoleState,
+        GuildIDWrapper,
+        SupportsRoleID,
+    )
+else:
+    SupportsRoleID = typing.NewType('SupportsRoleID', typing.NewType)
 
 
-class RoleTags(json.JSONObject):
-    __slots__ = ('role', 'bot', 'integration')
-
-    premium_subscriper = json.JSONField('premium_subscriber')
-
-    def __init__(self, *, role):
-        self.role = role
-        self.bot = self.client.users.wrap_id(None)
-        # self.integration = self.role.guild.integrations.wrap_id(None)
-
-    @property
-    def client(self):
-        return self.role.client
+class CachedRoleTags(typing.TypedDict, total=False):
+    bot_id: str
+    integration_id: str
+    premium_subscriber: None
 
 
-class Role(SnowflakeObject):
-    __slots__ = ('tags',)
+class CachedRole(CachedModel):
+    id: Snowflake
+    guild_id: typing.Optional[Snowflake]
+    name: str
+    color: int
+    hoist: bool
+    icon: typing.Optional[MaybeUndefined[str]]
+    unicode_emoji: typing.Optional[str]
+    position: int
+    permissions: str
+    managed: bool
+    mentionable: bool
+    tags: MaybeUndefined[CachedRoleTags]
 
-    name = json.JSONField('name')
-    color = json.JSONField('color')
-    hoist = json.JSONField('hoist')
-    icon = json.JSONField('icon')
-    emoji = json.JSONField('unicode_emoji')
-    # permissions
-    managed = json.JSONField('managed')
-    mentionable = json.JSONField('mentionable')
 
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.tags = RoleTags(role=self)
+@attr.s(kw_only=True, slots=True, hash=True)
+class Role(SnowflakeObject[SupportsRoleID]):
+    state: RoleState
 
-    @property
-    def guild(self):
-        return self.state.guild
-
-    async def update_tags(self, data):
-        bot_id = data.get('bot_id')
-        if bot_id is not None:
-            self.tags.bot.set_id(bot_id)
-
-        integration_id = data.get('integration_id')
-        if integration_id is not None:
-            self.tags.integration.set_id(integration_id)
-
-        self.tags.update(data)
+    guild: GuildIDWrapper = attr.ib(hash=False, eq=False)
+    name: str = attr.ib(hash=False, eq=False)
+    color: int = attr.ib(repr=False, hash=False, eq=False)
+    hoist: bool = attr.ib(hash=False, eq=False)
+    icon: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    unicode_emoji: typing.Optional[str] = attr.ib(hash=False, eq=False)
+    position: int = attr.ib(hash=False, eq=False)
+    permissions: str = attr.ib(repr=False, hash=False, eq=False)
+    managed: bool = attr.ib(hash=False, eq=False)
+    # tags

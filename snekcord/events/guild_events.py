@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import enum
-from typing import TYPE_CHECKING
+import typing
+
+import attr
 
 from .base_events import BaseEvent
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from ..objects import Guild
-    from ..json import JSONData
-    from ..websockets import ShardWebSocket
 
 __all__ = (
-    'GuildEvent',
+    'GuildEvents',
     'GuildJoinEvent',
     'GuildAvailableEvent',
     'GuildReceiveEvent',
@@ -21,7 +21,7 @@ __all__ = (
 )
 
 
-class GuildEvent(str, enum.Enum):
+class GuildEvents(str, enum.Enum):
     JOIN = 'GUILD_JOIN'
     AVAILABLE = 'GUILD_AVAILABLE'
     RECEIVE = 'GUILD_RECEIVE'
@@ -30,67 +30,31 @@ class GuildEvent(str, enum.Enum):
     UNAVAILABLE = 'GUILD_UNAVAILABLE'
 
 
+@attr.s(kw_only=True)
 class GuildJoinEvent(BaseEvent):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.guild = guild
-
-    def __repr__(self) -> str:
-        return f'<GuildJoinEvent guild={self.guild!r}>'
+    guild: Guild = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildAvailableEvent(BaseEvent):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.guild = guild
-
-    def __repr__(self) -> str:
-        return f'<GuildAvailableEvent guild={self.guild!r}>'
+    guild: Guild = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildReceiveEvent(BaseEvent):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.guild = guild
-
-    def __repr__(self) -> str:
-        return f'<GuildReceiveEvent guild={self.guild!r}>'
+    guild: Guild = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildUpdateEvent(BaseEvent):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.guild = guild
-
-    def __repr__(self) -> str:
-        return f'<GuildUpdateEvent guild={self.guild!r}>'
+    guild: Guild = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildDeleteEvent(BaseEvent):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.guild = guild
-
-    def __repr__(self) -> str:
-        return f'<GuildDeleteEvent guild={self.guild!r}>'
+    guild: typing.Optional[Guild] = attr.ib()
 
 
+@attr.s(kw_only=True)
 class GuildUnavailableEvent(BaseEvent):
-    __slots__ = ('guild',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, guild: Guild) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.guild = guild
-
-    def __repr__(self) -> str:
-        return f'<GuildUnavailableEvent guild={self.guild!r}>'
+    guild: typing.Optional[Guild] = attr.ib()

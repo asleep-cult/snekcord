@@ -1,275 +1,183 @@
 from __future__ import annotations
 
+import typing
 from datetime import datetime
-from typing import Iterable, Optional, TYPE_CHECKING, Union
 
 from .base_state import (
-    BaseClientState,
-    BaseSubState,
+    CachedEventState,
+    CachedStateView,
+    OnDecoratorT,
 )
-from ..builders import JSONBuilder
-from ..collection import Collection
+from ..enum import convert_enum
 from ..events import (
     BaseEvent,
     MessageBulkDeleteEvent,
     MessageCreateEvent,
     MessageDeleteEvent,
-    MessageEvent,
+    MessageEvents,
     MessageUpdateEvent,
 )
-from ..intents import WebSocketIntents
-from ..mentions import MessageMentions
 from ..objects import (
-    BaseChannel,
+    CachedMessage,
     Message,
-    ObjectWrapper,
+    MessageFlags,
+    MessageType,
+    SnowflakeWrapper,
 )
-from ..ordering import FetchOrdering
 from ..rest.endpoints import (
     CREATE_CHANNEL_MESSAGE,
-    DELETE_CHANNEL_MESSAGES,
-    GET_CHANNEL_MESSAGE,
-    GET_CHANNEL_MESSAGES,
 )
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined, UndefinedType, undefined
+from ..undefined import undefined
 
-if TYPE_CHECKING:
-    from ..clients import Client
-    from ..json import JSONData
-    from ..websockets import ShardWebSocket
+if typing.TYPE_CHECKING:
+    from .channel_state import SupportsChannelID
+    from ..json import JSONObject
+    from ..websockets import Shard
 
-__all__ = ('MessageUnwrappable', 'MessageState', 'ChannelMessageState')
+__all__ = (
+    'SupportsMessageID',
+    'MessageIDWrapper',
+    'MessageState',
+    'ChannelMessagesView',
+)
 
-MessageUnwrappable = Union[Snowflake, Message, str, int, ObjectWrapper]
+SupportsMessageID = typing.Union[Snowflake, str, int, Message]
+MessageIDWrapper = SnowflakeWrapper[SupportsMessageID, Message]
 
 
-class MessageState(BaseClientState):
-    def __init__(self, *, client: Client) -> None:
-        super().__init__(client=client)
-        self._direct_messages = False
+class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage, Message]):
+    @property
+    def events(self) -> typing.Tuple[str]:
+        return tuple(MessageEvents)
 
-    @classmethod
-    def unwrap_id(cls, object: MessageUnwrappable) -> Snowflake:
+    def to_unique(self, object: SupportsMessageID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
 
-        if isinstance(object, (int, str)):
+        elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, Message):
+        elif isinstance(object, Message):
             return object.id
 
-        if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, ChannelMessageState):
-                return object.id
+        raise TypeError('Expected Snowflake, str, int, or Message')
 
-            raise TypeError('Expected ObjectWrapper created by ChannelMessageState')
+    async def upsert(self, data: JSONObject) -> Message:
+        message_id = Snowflake.into(data, 'id')
+        assert message_id is not None
 
-        raise TypeError('Expected Snowflake, int, str, Message or ObjectWrapper')
-
-    def on_create(self):
-        return self.on(MessageEvent.CREATE)
-
-    def on_update(self):
-        return self.on(MessageEvent.UPDATE)
-
-    def on_delete(self):
-        return self.on(MessageEvent.DELETE)
-
-    def on_bulk_delete(self):
-        return self.on(MessageEvent.BULK_DELETE)
-
-    def get_events(self) -> type[MessageEvent]:
-        return MessageEvent
-
-    def get_intents(self):
-        intents = WebSocketIntents.GUILDS | WebSocketIntents.GUILD_MESSAGES
-
-        if self._direct_messages:
-            intents |= WebSocketIntents.DIRECT_MESSAGES
-
-        return intents
-
-    def listen(self, *, direct_messages=False):
-        self._direct_messages = direct_messages
-        return super().listen()
-
-    async def process_event(
-        self, event: str, shard: ShardWebSocket, payload: JSONData
-    ) -> BaseEvent:
-        event = self.cast_event(event)
-
-        if event is MessageEvent.CREATE:
-            channel = self.client.channels.get(payload['channel_id'])
-            if channel is not None:
-                message = await channel.messages.upsert(payload)
-            else:
-                message = None
-
-            return MessageCreateEvent(shard=shard, payload=payload, message=message)
-
-        if event is MessageEvent.UPDATE:
-            channel = self.client.channels.get(payload['channel_id'])
-            if channel is not None:
-                message = await channel.messages.upsert(payload)
-            else:
-                message = None
-
-            return MessageUpdateEvent(shard=shard, payload=payload, message=message)
-
-        if event is MessageEvent.DELETE:
-            channel = self.client.channels.get(payload['channel_id'])
-            if channel is not None:
-                message = channel.messages.pop(payload['id'])
-            else:
-                message = None
-
-            return MessageDeleteEvent(shard=shard, payload=payload, message=message)
-
-        if event is MessageEvent.BULK_DELETE:
-            messages = Collection()
-
-            channel = self.client.channels.get(payload['channel_id'])
-            if channel is not None:
-                for message_id in payload['ids']:
-                    message = channel.messages.pop(message_id)
-
-                    if message is not None:
-                        messages[message.id] = message
-
-            return MessageBulkDeleteEvent(shard=shard, payload=payload, messages=messages)
-
-
-class ChannelMessageState(BaseSubState):
-    def __init__(self, *, superstate: BaseClientState, channel: BaseChannel) -> None:
-        super().__init__(superstate=superstate)
-        self.channel = channel
-
-    async def upsert(self, data: JSONData) -> Message:
-        message = self.get(data['id'])
-        if message is not None:
-            message.update(data)
-        else:
-            message = Message.unmarshal(data, state=self)
+        channel_id = Snowflake.into(data, 'channel_id')
+        if channel_id is not None:
+            await self.client.channels.message_refstore.add(channel_id, message_id)
 
         author = data.get('author')
         if author is not None:
-            await message.update_author(author)
+            data['author_id'] = Snowflake(author['id'])
+            await self.client.users.upsert(author)
 
-        member = data.get('member')
-        if member is not None:
-            # await message.update_member(member)
-            pass
+        async with self.synchronize(message_id):
+            cached = await self.cache.get(message_id)
 
-        guild_id = data.get('guild_id')
-        if guild_id is not None:
-            message.guild.set_id(guild_id)
-
-        webhook_id = data.get('webhook_id')
-        if webhook_id is not None:
-            # message.webhook.set_id(webhook_id)
-            pass
-
-        application_id = data.get('application_id')
-        if application_id is not None:
-            # message.application.set_id(application_id)
-            pass
-
-        return message
-
-    async def fetch(self, message: MessageUnwrappable) -> Message:
-        message_id = self.unwrap_id(message)
-
-        data = await self.client.rest.request(
-            GET_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=message_id
-        )
-        assert isinstance(data, dict)
-
-        return await self.upsert(data)
-
-    async def fetch_many(
-        self,
-        ordering: Optional[FetchOrdering] = None,
-        message: Optional[Union[MessageUnwrappable, datetime]] = None,
-        *,
-        limit: MaybeUndefined[int] = undefined,
-    ) -> list[Message]:
-        params = JSONBuilder()
-
-        if ordering is not None:
-            if message is None:
-                raise TypeError('ordering and message are mutually inclusive')
-
-            if isinstance(message, datetime):
-                snowflake = Snowflake.build(message.timestamp())
+            if cached is None:
+                cached = CachedMessage.from_json(data)
+                await self.cache.create(message_id, cached)
             else:
-                snowflake = self.unwrap_id(message)
+                cached.update(data)
+                await self.cache.update(message_id, cached)
 
-            params.snowflake(ordering.value, snowflake)
-        else:
-            if message is not None:
-                raise TypeError('message and ordering are mutually inclusive')
+        return await self.from_cached(cached)
 
-        params.int('limit', limit)
+    async def from_cached(self, cached: CachedMessage) -> Message:
+        emited_timestamp = cached.edited_timestamp
+        if emited_timestamp is not None:
+            emited_timestamp = datetime.fromisoformat(emited_timestamp)
 
-        messages = await self.client.rest.request(
-            GET_CHANNEL_MESSAGES, channel_id=self.channel.id, params=params
+        guild_id = undefined.nullify(cached.guild_id)
+        author_id = undefined.nullify(cached.author_id)
+
+        return Message(
+            state=self,
+            id=Snowflake(cached.id),
+            channel=SnowflakeWrapper(cached.channel_id, state=self.client.channels),
+            guild=SnowflakeWrapper(guild_id, state=self.client.guilds),
+            author=SnowflakeWrapper(author_id, state=self.client.users),
+            content=cached.content,
+            timestamp=datetime.fromisoformat(cached.timestamp),
+            edited_timestamp=emited_timestamp,
+            tts=cached.tts,
+            nonce=undefined.nullify(cached.nonce),
+            pinned=cached.pinned,
+            type=convert_enum(MessageType, cached.type),
+            flags=MessageFlags(cached.flags),
         )
-        assert isinstance(messages, list)
 
-        return [await self.upsert(message) for message in messages]
+    async def remove_refs(self, object: CachedMessage) -> None:
+        if object.channel_id is not None:
+            await self.client.channels.message_refstore.remove(object.channel_id, object.id)
 
-    async def create(
-        self,
-        *,
-        content: MaybeUndefined[str] = undefined,
-        tts: MaybeUndefined[bool] = undefined,
-        embeds=undefined,
-        mentions: MaybeUndefined[MessageMentions] = undefined,
-        reference=undefined,
-        components=undefined,
-        stickers=undefined,
-        attachments=undefined,
-    ) -> Message:
-        body = JSONBuilder()
+    def on_create(self) -> OnDecoratorT[MessageCreateEvent]:
+        return self.on(MessageEvents.CREATE)
 
-        body.str('content', content)
-        body.bool('tts', tts)
+    def on_update(self) -> OnDecoratorT[MessageUpdateEvent]:
+        return self.on(MessageEvents.UPDATE)
 
-        if not isinstance(mentions, (MessageMentions, UndefinedType)):
-            cls = mentions.__class__
-            raise TypeError(
-                f'mentions should be MessageMentions or undefined, got {cls.__name__!r}'
+    def on_delete(self) -> OnDecoratorT[MessageDeleteEvent]:
+        return self.on(MessageEvents.DELETE)
+
+    def on_bulk_delete(self) -> OnDecoratorT[MessageBulkDeleteEvent]:
+        return self.on(MessageEvents.BULK_DELETE)
+
+    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
+        event = MessageEvents(event)
+
+        guild = SnowflakeWrapper(payload.get('guild_id'), state=self.client.guilds)
+        channel = SnowflakeWrapper(payload.get('channel_id'), state=self.client.channels)
+
+        if event is MessageEvents.CREATE:
+            message = await self.upsert(payload)
+            return MessageCreateEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, message=message
             )
 
-        body.set('allowed_mentions', mentions, transformer=MessageMentions.to_dict)
+        elif event is MessageEvents.UPDATE:
+            message = await self.upsert(payload)
+            return MessageUpdateEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, message=message
+            )
 
-        if reference is not undefined:
-            message_reference = JSONBuilder()
-            message_reference.snowflake('message_id', self.unwrap_id(reference))
+        elif event is MessageEvents.DELETE:
+            message = await self.delete(payload['id'])
+            return MessageDeleteEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, message=message
+            )
 
-            body['message_reference'] = message_reference
+        elif event is MessageEvents.BULK_DELETE:
+            messages: typing.List[Message] = []
 
-        data = await self.client.rest.request(
-            CREATE_CHANNEL_MESSAGE, channel_id=self.channel.id, json=body
-        )
-        assert isinstance(data, dict)
+            for message_id in payload['ids']:
+                message = await self.delete(message_id)
 
-        return await self.upsert(data)
+                if message is not None:
+                    messages.append(message)
 
-    async def delete_many(self, messages: Iterable[MessageUnwrappable]) -> None:
-        message_ids = {self.unwrap_id(message) for message in messages}
+            return MessageBulkDeleteEvent(
+                shard=shard, payload=payload, guild=guild, channel=channel, messages=messages
+            )
 
-        if len(message_ids) <= 1:
-            raise TypeError('Cannot bulk delete <= 1 message')
 
-        if len(message_ids) > 100:
-            raise TypeError('Cannot bulk delete > 100 messages')
+class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]):
+    def __init__(
+        self,
+        *,
+        state: MessageState,
+        messages: typing.Iterable[SupportsMessageID],
+        channel: SupportsChannelID,
+    ) -> None:
+        super().__init__(state=state, keys=messages)
+        self.channel_id = self.client.channels.to_unique(channel)
 
-        params = JSONBuilder()
-        params.snowflake_array(message_ids)
-
+    async def create(self, *, content: str) -> None:
         await self.client.rest.request(
-            DELETE_CHANNEL_MESSAGES, channel_id=self.channel.id, params=params
+            CREATE_CHANNEL_MESSAGE, channel_id=self.channel_id, json={'content': str(content)}
         )

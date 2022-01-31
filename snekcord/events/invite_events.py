@@ -1,53 +1,27 @@
 from __future__ import annotations
 
 import enum
-from typing import Optional, TYPE_CHECKING
+import typing
+
+import attr
 
 from .base_events import BaseEvent
 
-if TYPE_CHECKING:
-    from ..json import JSONData
-    from ..objects import (
-        ObjectWrapper,
-        Invite,
-    )
-    from ..websockets import ShardWebSocket
+if typing.TYPE_CHECKING:
+    from ..objects import Invite
 
-__all__ = ('InviteEvent', 'InviteCreateEvent', 'InviteDeleteEvent')
+__all__ = ('InviteEvents', 'InviteCreateEvent', 'InviteDeleteEvent')
 
 
-class InviteEvent(str, enum.Enum):
+class InviteEvents(str, enum.Enum):
     CREATE = 'INVITE_CREATE'
     DELETE = 'INVITE_DELETE'
 
 
+@attr.s(kw_only=True)
 class InviteCreateEvent(BaseEvent):
-    __slots__ = ('invite',)
-
-    def __init__(self, *, shard: ShardWebSocket, payload: JSONData, invite: Invite) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.invite = invite
-
-    def __repr__(self) -> str:
-        return f'<InviteCreateEvent invite={self.invite!r}>'
+    invite: Invite = attr.ib()
 
 
 class InviteDeleteEvent(BaseEvent):
-    __slots__ = ('invite',)
-
-    def __init__(
-        self, *, shard: ShardWebSocket, payload: JSONData, invite: Optional[Invite]
-    ) -> None:
-        super().__init__(shard=shard, payload=payload)
-        self.invite = invite
-
-    @property
-    def guild(self) -> ObjectWrapper:
-        return self.client.guilds.wrap_id(self.payload.get('guild_id'))
-
-    @property
-    def channel(self) -> ObjectWrapper:
-        return self.client.channels.wrap_id(self.payload.get('channel_id'))
-
-    def __repr__(self) -> str:
-        return f'<InviteDeleteEvent invite={self.invite!r}>'
+    invite: Invite = attr.ib()

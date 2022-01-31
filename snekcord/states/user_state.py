@@ -1,49 +1,89 @@
-from .base_state import BaseCachedClientState
+from __future__ import annotations
+
+import typing
+
+from .base_state import CachedEventState
+from ..enum import convert_enum
 from ..objects import (
-    ObjectWrapper,
+    CachedUser,
+    PremiumType,
+    SnowflakeWrapper,
     User,
-)
-from ..rest.endpoints import (
-    GET_USER,
+    UserFlags,
 )
 from ..snowflake import Snowflake
+from ..undefined import undefined
 
-__all__ = ('UserState',)
+if typing.TYPE_CHECKING:
+    from ..json import JSONObject
+
+__all__ = (
+    'SupportsUserID',
+    'UserIDWrapper',
+    'UserState',
+)
+
+SupportsUserID = typing.Union[Snowflake, str, int, User]
+UserIDWrapper = SnowflakeWrapper[SupportsUserID, User]
 
 
-class UserState(BaseCachedClientState):
-    @classmethod
-    def unwrap_id(cls, object) -> Snowflake:
+class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
+    def to_unique(self, object: SupportsUserID) -> Snowflake:
         if isinstance(object, Snowflake):
             return object
 
-        if isinstance(object, (int, str)):
+        elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        if isinstance(object, User):
+        elif isinstance(object, User):
             return object.id
 
-        if isinstance(object, ObjectWrapper):
-            if isinstance(object.state, cls):
-                return object.id
+        raise TypeError('Expected, Snowflake, str, int, or User')
 
-            raise TypeError('Expected ObjectWrapper created by UserState')
+    async def upsert(self, data: JSONObject) -> User:
+        user_id = Snowflake.into(data, 'id')
+        assert user_id is not None
 
-        raise TypeError('Expected Snowflake, int, str, User or ObjectWrapper')
+        async with self.synchronize(user_id):
+            cached = await self.cache.get(user_id)
 
-    async def upsert(self, data):
-        user = self.get(data['id'])
-        if user is not None:
-            user.update(data)
-        else:
-            user = User.unmarshal(data, state=self)
+            if cached is None:
+                cached = CachedUser.from_json(data)
+                await self.cache.create(user_id, cached)
+            else:
+                cached.update(data)
+                await self.cache.update(user_id, cached)
 
-        return user
+        return await self.from_cached(cached)
 
-    async def fetch(self, user):
-        user_id = self.unwrap_id(user)
+    async def from_cached(self, cached: CachedUser) -> User:
+        flags = undefined.nullify(cached.flags)
+        if flags is not None:
+            flags = UserFlags(flags)
 
-        data = await self.client.request(GET_USER, user_id=user_id)
-        assert isinstance(data, dict)
+        premium_type = undefined.nullify(cached.premium_type)
+        if premium_type is not None:
+            premium_type = convert_enum(PremiumType, premium_type)
 
-        return await self.upsert(data)
+        public_flags = undefined.nullify(cached.public_flags)
+        if public_flags is not None:
+            public_flags = UserFlags(public_flags)
+
+        return User(
+            state=self,
+            id=Snowflake(cached.id),
+            username=cached.username,
+            discriminator=cached.discriminator,
+            avatar=cached.avatar,
+            bot=undefined.nullify(cached.bot),
+            system=undefined.nullify(cached.system),
+            mfa_enabled=undefined.nullify(cached.mfa_enabled),
+            banner=undefined.nullify(cached.banner),
+            accent_color=undefined.nullify(cached.accent_color),
+            locale=undefined.nullify(cached.locale),
+            verified=undefined.nullify(cached.verified),
+            email=undefined.nullify(cached.email),
+            flags=flags,
+            premium_type=premium_type,
+            public_flags=public_flags,
+        )

@@ -1,29 +1,36 @@
 from http import HTTPStatus
 
 
-class MissingFieldError(Exception):
-    def __init__(self, field, instance):
-        self.field = field
-        self.instance = instance
+class IncompleteDataError(Exception):
+    def __init__(self, model):
+        self.model = model
 
     def __str__(self):
-        return f'{self.instance.__class__.__name__} object is missing field {self.field._name!r}'
+        return f'Received incomplete data for {self.model.__class__.__name__!r}'
 
 
-class InvalidFieldError(Exception):
-    def __init__(self, field):
-        self.field = field
+class InvalidResponseError(Exception):
+    def __init__(self, data):
+        self.data = data
 
     def __str__(self):
-        return f'Invalid data for field {self.field._name!r}'
+        return 'API responded with unsupported data'
 
 
-class UnknownObjectError(LookupError):
+class UnknownSnowflakeError(Exception):
     def __init__(self, id):
         self.id = id
 
     def __str__(self):
         return f'Object with id {self.id} is not cached'
+
+
+class UnknownCodeError(Exception):
+    def __init__(self, code: str) -> None:
+        self.code = code
+
+    def __str__(self):
+        return f'Object with code {self.code} is not cached'
 
 
 class ShardConnectError(Exception):
@@ -106,13 +113,10 @@ class RESTError(Exception):
 
         if isinstance(self.data, dict):
             if 'errors' in self.data:
-                stack = []
-
                 errors = self.data['errors']
                 assert isinstance(errors, dict)
 
-                for key, value in errors.items():
-                    stack.append(((key,), value))
+                stack = [((key,), value) for key, value in errors.items()]
 
                 while stack:
                     keys, errors = stack.pop()

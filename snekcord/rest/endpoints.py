@@ -202,3 +202,7 @@ GET_VOICE_REGIONS = RESTEndpoint(GET, '/voice/regions')
 
 GET_GATEWAY = RESTEndpoint(GET, '/gateway')
 GET_GATEWAY_BOT = RESTEndpoint(GET, '/gateway/bot')
+
+GET_CHANNEL_WEBHOOKS = RESTEndpoint(GET, '/channels/{channel_id}/webhooks')
+
+GET_GUILD_WEBHOOKS = RESTEndpoint(GET, '/guilds/{guild_id}/webhooks')

@@ -1,14 +1,21 @@
 ## snekcord!
+A higly customizable Discord API wrapper.
+
 ```py
 import asyncio
 import snekcord
 
-client = snekcord.WebSocketClient("Bot <TOKEN>")
-client.messages.listen()
+client = snekcord.WebSocketClient(
+    "Bot <TOKEN>"
+    intents=(
+        snekcord.WebSocketIntents.GUILDS
+        | snekcord.WebSocketIntents.GUILD_MESSAGES
+    )
+)
 
 @client.messages.on_create()
 async def message_create(evt: snekcord.MessageCreateEvent):
-    channel = evt.channel.unwrap()
+    channel = await evt.channel.unwrap()
 
     if evt.message.content == 'ping':
         await channel.messages.create(content='pong')

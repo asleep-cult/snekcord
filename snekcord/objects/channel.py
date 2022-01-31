@@ -1,28 +1,34 @@
 from __future__ import annotations
 
 import enum
-from collections import namedtuple
-from typing import TYPE_CHECKING
+import typing
+from datetime import datetime
+
+import attr
 
 from .base import SnowflakeObject
-from .. import json
-from ..builders import JSONBuilder
-from ..collection import Collection
-from ..exceptions import UnknownObjectError
+from ..cache import CachedModel
 from ..rest.endpoints import (
-    ADD_CHANNEL_PIN,
-    CREATE_CHANNEL_FOLLOWER,
     DELETE_CHANNEL,
-    GET_CHANNEL_PINS,
-    REMOVE_CHANNEL_PIN,
     TRIGGER_CHANNEL_TYPING,
 )
+from ..snowflake import Snowflake
+from ..undefined import MaybeUndefined
 
-if TYPE_CHECKING:
-    from .message import Message
-    from ..states import ChannelUnwrappable, MessageUnwrappable
+if typing.TYPE_CHECKING:
+    from ..states import (
+        ChannelMessagesView,
+        ChannelState,
+        ChannelIDWrapper,
+        GuildIDWrapper,
+        MessageIDWrapper,
+        SupportsChannelID,
+    )
+else:
+    SupportsChannelID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
+    'CachedChannel',
     'ChannelType',
     'BaseChannel',
     'GuildChannel',
@@ -32,7 +38,28 @@ __all__ = (
     'StoreChannel',
 )
 
-FollowedChannel = namedtuple('FollowedChannel', ('channel', 'webhook'))
+
+class CachedChannel(CachedModel):
+    id: Snowflake
+    type: int
+    guild_id: MaybeUndefined[Snowflake]
+    position: MaybeUndefined[int]
+    # permission_overwrites: MaybeUndefined[typing.List]
+    name: MaybeUndefined[str]
+    topic: MaybeUndefined[typing.Optional[str]]
+    nsfw: MaybeUndefined[bool]
+    last_message_id: MaybeUndefined[typing.Optional[str]]
+    bitrate: MaybeUndefined[int]
+    user_limit: MaybeUndefined[int]
+    rate_limit_per_user: MaybeUndefined[int]
+    recipient_ids: MaybeUndefined[typing.List[str]]
+    icon: MaybeUndefined[typing.Optional[str]]
+    owner_id: MaybeUndefined[str]
+    application_id: MaybeUndefined[str]
+    parent_id: MaybeUndefined[typing.Optional[str]]
+    last_pin_timestamp: MaybeUndefined[typing.Optional[str]]
+    rtc_region: MaybeUndefined[typing.Optional[str]]
+    video_quality_mode: MaybeUndefined[int]
 
 
 class ChannelType(enum.IntEnum):
@@ -49,10 +76,11 @@ class ChannelType(enum.IntEnum):
     GUILD_STAGE_VOICE = 13
 
 
-class BaseChannel(SnowflakeObject):
-    __slots__ = ()
+@attr.s(kw_only=True)
+class BaseChannel(SnowflakeObject[SupportsChannelID]):
+    state: ChannelState
 
-    type = json.JSONField('type', ChannelType)
+    type: typing.Union[ChannelType, int] = attr.ib(hash=False, repr=True)
 
     def is_text(self) -> bool:
         return self.type is ChannelType.GUILD_TEXT
@@ -79,92 +107,38 @@ class BaseChannel(SnowflakeObject):
         return self.type is ChannelType.GROUP_DM
 
 
+@attr.s(kw_only=True)
 class GuildChannel(BaseChannel):
-    __slots__ = ('guild', 'parent', 'permissions')
-
-    name = json.JSONField('name')
-    position = json.JSONField('position')
-    nsfw = json.JSONField('nsfw')
-
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.guild = self.client.guilds.wrap_id(None)
-        self.parent = self.client.channels.wrap_id(None)
+    guild: GuildIDWrapper = attr.ib()
+    parent: ChannelIDWrapper = attr.ib()
+    name: str = attr.ib()
+    position: int = attr.ib()
+    nsfw: typing.Optional[bool] = attr.ib()
 
     async def delete(self) -> None:
         await self.client.rest.request(DELETE_CHANNEL, channel_id=self.id)
 
 
+@attr.s(kw_only=True)
 class TextChannel(GuildChannel):
-    __slots__ = ('messages',)
-
-    slowmode = json.JSONField('rate_limit_per_user')
-    topic = json.JSONField('topic')
-
-    def __init__(self, *, state):
-        super().__init__(state=state)
-        self.messages = self.client.create_message_state(channel=self)
-
-    async def add_follower(self, channel: ChannelUnwrappable) -> FollowedChannel:
-        params = JSONBuilder()
-        params.snowflake('webhook_channel_id', self.state.unwrap_id(channel))
-
-        followed_channel = await self.client.rest.request(
-            CREATE_CHANNEL_FOLLOWER, channel_id=self.channel.id, params=params
-        )
-        assert isinstance(followed_channel, dict)
-
-        return FollowedChannel(
-            self.client.channels.wrap_id(followed_channel['channel_id']),
-            self.client.webhooks.wrap_id(followed_channel['webhook_id']),
-        )
+    rate_limit_per_user: int = attr.ib()
+    last_message: MessageIDWrapper = attr.ib()
+    last_pin_timestamp: typing.Optional[datetime] = attr.ib()
+    messages: ChannelMessagesView = attr.ib()
 
     async def trigger_typing(self) -> None:
         await self.client.rest.request(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
 
-    async def fetch_pins(self) -> list[Message]:
-        data = await self.client.rest.request(GET_CHANNEL_PINS, channel_id=self.id)
-        assert isinstance(data, list)
 
-        return [await self.messages.upsert(message) for message in data]
-
-    async def add_pin(self, message: MessageUnwrappable) -> None:
-        message_id = self.client.messages.unwrap_id(message)
-
-        await self.client.rest.request(ADD_CHANNEL_PIN, channel_id=self.id, message_id=message_id)
-
-    async def remove_pin(self, message: MessageUnwrappable) -> None:
-        message_id = self.client.messages.unwrap_id(message)
-
-        await self.client.rest.request(
-            REMOVE_CHANNEL_PIN, channel_id=self.id, message_id=message_id
-        )
-
-
-class VoiceChannel(BaseChannel):
-    __slots__ = ()
-
-    bitrate = json.JSONField('bitrate')
-    user_limit = json.JSONField('user_limit')
-    rtc_region = json.JSONField('rtc_region')
+@attr.s(kw_only=True)
+class VoiceChannel(GuildChannel):
+    bitrate: int = attr.ib()
+    user_limit: int = attr.ib()
+    rtc_region: typing.Optional[str] = attr.ib()
 
 
 class CategoryChannel(GuildChannel):
     __slots__ = ()
-
-    def get_children(self):
-        children = Collection()
-
-        try:
-            guild = self.guild.unwrap()
-        except UnknownObjectError:
-            return children
-
-        for channel in guild.channels:
-            if channel.parent.id == self.id:
-                children[channel.id] = channel
-
-        return children
 
 
 class StoreChannel(GuildChannel):

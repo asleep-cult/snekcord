@@ -1,9 +1,47 @@
+from __future__ import annotations
+
 import enum
+import typing
+
+import attr
 
 from .base import SnowflakeObject
-from .. import json
+from ..cache import CachedModel
+from ..snowflake import Snowflake
+from ..undefined import MaybeUndefined
 
-__all__ = ('UserFlags', 'PremiumType', 'User')
+if typing.TYPE_CHECKING:
+    from ..states import (
+        SupportsUserID,
+        UserState,
+    )
+else:
+    SupportsUserID = typing.NewType('SupportsUserID', typing.Any)
+
+__all__ = (
+    'CachedUser',
+    'UserFlags',
+    'PremiumType',
+    'User',
+)
+
+
+class CachedUser(CachedModel):
+    id: Snowflake
+    username: str
+    discriminator: str
+    avatar: typing.Optional[str]
+    bot: MaybeUndefined[bool]
+    system: MaybeUndefined[bool]
+    mfa_enabled: MaybeUndefined[bool]
+    banner: MaybeUndefined[typing.Optional[str]]
+    accent_color: MaybeUndefined[typing.Optional[int]]
+    locale: MaybeUndefined[str]
+    verified: MaybeUndefined[bool]
+    email: MaybeUndefined[typing.Optional[str]]
+    flags: MaybeUndefined[int]
+    premium_type: MaybeUndefined[int]
+    public_flags: MaybeUndefined[int]
 
 
 class UserFlags(enum.IntFlag):
@@ -30,18 +68,23 @@ class PremiumType(enum.IntEnum):
     NITRO = 2
 
 
-class User(SnowflakeObject):
-    name = json.JSONField('username')
-    discriminator = json.JSONField('discriminator')
-    avatar = json.JSONField('avatar')
-    bot = json.JSONField('bot')
-    system = json.JSONField('system')
-    mfa_enabled = json.JSONField('mfa_enabled')
-    banner = json.JSONField('banner')
-    accent_color = json.JSONField('accent_color')
-    locale = json.JSONField('locale')
-    verified = json.JSONField('verified')
-    email = json.JSONField('email')
-    flags = json.JSONField('flags', UserFlags)
-    premium_type = json.JSONField('premium_type', PremiumType)
-    public_flags = json.JSONField('public_flags', UserFlags)
+@attr.s(kw_only=True, slots=True, hash=True)
+class User(SnowflakeObject[SupportsUserID]):
+    state: UserState
+
+    username: str = attr.ib(hash=False, eq=False)
+    discriminator: str = attr.ib(hash=False, eq=False)
+    avatar: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    bot: typing.Optional[bool] = attr.ib(hash=False, eq=False)
+    system: typing.Optional[bool] = attr.ib(hash=False, eq=False)
+    mfa_enabled: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
+    banner: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    accent_color: typing.Optional[int] = attr.ib(repr=False, hash=False, eq=False)
+    locale: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    verified: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
+    email: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    flags: typing.Optional[UserFlags] = attr.ib(repr=False, hash=False, eq=False)
+    premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib(
+        repr=False, hash=False, eq=False
+    )
+    public_flags: typing.Optional[UserFlags] = attr.ib(repr=False, hash=False, eq=False)
