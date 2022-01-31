@@ -40,17 +40,17 @@ class CachedRole(CachedModel):
     tags: MaybeUndefined[CachedRoleTags]
 
 
-@attr.s(kw_only=True)
+@attr.s(kw_only=True, slots=True, hash=True)
 class Role(SnowflakeObject[SupportsRoleID]):
     state: RoleState
 
-    guild: GuildIDWrapper = attr.ib()
-    name: str = attr.ib()
-    color: int = attr.ib()
-    hoist: bool = attr.ib()
-    icon: typing.Optional[str] = attr.ib()
-    unicode_emoji: typing.Optional[str] = attr.ib()
-    position: int = attr.ib()
-    permissions: str = attr.ib()
-    managed: bool = attr.ib()
+    guild: GuildIDWrapper = attr.ib(hash=False, eq=False)
+    name: str = attr.ib(hash=False, eq=False)
+    color: int = attr.ib(repr=False, hash=False, eq=False)
+    hoist: bool = attr.ib(hash=False, eq=False)
+    icon: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    unicode_emoji: typing.Optional[str] = attr.ib(hash=False, eq=False)
+    position: int = attr.ib(hash=False, eq=False)
+    permissions: str = attr.ib(repr=False, hash=False, eq=False)
+    managed: bool = attr.ib(hash=False, eq=False)
     # tags

@@ -26,29 +26,29 @@ UniqueT = typing.TypeVar('UniqueT')
 ObjectT = typing.TypeVar('ObjectT')
 
 
-@attr.s(kw_only=True)
+@attr.s(kw_only=True, slots=True)
 class BaseObject(typing.Generic[SupportsUniqueT, UniqueT]):
     """The base class for all Discord objects."""
 
-    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.ib()
+    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.ib(repr=False, eq=False, hash=False)
 
     @property
     def client(self) -> Client:
         return self.state.client
 
 
-@attr.s(kw_only=True, hash=True, eq=True)
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class SnowflakeObject(BaseObject[SupportsUniqueT, Snowflake]):
     """The base class for all objects with an id."""
 
-    id: Snowflake = attr.ib(hash=True, eq=True, repr=True)
+    id: Snowflake = attr.ib(repr=True, eq=True, hash=True)
 
 
-@attr.s(kw_only=True, hash=True, eq=True)
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class CodeObject(BaseObject[SupportsUniqueT, str]):
     """The base class for all objects with a code."""
 
-    code: str = attr.field(hash=True, eq=True, repr=True)
+    code: str = attr.field(repr=True, eq=True, hash=True)
 
 
 class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
@@ -62,6 +62,9 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     ) -> None:
         self.state = state
         self.id = self.state.to_unique(id) if id is not None else None
+
+    def __repr__(self) -> str:
+        return f'SnowflakeWrapper(id={self.id})'
 
     async def unwrap(self) -> ObjectT:
         """Attempts to retrieve the object from cache.
@@ -102,6 +105,9 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     ) -> None:
         self.state = state
         self.code = self.state.to_unique(code) if code is not None else None
+
+    def __repr__(self) -> str:
+        return f'CodeWrapper(code={self.code!r})'
 
     async def unwrap(self) -> ObjectT:
         """Attempts to retrieve the object from cache.

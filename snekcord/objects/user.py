@@ -68,21 +68,23 @@ class PremiumType(enum.IntEnum):
     NITRO = 2
 
 
-@attr.s(kw_only=True)
+@attr.s(kw_only=True, slots=True, hash=True)
 class User(SnowflakeObject[SupportsUserID]):
     state: UserState
 
-    username: str = attr.ib()
-    discriminator: str = attr.ib()
-    avatar: typing.Optional[str] = attr.ib()
-    bot: typing.Optional[bool] = attr.ib()
-    system: typing.Optional[bool] = attr.ib()
-    mfa_enabled: typing.Optional[bool] = attr.ib()
-    banner: typing.Optional[str] = attr.ib()
-    accent_color: typing.Optional[int] = attr.ib()
-    locale: typing.Optional[str] = attr.ib()
-    verified: typing.Optional[bool] = attr.ib()
-    email: typing.Optional[str] = attr.ib()
-    flags: typing.Optional[UserFlags] = attr.ib()
-    premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib()
-    public_flags: typing.Optional[UserFlags] = attr.ib()
+    username: str = attr.ib(hash=False, eq=False)
+    discriminator: str = attr.ib(hash=False, eq=False)
+    avatar: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    bot: typing.Optional[bool] = attr.ib(hash=False, eq=False)
+    system: typing.Optional[bool] = attr.ib(hash=False, eq=False)
+    mfa_enabled: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
+    banner: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    accent_color: typing.Optional[int] = attr.ib(repr=False, hash=False, eq=False)
+    locale: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    verified: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
+    email: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    flags: typing.Optional[UserFlags] = attr.ib(repr=False, hash=False, eq=False)
+    premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib(
+        repr=False, hash=False, eq=False
+    )
+    public_flags: typing.Optional[UserFlags] = attr.ib(repr=False, hash=False, eq=False)

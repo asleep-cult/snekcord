@@ -94,20 +94,20 @@ class MessageFlags(enum.IntFlag):
     LOADING = 1 << 7
 
 
-@attr.s(kw_only=True)
+@attr.s(kw_only=True, slots=True, hash=True)
 class Message(SnowflakeObject[SupportsMessageID]):
     state: MessageState
 
-    channel: ChannelIDWrapper = attr.ib()
-    guild: GuildIDWrapper = attr.ib()
-    author: UserIDWrapper = attr.ib()
-    content: typing.Optional[str] = attr.ib(repr=False)
-    timestamp: datetime = attr.ib()
-    edited_timestamp: typing.Optional[datetime] = attr.ib()
-    tts: bool = attr.ib()
-    nonce: typing.Optional[typing.Union[int, str]] = attr.ib()
-    pinned: bool = attr.ib()
+    channel: ChannelIDWrapper = attr.ib(hash=False, eq=False)
+    guild: GuildIDWrapper = attr.ib(hash=False, eq=False)
+    author: UserIDWrapper = attr.ib(hash=False, eq=False)
+    content: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
+    timestamp: datetime = attr.ib(repr=False, hash=False, eq=False)
+    edited_timestamp: typing.Optional[datetime] = attr.ib(repr=False, hash=False, eq=False)
+    tts: bool = attr.ib(hash=False, eq=False)
+    nonce: typing.Optional[typing.Union[int, str]] = attr.ib(repr=False, hash=False, eq=False)
+    pinned: bool = attr.ib(hash=False, eq=False)
     # webhook: WebhookIDWrapper = attr.ib()
-    type: typing.Union[MessageType, int] = attr.ib()
+    type: typing.Union[MessageType, int] = attr.ib(hash=False, eq=False)
     # application: ApplicationIDWrapper = attr.ib()
-    flags: MessageFlags = attr.ib()
+    flags: MessageFlags = attr.ib(hash=False, eq=False)
