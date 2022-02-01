@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import signal
-import socket
 import typing
+
+import asygpy
 
 from loguru import logger
 
@@ -53,8 +54,8 @@ class WebSocketClient(Client):
 
         return self._shards[shard_id]
 
-    def get_shards(self) -> list[Shard]:
-        return list(self._shards.values())
+    def get_shards(self) -> typing.Tuple[Shard]:
+        return tuple(self._shards.values())
 
     async def fetch_gateway(self) -> JSONObject:
         if self.authorization.is_bot():
@@ -67,64 +68,32 @@ class WebSocketClient(Client):
     async def connect(self) -> None:
         self.loop = asyncio.get_running_loop()
 
+        notifier = asygpy.create_notifier()
+
+        channel = notifier.open_channel()
+        channel.add_signal(signal.SIGINT)
+        channel.add_signal(signal.SIGTERM)
+
+        notifier.start_notifying()
+
         gateway = await self.fetch_gateway()
 
-        if self.shard_ids is None:
+        if self.shard_ids is not None:
+            sharded = True
+        else:
             shards = gateway.get('shards', 1)
             sharded = shards > 1
-
-            self.shard_ids = list(range(shards))
-        else:
-            sharded = True
+            self.shard_ids = tuple(range(shards))
 
         for shard_id in self.shard_ids:
             shard = Shard(self, gateway['url'], shard_id, sharded=sharded)
             self._shards[shard_id] = shard
 
+        for shard in self.get_shards():
             shard.start()
 
-        future = self.loop.create_future()
-
-        def set_future_result():
-            future.set_result(None)
-
-        async def wait_for_interrupt():
-            await future
-            logger.debug('Client received signal to shutdown')
-
-        try:
-            self.loop.add_signal_handler(signal.SIGINT, set_future_result)
-            self.loop.add_signal_handler(signal.SIGTERM, set_future_result)
-        except NotImplementedError:
-            signal.signal(signal.SIGINT, lambda signum, frame: None)
-            signal.signal(signal.SIGTERM, lambda signum, frame: None)
-
-            ssock, csock = socket.socketpair()
-            signal.set_wakeup_fd(ssock.fileno())
-
-            def signal_handler(task: asyncio.Task[bytes]) -> None:
-                signums = set(task.result())
-                if signums.intersection((signal.SIGINT, signal.SIGTERM)):
-                    set_future_result()
-                else:
-                    signal_reader()
-
-            def signal_reader() -> None:
-                task = self.loop.create_task(self.loop.sock_recv(csock, 4096))
-                task.add_done_callback(signal_handler)
-
-            signal_reader()
-
-        await wait_for_interrupt()
-
-        try:
-            self.loop.remove_signal_handler(signal.SIGINT)
-            self.loop.remove_signal_handler(signal.SIGTERM)
-        except NotImplementedError:
-            signal.set_wakeup_fd(-1)
-
-            signal.signal(signal.SIGINT, signal.default_int_handler)
-            signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        signum = await channel.receive()
+        logger.debug(f'Client received signal {signal.strsignal(signum)}, shutting down')
 
         await self.cleanup()
 

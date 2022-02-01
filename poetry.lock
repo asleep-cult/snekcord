@@ -24,6 +24,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "asygpy"
+version = "0.1.1"
+description = "asyncio signal handlers for Windows and Unix"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[[package]]
 name = "attrs"
 version = "21.4.0"
 description = "Classes Without Boilerplate"
@@ -407,7 +415,7 @@ python-versions = ">=3.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "19ccabbe1f6cd010733ebdd8c1cc1dee25cb61a66ac09cec5e065549b413fa95"
+content-hash = "28f283a83de963027425de40e9ca65ccb49c2668d15197a42709dd29d7cc9499"
 
 [metadata.files]
 anyio = [
@@ -417,6 +425,10 @@ anyio = [
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
+]
+asygpy = [
+    {file = "asygpy-0.1.1-py3-none-any.whl", hash = "sha256:d763f3b90420f633efa9621eed33a9f21f73277f86309c13e3ad6f5ef4a9110a"},
+    {file = "asygpy-0.1.1.tar.gz", hash = "sha256:1e5e3ed73a691a0f17732c3cebe5b6dbc6f99e09a2743f56244808f3a9ae4453"},
 ]
 attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
