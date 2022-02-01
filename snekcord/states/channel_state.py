@@ -56,7 +56,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         self.message_refstore = self.create_message_refstore()
 
     @property
-    def events(self) -> typing.Tuple[str]:
+    def events(self) -> typing.Tuple[str, ...]:
         return tuple(ChannelEvents)
 
     def create_message_refstore(self) -> RefStore[Snowflake, Snowflake]:

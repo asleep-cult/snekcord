@@ -34,7 +34,7 @@ class Client:
         else:
             self.authorization = Authorization.parse(authorization)
 
-        self.events: typing.Dict[str, EventState[typing.Any, typing.Any]] = {}
+        self.events: typing.Dict[str, EventState] = {}
 
         self.rest = RESTSession(authorization=self.authorization)
 

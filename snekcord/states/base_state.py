@@ -36,7 +36,7 @@ OnCallbackT = typing.Callable[[EventT], typing.Awaitable[None]]
 OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 
-class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
+class EventState:
     callbacks: defaultdict[str, list[OnCallbackT[BaseEvent]]]
 
     def __init__(self, *, client: Client) -> None:
@@ -47,11 +47,8 @@ class EventState(typing.Generic[SupportsUniqueT, UniqueT]):
             self.client.events[event] = self
 
     @property
-    def events(self) -> typing.Tuple[str]:
+    def events(self) -> typing.Tuple[str, ...]:
         return tuple()
-
-    def to_unique(self, object: SupportsUniqueT) -> UniqueT:
-        raise NotImplementedError
 
     def on(self, event: str) -> OnDecoratorT[EventT]:
         if event not in self.events:
@@ -94,7 +91,7 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
 
 class CachedEventState(  # type: ignore
     typing.Generic[SupportsUniqueT, UniqueT, CachedModelT, ObjectT],
-    EventState[SupportsUniqueT, UniqueT],
+    EventState,
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
     locks: defaultdict[UniqueT, asyncio.Lock]

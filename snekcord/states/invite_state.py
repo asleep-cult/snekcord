@@ -23,7 +23,7 @@ InviteCodeWrapper = CodeWrapper[SupportsInviteCode, Invite]
 
 class InviteState(CachedEventState[SupportsInviteCode, str, CachedInvite, Invite]):
     @property
-    def events(self) -> typing.Tuple[str]:
+    def events(self) -> typing.Tuple[str, ...]:
         return tuple(InviteEvents)
 
     @property

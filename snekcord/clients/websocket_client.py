@@ -42,7 +42,7 @@ class WebSocketClient(Client):
 
         self._shards: typing.Dict[int, Shard] = {}
 
-    def get_event(self, event: str) -> typing.Optional[EventState[typing.Any, typing.Any]]:
+    def get_event(self, event: str) -> typing.Optional[EventState]:
         return self.events.get(event)
 
     def get_shard(self, shard_id: int) -> Shard:
@@ -54,7 +54,7 @@ class WebSocketClient(Client):
 
         return self._shards[shard_id]
 
-    def get_shards(self) -> typing.Tuple[Shard]:
+    def get_shards(self) -> typing.Tuple[Shard, ...]:
         return tuple(self._shards.values())
 
     async def fetch_gateway(self) -> JSONObject:

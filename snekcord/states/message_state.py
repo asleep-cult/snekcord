@@ -48,7 +48,7 @@ MessageIDWrapper = SnowflakeWrapper[SupportsMessageID, Message]
 
 class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage, Message]):
     @property
-    def events(self) -> typing.Tuple[str]:
+    def events(self) -> typing.Tuple[str, ...]:
         return tuple(MessageEvents)
 
     def to_unique(self, object: SupportsMessageID) -> Snowflake:
@@ -96,6 +96,11 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         guild_id = undefined.nullify(cached.guild_id)
         author_id = undefined.nullify(cached.author_id)
 
+        if cached.flags is not undefined:
+            flags = MessageFlags(cached.flags)
+        else:
+            flags = MessageFlags.NONE
+
         return Message(
             state=self,
             id=Snowflake(cached.id),
@@ -109,7 +114,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             nonce=undefined.nullify(cached.nonce),
             pinned=cached.pinned,
             type=convert_enum(MessageType, cached.type),
-            flags=MessageFlags(cached.flags),
+            flags=flags,
         )
 
     async def remove_refs(self, object: CachedMessage) -> None:

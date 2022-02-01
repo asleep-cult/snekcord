@@ -65,7 +65,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         self.member_refstore = self.create_member_refstore()
 
     @property
-    def events(self) -> typing.Tuple[str]:
+    def events(self) -> typing.Tuple[str, ...]:
         return tuple(GuildEvents)
 
     def create_role_refstore(self) -> RefStore[Snowflake, Snowflake]:

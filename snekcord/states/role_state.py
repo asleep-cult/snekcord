@@ -31,7 +31,7 @@ RoleIDWrapper = SnowflakeWrapper[SupportsRoleID, Role]
 
 class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
     @property
-    def events(self) -> typing.Tuple[str]:
+    def events(self) -> typing.Tuple[str, ...]:
         return tuple(RoleEvents)
 
     def to_unique(self, object: SupportsRoleID) -> Snowflake:
