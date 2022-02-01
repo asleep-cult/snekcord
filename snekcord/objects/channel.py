@@ -110,10 +110,8 @@ class BaseChannel(SnowflakeObject[SupportsChannelID]):
 @attr.s(kw_only=True)
 class GuildChannel(BaseChannel):
     guild: GuildIDWrapper = attr.ib()
-    parent: ChannelIDWrapper = attr.ib()
     name: str = attr.ib()
     position: int = attr.ib()
-    nsfw: typing.Optional[bool] = attr.ib()
 
     async def delete(self) -> None:
         await self.client.rest.request(DELETE_CHANNEL, channel_id=self.id)
@@ -121,6 +119,8 @@ class GuildChannel(BaseChannel):
 
 @attr.s(kw_only=True)
 class TextChannel(GuildChannel):
+    parent: ChannelIDWrapper = attr.ib()
+    nsfw: typing.Optional[bool] = attr.ib()
     rate_limit_per_user: int = attr.ib()
     last_message: MessageIDWrapper = attr.ib()
     last_pin_timestamp: typing.Optional[datetime] = attr.ib()
@@ -132,6 +132,8 @@ class TextChannel(GuildChannel):
 
 @attr.s(kw_only=True)
 class VoiceChannel(GuildChannel):
+    parent: ChannelIDWrapper = attr.ib()
+    nsfw: typing.Optional[bool] = attr.ib()
     bitrate: int = attr.ib()
     user_limit: int = attr.ib()
     rtc_region: typing.Optional[str] = attr.ib()

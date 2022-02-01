@@ -103,7 +103,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         if type is ChannelType.GUILD_CATEGORY:
             assert (
                 cached.guild_id is not undefined
-                and cached.parent_id is not undefined
                 and cached.name is not undefined
                 and cached.position is not undefined
             ), 'Invalid GUILD_CATEGORY channel'
@@ -113,21 +112,20 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 id=channel_id,
                 type=type,
                 guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
-                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
-                nsfw=undefined.nullify(cached.nsfw),
             )
 
         if type is ChannelType.GUILD_TEXT:
             assert (
                 cached.guild_id is not undefined
-                and cached.parent_id is not undefined
                 and cached.name is not undefined
                 and cached.position is not undefined
                 and cached.rate_limit_per_user is not undefined
                 and cached.last_message_id is not undefined
             ), 'Invalid GUILD_TEXT channel'
+
+            parent_id = undefined.nullify(cached.parent_id)
 
             last_pin_timestamp = undefined.nullify(cached.last_pin_timestamp)
             if last_pin_timestamp is not None:
@@ -138,7 +136,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 id=channel_id,
                 type=type,
                 guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
-                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
+                parent=SnowflakeWrapper(parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw if cached.nsfw is not undefined else False,
@@ -151,7 +149,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         if type is ChannelType.GUILD_VOICE:
             assert (
                 cached.guild_id is not undefined
-                and cached.parent_id is not undefined
                 and cached.name is not undefined
                 and cached.position is not undefined
                 and cached.bitrate is not undefined
@@ -159,12 +156,14 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 and cached.rtc_region is not undefined
             ), 'Invalid GUILD_VOICE channel'
 
+            parent_id = undefined.nullify(cached.parent_id)
+
             return VoiceChannel(
                 state=self,
                 id=channel_id,
                 type=type,
                 guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
-                parent=SnowflakeWrapper(cached.parent_id, state=self.client.channels),
+                parent=SnowflakeWrapper(parent_id, state=self.client.channels),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw if cached.nsfw is not undefined else False,

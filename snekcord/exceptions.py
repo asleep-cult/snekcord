@@ -2,11 +2,12 @@ from http import HTTPStatus
 
 
 class IncompleteDataError(Exception):
-    def __init__(self, model):
+    def __init__(self, model, name):
         self.model = model
+        self.name = name
 
     def __str__(self):
-        return f'Received incomplete data for {self.model.__class__.__name__!r}'
+        return f'{self.model.__class__.__name__!r} is missing {self.name!r}'
 
 
 class InvalidResponseError(Exception):

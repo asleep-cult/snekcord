@@ -19,61 +19,64 @@ class ModelField:
         self.nullable = type(None) in typing.get_args(annotation)
         self.optional = typing.Literal[undefined] in typing.get_args(annotation)
 
-    def __get__(self, instance: typing.Optional[CachedModel], cls: type[CachedModel]) -> typing.Any:
-        if instance is None:
-            raise AttributeError(f'type object {cls.__name__!r} has no attribute {self.name!r}')
-
-        if self.name not in instance.__model_data__:
-            if not self.optional:
-                raise AttributeError(f'{cls.__name__!r} object has no attribute {self.name!r}')
-
-        return instance.__model_data__.get(self.name, undefined)
-
-    def __set__(self, instance: CachedModel, value: typing.Any) -> None:
-        instance.__model_data__[self.name] = value
-
     def __repr__(self) -> str:
         return f'ModelField(name={self.name}, nullable={self.nullable}, optional={self.optional!r})'
 
 
-class CachedModel:
-    __slots__ = ('__model_data__',)
+class CachedModelMeta(type):
+    def __new__(
+        cls, name: str, bases: typing.Tuple[type, ...], namespace: typing.Dict[str, typing.Any]
+    ) -> type:
+        model_fields: typing.Dict[str, ModelField] = {}
 
-    __model_fields__: typing.ClassVar[dict[str, ModelField]]
-    __model_data__: dict[str, typing.Any]
+        slots: typing.Set[str] = set()
+        for annotation in namespace['__annotations__']:
+            if not annotation.startswith('__') and not annotation.endswith('__'):
+                slots.add(annotation)
 
-    def __init_subclass__(cls) -> None:
-        cls.__model_fields__ = {}
+        if '__slots__' in namespace:
+            slots.update(namespace['__slots__'])
 
-        annotations = typing.get_type_hints(cls)
+        namespace['__slots__'] = tuple(slots)
+        namespace['__model_fields__'] = model_fields
+
+        self = type.__new__(cls, name, bases, namespace)
+
+        annotations = typing.get_type_hints(self)
         for name, annotation in annotations.items():
             if not name.startswith('__') and not name.endswith('__'):
-                cls.__model_fields__[name] = ModelField(name, annotation)
-                setattr(cls, name, cls.__model_fields__[name])
+                model_fields[name] = ModelField(name, annotation)
 
-    def __new__(cls, *args: typing.Any, **kwargs: typing.Any) -> Self:
-        self = object.__new__(cls)
-        self.__model_data__ = {}
         return self
 
-    def get_fields(self) -> dict[str, ModelField]:
+
+class CachedModel(metaclass=CachedModelMeta):
+    __model_fields__: typing.ClassVar[typing.Dict[str, ModelField]]
+
+    def get_fields(self) -> typing.Dict[str, ModelField]:
         return self.__model_fields__
 
     def update(self, data: JSONObject, *, partial: bool = False) -> None:
         for name, field in self.__model_fields__.items():
             if name in data:
-                self.__model_data__[name] = data[name]
+                setattr(self, name, data[name])
 
-            elif name not in self.__model_data__:
-                if field.nullable:
-                    self.__model_data__[name] = None
+            elif not hasattr(self, name):
+                if field.nullable or field.optional:
+                    setattr(self, name, undefined if field.optional else None)
 
-                elif not partial and not field.optional:
-                    print(f'Field {name} is missing {field.optional}')
-                    raise IncompleteDataError(self)
+                elif not partial:
+                    raise IncompleteDataError(self, name)
 
     def to_json(self) -> JSONObject:
-        return self.__model_data__.copy()
+        data: JSONObject = {}
+
+        for name in self.__model_fields__:
+            value = getattr(self, name, undefined)
+            if value is not undefined:
+                data[name] = value
+
+        return data
 
     @classmethod
     def from_json(cls, data: JSONObject, **kwargs: typing.Any) -> Self:
