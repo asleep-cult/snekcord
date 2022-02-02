@@ -229,7 +229,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
 
         elif event is GuildEvents.DELETE:
-            guild = await self.delete(payload['id'])
+            guild = await self.drop(payload['id'])
             return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)
 
         assert False

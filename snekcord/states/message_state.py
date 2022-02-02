@@ -152,7 +152,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             )
 
         elif event is MessageEvents.DELETE:
-            message = await self.delete(payload['id'])
+            message = await self.drop(payload['id'])
             return MessageDeleteEvent(
                 shard=shard, payload=payload, guild=guild, channel=channel, message=message
             )
@@ -161,7 +161,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             messages: typing.List[Message] = []
 
             for message_id in payload['ids']:
-                message = await self.delete(message_id)
+                message = await self.drop(message_id)
 
                 if message is not None:
                     messages.append(message)

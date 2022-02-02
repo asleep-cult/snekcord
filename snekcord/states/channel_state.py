@@ -204,7 +204,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             return ChannelUpdateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         elif event is ChannelEvents.DELETE:
-            channel = await self.delete(payload['id'])
+            channel = await self.drop(payload['id'])
             return ChannelDeleteEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         elif event is ChannelEvents.PINS_UPDATE:
