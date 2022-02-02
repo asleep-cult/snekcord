@@ -16,11 +16,20 @@ __all__ = ('CachedModel',)
 class ModelField:
     def __init__(self, name: str, annotation: typing.Any) -> None:
         self.name = name
-        self.nullable = type(None) in typing.get_args(annotation)
-        self.optional = typing.Literal[undefined] in typing.get_args(annotation)
+        self.nullable = False
+        self.optional = False
+        self.type = None
+
+        for arg in typing.get_args(annotation):
+            if arg is type(None):
+                self.nullable = True
+            elif arg == typing.Literal[undefined]:
+                self.optional = True
+            else:
+                self.type = arg
 
     def __repr__(self) -> str:
-        return f'ModelField(name={self.name}, nullable={self.nullable}, optional={self.optional!r})'
+        return f'<ModelField {self.name!r} {self.type!r}>'
 
 
 class CachedModelMeta(type):
@@ -30,9 +39,9 @@ class CachedModelMeta(type):
         model_fields: typing.Dict[str, ModelField] = {}
 
         slots: typing.Set[str] = set()
-        for annotation in namespace['__annotations__']:
-            if not annotation.startswith('__') and not annotation.endswith('__'):
-                slots.add(annotation)
+        for name in namespace['__annotations__']:
+            if not name.startswith('__') and not name.endswith('__'):
+                slots.add(name)
 
         if '__slots__' in namespace:
             slots.update(namespace['__slots__'])
@@ -69,14 +78,8 @@ class CachedModel(metaclass=CachedModelMeta):
                     raise IncompleteDataError(self, name)
 
     def to_json(self) -> JSONObject:
-        data: JSONObject = {}
-
-        for name in self.__model_fields__:
-            value = getattr(self, name, undefined)
-            if value is not undefined:
-                data[name] = value
-
-        return data
+        iterator = ((name, getattr(self, name)) for name in self.__model_fields__)
+        return {name: value for name, value in iterator if value is not undefined}
 
     @classmethod
     def from_json(cls, data: JSONObject, **kwargs: typing.Any) -> Self:
