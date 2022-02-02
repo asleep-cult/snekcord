@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import signal
 import typing
+from signal import Signals
 
 import asygpy
 
@@ -65,14 +65,14 @@ class WebSocketClient(Client):
 
         return await self.rest.request(endpoint)
 
-    async def connect(self) -> None:
+    async def connect(self) -> typing.Literal[Signals.SIGINT, Signals.SIGTERM]:
         self.loop = asyncio.get_running_loop()
 
         notifier = asygpy.create_notifier()
 
         channel = notifier.open_channel()
-        channel.add_signal(signal.SIGINT)
-        channel.add_signal(signal.SIGTERM)
+        channel.add_signal(Signals.SIGINT)
+        channel.add_signal(Signals.SIGTERM)
 
         notifier.start_notifying()
 
@@ -93,9 +93,13 @@ class WebSocketClient(Client):
             shard.start()
 
         signum = await channel.receive()
-        logger.debug(f'Client received signal {signal.strsignal(signum)}, shutting down')
+        assert signum in (Signals.SIGINT, Signals.SIGTERM)
+        logger.debug(f'Client received signal {signum!r}, shutting down')
 
         await self.cleanup()
+
+        notifier.stop_notifying()
+        return signum
 
     async def cleanup(self) -> None:
         for shard in self.get_shards():
