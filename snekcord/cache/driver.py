@@ -21,7 +21,7 @@ class CacheDriver(typing.Generic[UniqueT, CachedObjectT]):
     async def update(self, key: UniqueT, object: CachedObjectT) -> None:
         raise NotImplementedError
 
-    async def delete(self, key: UniqueT) -> typing.Optional[CachedObjectT]:
+    async def drop(self, key: UniqueT) -> typing.Optional[CachedObjectT]:
         raise NotImplementedError
 
 
@@ -42,5 +42,5 @@ class MemoryCacheDriver(CacheDriver[UniqueT, CachedObjectT]):
     async def update(self, key: UniqueT, object: CachedObjectT) -> None:
         return None
 
-    async def delete(self, key: UniqueT) -> typing.Optional[CachedObjectT]:
+    async def drop(self, key: UniqueT) -> typing.Optional[CachedObjectT]:
         return self.map.pop(key, None)

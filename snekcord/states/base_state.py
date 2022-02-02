@@ -89,7 +89,7 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
         return [object async for object in self]
 
 
-class CachedEventState(  # type: ignore
+class CachedEventState(
     typing.Generic[SupportsUniqueT, UniqueT, CachedModelT, ObjectT],
     EventState,
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
@@ -119,10 +119,10 @@ class CachedEventState(  # type: ignore
         if cached is not None:
             return await self.from_cached(cached)
 
-    async def delete(
+    async def drop(
         self, object: typing.Union[UniqueT, SupportsUniqueT]
     ) -> typing.Optional[ObjectT]:
-        cached = await self.cache.delete(self.to_unique(object))
+        cached = await self.cache.drop(self.to_unique(object))
 
         if cached is not None:
             await self.remove_refs(cached)
