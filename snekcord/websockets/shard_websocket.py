@@ -278,7 +278,7 @@ class ShardWebSocket(WebSocketClient):
 
         await self.shard.cancel(ShardCancellationToken.CONNECTION_CLOSED, (data, code))
 
-    def detatch(self):
+    def detach(self):
         self.detached = True
 
 
@@ -587,18 +587,18 @@ class Shard:
                 if token is ShardCancellationToken.SIGNAL_INTERRUPT:
                     logger.debug(
                         'Shard interrupted while waiting for '
-                        'CONNECTION_CLOSED, detatching WebSocket'
+                        'CONNECTION_CLOSED, detaching WebSocket'
                     )
                     stopping = True
-                    self.ws.detatch()
+                    self.ws.detach()
 
                 elif token is not ShardCancellationToken.CONNECTION_CLOSED:
                     name = token.name if token is not None else None
                     logger.warning(
                         f'Shard expected CONNECTION_CLOSED token but found '
-                        f'{name} instead, detatching WebSocket'
+                        f'{name} instead, detaching WebSocket'
                     )
-                    self.ws.detatch()
+                    self.ws.detach()
 
             try:
                 await self.ws.stream.close()
@@ -616,7 +616,8 @@ class Shard:
                     f'Shard found unhandled token {token.name} in cancellation queue, discarding'
                 )
 
-                stopping |= token is ShardCancellationToken.SIGNAL_INTERRUPT
+                if token is ShardCancellationToken.SIGNAL_INTERRUPT:
+                    stopping = True
 
         await self.cleanup()
 
