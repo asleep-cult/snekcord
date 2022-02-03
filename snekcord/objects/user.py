@@ -83,8 +83,8 @@ class User(SnowflakeObject[SupportsUserID]):
     locale: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
     verified: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
     email: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
-    flags: typing.Optional[UserFlags] = attr.ib(repr=False, hash=False, eq=False)
+    flags: UserFlags = attr.ib(repr=False, hash=False, eq=False)
     premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib(
         repr=False, hash=False, eq=False
     )
-    public_flags: typing.Optional[UserFlags] = attr.ib(repr=False, hash=False, eq=False)
+    public_flags: UserFlags = attr.ib(repr=False, hash=False, eq=False)

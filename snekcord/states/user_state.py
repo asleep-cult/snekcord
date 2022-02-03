@@ -57,17 +57,19 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
         return await self.from_cached(cached)
 
     async def from_cached(self, cached: CachedUser) -> User:
-        flags = undefined.nullify(cached.flags)
-        if flags is not None:
-            flags = UserFlags(flags)
+        if cached.flags is not undefined:
+            flags = UserFlags(cached.flags)
+        else:
+            flags = UserFlags.NONE
 
         premium_type = undefined.nullify(cached.premium_type)
         if premium_type is not None:
             premium_type = convert_enum(PremiumType, premium_type)
 
-        public_flags = undefined.nullify(cached.public_flags)
-        if public_flags is not None:
-            public_flags = UserFlags(public_flags)
+        if cached.public_flags is not undefined:
+            public_flags = UserFlags(cached.flags)
+        else:
+            public_flags = UserFlags.NONE
 
         return User(
             state=self,
