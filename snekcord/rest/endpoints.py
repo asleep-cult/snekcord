@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import typing
 import string as _string
 
 # For whatever reason string.Formatter is implemented as a class
@@ -10,12 +13,14 @@ MAJOR_PARAMS = {'channel_id', 'guild_id', 'webhook_id', 'webhook_token'}
 class RESTEndpoint:
     __slots__ = ('method', 'path', 'keywords', 'major_params')
 
-    def __init__(self, method, path):
+    def __init__(
+        self, method: typing.Literal['GET', 'PUT', 'POST', 'PATCH', 'DELETE'], path: str
+    ) -> None:
         self.method = method
         self.path = path
 
-        self.keywords = set()
-        for text, name, spec, conversion in _formatter_parse(self.path):
+        self.keywords: typing.Set[str] = set()
+        for _, name, _, _ in _formatter_parse(self.path):
             if name is not None:
                 self.keywords.add(name)
 

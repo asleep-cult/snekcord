@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
         SupportsRoleID,
     )
 else:
-    SupportsRoleID = typing.NewType('SupportsRoleID', typing.NewType)
+    SupportsRoleID = typing.NewType('SupportsRoleID', typing.Any)
 
 
 class CachedRoleTags(typing.TypedDict, total=False):

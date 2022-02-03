@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
         UserIDWrapper,
     )
 else:
-    SupportsGuildID = typing.NewType('SupportsChannelID', typing.NewType)
+    SupportsGuildID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
     'CachedGuild',

@@ -1,15 +1,24 @@
+from __future__ import annotations
+
+import typing
+
 import httpx
 
 from . import hdrs
 from ..exceptions import RESTError
 from ..json import load_json
 
+if typing.TYPE_CHECKING:
+    from .endpoints import RESTEndpoint
+    from ..json import JSONType
+    from ..auth import Authorization
+
 BASE_API_URL = 'https://discord.com/api/v9'
 BASE_CDN_URL = 'https://cdn.discordapp.com'
 
 
 class RESTSession:
-    def __init__(self, *, authorization, **kwargs):
+    def __init__(self, *, authorization: Authorization, **kwargs: typing.Any) -> None:
         self.authorization = authorization
 
         try:
@@ -32,7 +41,9 @@ class RESTSession:
         kwargs.setdefault('timeout', None)
         self.client = httpx.AsyncClient(**kwargs)
 
-    async def request(self, endpoint, **kwargs):
+    async def request(
+        self, endpoint: RESTEndpoint, **kwargs: typing.Any
+    ) -> typing.Union[bytes, JSONType]:
         keywords = {keyword: kwargs.pop(keyword) for keyword in endpoint.keywords}
 
         try:
@@ -43,7 +54,7 @@ class RESTSession:
             headers.update(self.headers)
 
         url = self.api + endpoint.path.format_map(keywords)
-        response = await self.client.request(endpoint.method, url, **kwargs)
+        response: typing.Any = await self.client.request(endpoint.method, url, **kwargs)
 
         data = await response.aread()
         if response.headers.get(hdrs.CONTENT_TYPE) == hdrs.APPLICATION_JSON:
@@ -54,5 +65,5 @@ class RESTSession:
 
         return data
 
-    async def aclose(self):
+    async def aclose(self) -> None:
         await self.client.aclose()
