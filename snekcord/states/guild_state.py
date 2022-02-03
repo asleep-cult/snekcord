@@ -143,10 +143,10 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         if joined_at is not None:
             joined_at = datetime.fromisoformat(joined_at)
 
-        role_ids = await self.role_refstore.get(cached.id)
-        emoji_ids = await self.emoji_refstore.get(cached.id)
-        # member_ids = await self.member_refstore.get(cached.id)
-        channel_ids = await self.channel_refstore.get(cached.id)
+        roles = await self.client.roles.for_guild(cached.id)
+        emojis = await self.client.emojis.for_guild(cached.id)
+        # members = await self.member_refstore.get(cached.id)
+        channels = await self.client.channels.for_guild(cached.id)
 
         return Guild(
             state=self,
@@ -185,10 +185,10 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             ),
             max_video_channel_users=undefined.nullify(cached.max_video_channel_users),
             nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
-            roles=self.client.create_guild_roles_view(role_ids, cached.id),
-            emojis=self.client.create_guild_emojis_view(emoji_ids, cached.id),
+            roles=roles,
+            emojis=emojis,
             # members=self.client.create_guild_members_view(member_ids, cached.id),
-            channels=self.client.create_guild_channels_view(channel_ids, cached.id),
+            channels=channels,
         )
 
     def on_join(self) -> OnDecoratorT[GuildJoinEvent]:

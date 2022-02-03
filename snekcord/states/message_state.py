@@ -63,6 +63,12 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
         raise TypeError('Expected Snowflake, str, int, or Message')
 
+    async def for_channel(self, channel: SupportsChannelID) -> ChannelMessagesView:
+        channel_id = self.client.channels.to_unique(channel)
+
+        messages = await self.client.channels.message_refstore.get(channel_id)
+        return self.client.create_channel_messages_view(messages, channel_id)
+
     async def upsert(self, data: JSONObject) -> Message:
         message_id = Snowflake.into(data, 'id')
         assert message_id is not None

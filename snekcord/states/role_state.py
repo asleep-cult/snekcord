@@ -46,6 +46,12 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
 
         raise TypeError('Expected Snowflake, str, int, or Role')
 
+    async def for_guild(self, guild: SupportsGuildID) -> GuildRolesView:
+        guild_id = self.client.guilds.to_unique(guild)
+
+        roles = await self.client.guilds.role_refstore.get(guild_id)
+        return self.client.create_guild_roles_view(roles, guild_id)
+
     async def upsert(self, data: JSONObject) -> Role:
         role_id = Snowflake.into(data, 'id')
         assert role_id is not None
