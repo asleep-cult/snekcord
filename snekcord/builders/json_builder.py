@@ -76,7 +76,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the string under.
 
-            value (Optional[object]): The value to convert to a string.
+            value (JSONStr): The value to convert to a string.
 
             nullable (bool): Whether or not the string can be None.
 
@@ -93,7 +93,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the integer under.
 
-            value (Optional[SupportsInt]): The value to convert to a integer.
+            value (JSONInt): The value to convert to a integer.
 
             nullable (bool): Whether or not the integer can be None.
 
@@ -114,7 +114,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the floating point number under.
 
-            value (Optional[SupportsFloat]): The value to convert to a floating point number.
+            value (JSONFloat): The value to convert to a floating point number.
 
             nullable (bool): Whether or not the floating point number can be None.
 
@@ -135,7 +135,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the boolean under.
 
-            value (Optional[object]): The value to convert to a boolean.
+            value (JSONBool): The value to convert to a boolean.
 
             nullable (bool): Whether or not the boolean can be None.
 
@@ -156,7 +156,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the snowflake under.
 
-            value (Optional[SupportsInt]): The value to convert to a snowflake.
+            value (JSONSnowflake): The value to convert to a snowflake.
 
             nullable (bool): Whether or not the snowflake can be None.
 
@@ -177,7 +177,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the strings under.
 
-            values (Optional[list[object]]): The values to convert to a strings.
+            values (JSONStrArray): The values to convert to a strings.
 
             nullable (bool): Whether or not the strings can be None.
 
@@ -198,7 +198,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the integers under.
 
-            values (Optional[list[SupportsInt]]): The values to convert to a integers.
+            values (JSONIntArray): The values to convert to a integers.
 
             nullable (bool): Whether or not the integers can be None.
 
@@ -219,8 +219,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the floating point numbers under.
 
-            values (Optional[list[SupportsFloat]]):
-                The values to convert to a floating point numbers.
+            values (JSONFloatArray): The values to convert to a floating point numbers.
 
             nullable (bool): Whether or not the floating point numbers can be None.
 
@@ -241,7 +240,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the booleans under.
 
-            values (Optional[list[object]]): The values to convert to a booleans.
+            values (JSONBoolArray): The values to convert to a booleans.
 
             nullable (bool): Whether or not the booleans can be None.
 
@@ -262,7 +261,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
         Arguments:
             key (str): The key to place the snowflakes under.
 
-            values (Optional[list[SupportsInt]]): The values to convert to a snowflakes.
+            values (JSONSnowflakeArray): The values to convert to a snowflakes.
 
             nullable (bool): Whether or not the snowflakes can be None.
 
