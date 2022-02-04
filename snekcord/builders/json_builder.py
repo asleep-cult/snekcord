@@ -1,17 +1,41 @@
+import builtins
+import typing
+
 from ..snowflake import Snowflake
-from ..undefined import undefined
+from ..undefined import MaybeUndefined, undefined
 
 __all__ = ('JSONBuilder',)
 
+T = typing.TypeVar('T')
 
-def _transform_snowflake(value):
+JSONStr = MaybeUndefined[typing.Any]
+JSONInt = MaybeUndefined[typing.SupportsInt]
+JSONFloat = MaybeUndefined[typing.SupportsFloat]
+JSONBool = MaybeUndefined[typing.Any]
+JSONSnowflake = MaybeUndefined[typing.SupportsInt]
+
+JSNOStrArray = MaybeUndefined[typing.Iterable[typing.Any]]
+JSONIntArray = MaybeUndefined[typing.Iterable[typing.SupportsInt]]
+JSONFloatArray = MaybeUndefined[typing.Iterable[typing.SupportsFloat]]
+JSONBoolArray = MaybeUndefined[typing.Iterable[typing.Any]]
+JSONSnowflakeArray = MaybeUndefined[typing.Iterable[typing.SupportsInt]]
+
+
+def _transform_snowflake(value: typing.SupportsInt) -> str:
     return str(Snowflake(value))
 
 
-class JSONBuilder(dict):
+class JSONBuilder(typing.Dict[str, typing.Any]):
     """A class for building strongly typed JSON objects."""
 
-    def set(self, key, value, *, nullable=False, transformer=None):
+    def set(
+        self,
+        key: builtins.str,
+        value: MaybeUndefined[typing.Optional[T]],
+        *,
+        nullable: builtins.bool = False,
+        transformer: typing.Optional[typing.Callable[[T], typing.Any]] = None,
+    ) -> None:
         if value is None:
             if not nullable:
                 raise TypeError(f'{key!r} is not nullable')
@@ -19,20 +43,34 @@ class JSONBuilder(dict):
             self[key] = value
         else:
             if value is not undefined:
-                if value is not None:
-                    value = transformer(value)
+                self[key] = transformer(value) if transformer is not None else value
 
-                self[key] = value
-
-    def set_array(self, key, values, *, nullable=False, transformer=None):
+    def set_array(
+        self,
+        key: builtins.str,
+        values: MaybeUndefined[typing.Optional[typing.Iterable[T]]],
+        *,
+        nullable: builtins.bool = False,
+        transformer: typing.Optional[typing.Callable[[T], typing.Any]] = None,
+    ) -> None:
         if transformer is not None:
-            transform = lambda values: [transformer(value) for value in values]
+            transform = transformer
+            self.set(
+                key,
+                values,
+                nullable=nullable,
+                transformer=lambda values: [transform(value) for value in values],
+            )
         else:
-            transform = None
+            self.set(key, values, nullable=nullable)
 
-        return self.set(key, values, nullable=nullable, transformer=transform)
-
-    def str(self, key, value, *, nullable=False):
+    def str(
+        self,
+        key: builtins.str,
+        value: typing.Optional[JSONStr],
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds a string to the JSON object.
 
         Arguments:
@@ -47,7 +85,9 @@ class JSONBuilder(dict):
         """
         self.set(key, value, nullable=nullable, transformer=str)
 
-    def int(self, key, value, *, nullable=False):
+    def int(
+        self, key: builtins.str, value: typing.Optional[JSONInt], *, nullable: builtins.bool = False
+    ) -> None:
         """Adds an integer to the JSON object.
 
         Arguments:
@@ -62,7 +102,13 @@ class JSONBuilder(dict):
         """
         self.set(key, value, nullable=nullable, transformer=int)
 
-    def float(self, key, value, *, nullable=False):
+    def float(
+        self,
+        key: builtins.str,
+        value: typing.Optional[JSONFloat],
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds a floating point number to the JSON object.
 
         Arguments:
@@ -77,7 +123,13 @@ class JSONBuilder(dict):
         """
         self.set(key, value, nullable=nullable, transformer=float)
 
-    def bool(self, key, value, *, nullable=False):
+    def bool(
+        self,
+        key: builtins.str,
+        value: typing.Optional[JSONBool],
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds a boolean to the JSON object.
 
         Arguments:
@@ -92,7 +144,13 @@ class JSONBuilder(dict):
         """
         self.set(key, value, nullable=nullable, transformer=bool)
 
-    def snowflake(self, key, value, *, nullable=False):
+    def snowflake(
+        self,
+        key: builtins.str,
+        value: typing.Optional[JSONSnowflake],
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds a snowflake to the JSON object.
 
         Arguments:
@@ -107,7 +165,13 @@ class JSONBuilder(dict):
         """
         self.set(key, value, nullable=nullable, transformer=_transform_snowflake)
 
-    def str_array(self, key, values, *, nullable=False):
+    def str_array(
+        self,
+        key: builtins.str,
+        values: typing.Optional[JSNOStrArray],
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds an array of strings to the JSON object.
 
         Arguments:
@@ -122,7 +186,13 @@ class JSONBuilder(dict):
         """
         self.set_array(key, values, nullable=nullable, transformer=str)
 
-    def int_array(self, key, values, *, nullable=False):
+    def int_array(
+        self,
+        key: builtins.str,
+        values: JSONIntArray,
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds an array of integers to the JSON object.
 
         Arguments:
@@ -137,7 +207,13 @@ class JSONBuilder(dict):
         """
         self.set_array(key, values, nullable=nullable, transformer=int)
 
-    def float_array(self, key, values, *, nullable=False):
+    def float_array(
+        self,
+        key: builtins.str,
+        values: JSONFloatArray,
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds an array of floating point numbers to the JSON object.
 
         Arguments:
@@ -153,7 +229,13 @@ class JSONBuilder(dict):
         """
         self.set_array(key, values, nullable=nullable, transformer=float)
 
-    def bool_array(self, key, values, *, nullable=False):
+    def bool_array(
+        self,
+        key: builtins.str,
+        values: JSONBoolArray,
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds an array of booleans to the JSON object.
 
         Arguments:
@@ -168,7 +250,13 @@ class JSONBuilder(dict):
         """
         self.set_array(key, values, nullable=nullable, transformer=bool)
 
-    def snowflake_array(self, key, values, *, nullable=False):
+    def snowflake_array(
+        self,
+        key: builtins.str,
+        values: JSONSnowflakeArray,
+        *,
+        nullable: builtins.bool = False,
+    ) -> None:
         """Adds an array of snowflakes to the JSON object.
 
         Arguments:
@@ -181,4 +269,4 @@ class JSONBuilder(dict):
         Raises:
             TypeError: The values are not nullable but they were provided as None.
         """
-        self.set(key, values, nullable=nullable, transformer=_transform_snowflake)
+        self.set_array(key, values, nullable=nullable, transformer=_transform_snowflake)
