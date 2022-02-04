@@ -67,7 +67,7 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
             premium_type = convert_enum(PremiumType, premium_type)
 
         if cached.public_flags is not undefined:
-            public_flags = UserFlags(cached.flags)
+            public_flags = UserFlags(cached.public_flags)
         else:
             public_flags = UserFlags.NONE
 
