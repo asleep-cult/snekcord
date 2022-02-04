@@ -4,7 +4,19 @@ import typing
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
-__all__ = ('JSONBuilder',)
+__all__ = (
+    'JSONStr',
+    'JSONInt',
+    'JSONFloat',
+    'JSONBool',
+    'JSONSnowflake',
+    'JSONStrArray',
+    'JSONIntArray',
+    'JSONFloatArray',
+    'JSONBoolArray',
+    'JSONSnowflakeArray',
+    'JSONBuilder',
+)
 
 T = typing.TypeVar('T')
 
@@ -14,7 +26,7 @@ JSONFloat = MaybeUndefined[typing.SupportsFloat]
 JSONBool = MaybeUndefined[typing.Any]
 JSONSnowflake = MaybeUndefined[typing.SupportsInt]
 
-JSNOStrArray = MaybeUndefined[typing.Iterable[typing.Any]]
+JSONStrArray = MaybeUndefined[typing.Iterable[typing.Any]]
 JSONIntArray = MaybeUndefined[typing.Iterable[typing.SupportsInt]]
 JSONFloatArray = MaybeUndefined[typing.Iterable[typing.SupportsFloat]]
 JSONBoolArray = MaybeUndefined[typing.Iterable[typing.Any]]
@@ -168,7 +180,7 @@ class JSONBuilder(typing.Dict[str, typing.Any]):
     def str_array(
         self,
         key: builtins.str,
-        values: typing.Optional[JSNOStrArray],
+        values: typing.Optional[JSONStrArray],
         *,
         nullable: builtins.bool = False,
     ) -> None:
