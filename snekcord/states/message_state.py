@@ -8,12 +8,6 @@ from .base_state import (
     CachedStateView,
     OnDecoratorT,
 )
-from ..builders import (
-    JSONBool,
-    JSONBuilder,
-    JSONInt,
-    JSONStr,
-)
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -201,17 +195,22 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     async def create(
         self,
         *,
-        content: JSONStr = undefined,
-        tts: JSONBool = undefined,
+        content: MaybeUndefined[str] = undefined,
+        tts: MaybeUndefined[bool] = undefined,
         # embeds, allowed mentions, message reference
         # components, stickers, attachments
         flags: MaybeUndefined[MessageFlags] = undefined,
     ) -> Message:
-        json = JSONBuilder()
+        json = {}
 
-        json.str('content', content)
-        json.bool('tts', tts)
-        json.int('flags', flags)
+        if content is not undefined:
+            json['content'] = str(content)
+
+        if tts is not undefined:
+            json['tts'] = bool(tts)
+
+        if flags is not undefined:
+            json['flags'] = int(flags)
 
         data = await self.client.rest.request(
             CREATE_CHANNEL_MESSAGE, channel_id=self.channel_id, json=json
@@ -235,9 +234,9 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         ordering: MaybeUndefined[FetchOrdering] = undefined,
         point: MaybeUndefined[typing.Union[SupportsMessageID, datetime]] = undefined,
         *,
-        limit: JSONInt = undefined,
+        limit: MaybeUndefined[int] = undefined,
     ) -> typing.List[Message]:
-        params = JSONBuilder()
+        params = {}
 
         if point is not undefined:
             if isinstance(point, datetime):
@@ -246,9 +245,10 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
                 snowflake = self.client.messages.to_unique(point)
 
             assert ordering is not undefined
-            params.snowflake(ordering.value, snowflake)
+            params[ordering.value] = Snowflake(snowflake)
 
-        params.int('limit', limit)
+        if limit is not undefined:
+            params['limit'] = int(limit)
 
         data = await self.client.rest.request(
             GET_CHANNEL_MESSAGES, channel_id=self.channel_id, params=params

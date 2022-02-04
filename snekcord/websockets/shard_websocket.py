@@ -14,7 +14,6 @@ from wsaio import (
     WebSocketCloseCode,
 )
 
-from ..builders import JSONBuilder
 from ..exceptions import (
     AuthenticationFailedError,
     DisallowedIntentsError,
