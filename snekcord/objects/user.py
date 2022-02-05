@@ -72,19 +72,17 @@ class PremiumType(enum.IntEnum):
 class User(SnowflakeObject[SupportsUserID]):
     state: UserState
 
-    username: str = attr.ib(hash=False, eq=False)
-    discriminator: str = attr.ib(hash=False, eq=False)
-    avatar: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
-    bot: typing.Optional[bool] = attr.ib(hash=False, eq=False)
-    system: typing.Optional[bool] = attr.ib(hash=False, eq=False)
-    mfa_enabled: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
-    banner: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
-    accent_color: typing.Optional[int] = attr.ib(repr=False, hash=False, eq=False)
-    locale: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
-    verified: typing.Optional[bool] = attr.ib(repr=False, hash=False, eq=False)
-    email: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
-    flags: UserFlags = attr.ib(repr=False, hash=False, eq=False)
-    premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib(
-        repr=False, hash=False, eq=False
-    )
-    public_flags: UserFlags = attr.ib(repr=False, hash=False, eq=False)
+    username: str = attr.ib(eq=False)
+    discriminator: str = attr.ib(eq=False)
+    avatar: typing.Optional[str] = attr.ib(repr=False, eq=False)
+    bot: typing.Optional[bool] = attr.ib(eq=False)
+    system: typing.Optional[bool] = attr.ib(eq=False)
+    mfa_enabled: typing.Optional[bool] = attr.ib(repr=False, eq=False)
+    banner: typing.Optional[str] = attr.ib(repr=False, eq=False)
+    accent_color: typing.Optional[int] = attr.ib(repr=False, eq=False)
+    locale: typing.Optional[str] = attr.ib(repr=False, eq=False)
+    verified: typing.Optional[bool] = attr.ib(repr=False, eq=False)
+    email: typing.Optional[str] = attr.ib(repr=False, eq=False)
+    flags: UserFlags = attr.ib(repr=False, eq=False)
+    premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib(repr=False, eq=False)
+    public_flags: UserFlags = attr.ib(repr=False, eq=False)
