@@ -92,9 +92,17 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         message_id = Snowflake.into(data, 'id')
         assert message_id is not None
 
+        guild_id = Snowflake.into(data, 'guild_id')
+
         channel_id = Snowflake.into(data, 'channel_id')
         if channel_id is not None:
             await self.channel_refstore.add(channel_id, message_id)
+
+            if guild_id is None:
+                channel = await self.client.channels.cache.get(channel_id)
+
+                if channel is not None:
+                    data['guild_id'] = channel.guild_id
 
         author = data.get('author')
         if author is not None:
