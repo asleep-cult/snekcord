@@ -30,7 +30,7 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
             self.data['content'] = str(content)
 
     @setter
-    def tts(self, tts: MaybeUndefined[bool]):
+    def tts(self, tts: MaybeUndefined[bool]) -> None:
         if tts is not undefined:
             self.data['tts'] = bool(tts)
 
