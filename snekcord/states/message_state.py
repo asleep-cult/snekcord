@@ -8,7 +8,10 @@ from .base_state import (
     CachedStateView,
     OnDecoratorT,
 )
-from ..builders import MessageCreateBuilder
+from ..builders import (
+    MessageCreateBuilder,
+    MessageModifyBuilder,
+)
 from ..cache import (
     RefStore,
     SnowflakeMemoryRefStore,
@@ -258,6 +261,24 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         assert isinstance(data, list)
 
         return [await self.client.messages.upsert(message) for message in data]
+
+    def modify(
+        self,
+        message: SupportsMessageID,
+        *,
+        content: MaybeUndefined[typing.Optional[str]] = undefined,
+        flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
+    ) -> MessageModifyBuilder:
+        builder = MessageModifyBuilder(
+            client=self.client,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
+        )
+
+        builder.content(content)
+        builder.flags(flags)
+
+        return builder
 
     async def delete(self, message: SupportsMessageID) -> typing.Optional[Message]:
         message_id = self.client.messages.to_unique(message)

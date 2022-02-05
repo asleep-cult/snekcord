@@ -4,6 +4,8 @@ import types
 import typing
 import warnings
 
+import attr
+
 from ..json import JSONObject
 
 if typing.TYPE_CHECKING:
@@ -18,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 
 SelfT = typing.TypeVar('SelfT')
-ActionT = typing.TypeVar('ActionT')
+ResultT = typing.TypeVar('ResultT')
 
 
 def setter(func: SetterFunc[P, SelfT]) -> typing.Callable[Concatenate[SelfT, P], SelfT]:
@@ -29,24 +31,20 @@ def setter(func: SetterFunc[P, SelfT]) -> typing.Callable[Concatenate[SelfT, P],
     return wrapped
 
 
+@attr.s(kw_only=True, slots=True)
 class BaseBuilder:
-    __slots__ = ('data',)
-
-    def __init__(self) -> None:
-        self.data: JSONObject = {}
+    data: JSONObject = attr.ib(init=False, factory=dict)
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} {self.data!r}>'
 
 
-class AwaitableBuilder(typing.Generic[ActionT], BaseBuilder):
-    __slots__ = ('awaited',)
+@attr.s(kw_only=True, slots=True)
+class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
+    awaited: bool = attr.ib(init=False, default=False)
+    result: typing.Optional[ResultT] = attr.ib(init=False, default=None)
 
-    def __init__(self) -> None:
-        super().__init__()
-        self.awaited = False
-
-    async def action(self) -> ActionT:
+    async def action(self) -> ResultT:
         raise NotImplementedError
 
     async def __aenter__(self) -> Self:
@@ -62,14 +60,19 @@ class AwaitableBuilder(typing.Generic[ActionT], BaseBuilder):
         exc_val: BaseException,
         exc_tb: types.TracebackType,
     ) -> None:
-        await self.action()
+        self.result = await self.action()
 
-    def __await__(self) -> typing.Generator[None, None, ActionT]:
+    def __await__(self) -> typing.Generator[None, None, ResultT]:
         if self.awaited:
             raise RuntimeError(f'cannot reuse {self.__class__.__name__}')
 
         self.awaited = True
-        return self.action().__await__()
+
+        async def wrapper() -> ResultT:
+            self.result = await self.action()
+            return self.result
+
+        return wrapper().__await__()
 
     def __del__(self) -> None:
         if not self.awaited:
