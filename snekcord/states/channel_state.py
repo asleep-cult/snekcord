@@ -30,6 +30,9 @@ from ..objects import (
     TextChannel,
     VoiceChannel,
 )
+from ..rest.endpoints import (
+    GET_CHANNEL,
+)
 from ..snowflake import Snowflake
 from ..undefined import undefined
 
@@ -183,6 +186,14 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     async def remove_refs(self, object: CachedChannel) -> None:
         if object.guild_id is not undefined:
             await self.guild_refstore.remove(object.guild_id, object.id)
+
+    async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
+        channel_id = self.to_unique(channel)
+
+        data = await self.client.rest.request(GET_CHANNEL, channel_id=channel_id)
+        assert isinstance(data, dict)
+
+        return await self.upsert(data)
 
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
         return self.on(ChannelEvents.CREATE)
