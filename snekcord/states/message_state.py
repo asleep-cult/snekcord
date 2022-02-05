@@ -101,6 +101,10 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             data['author_id'] = Snowflake(author['id'])
             await self.client.users.upsert(author)
 
+        timestamp = data.get('timestamp')
+        if timestamp is None:
+            data['timestamp'] = message_id.to_datetime()
+
         async with self.synchronize(message_id):
             cached = await self.cache.get(message_id)
 
