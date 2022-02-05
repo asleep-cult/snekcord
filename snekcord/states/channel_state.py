@@ -35,7 +35,6 @@ from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
-    from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
 
@@ -51,10 +50,6 @@ ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
 class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, BaseChannel]):
-    def __init__(self, *, client: Client) -> None:
-        super().__init__(client=client)
-        self.message_refstore = self.create_message_refstore()
-
     @property
     def events(self) -> typing.Tuple[str, ...]:
         return tuple(ChannelEvents)
