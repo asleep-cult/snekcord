@@ -35,6 +35,7 @@ from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
+    from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
 
@@ -50,12 +51,16 @@ ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
 
 
 class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, BaseChannel]):
+    def __init__(self, *, client: Client) -> None:
+        super().__init__(client=client)
+        self.guild_refstore = self.create_guild_refstore()
+
+    def create_guild_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeMemoryRefStore()
+
     @property
     def events(self) -> typing.Tuple[str, ...]:
         return tuple(ChannelEvents)
-
-    def create_message_refstore(self) -> RefStore[Snowflake, Snowflake]:
-        return SnowflakeMemoryRefStore()
 
     def to_unique(self, object: SupportsChannelID) -> Snowflake:
         if isinstance(object, Snowflake):
@@ -72,7 +77,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     async def for_guild(self, guild: SupportsGuildID) -> GuildChannelsView:
         guild_id = self.client.guilds.to_unique(guild)
 
-        channels = await self.client.guilds.channel_refstore.get(guild_id)
+        channels = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_channels_view(channels, guild_id)
 
     async def upsert(self, data: JSONObject) -> BaseChannel:
@@ -81,7 +86,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         guild_id = Snowflake.into(data, 'guild_id')
         if guild_id is not None:
-            await self.client.guilds.channel_refstore.add(guild_id, channel_id)
+            await self.guild_refstore.add(guild_id, channel_id)
 
         async with self.synchronize(channel_id):
             channel = await self.cache.get(channel_id)
@@ -177,7 +182,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
     async def remove_refs(self, object: CachedChannel) -> None:
         if object.guild_id is not undefined:
-            await self.client.guilds.channel_refstore.remove(object.guild_id, object.id)
+            await self.guild_refstore.remove(object.guild_id, object.id)
 
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
         return self.on(ChannelEvents.CREATE)

@@ -6,6 +6,10 @@ from .base_state import CachedEventState, CachedStateView
 from ..events import (
     RoleEvents,
 )
+from ..cache import (
+    RefStore,
+    SnowflakeMemoryRefStore,
+)
 from ..objects import (
     CachedRole,
     Role,
@@ -16,6 +20,7 @@ from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
+    from ..clients import Client
     from ..json import JSONObject
 
 __all__ = (
@@ -30,6 +35,13 @@ RoleIDWrapper = SnowflakeWrapper[SupportsRoleID, Role]
 
 
 class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
+    def __init__(self, *, client: Client) -> None:
+        super().__init__(client=client)
+        self.guild_refstore = self.create_guild_refstore()
+
+    def create_guild_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeMemoryRefStore()
+
     @property
     def events(self) -> typing.Tuple[str, ...]:
         return tuple(RoleEvents)
@@ -49,7 +61,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
     async def for_guild(self, guild: SupportsGuildID) -> GuildRolesView:
         guild_id = self.client.guilds.to_unique(guild)
 
-        roles = await self.client.guilds.role_refstore.get(guild_id)
+        roles = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_roles_view(roles, guild_id)
 
     async def upsert(self, data: JSONObject) -> Role:
@@ -58,7 +70,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
 
         guild_id = Snowflake.into(data, 'guild_id')
         if guild_id is not None:
-            await self.client.guilds.role_refstore.add(guild_id, role_id)
+            await self.guild_refstore.add(guild_id, role_id)
 
         async with self.synchronize(role_id):
             cached = await self.cache.get(role_id)
@@ -89,7 +101,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
 
     async def remove_refs(self, object: CachedRole) -> None:
         if object.guild_id is not None:
-            await self.client.guilds.role_refstore.remove(object.guild_id, object.id)
+            await self.guild_refstore.remove(object.guild_id, object.id)
 
 
 class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
