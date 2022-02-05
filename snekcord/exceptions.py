@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 
 class IncompleteDataError(Exception):
-    def __init__(self, model, name):
+    def __init__(self, model: object, name: str) -> None:
         self.model = model
         self.name = name
 

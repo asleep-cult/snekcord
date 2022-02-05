@@ -39,9 +39,9 @@ class CachedModelMeta(type):
         model_fields: typing.Dict[str, ModelField] = {}
 
         slots: typing.Set[str] = set()
-        for name in namespace['__annotations__']:
-            if not name.startswith('__') and not name.endswith('__'):
-                slots.add(name)
+        for field in namespace['__annotations__']:
+            if not field.startswith('__') and not field.endswith('__'):
+                slots.add(field)
 
         if '__slots__' in namespace:
             slots.update(namespace['__slots__'])
@@ -52,9 +52,9 @@ class CachedModelMeta(type):
         self = type.__new__(cls, name, bases, namespace)
 
         annotations = typing.get_type_hints(self)
-        for name, annotation in annotations.items():
-            if not name.startswith('__') and not name.endswith('__'):
-                model_fields[name] = ModelField(name, annotation)
+        for field, annotation in annotations.items():
+            if not field.startswith('__') and not field.endswith('__'):
+                model_fields[field] = ModelField(field, annotation)
 
         return self
 
