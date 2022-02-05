@@ -9,21 +9,22 @@ import attr
 from ..json import JSONObject
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Concatenate, Self
+    from typing_extensions import Concatenate
 
     P = typing.ParamSpec('P')
     T_contra = typing.TypeVar('T_contra', contravariant=True)
 
-    class SetterFunc(typing.Protocol[P, T_contra]):
+    class SetterFunc(typing.Protocol[T_contra, P]):
         def __call__(self, instance: T_contra, /, *args: P.args, **kwargs: P.kwargs) -> None:
             ...
 
 
+T = typing.TypeVar('T', bound='AwaitableBuilder[typing.Any]')  # TODO: Use Self instead
 SelfT = typing.TypeVar('SelfT')
 ResultT = typing.TypeVar('ResultT')
 
 
-def setter(func: SetterFunc[P, SelfT]) -> typing.Callable[Concatenate[SelfT, P], SelfT]:
+def setter(func: SetterFunc[SelfT, P]) -> typing.Callable[Concatenate[SelfT, P], SelfT]:
     def wrapped(instance: SelfT, *args: P.args, **kwargs: P.kwargs) -> SelfT:
         func(instance, *args, **kwargs)
         return instance
@@ -47,7 +48,7 @@ class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
     async def action(self) -> ResultT:
         raise NotImplementedError
 
-    async def __aenter__(self) -> Self:
+    async def __aenter__(self: T) -> T:
         if self.awaited:
             raise RuntimeError(f'cannot reuse {self.__class__.__name__}')
 
@@ -56,11 +57,12 @@ class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
 
     async def __aexit__(
         self,
-        exc_type: typing.Type[BaseException],
-        exc_val: BaseException,
-        exc_tb: types.TracebackType,
+        exc_type: typing.Optional[typing.Type[BaseException]],
+        exc_val: typing.Optional[BaseException],
+        exc_tb: typing.Optional[types.TracebackType],
     ) -> None:
-        self.result = await self.action()
+        if exc_tb is None:
+            self.result = await self.action()
 
     def __await__(self) -> typing.Generator[None, None, ResultT]:
         if self.awaited:
@@ -76,4 +78,4 @@ class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
 
     def __del__(self) -> None:
         if not self.awaited:
-            warnings.warn(f'{self.__class__.__name__} was never awaited', ResourceWarning)
+            warnings.warn(f'{self.__class__.__name__} was never awaited', RuntimeWarning)

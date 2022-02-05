@@ -49,6 +49,12 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
 
         return await self.client.messages.upsert(data)
 
+    def get_message(self) -> Message:
+        if self.result is None:
+            raise RuntimeError('get_message() can only be called after await or async with')
+
+        return self.result
+
 
 @attr.s(kw_only=True, slots=True)
 class MessageModifyBuilder(AwaitableBuilder[Message]):
@@ -82,3 +88,9 @@ class MessageModifyBuilder(AwaitableBuilder[Message]):
         assert isinstance(data, dict)
 
         return await self.client.messages.upsert(data)
+
+    def get_message(self) -> Message:
+        if self.result is None:
+            raise RuntimeError('get_message() can only be called after await or async with')
+
+        return self.result
