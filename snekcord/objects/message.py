@@ -11,6 +11,7 @@ from ..cache import CachedModel
 from ..objects import SnowflakeObject
 from ..rest.endpoints import (
     ADD_CHANNEL_PIN,
+    CROSSPOST_CHANNEL_MESSAGE,
     DELETE_CHANNEL_MESSAGE,
     REMOVE_CHANNEL_PIN,
 )
@@ -117,6 +118,16 @@ class Message(SnowflakeObject[SupportsMessageID]):
     type: typing.Union[MessageType, int] = attr.ib(eq=False)
     # application: ApplicationIDWrapper = attr.ib()
     flags: MessageFlags = attr.ib(eq=False)
+
+    async def crosspost(self) -> Message:
+        assert self.channel.id is not None
+
+        data = await self.client.rest.request(
+            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
+        )
+        assert isinstance(data, dict)
+
+        return await self.client.messages.upsert(data)
 
     async def pin(self) -> None:
         assert self.channel.id is not None

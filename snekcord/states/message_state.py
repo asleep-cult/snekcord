@@ -35,6 +35,7 @@ from ..objects import (
 from ..ordering import FetchOrdering
 from ..rest.endpoints import (
     ADD_CHANNEL_PIN,
+    CROSSPOST_CHANNEL_MESSAGE,
     DELETE_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGES,
@@ -221,6 +222,16 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     ) -> None:
         super().__init__(state=state, keys=messages)
         self.channel_id = self.client.channels.to_unique(channel)
+
+    async def crosspost(self, message: SupportsMessageID) -> Message:
+        message_id = self.to_unique(message)
+
+        data = await self.client.rest.request(
+            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=message_id
+        )
+        assert isinstance(data, dict)
+
+        return await self.client.messages.upsert(data)
 
     async def pin(self, message: SupportsMessageID) -> None:
         message_id = self.to_unique(message)
