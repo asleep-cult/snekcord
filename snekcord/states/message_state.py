@@ -116,7 +116,6 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
         timestamp = data.get('timestamp')
         if timestamp is None:
-            print('Injecting timestamp')
             data['timestamp'] = message_id.to_datetime().isoformat()
 
         async with self.synchronize(message_id):

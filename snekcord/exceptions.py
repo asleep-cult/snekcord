@@ -1,4 +1,16 @@
+from __future__ import annotations
+
+import typing
 from http import HTTPStatus
+
+from .snowflake import Snowflake
+
+if typing.TYPE_CHECKING:
+    from httpx import Response
+
+    from .json import JSONObject, JSONType
+    from .rest import RESTSession
+    from .websockets import Shard
 
 
 class IncompleteDataError(Exception):
@@ -10,16 +22,8 @@ class IncompleteDataError(Exception):
         return f'{self.model.__class__.__name__!r} is missing {self.name!r}'
 
 
-class InvalidResponseError(Exception):
-    def __init__(self, data):
-        self.data = data
-
-    def __str__(self):
-        return 'API responded with unsupported data'
-
-
 class UnknownSnowflakeError(Exception):
-    def __init__(self, id):
+    def __init__(self, id: Snowflake) -> None:
         self.id = id
 
     def __str__(self):
@@ -30,21 +34,21 @@ class UnknownCodeError(Exception):
     def __init__(self, code: str) -> None:
         self.code = code
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Object with code {self.code} is not cached'
 
 
 class ShardConnectError(Exception):
-    def __init__(self, message, shard):
+    def __init__(self, message: str, shard: Shard) -> None:
         self.message = message
         self.shard = shard
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
 class AuthenticationFailedError(Exception):
-    def __init__(self, shard):
+    def __init__(self, shard: Shard) -> None:
         self.shard = shard
         self.token = self.shard.token
 
@@ -53,7 +57,7 @@ class AuthenticationFailedError(Exception):
 
 
 class DisallowedIntentsError(Exception):
-    def __init__(self, shard):
+    def __init__(self, shard: Shard) -> None:
         self.shard = shard
 
     def __str__(self):
@@ -61,7 +65,7 @@ class DisallowedIntentsError(Exception):
 
 
 class ShardCloseError(Exception):
-    def __init__(self, code, *, shard):
+    def __init__(self, code: int, shard: Shard) -> None:
         self.code = code
         self.shard = shard
 
@@ -75,7 +79,14 @@ class PendingCancellationError(Exception):
 
 
 class RESTError(Exception):
-    def __init__(self, session, method, url, response, data):
+    def __init__(
+        self,
+        session: RESTSession,
+        method: typing.Literal['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
+        url: str,
+        response: Response,
+        data: typing.Union[JSONType, bytes],
+    ) -> None:
         self.session = session
         self.method = method
         self.url = url
@@ -83,7 +94,7 @@ class RESTError(Exception):
         self.data = data
 
     @property
-    def status(self):
+    def status(self) -> HTTPStatus:
         return HTTPStatus(self.response.status_code)
 
     def is_unauthorized(self):
@@ -101,7 +112,9 @@ class RESTError(Exception):
     def is_bad_gateway(self):
         return self.status is HTTPStatus.BAD_GATEWAY
 
-    def format_error(self, error, keys=None):
+    def format_error(
+        self, error: JSONObject, keys: typing.Optional[typing.Tuple[str]] = None
+    ) -> str:
         message = error.get('message', '<missing message>')
         code = error.get('code', '<missing code>')
 
@@ -116,31 +129,22 @@ class RESTError(Exception):
 
         if isinstance(self.data, dict):
             if 'errors' in self.data:
-                errors = self.data['errors']
-                assert isinstance(errors, dict)
-
-                stack = []
+                errors: JSONObject = self.data['errors']
+                stack: typing.List[typing.Tuple[typing.Tuple[str, ...], JSONObject]] = []
 
                 for key, value in errors.items():
                     if key == '_errors':
-                        assert isinstance(value, list)
-
                         for error in value:
-                            assert isinstance(error, dict)
                             string += self.format_error(error)
                     else:
                         stack.append(((key,), value))
 
                 while stack:
                     keys, errors = stack.pop()
-                    assert isinstance(errors, dict)
 
                     for key, value in errors.items():
                         if key == '_errors':
-                            assert isinstance(value, list)
-
                             for error in value:
-                                assert isinstance(error, dict)
                                 string += self.format_error(error, keys)
                         else:
                             stack.append((keys + (key,), value))
