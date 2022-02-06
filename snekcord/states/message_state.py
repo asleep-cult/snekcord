@@ -281,10 +281,9 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         content: MaybeUndefined[typing.Optional[str]] = undefined,
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
+        message_id = self.to_unique(message)
         builder = MessageUpdateBuilder(
-            client=self.client,
-            channel_id=self.channel_id,
-            message_id=self.to_unique(message),
+            client=self.client, channel_id=self.channel_id, message_id=message_id
         )
 
         builder.content(content)

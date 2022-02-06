@@ -9,6 +9,7 @@ import attr
 from ..builders import MessageUpdateBuilder
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
+from ..rest.endpoints import DELETE_CHANNEL_MESSAGE
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
@@ -122,12 +123,18 @@ class Message(SnowflakeObject[SupportsMessageID]):
         assert self.channel.id is not None
 
         builder = MessageUpdateBuilder(
-            client=self.client,
-            channel_id=self.channel.id,
-            message_id=self.id,
+            client=self.client, channel_id=self.channel.id, message_id=self.id
         )
 
         builder.content(content)
         builder.flags(flags)
 
         return builder
+
+    async def delete(self) -> typing.Optional[Message]:
+        assert self.channel.id is not None
+
+        await self.client.rest.request(
+            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.id, message_id=self.id
+        )
+        return await self.client.messages.drop(self.id)
