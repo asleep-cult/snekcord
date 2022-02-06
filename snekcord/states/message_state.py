@@ -34,9 +34,12 @@ from ..objects import (
 )
 from ..ordering import FetchOrdering
 from ..rest.endpoints import (
+    ADD_CHANNEL_PIN,
     DELETE_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGES,
+    GET_CHANNEL_PINS,
+    REMOVE_CHANNEL_PIN,
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
@@ -218,6 +221,26 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     ) -> None:
         super().__init__(state=state, keys=messages)
         self.channel_id = self.client.channels.to_unique(channel)
+
+    async def pin(self, message: SupportsMessageID) -> None:
+        message_id = self.to_unique(message)
+
+        await self.client.rest.request(
+            ADD_CHANNEL_PIN, channel_id=self.channel_id, message_id=message_id
+        )
+
+    async def unpin(self, message: SupportsMessageID) -> None:
+        message_id = self.to_unique(message)
+
+        await self.client.rest.request(
+            REMOVE_CHANNEL_PIN, channel_id=self.channel_id, message_id=message_id
+        )
+
+    async def fetch_pins(self) -> typing.List[Message]:
+        data = await self.client.rest.request(GET_CHANNEL_PINS, channel_id=self.channel_id)
+        assert isinstance(data, list)
+
+        return [await self.client.messages.upsert(message) for message in data]
 
     def create(
         self,

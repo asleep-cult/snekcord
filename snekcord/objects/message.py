@@ -9,7 +9,11 @@ import attr
 from ..builders import MessageUpdateBuilder
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
-from ..rest.endpoints import DELETE_CHANNEL_MESSAGE
+from ..rest.endpoints import (
+    ADD_CHANNEL_PIN,
+    DELETE_CHANNEL_MESSAGE,
+    REMOVE_CHANNEL_PIN,
+)
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
@@ -113,6 +117,20 @@ class Message(SnowflakeObject[SupportsMessageID]):
     type: typing.Union[MessageType, int] = attr.ib(eq=False)
     # application: ApplicationIDWrapper = attr.ib()
     flags: MessageFlags = attr.ib(eq=False)
+
+    async def pin(self) -> None:
+        assert self.channel.id is not None
+
+        await self.client.rest.request(
+            ADD_CHANNEL_PIN, channel_id=self.channel.id, message_id=self.id
+        )
+
+    async def unpin(self) -> None:
+        assert self.channel.id is not None
+
+        await self.client.rest.request(
+            REMOVE_CHANNEL_PIN, channel_id=self.channel.id, message_id=self.id
+        )
 
     def update(
         self,
