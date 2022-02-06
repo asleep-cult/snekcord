@@ -3,12 +3,12 @@ from __future__ import annotations
 import typing
 
 from .base_state import CachedEventState, CachedStateView
-from ..events import (
-    RoleEvents,
-)
 from ..cache import (
     RefStore,
     SnowflakeMemoryRefStore,
+)
+from ..events import (
+    RoleEvents,
 )
 from ..objects import (
     CachedRole,

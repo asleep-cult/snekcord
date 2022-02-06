@@ -37,6 +37,7 @@ from ..rest.endpoints import (
     ADD_CHANNEL_PIN,
     CROSSPOST_CHANNEL_MESSAGE,
     DELETE_CHANNEL_MESSAGE,
+    DELETE_CHANNEL_MESSAGES,
     GET_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGES,
     GET_CHANNEL_PINS,
@@ -115,7 +116,8 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
         timestamp = data.get('timestamp')
         if timestamp is None:
-            data['timestamp'] = message_id.to_datetime()
+            print('Injecting timestamp')
+            data['timestamp'] = message_id.to_datetime().isoformat()
 
         async with self.synchronize(message_id):
             cached = await self.cache.get(message_id)
@@ -332,3 +334,21 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
             DELETE_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=message_id
         )
         return await self.client.messages.drop(message_id)
+
+    async def delete_many(
+        self, messages: typing.Iterable[SupportsMessageID]
+    ) -> typing.List[Message]:
+        json = {}
+
+        message_ids = {self.to_unique(message) for message in messages}
+        if not 1 < len(message_ids) <= 100:
+            raise ValueError('len(messages) should be > 1 and <= 100')
+
+        json['messages'] = tuple(str(message_id) for message_id in message_ids)
+
+        await self.client.rest.request(
+            DELETE_CHANNEL_MESSAGES, channel_id=self.channel_id, json=json
+        )
+
+        iterator = (await self.client.messages.drop(message_id) for message_id in message_ids)
+        return [message async for message in iterator if message is not None]

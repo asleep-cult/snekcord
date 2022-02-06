@@ -101,13 +101,15 @@ class RESTError(Exception):
     def is_bad_gateway(self):
         return self.status is HTTPStatus.BAD_GATEWAY
 
-    def format_error(self, keys, error):
-        key = '.'.join(str(key) for key in keys)
-
+    def format_error(self, error, keys=None):
         message = error.get('message', '<missing message>')
         code = error.get('code', '<missing code>')
 
-        return f'\n{key}: {message} ({code})'
+        if keys is not None:
+            key = '.'.join(str(key) for key in keys)
+            return f'\n{key}: {message} ({code})'
+
+        return f'\n{message} ({code})'
 
     def __str__(self):
         string = f'[{self.method} {self.url} => {self.status} {self.status.phrase}]'
@@ -117,7 +119,17 @@ class RESTError(Exception):
                 errors = self.data['errors']
                 assert isinstance(errors, dict)
 
-                stack = [((key,), value) for key, value in errors.items()]
+                stack = []
+
+                for key, value in errors.items():
+                    if key == '_errors':
+                        assert isinstance(value, list)
+
+                        for error in value:
+                            assert isinstance(error, dict)
+                            string += self.format_error(error)
+                    else:
+                        stack.append(((key,), value))
 
                 while stack:
                     keys, errors = stack.pop()
@@ -129,7 +141,7 @@ class RESTError(Exception):
 
                             for error in value:
                                 assert isinstance(error, dict)
-                                string += self.format_error(keys, error)
+                                string += self.format_error(error, keys)
                         else:
                             stack.append((keys + (key,), value))
 

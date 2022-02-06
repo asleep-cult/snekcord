@@ -62,7 +62,7 @@ ADD_CHANNEL_RECIPIENT = RESTEndpoint(POST, '/channels/{channel_id}/recipients/{u
 REMOVE_CHANNEL_RECIPIENT = RESTEndpoint(DELETE, '/channels/{channel_id}/recipients/{user_id}')
 
 GET_CHANNEL_MESSAGES = RESTEndpoint(GET, '/channels/{channel_id}/messages')
-DELETE_CHANNEL_MESSAGES = RESTEndpoint(DELETE, '/channels/{channel_id}/messages/bulk-delete')
+DELETE_CHANNEL_MESSAGES = RESTEndpoint(POST, '/channels/{channel_id}/messages/bulk-delete')
 CREATE_CHANNEL_MESSAGE = RESTEndpoint(POST, '/channels/{channel_id}/messages')
 
 GET_CHANNEL_MESSAGE = RESTEndpoint(GET, '/channels/{channel_id}/messages/{message_id}')
