@@ -38,7 +38,6 @@ from ..snowflake import Snowflake
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
-    from ..clients import Client
     from ..websockets import Shard
 
 __all__ = (
@@ -52,9 +51,6 @@ GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
 
 
 class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild]):
-    def __init__(self, *, client: Client) -> None:
-        super().__init__(client=client)
-
     @property
     def events(self) -> typing.Tuple[str, ...]:
         return tuple(GuildEvents)
