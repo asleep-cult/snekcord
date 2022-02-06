@@ -10,7 +10,7 @@ from .base_state import (
 )
 from ..builders import (
     MessageCreateBuilder,
-    MessageModifyBuilder,
+    MessageUpdateBuilder,
 )
 from ..cache import (
     RefStore,
@@ -274,14 +274,14 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
 
         return [await self.client.messages.upsert(message) for message in data]
 
-    def modify(
+    def update(
         self,
         message: SupportsMessageID,
         *,
         content: MaybeUndefined[typing.Optional[str]] = undefined,
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
-    ) -> MessageModifyBuilder:
-        builder = MessageModifyBuilder(
+    ) -> MessageUpdateBuilder:
+        builder = MessageUpdateBuilder(
             client=self.client,
             channel_id=self.channel_id,
             message_id=self.to_unique(message),

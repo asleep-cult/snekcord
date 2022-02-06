@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import typing
 import string as _string
+import typing
 
 # For whatever reason string.Formatter is implemented as a class
 # that wraps the '_string' module but doesn't use static methods
@@ -39,7 +39,7 @@ DELETE = 'DELETE'
 GET_GUILD_AUDIT_LOG = RESTEndpoint(GET, '/guilds/{guild_id}/audit-logs')
 
 GET_CHANNEL = RESTEndpoint(GET, '/channels/{channel_id}')
-MODIFY_CHANNEL = RESTEndpoint(PATCH, '/channels/{channel_id}')
+UPDATE_CHANNEL = RESTEndpoint(PATCH, '/channels/{channel_id}')
 DELETE_CHANNEL = RESTEndpoint(DELETE, '/channels/{channel_id}')
 
 TRIGGER_CHANNEL_TYPING = RESTEndpoint(POST, '/channels/{channel_id}/typing')
@@ -66,7 +66,7 @@ DELETE_CHANNEL_MESSAGES = RESTEndpoint(DELETE, '/channels/{channel_id}/messages/
 CREATE_CHANNEL_MESSAGE = RESTEndpoint(POST, '/channels/{channel_id}/messages')
 
 GET_CHANNEL_MESSAGE = RESTEndpoint(GET, '/channels/{channel_id}/messages/{message_id}')
-MODIFY_CHANNEL_MESSAGE = RESTEndpoint(PATCH, '/channels/{channel_id}/messages/{message_id}')
+UPDATE_CHANNEL_MESSAGE = RESTEndpoint(PATCH, '/channels/{channel_id}/messages/{message_id}')
 DELETE_CHANNEL_MESSAGE = RESTEndpoint(DELETE, '/channels/{channel_id}/messages/{message_id}')
 
 CROSSPOST_CHANNEL_MESSAGE = RESTEndpoint(
@@ -93,7 +93,7 @@ GET_GUILD_EMOJIS = RESTEndpoint(GET, '/guilds/{guild_id}/emojis')
 CREATE_GUILD_EMOJI = RESTEndpoint(POST, '/guilds/{guild_id}/emojis')
 
 GET_GUILD_EMOJI = RESTEndpoint(GET, '/guilds/{guild_id}/emojis/{emoji}')
-MODIFY_GUILD_EMOJI = RESTEndpoint(PATCH, '/guilds/{guild_id}/emojis/{emoji}')
+UPDATE_GUILD_EMOJI = RESTEndpoint(PATCH, '/guilds/{guild_id}/emojis/{emoji}')
 DELETE_GUILD_EMOJI = RESTEndpoint(DELETE, '/guilds/{guild_id}/emojis/{emoji}')
 
 CREATE_GUILD = RESTEndpoint(POST, '/guilds')
@@ -101,7 +101,7 @@ CREATE_GUILD = RESTEndpoint(POST, '/guilds')
 CREATE_GUILD_FROM_TEMPLATE = RESTEndpoint(POST, '/guilds/templates/{template_code}')
 
 GET_GUILD = RESTEndpoint(GET, '/guilds/{guild_id}')
-MODIFY_GUILD = RESTEndpoint(PATCH, '/guilds/{guild_id}')
+UPDATE_GUILD = RESTEndpoint(PATCH, '/guilds/{guild_id}')
 DELETE_GUILD = RESTEndpoint(DELETE, '/guilds/{guild_id}')
 
 GET_GUILD_PREVIEW = RESTEndpoint(GET, '/guilds/{guild_id}/preview')
@@ -117,20 +117,20 @@ GET_GUILD_INTEGRATIONS = RESTEndpoint(GET, '/guilds/{guild_id}/integrations')
 DELETE_GUILD_INTEGRATIONS = RESTEndpoint(DELETE, '/guilds/{guild_id}/integrations/{integration_id}')
 
 GET_GUILD_WIDGET = RESTEndpoint(GET, '/guilds/{guild_id}/widget')
-MODIFY_GUILD_WIDGET = RESTEndpoint(PATCH, '/guilds/{guild_id}/widget')
+UPDATE_GUILD_WIDGET = RESTEndpoint(PATCH, '/guilds/{guild_id}/widget')
 
 GET_GUILD_WIDGET_JSON = RESTEndpoint(GET, '/guilds/{guild_id}/widget.json')
 GET_GUILD_WIDGET_IMAGE = RESTEndpoint(GET, '/guilds/{guild_id}/widget.png')
 
 GET_GUILD_WELCOME_SCREEN = RESTEndpoint(GET, '/guilds/{guild_id}/welcome-screen')
-MODIFY_GUILD_WELCOME_SCREEN = RESTEndpoint(PATCH, '/guilds/{guild_id}/welcome-screen')
+UPDATE_GUILD_WELCOME_SCREEN = RESTEndpoint(PATCH, '/guilds/{guild_id}/welcome-screen')
 
 GET_GUILD_PRUNE_COUNT = RESTEndpoint(GET, '/guilds/{guild_id}/prune')
 BEGIN_GUILD_PRUNE = RESTEndpoint(POST, '/guilds/{guild_id}/prune')
 
 GET_GUILD_CHANNELS = RESTEndpoint(GET, '/guilds/{guild_id}/channels')
 CREATE_GUILD_CHANNEL = RESTEndpoint(POST, '/guilds/{guild_id}/channels')
-MODIFY_GUILD_CHANNEL_POSITIONS = RESTEndpoint(PATCH, '/guilds/{guild_id}/channels')
+UPDATE_GUILD_CHANNEL_POSITIONS = RESTEndpoint(PATCH, '/guilds/{guild_id}/channels')
 
 GET_GUILD_MEMBERS = RESTEndpoint(GET, '/guilds/{guild_id}/members')
 SEARCH_GUILD_MEMBERS = RESTEndpoint(GET, '/guilds/{guild_id}/members/search')
@@ -138,10 +138,10 @@ SEARCH_GUILD_MEMBERS = RESTEndpoint(GET, '/guilds/{guild_id}/members/search')
 GET_GUILD_MEMBER = RESTEndpoint(GET, '/guilds/{guild_id}/members/{user_id}')
 ADD_GUILD_MEMBER = RESTEndpoint(PUT, '/guilds/{guild_id}/members/{user_id}')
 REMOVE_GUILD_MEMBER = RESTEndpoint(DELETE, '/guilds/{guild_id}/members/{user_id}')
-MODIFY_GUILD_MEMBER = RESTEndpoint(PATCH, '/guilds/{guild_id}/members/{user_id}')
+UPDATE_GUILD_MEMBER = RESTEndpoint(PATCH, '/guilds/{guild_id}/members/{user_id}')
 
-MODIFY_MY_MEMBER = RESTEndpoint(PATCH, '/guilds/{guild_id}/members/@me')
-MODIFY_MY_NICKNAME = RESTEndpoint(PATCH, '/guilds/{guild_id}/members/@me/nick')
+UPDATE_MY_MEMBER = RESTEndpoint(PATCH, '/guilds/{guild_id}/members/@me')
+UPDATE_MY_NICKNAME = RESTEndpoint(PATCH, '/guilds/{guild_id}/members/@me/nick')
 
 ADD_MEMBER_ROLE = RESTEndpoint(PUT, '/guilds/{guild_id}/members/{member_id}/roles/{role_id}')
 REMOVE_MEMBER_ROLE = RESTEndpoint(DELETE, '/guilds/{guild_id}/members/{member_id}/roles/{role_id}')
@@ -154,19 +154,19 @@ REMOVE_GUILD_BAN = RESTEndpoint(DELETE, '/guilds/{guild_id}/bans/{user_id}')
 
 GET_GUILD_ROLES = RESTEndpoint(GET, '/guilds/{guild_id}/roles')
 CREATE_GUILD_ROLE = RESTEndpoint(POST, '/guilds/{guild_id}/roles')
-MODIFY_GUILD_ROLES = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles')
+UPDATE_GUILD_ROLES = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles')
 
-MODIFY_GUILD_ROLE = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles/{role_id}')
+UPDATE_GUILD_ROLE = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles/{role_id}')
 DELETE_GUILD_ROLE = RESTEndpoint(DELETE, '/guilds/{guild_id}/roles/{role_id}')
 
-MODIFY_VOICE_STATE = RESTEndpoint(PATCH, '/guilds/{guild_id}/voice-states/{user_id}')
-MODIFY_MY_VOICE_STATE = RESTEndpoint(PATCH, '/guilds/{guild_id}/voice-states/@me')
+UPDATE_VOICE_STATE = RESTEndpoint(PATCH, '/guilds/{guild_id}/voice-states/{user_id}')
+UPDATE_MY_VOICE_STATE = RESTEndpoint(PATCH, '/guilds/{guild_id}/voice-states/@me')
 
 GET_GUILD_TEMPLATES = RESTEndpoint(GET, '/guilds/{guild_id}/templates')
 CREATE_GUILD_TEMPLATE = RESTEndpoint(POST, '/guilds/{guild_id}/templates')
 
 GET_GUILD_TEMPLATE = RESTEndpoint(GET, '/guilds/{guild_id}/templates/{template_code}')
-MODIFY_GUILD_TEMPLATE = RESTEndpoint(PATCH, '/guilds/{guild_id}/templates/{template_code}')
+UPDATE_GUILD_TEMPLATE = RESTEndpoint(PATCH, '/guilds/{guild_id}/templates/{template_code}')
 DELETE_GUILD_TEMPLATE = RESTEndpoint(DELETE, '/guilds/{guild_id}/templates/{template_code}')
 
 SYNC_GUILD_TEMPLATE = RESTEndpoint(PUT, '/guilds/{guild_id}/templates/{template_code}/sync')
@@ -177,7 +177,7 @@ DELETE_INVITE = RESTEndpoint(DELETE, '/invites/{invite_code}')
 CREATE_STAGE_INSTANCE = RESTEndpoint(POST, '/stage-instances')
 
 GET_STAGE_INSTANCE = RESTEndpoint(GET, '/stage-instances/{channel_id}')
-MODIFY_STAGE_INSTANCE = RESTEndpoint(PATCH, '/stage-instances/{channel_id}')
+UPDATE_STAGE_INSTANCE = RESTEndpoint(PATCH, '/stage-instances/{channel_id}')
 DELETE_STAGE_INSTANCE = RESTEndpoint(DELETE, '/stage-instances/{channel_id}')
 
 GET_STICKER_PACKS = RESTEndpoint(GET, '/sticker-packs')
@@ -188,12 +188,12 @@ GET_GUILD_STICKERS = RESTEndpoint(GET, '/guilds/{guild_id}/stickers')
 
 GET_GUILD_STICKER = RESTEndpoint(GET, '/guilds/{guild_id}/stickers/{sticker_id}')
 CREATE_GUILD_STICKER = RESTEndpoint(POST, '/guilds/{guild_id}/stickers/{sticker_id}')
-MODIFY_GUILD_STICKER = RESTEndpoint(PATCH, '/guilds/{guild_id}/stickers/{sticker_id}')
+UPDATE_GUILD_STICKER = RESTEndpoint(PATCH, '/guilds/{guild_id}/stickers/{sticker_id}')
 DELETE_GUILD_STICKER = RESTEndpoint(DELETE, '/guilds/{guild_id}/stickers/{sticker_id}')
 
 GET_USER = RESTEndpoint(GET, '/users/{user_id}')
 GET_MY_USER = RESTEndpoint(GET, '/users/@me')
-MODIFY_MY_USER = RESTEndpoint(PATCH, '/users/@me')
+UPDATE_MY_USER = RESTEndpoint(PATCH, '/users/@me')
 
 GET_MY_GUILDS = RESTEndpoint(GET, '/users/@me/guilds')
 

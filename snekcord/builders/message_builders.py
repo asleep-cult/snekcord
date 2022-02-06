@@ -7,7 +7,7 @@ import attr
 from .base_builders import AwaitableBuilder, setter
 from ..rest.endpoints import (
     CREATE_CHANNEL_MESSAGE,
-    MODIFY_CHANNEL_MESSAGE,
+    UPDATE_CHANNEL_MESSAGE,
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 else:
     Message = typing.NewType('Message', typing.Any)
 
-__all__ = ('MessageCreateBuilder', 'MessageModifyBuilder')
+__all__ = ('MessageCreateBuilder', 'MessageUpdateBuilder')
 
 
 @attr.s(kw_only=True, slots=True)
@@ -57,7 +57,7 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
 
 
 @attr.s(kw_only=True, slots=True)
-class MessageModifyBuilder(AwaitableBuilder[Message]):
+class MessageUpdateBuilder(AwaitableBuilder[Message]):
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
     message_id: Snowflake = attr.ib()
@@ -65,22 +65,16 @@ class MessageModifyBuilder(AwaitableBuilder[Message]):
     @setter
     def content(self, content: MaybeUndefined[typing.Optional[str]]) -> None:
         if content is not undefined:
-            if content is not None:
-                self.data['content'] = str(content)
-            else:
-                self.data['content'] = None
+            self.data['content'] = str(content) if content is not None else None
 
     @setter
     def flags(self, flags: MaybeUndefined[typing.Optional[MessageFlags]]) -> None:
         if flags is not undefined:
-            if flags is not None:
-                self.data['flags'] = int(flags)
-            else:
-                self.data['flags'] = None
+            self.data['flags'] = int(flags) if flags is not None else None
 
     async def action(self) -> Message:
         data = await self.client.rest.request(
-            MODIFY_CHANNEL_MESSAGE,
+            UPDATE_CHANNEL_MESSAGE,
             channel_id=self.channel_id,
             message_id=self.message_id,
             json=self.data,

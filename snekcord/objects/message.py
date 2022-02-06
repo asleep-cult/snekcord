@@ -6,10 +6,11 @@ from datetime import datetime
 
 import attr
 
+from ..builders import MessageUpdateBuilder
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined
+from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from ..states import (
@@ -111,3 +112,22 @@ class Message(SnowflakeObject[SupportsMessageID]):
     type: typing.Union[MessageType, int] = attr.ib(eq=False)
     # application: ApplicationIDWrapper = attr.ib()
     flags: MessageFlags = attr.ib(eq=False)
+
+    def update(
+        self,
+        *,
+        content: MaybeUndefined[typing.Optional[str]] = undefined,
+        flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
+    ) -> MessageUpdateBuilder:
+        assert self.channel.id is not None
+
+        builder = MessageUpdateBuilder(
+            client=self.client,
+            channel_id=self.channel.id,
+            message_id=self.id,
+        )
+
+        builder.content(content)
+        builder.flags(flags)
+
+        return builder
