@@ -26,3 +26,4 @@ line-length = 100
 
 [tool.pyright]
 reportUnnecessaryIsInstance = false
+reportImportCycles = false

@@ -8,6 +8,14 @@ from .base_state import (
     CachedStateView,
     OnDecoratorT,
 )
+from ..builders import (
+    MessageCreateBuilder,
+    MessageModifyBuilder,
+)
+from ..cache import (
+    RefStore,
+    SnowflakeMemoryRefStore,
+)
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -26,7 +34,6 @@ from ..objects import (
 )
 from ..ordering import FetchOrdering
 from ..rest.endpoints import (
-    CREATE_CHANNEL_MESSAGE,
     DELETE_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGE,
     GET_CHANNEL_MESSAGES,
@@ -36,6 +43,7 @@ from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from .channel_state import SupportsChannelID
+    from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
 
@@ -51,6 +59,13 @@ MessageIDWrapper = SnowflakeWrapper[SupportsMessageID, Message]
 
 
 class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage, Message]):
+    def __init__(self, *, client: Client) -> None:
+        super().__init__(client=client)
+        self.channel_refstore = self.create_channel_refstore()
+
+    def create_channel_refstore(self) -> RefStore[Snowflake, Snowflake]:
+        return SnowflakeMemoryRefStore()
+
     @property
     def events(self) -> typing.Tuple[str, ...]:
         return tuple(MessageEvents)
@@ -70,21 +85,33 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
     async def for_channel(self, channel: SupportsChannelID) -> ChannelMessagesView:
         channel_id = self.client.channels.to_unique(channel)
 
-        messages = await self.client.channels.message_refstore.get(channel_id)
+        messages = await self.channel_refstore.get(channel_id)
         return self.client.create_channel_messages_view(messages, channel_id)
 
     async def upsert(self, data: JSONObject) -> Message:
         message_id = Snowflake.into(data, 'id')
         assert message_id is not None
 
+        guild_id = Snowflake.into(data, 'guild_id')
+
         channel_id = Snowflake.into(data, 'channel_id')
         if channel_id is not None:
-            await self.client.channels.message_refstore.add(channel_id, message_id)
+            await self.channel_refstore.add(channel_id, message_id)
+
+            if guild_id is None:
+                channel = await self.client.channels.cache.get(channel_id)
+
+                if channel is not None:
+                    data['guild_id'] = channel.guild_id
 
         author = data.get('author')
         if author is not None:
             data['author_id'] = Snowflake(author['id'])
             await self.client.users.upsert(author)
+
+        timestamp = data.get('timestamp')
+        if timestamp is None:
+            data['timestamp'] = message_id.to_datetime()
 
         async with self.synchronize(message_id):
             cached = await self.cache.get(message_id)
@@ -129,7 +156,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
     async def remove_refs(self, object: CachedMessage) -> None:
         if object.channel_id is not None:
-            await self.client.channels.message_refstore.remove(object.channel_id, object.id)
+            await self.channel_refstore.remove(object.channel_id, object.id)
 
     def on_create(self) -> OnDecoratorT[MessageCreateEvent]:
         return self.on(MessageEvents.CREATE)
@@ -192,7 +219,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         super().__init__(state=state, keys=messages)
         self.channel_id = self.client.channels.to_unique(channel)
 
-    async def create(
+    def create(
         self,
         *,
         content: MaybeUndefined[str] = undefined,
@@ -200,24 +227,14 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         # embeds, allowed mentions, message reference
         # components, stickers, attachments
         flags: MaybeUndefined[MessageFlags] = undefined,
-    ) -> Message:
-        json = {}
+    ) -> MessageCreateBuilder:
+        builder = MessageCreateBuilder(client=self.client, channel_id=self.channel_id)
 
-        if content is not undefined:
-            json['content'] = str(content)
+        builder.content(content)
+        builder.tts(tts)
+        builder.flags(flags)
 
-        if tts is not undefined:
-            json['tts'] = bool(tts)
-
-        if flags is not undefined:
-            json['flags'] = int(flags)
-
-        data = await self.client.rest.request(
-            CREATE_CHANNEL_MESSAGE, channel_id=self.channel_id, json=json
-        )
-        assert isinstance(data, dict)
-
-        return await self.client.messages.upsert(data)
+        return builder
 
     async def fetch(self, message: SupportsMessageID) -> Message:
         message_id = self.client.messages.to_unique(message)
@@ -256,6 +273,24 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         assert isinstance(data, list)
 
         return [await self.client.messages.upsert(message) for message in data]
+
+    def modify(
+        self,
+        message: SupportsMessageID,
+        *,
+        content: MaybeUndefined[typing.Optional[str]] = undefined,
+        flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
+    ) -> MessageModifyBuilder:
+        builder = MessageModifyBuilder(
+            client=self.client,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
+        )
+
+        builder.content(content)
+        builder.flags(flags)
+
+        return builder
 
     async def delete(self, message: SupportsMessageID) -> typing.Optional[Message]:
         message_id = self.client.messages.to_unique(message)

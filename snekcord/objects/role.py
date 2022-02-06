@@ -44,13 +44,13 @@ class CachedRole(CachedModel):
 class Role(SnowflakeObject[SupportsRoleID]):
     state: RoleState
 
-    guild: GuildIDWrapper = attr.ib(hash=False, eq=False)
-    name: str = attr.ib(hash=False, eq=False)
-    color: int = attr.ib(repr=False, hash=False, eq=False)
-    hoist: bool = attr.ib(hash=False, eq=False)
-    icon: typing.Optional[str] = attr.ib(repr=False, hash=False, eq=False)
-    unicode_emoji: typing.Optional[str] = attr.ib(hash=False, eq=False)
-    position: int = attr.ib(hash=False, eq=False)
-    permissions: str = attr.ib(repr=False, hash=False, eq=False)
-    managed: bool = attr.ib(hash=False, eq=False)
+    guild: GuildIDWrapper = attr.ib(eq=False)
+    name: str = attr.ib(eq=False)
+    color: int = attr.ib(repr=False, eq=False)
+    hoist: bool = attr.ib(eq=False)
+    icon: typing.Optional[str] = attr.ib(repr=False, eq=False)
+    unicode_emoji: typing.Optional[str] = attr.ib(eq=False)
+    position: int = attr.ib(eq=False)
+    permissions: str = attr.ib(repr=False, eq=False)
+    managed: bool = attr.ib(eq=False)
     # tags

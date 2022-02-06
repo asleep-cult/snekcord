@@ -7,10 +7,6 @@ from .base_state import (
     CachedEventState,
     OnDecoratorT,
 )
-from ..cache import (
-    RefStore,
-    SnowflakeMemoryRefStore,
-)
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -59,26 +55,9 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
 
-        self.role_refstore = self.create_role_refstore()
-        self.emoji_refstore = self.create_emoji_refstore()
-        self.channel_refstore = self.create_channel_refstore()
-        self.member_refstore = self.create_member_refstore()
-
     @property
     def events(self) -> typing.Tuple[str, ...]:
         return tuple(GuildEvents)
-
-    def create_role_refstore(self) -> RefStore[Snowflake, Snowflake]:
-        return SnowflakeMemoryRefStore()
-
-    def create_emoji_refstore(self) -> RefStore[Snowflake, Snowflake]:
-        return SnowflakeMemoryRefStore()
-
-    def create_channel_refstore(self) -> RefStore[Snowflake, Snowflake]:
-        return SnowflakeMemoryRefStore()
-
-    def create_member_refstore(self) -> RefStore[Snowflake, Snowflake]:
-        return SnowflakeMemoryRefStore()
 
     def to_unique(self, object: SupportsGuildID) -> Snowflake:
         if isinstance(object, Snowflake):
