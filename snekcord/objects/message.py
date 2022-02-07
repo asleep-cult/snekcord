@@ -131,14 +131,12 @@ class Message(SnowflakeObject[SupportsMessageID]):
 
     async def pin(self) -> None:
         assert self.channel.id is not None
-
         await self.client.rest.request(
             ADD_CHANNEL_PIN, channel_id=self.channel.id, message_id=self.id
         )
 
     async def unpin(self) -> None:
         assert self.channel.id is not None
-
         await self.client.rest.request(
             REMOVE_CHANNEL_PIN, channel_id=self.channel.id, message_id=self.id
         )
@@ -150,7 +148,6 @@ class Message(SnowflakeObject[SupportsMessageID]):
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
         assert self.channel.id is not None
-
         builder = MessageUpdateBuilder(
             client=self.client, channel_id=self.channel.id, message_id=self.id
         )

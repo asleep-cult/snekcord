@@ -3,6 +3,10 @@ from __future__ import annotations
 import typing
 
 from .base_state import CachedEventState, CachedStateView
+from ..builders import (
+    RoleCreateBuilder,
+    RoleUpdateBuilder,
+)
 from ..cache import (
     RefStore,
     SnowflakeMemoryRefStore,
@@ -15,8 +19,13 @@ from ..objects import (
     Role,
     SnowflakeWrapper,
 )
+from ..permissions import Permissions
+from ..rest.endpoints import (
+    DELETE_GUILD_ROLE,
+    GET_GUILD_ROLES,
+)
 from ..snowflake import Snowflake
-from ..undefined import undefined
+from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
@@ -110,3 +119,59 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
     ) -> None:
         super().__init__(state=state, keys=roles)
         self.guild_id = self.client.guilds.to_unique(guild)
+
+    async def fetch_all(self) -> typing.List[Role]:
+        data = await self.client.rest.request(GET_GUILD_ROLES, guild_id=self.guild_id)
+        assert isinstance(data, list)
+
+        return [await self.client.roles.upsert(role) for role in data]
+
+    def create(
+        self,
+        *,
+        name: MaybeUndefined[str] = undefined,
+        permissions: MaybeUndefined[Permissions] = undefined,
+        color: MaybeUndefined[int] = undefined,
+        hoist: MaybeUndefined[bool] = undefined,
+        unicode_emoji: MaybeUndefined[str] = undefined,
+        mentionable: MaybeUndefined[bool] = undefined,
+    ) -> RoleCreateBuilder:
+        builder = RoleCreateBuilder(client=self.client, guild_id=self.guild_id)
+
+        builder.name(name)
+        builder.permissions(permissions)
+        builder.color(color)
+        builder.hoist(hoist)
+        builder.unicode_emoji(unicode_emoji)
+        builder.mentionable(mentionable)
+
+        return builder
+
+    def update(
+        self,
+        role: SupportsRoleID,
+        *,
+        name: MaybeUndefined[typing.Optional[str]] = undefined,
+        permissions: MaybeUndefined[typing.Optional[Permissions]] = undefined,
+        color: MaybeUndefined[typing.Optional[int]] = undefined,
+        hoist: MaybeUndefined[typing.Optional[bool]] = undefined,
+        unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
+        mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
+    ) -> RoleUpdateBuilder:
+        role_id = self.to_unique(role)
+        builder = RoleUpdateBuilder(client=self.client, guild_id=self.guild_id, role_id=role_id)
+
+        builder.name(name)
+        builder.permissions(permissions)
+        builder.color(color)
+        builder.hoist(hoist)
+        builder.unicode_emoji(unicode_emoji)
+        builder.mentionable(mentionable)
+
+        return builder
+
+    async def delete(self, role: SupportsRoleID) -> typing.Optional[Role]:
+        role_id = self.client.roles.to_unique(role)
+
+        await self.client.rest.request(DELETE_GUILD_ROLE, guild_id=self.guild_id, role_id=role_id)
+        return await self.client.roles.drop(role_id)

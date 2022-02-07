@@ -4,10 +4,13 @@ import typing
 
 import attr
 
+from ..builders import RoleUpdateBuilder
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
+from ..permissions import Permissions
+from ..rest.endpoints import DELETE_GUILD_ROLE
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined
+from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from ..states import (
@@ -54,3 +57,31 @@ class Role(SnowflakeObject[SupportsRoleID]):
     permissions: str = attr.ib(repr=False, eq=False)
     managed: bool = attr.ib(eq=False)
     # tags
+
+    def update(
+        self,
+        *,
+        name: MaybeUndefined[typing.Optional[str]] = undefined,
+        permissions: MaybeUndefined[typing.Optional[Permissions]] = undefined,
+        color: MaybeUndefined[typing.Optional[int]] = undefined,
+        hoist: MaybeUndefined[typing.Optional[bool]] = undefined,
+        unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
+        mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
+    ) -> RoleUpdateBuilder:
+        assert self.guild.id is not None
+        builder = RoleUpdateBuilder(client=self.client, guild_id=self.guild.id, role_id=self.id)
+
+        builder.name(name)
+        builder.permissions(permissions)
+        builder.color(color)
+        builder.hoist(hoist)
+        builder.unicode_emoji(unicode_emoji)
+        builder.mentionable(mentionable)
+
+        return builder
+
+    async def delete(self) -> typing.Optional[Role]:
+        assert self.guild.id is not None
+
+        await self.client.rest.request(DELETE_GUILD_ROLE, guild_id=self.guild.id, role_id=self.id)
+        return await self.client.roles.drop(self.id)
