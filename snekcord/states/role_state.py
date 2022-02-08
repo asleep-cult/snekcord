@@ -5,6 +5,7 @@ import typing
 from .base_state import CachedEventState, CachedStateView
 from ..builders import (
     RoleCreateBuilder,
+    RolePositionsBuilder,
     RoleUpdateBuilder,
 )
 from ..cache import (
@@ -169,6 +170,9 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
         builder.mentionable(mentionable)
 
         return builder
+
+    def update_positions(self) -> RolePositionsBuilder:
+        return RolePositionsBuilder(client=self.client, guild_id=self.guild_id)
 
     async def delete(self, role: SupportsRoleID) -> typing.Optional[Role]:
         role_id = self.client.roles.to_unique(role)

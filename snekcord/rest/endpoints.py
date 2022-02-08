@@ -154,7 +154,7 @@ REMOVE_GUILD_BAN = RESTEndpoint(DELETE, '/guilds/{guild_id}/bans/{user_id}')
 
 GET_GUILD_ROLES = RESTEndpoint(GET, '/guilds/{guild_id}/roles')
 CREATE_GUILD_ROLE = RESTEndpoint(POST, '/guilds/{guild_id}/roles')
-UPDATE_GUILD_ROLES = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles')
+UPDATE_GUILD_ROLE_POSITIONS = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles')
 
 UPDATE_GUILD_ROLE = RESTEndpoint(PATCH, '/guilds/{guild_id}/roles/{role_id}')
 DELETE_GUILD_ROLE = RESTEndpoint(DELETE, '/guilds/{guild_id}/roles/{role_id}')

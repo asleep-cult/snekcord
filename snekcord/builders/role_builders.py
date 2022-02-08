@@ -9,17 +9,22 @@ from ..permissions import Permissions
 from ..rest.endpoints import (
     CREATE_GUILD_ROLE,
     UPDATE_GUILD_ROLE,
+    UPDATE_GUILD_ROLE_POSITIONS,
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..objects import Role
+    from ..objects import Role, SupportsRoleID
 else:
     Role = typing.NewType('Role', typing.Any)
 
-__all__ = ('RoleCreateBuilder', 'RoleUpdateBuilder')
+__all__ = (
+    'RoleCreateBuilder',
+    'RoleUpdateBuilder',
+    'RolePositionsBuilder',
+)
 
 
 @attr.s(kw_only=True)
@@ -68,6 +73,12 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
         data['guild_id'] = self.guild_id
         return await self.client.roles.upsert(data)
 
+    def get_role(self) -> Role:
+        if self.result is None:
+            raise RuntimeError('get_role() can only be called after await or async with')
+
+        return self.result
+
 
 @attr.s(kw_only=True)
 class RoleUpdateBuilder(AwaitableBuilder[Role]):
@@ -115,3 +126,36 @@ class RoleUpdateBuilder(AwaitableBuilder[Role]):
 
         data['guild_id'] = self.guild_id
         return await self.client.roles.upsert(data)
+
+    def get_role(self) -> Role:
+        if self.result is None:
+            raise RuntimeError('get_role() can only be called after await or async with')
+
+        return self.result
+
+
+@attr.s(kw_only=True)
+class RolePositionsBuilder(AwaitableBuilder[typing.List[Role]]):
+    client: Client = attr.ib()
+    guild_id: Snowflake = attr.ib()
+
+    @setter
+    def set(self, role: SupportsRoleID, *, position: int) -> None:
+        role_id = str(self.client.roles.to_unique(role))
+        self.data[role_id] = {'id': role_id, 'position': position}
+
+    async def action(self) -> typing.List[Role]:
+        json = list(self.data.values())
+
+        data = await self.client.rest.request(
+            UPDATE_GUILD_ROLE_POSITIONS, guild_id=self.guild_id, json=json
+        )
+        assert isinstance(data, list)
+
+        return [await self.client.roles.upsert(role) for role in data]
+
+    def get_roles(self) -> typing.List[Role]:
+        if self.result is None:
+            raise RuntimeError('get_roles() can only be called after await or async with')
+
+        return self.result
