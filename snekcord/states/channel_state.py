@@ -188,9 +188,10 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             await self.guild_refstore.remove(object.guild_id, object.id)
 
     async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
-        channel_id = self.to_unique(channel)
-
-        data = await self.client.rest.request(GET_CHANNEL, channel_id=channel_id)
+        data = await self.client.rest.request(
+            GET_CHANNEL,
+            channel_id=self.to_unique(channel),
+        )
         assert isinstance(data, dict)
 
         return await self.upsert(data)

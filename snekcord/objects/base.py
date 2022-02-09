@@ -66,6 +66,12 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     def __repr__(self) -> str:
         return f'SnowflakeWrapper(id={self.id})'
 
+    def unwrap_id(self) -> Snowflake:
+        if self.id is None:
+            raise TypeError('unwrap_id() called on null wrapper')
+
+        return self.id
+
     async def unwrap(self) -> ObjectT:
         """Attempts to retrieve the object from cache.
 
@@ -84,12 +90,11 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         UnknownSnowflakeError
             The object is not in cache or it does not exist.
         """
-        if self.id is None:
-            raise TypeError('unwrap() called on empty wrapper')
+        id = self.unwrap_id()
 
-        object = await self.state.get(self.id)
+        object = await self.state.get(id)
         if object is None:
-            raise UnknownSnowflakeError(self.id)
+            raise UnknownSnowflakeError(id)
 
         return object
 
@@ -109,6 +114,12 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     def __repr__(self) -> str:
         return f'CodeWrapper(code={self.code!r})'
 
+    def unwrap_code(self) -> str:
+        if self.code is None:
+            raise TypeError('unwrap() called on empty wrapper')
+
+        return self.code
+
     async def unwrap(self) -> ObjectT:
         """Attempts to retrieve the object from cache.
 
@@ -127,11 +138,10 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         UnknownCodeError
             The object is not in cache or it does not exist.
         """
-        if self.code is None:
-            raise TypeError('unwrap() called on empty wrapper')
+        code = self.unwrap_code()
 
-        object = await self.state.get(self.code)
+        object = await self.state.get(code)
         if object is None:
-            raise UnknownCodeError(self.code)
+            raise UnknownCodeError(code)
 
         return object

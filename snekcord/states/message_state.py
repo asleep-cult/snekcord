@@ -225,27 +225,27 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         self.channel_id = self.client.channels.to_unique(channel)
 
     async def crosspost(self, message: SupportsMessageID) -> Message:
-        message_id = self.to_unique(message)
-
         data = await self.client.rest.request(
-            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=message_id
+            CROSSPOST_CHANNEL_MESSAGE,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
         )
         assert isinstance(data, dict)
 
         return await self.client.messages.upsert(data)
 
     async def pin(self, message: SupportsMessageID) -> None:
-        message_id = self.to_unique(message)
-
         await self.client.rest.request(
-            ADD_CHANNEL_PIN, channel_id=self.channel_id, message_id=message_id
+            ADD_CHANNEL_PIN,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
         )
 
     async def unpin(self, message: SupportsMessageID) -> None:
-        message_id = self.to_unique(message)
-
         await self.client.rest.request(
-            REMOVE_CHANNEL_PIN, channel_id=self.channel_id, message_id=message_id
+            REMOVE_CHANNEL_PIN,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
         )
 
     async def fetch_pins(self) -> typing.List[Message]:
@@ -272,10 +272,10 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         return builder
 
     async def fetch(self, message: SupportsMessageID) -> Message:
-        message_id = self.client.messages.to_unique(message)
-
         data = await self.client.rest.request(
-            GET_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=message_id
+            GET_CHANNEL_MESSAGE,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
         )
         assert isinstance(data, dict)
 
@@ -316,9 +316,10 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         content: MaybeUndefined[typing.Optional[str]] = undefined,
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
-        message_id = self.to_unique(message)
         builder = MessageUpdateBuilder(
-            client=self.client, channel_id=self.channel_id, message_id=message_id
+            client=self.client,
+            channel_id=self.channel_id,
+            message_id=self.to_unique(message),
         )
 
         builder.content(content)
@@ -337,14 +338,11 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     async def delete_many(
         self, messages: typing.Iterable[SupportsMessageID]
     ) -> typing.List[Message]:
-        json = {}
-
         message_ids = {self.to_unique(message) for message in messages}
         if not 1 < len(message_ids) <= 100:
             raise ValueError('len(messages) should be > 1 and <= 100')
 
-        json['messages'] = tuple(str(message_id) for message_id in message_ids)
-
+        json = {'messages': tuple(str(message_id) for message_id in message_ids)}
         await self.client.rest.request(
             DELETE_CHANNEL_MESSAGES, channel_id=self.channel_id, json=json
         )

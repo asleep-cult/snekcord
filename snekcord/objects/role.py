@@ -68,8 +68,11 @@ class Role(SnowflakeObject[SupportsRoleID]):
         unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
-        assert self.guild.id is not None
-        builder = RoleUpdateBuilder(client=self.client, guild_id=self.guild.id, role_id=self.id)
+        builder = RoleUpdateBuilder(
+            client=self.client,
+            guild_id=self.guild.unwrap_id(),
+            role_id=self.id,
+        )
 
         builder.name(name)
         builder.permissions(permissions)
@@ -81,7 +84,9 @@ class Role(SnowflakeObject[SupportsRoleID]):
         return builder
 
     async def delete(self) -> typing.Optional[Role]:
-        assert self.guild.id is not None
-
-        await self.client.rest.request(DELETE_GUILD_ROLE, guild_id=self.guild.id, role_id=self.id)
+        await self.client.rest.request(
+            DELETE_GUILD_ROLE,
+            guild_id=self.guild.unwrap_id(),
+            role_id=self.id,
+        )
         return await self.client.roles.drop(self.id)

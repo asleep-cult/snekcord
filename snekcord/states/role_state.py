@@ -159,8 +159,11 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
         unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
-        role_id = self.to_unique(role)
-        builder = RoleUpdateBuilder(client=self.client, guild_id=self.guild_id, role_id=role_id)
+        builder = RoleUpdateBuilder(
+            client=self.client,
+            guild_id=self.guild_id,
+            role_id=self.to_unique(role),
+        )
 
         builder.name(name)
         builder.permissions(permissions)
