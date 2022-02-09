@@ -9,7 +9,7 @@ import attr
 from ..json import JSONObject
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Concatenate
+    from typing_extensions import Concatenate, Self
 
     P = typing.ParamSpec('P')
     T_contra = typing.TypeVar('T_contra', contravariant=True)
@@ -19,7 +19,6 @@ if typing.TYPE_CHECKING:
             ...
 
 
-T = typing.TypeVar('T', bound='AwaitableBuilder[typing.Any]')  # TODO: Use Self instead
 SelfT = typing.TypeVar('SelfT')
 ResultT = typing.TypeVar('ResultT')
 
@@ -48,7 +47,7 @@ class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
     async def action(self) -> ResultT:
         raise NotImplementedError
 
-    async def __aenter__(self: T) -> T:
+    async def __aenter__(self) -> Self:
         if self.awaited:
             raise RuntimeError(f'cannot reuse {self.__class__.__name__}')
 
