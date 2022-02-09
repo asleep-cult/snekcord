@@ -160,9 +160,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
         builder = RoleUpdateBuilder(
-            client=self.client,
-            guild_id=self.guild_id,
-            role_id=self.to_unique(role),
+            client=self.client, guild_id=self.guild_id, role_id=self.to_unique(role)
         )
 
         builder.name(name)

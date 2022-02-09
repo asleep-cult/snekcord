@@ -121,9 +121,7 @@ class Message(SnowflakeObject[SupportsMessageID]):
 
     async def crosspost(self) -> Message:
         data = await self.client.rest.request(
-            CROSSPOST_CHANNEL_MESSAGE,
-            channel_id=self.channel.unwrap_id(),
-            message_id=self.id,
+            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel.unwrap_id(), message_id=self.id
         )
         assert isinstance(data, dict)
 
@@ -131,16 +129,12 @@ class Message(SnowflakeObject[SupportsMessageID]):
 
     async def pin(self) -> None:
         await self.client.rest.request(
-            ADD_CHANNEL_PIN,
-            channel_id=self.channel.unwrap_id(),
-            message_id=self.id,
+            ADD_CHANNEL_PIN, channel_id=self.channel.unwrap_id(), message_id=self.id
         )
 
     async def unpin(self) -> None:
         await self.client.rest.request(
-            REMOVE_CHANNEL_PIN,
-            channel_id=self.channel.unwrap_id(),
-            message_id=self.id,
+            REMOVE_CHANNEL_PIN, channel_id=self.channel.unwrap_id(), message_id=self.id
         )
 
     def update(
@@ -150,9 +144,7 @@ class Message(SnowflakeObject[SupportsMessageID]):
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
         builder = MessageUpdateBuilder(
-            client=self.client,
-            channel_id=self.channel.unwrap_id(),
-            message_id=self.id,
+            client=self.client, channel_id=self.channel.unwrap_id(), message_id=self.id
         )
 
         builder.content(content)
@@ -162,8 +154,6 @@ class Message(SnowflakeObject[SupportsMessageID]):
 
     async def delete(self) -> typing.Optional[Message]:
         await self.client.rest.request(
-            DELETE_CHANNEL_MESSAGE,
-            channel_id=self.channel.unwrap_id(),
-            message_id=self.id,
+            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.unwrap_id(), message_id=self.id
         )
         return await self.client.messages.drop(self.id)

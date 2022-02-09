@@ -236,16 +236,12 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
 
     async def pin(self, message: SupportsMessageID) -> None:
         await self.client.rest.request(
-            ADD_CHANNEL_PIN,
-            channel_id=self.channel_id,
-            message_id=self.to_unique(message),
+            ADD_CHANNEL_PIN, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
 
     async def unpin(self, message: SupportsMessageID) -> None:
         await self.client.rest.request(
-            REMOVE_CHANNEL_PIN,
-            channel_id=self.channel_id,
-            message_id=self.to_unique(message),
+            REMOVE_CHANNEL_PIN, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
 
     async def fetch_pins(self) -> typing.List[Message]:
@@ -273,9 +269,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
 
     async def fetch(self, message: SupportsMessageID) -> Message:
         data = await self.client.rest.request(
-            GET_CHANNEL_MESSAGE,
-            channel_id=self.channel_id,
-            message_id=self.to_unique(message),
+            GET_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
         assert isinstance(data, dict)
 
@@ -317,9 +311,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
         builder = MessageUpdateBuilder(
-            client=self.client,
-            channel_id=self.channel_id,
-            message_id=self.to_unique(message),
+            client=self.client, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
 
         builder.content(content)
@@ -338,11 +330,11 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     async def delete_many(
         self, messages: typing.Iterable[SupportsMessageID]
     ) -> typing.List[Message]:
-        message_ids = {self.to_unique(message) for message in messages}
+        message_ids = {str(self.to_unique(message)) for message in messages}
         if not 1 < len(message_ids) <= 100:
             raise ValueError('len(messages) should be > 1 and <= 100')
 
-        json = {'messages': tuple(str(message_id) for message_id in message_ids)}
+        json = {'messages': tuple(message_ids)}
         await self.client.rest.request(
             DELETE_CHANNEL_MESSAGES, channel_id=self.channel_id, json=json
         )
