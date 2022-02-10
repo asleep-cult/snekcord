@@ -9,7 +9,7 @@ intents = (
     snekcord.WebSocketIntents.GUILDS
     | snekcord.WebSocketIntents.GUILD_MESSAGES
 )
-client = snekcord.WebSocketClient("Bot <TOKEN>" intents=intents)
+client = snekcord.WebSocketClient("Bot <TOKEN>", intents=intents)
 
 
 @client.messages.on_create()
