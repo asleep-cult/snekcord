@@ -10,8 +10,6 @@ if typing.TYPE_CHECKING:
 
 __all__ = ('Snowflake', 'SnowflakeIterator')
 
-T = typing.TypeVar('T')
-
 _SNOWFLAKE_EPOCH = 1420070400000
 
 _TIMESTAMP_SHIFT = 22
