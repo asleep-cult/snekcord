@@ -29,10 +29,10 @@ __all__ = (
 SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
 UniqueT = typing.TypeVar('UniqueT')
 CachedModelT = typing.TypeVar('CachedModelT', bound=CachedModel)
-ObjectT = typing.TypeVar('ObjectT')
+ObjectT = typing.TypeVar('ObjectT', covariant=True)
 
 EventT = typing.TypeVar('EventT', bound=BaseEvent)
-OnCallbackT = typing.Callable[[EventT], typing.Awaitable[None]]
+OnCallbackT = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any, None]]
 OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 

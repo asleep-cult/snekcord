@@ -72,7 +72,7 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
             public_flags = UserFlags.NONE
 
         return User(
-            state=self,
+            client=self.client,
             id=Snowflake(cached.id),
             username=cached.username,
             discriminator=cached.discriminator,

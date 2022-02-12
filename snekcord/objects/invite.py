@@ -13,7 +13,6 @@ from ..undefined import MaybeUndefined
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        InviteState,
         SupportsInviteCode,
     )
 else:
@@ -43,8 +42,6 @@ class InviteTargetType(enum.IntEnum):
 
 @attr.s(kw_only=True)
 class Invite(CodeObject[SupportsInviteCode]):
-    state: InviteState
-
     guild_id: Snowflake = attr.ib()
     channel_id: Snowflake = attr.ib()
     inviter_id: Snowflake = attr.ib()

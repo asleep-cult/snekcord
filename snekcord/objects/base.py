@@ -8,8 +8,6 @@ from ..exceptions import UnknownCodeError, UnknownSnowflakeError
 from ..snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Self
-
     from ..clients import Client
     from ..states import CachedState
 
@@ -30,11 +28,7 @@ ObjectT = typing.TypeVar('ObjectT')
 class BaseObject(typing.Generic[SupportsUniqueT, UniqueT]):
     """The base class for all Discord objects."""
 
-    state: CachedState[SupportsUniqueT, UniqueT, Self] = attr.ib(repr=False, eq=False, hash=False)
-
-    @property
-    def client(self) -> Client:
-        return self.state.client
+    client: Client = attr.ib(repr=False, eq=False)
 
 
 @attr.s(kw_only=True, slots=True, eq=True, hash=True)

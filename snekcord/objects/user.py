@@ -13,7 +13,6 @@ from ..undefined import MaybeUndefined
 if typing.TYPE_CHECKING:
     from ..states import (
         SupportsUserID,
-        UserState,
     )
 else:
     SupportsUserID = typing.NewType('SupportsUserID', typing.Any)
@@ -70,8 +69,6 @@ class PremiumType(enum.IntEnum):
 
 @attr.s(kw_only=True, slots=True, hash=True)
 class User(SnowflakeObject[SupportsUserID]):
-    state: UserState
-
     username: str = attr.ib(eq=False)
     discriminator: str = attr.ib(eq=False)
     avatar: typing.Optional[str] = attr.ib(repr=False, eq=False)

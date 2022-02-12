@@ -18,7 +18,6 @@ from ..undefined import MaybeUndefined
 if typing.TYPE_CHECKING:
     from ..states import (
         ChannelMessagesView,
-        ChannelState,
         ChannelIDWrapper,
         GuildIDWrapper,
         MessageIDWrapper,
@@ -78,8 +77,6 @@ class ChannelType(enum.IntEnum):
 
 @attr.s(kw_only=True)
 class BaseChannel(SnowflakeObject[SupportsChannelID]):
-    state: ChannelState
-
     type: typing.Union[ChannelType, int] = attr.ib(hash=False, repr=True)
 
     def is_text(self) -> bool:

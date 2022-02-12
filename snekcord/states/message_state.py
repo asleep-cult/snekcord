@@ -144,7 +144,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             flags = MessageFlags.NONE
 
         return Message(
-            state=self,
+            client=self.client,
             id=Snowflake(cached.id),
             channel=SnowflakeWrapper(cached.channel_id, state=self.client.channels),
             guild=SnowflakeWrapper(guild_id, state=self.client.guilds),
@@ -291,7 +291,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
                 snowflake = self.client.messages.to_unique(point)
 
             assert ordering is not undefined
-            params[ordering.value] = Snowflake(snowflake)
+            params[ordering.value] = snowflake
 
         if limit is not undefined:
             params['limit'] = int(limit)
@@ -331,12 +331,14 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         self, messages: typing.Iterable[SupportsMessageID]
     ) -> typing.List[Message]:
         message_ids = {str(self.to_unique(message)) for message in messages}
+
         if not 1 < len(message_ids) <= 100:
             raise ValueError('len(messages) should be > 1 and <= 100')
 
-        json = {'messages': tuple(message_ids)}
         await self.client.rest.request(
-            DELETE_CHANNEL_MESSAGES, channel_id=self.channel_id, json=json
+            DELETE_CHANNEL_MESSAGES,
+            channel_id=self.channel_id,
+            json={'messages': tuple(message_ids)},
         )
 
         iterator = (await self.client.messages.drop(message_id) for message_id in message_ids)

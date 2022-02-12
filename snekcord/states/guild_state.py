@@ -124,7 +124,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         channels = await self.client.channels.for_guild(cached.id)
 
         return Guild(
-            state=self,
+            client=self.client,
             id=cached.id,
             name=cached.name,
             icon=cached.icon,

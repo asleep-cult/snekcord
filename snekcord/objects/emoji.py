@@ -12,7 +12,6 @@ from ..undefined import MaybeUndefined
 if typing.TYPE_CHECKING:
     from ..states import (
         # EmojiRolesView,
-        EmojiState,
         GuildIDWrapper,
         SupportsEmojiID,
         UserIDWrapper,
@@ -37,8 +36,6 @@ class CachedCustomEmoji(CachedModel):
 
 @attr.s(kw_only=True)
 class CustomEmoji(SnowflakeObject[SupportsEmojiID]):
-    state: EmojiState
-
     guild: GuildIDWrapper = attr.ib()
     name: str = attr.ib()
     require_colons: bool = attr.ib()

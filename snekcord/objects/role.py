@@ -14,7 +14,6 @@ from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        RoleState,
         GuildIDWrapper,
         SupportsRoleID,
     )
@@ -45,8 +44,6 @@ class CachedRole(CachedModel):
 
 @attr.s(kw_only=True, slots=True, hash=True)
 class Role(SnowflakeObject[SupportsRoleID]):
-    state: RoleState
-
     guild: GuildIDWrapper = attr.ib(eq=False)
     name: str = attr.ib(eq=False)
     color: int = attr.ib(repr=False, eq=False)

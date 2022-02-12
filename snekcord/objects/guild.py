@@ -18,7 +18,6 @@ if typing.TYPE_CHECKING:
         GuildEmojisView,
         # GuildMembersView,
         GuildRolesView,
-        GuildState,
         SupportsGuildID,
         UserIDWrapper,
     )
@@ -148,8 +147,6 @@ class GuildFeature(enum.Enum):
 
 @attr.s(kw_only=True)
 class PartialGuild(SnowflakeObject[SupportsGuildID]):
-    state: GuildState
-
     name: str = attr.ib()
     icon: typing.Optional[str] = attr.ib()
 

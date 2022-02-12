@@ -96,7 +96,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
 
     async def from_cached(self, cached: CachedRole) -> Role:
         return Role(
-            state=self,
+            client=self.client,
             id=cached.id,
             guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
             name=cached.name,

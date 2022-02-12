@@ -115,7 +115,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             ), 'Invalid GUILD_CATEGORY channel'
 
             return CategoryChannel(
-                state=self,
+                client=self.client,
                 id=cached.id,
                 type=type,
                 guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
@@ -141,7 +141,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             messages = await self.client.messages.for_channel(cached.id)
 
             return TextChannel(
-                state=self,
+                client=self.client,
                 id=cached.id,
                 type=type,
                 guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
@@ -168,7 +168,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             parent_id = undefined.nullify(cached.parent_id)
 
             return VoiceChannel(
-                state=self,
+                client=self.client,
                 id=cached.id,
                 type=type,
                 guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
@@ -181,7 +181,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rtc_region=cached.rtc_region,
             )
 
-        return BaseChannel(state=self, id=cached.id, type=type)
+        return BaseChannel(client=self.client, id=cached.id, type=type)
 
     async def remove_refs(self, object: CachedChannel) -> None:
         if object.guild_id is not undefined:

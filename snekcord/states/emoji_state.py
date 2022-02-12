@@ -89,7 +89,7 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         user_id = undefined.nullify(cached.user_id)
 
         return CustomEmoji(
-            state=self,
+            client=self.client,
             id=Snowflake(cached.id),
             guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
             name=cached.name,
