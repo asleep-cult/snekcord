@@ -8,6 +8,7 @@ from .base_state import (
     CachedStateView,
     OnDecoratorT,
 )
+from ..builders import ChannelCreateBuilder
 from ..cache import (
     RefStore,
     SnowflakeMemoryRefStore,
@@ -32,9 +33,10 @@ from ..objects import (
 )
 from ..rest.endpoints import (
     GET_CHANNEL,
+    GET_GUILD_CHANNELS,
 )
 from ..snowflake import Snowflake
-from ..undefined import undefined
+from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from .guild_state import SupportsGuildID
@@ -188,10 +190,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             await self.guild_refstore.remove(object.guild_id, object.id)
 
     async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
-        data = await self.client.rest.request(
-            GET_CHANNEL,
-            channel_id=self.to_unique(channel),
-        )
+        data = await self.client.rest.request(GET_CHANNEL, channel_id=self.to_unique(channel))
         assert isinstance(data, dict)
 
         return await self.upsert(data)
@@ -247,3 +246,36 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
     ) -> None:
         super().__init__(state=state, keys=channels)
         self.guild_id = self.client.guilds.to_unique(guild)
+
+    async def fetch_all(self) -> typing.List[BaseChannel]:
+        data = await self.client.rest.request(GET_GUILD_CHANNELS, guild_id=self.guild_id)
+        assert isinstance(data, list)
+
+        return [await self.client.channels.upsert(role) for role in data]
+
+    def create(
+        self,
+        *,
+        name: MaybeUndefined[str] = undefined,
+        type: MaybeUndefined[ChannelType] = undefined,
+        topic: MaybeUndefined[str] = undefined,
+        bitrate: MaybeUndefined[int] = undefined,
+        user_limit: MaybeUndefined[int] = undefined,
+        rate_limit_per_user: MaybeUndefined[int] = undefined,
+        position: MaybeUndefined[int] = undefined,
+        parent: MaybeUndefined[SupportsChannelID] = undefined,
+        nsfw: MaybeUndefined[bool] = undefined,
+    ) -> ChannelCreateBuilder:
+        builder = ChannelCreateBuilder(client=self.client, guild_id=self.guild_id)
+
+        builder.name(name)
+        builder.type(type)
+        builder.topic(topic)
+        builder.bitrate(bitrate)
+        builder.user_limit(user_limit)
+        builder.rate_limit_per_user(rate_limit_per_user)
+        builder.position(position)
+        builder.parent(parent)
+        builder.nsfw(nsfw)
+
+        return builder
