@@ -42,7 +42,7 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
             self.data['flags'] = int(flags)
 
     async def action(self) -> Message:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             CREATE_CHANNEL_MESSAGE, channel_id=self.channel_id, json=self.data
         )
         assert isinstance(data, dict)
@@ -74,7 +74,7 @@ class MessageUpdateBuilder(AwaitableBuilder[Message]):
             self.data['flags'] = int(flags) if flags is not None else None
 
     async def action(self) -> Message:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             UPDATE_CHANNEL_MESSAGE,
             channel_id=self.channel_id,
             message_id=self.message_id,

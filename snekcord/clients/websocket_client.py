@@ -63,7 +63,7 @@ class WebSocketClient(Client):
         else:
             endpoint = GET_GATEWAY
 
-        return await self.rest.request(endpoint)
+        return await self.rest.request_api(endpoint)
 
     async def connect(self) -> typing.Literal[Signals.SIGINT, Signals.SIGTERM]:
         self.loop = asyncio.get_running_loop()

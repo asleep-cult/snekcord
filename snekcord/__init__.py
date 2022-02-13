@@ -6,4 +6,5 @@ from .ordering import *
 from .rest import *
 from .snowflake import *
 from .states import *
+from .streams import *
 from .websockets import *
