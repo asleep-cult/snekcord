@@ -190,7 +190,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             await self.guild_refstore.remove(object.guild_id, object.id)
 
     async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
-        data = await self.client.rest.request(GET_CHANNEL, channel_id=self.to_unique(channel))
+        data = await self.client.rest.request_api(GET_CHANNEL, channel_id=self.to_unique(channel))
         assert isinstance(data, dict)
 
         return await self.upsert(data)
@@ -248,7 +248,7 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
         self.guild_id = self.client.guilds.to_unique(guild)
 
     async def fetch_all(self) -> typing.List[BaseChannel]:
-        data = await self.client.rest.request(GET_GUILD_CHANNELS, guild_id=self.guild_id)
+        data = await self.client.rest.request_api(GET_GUILD_CHANNELS, guild_id=self.guild_id)
         assert isinstance(data, list)
 
         return [await self.client.channels.upsert(role) for role in data]

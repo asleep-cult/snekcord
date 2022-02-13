@@ -65,7 +65,7 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
             self.data['mentionable'] = bool(mentionable)
 
     async def action(self) -> Role:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             CREATE_GUILD_ROLE, guild_id=self.guild_id, json=self.data
         )
         assert isinstance(data, dict)
@@ -119,7 +119,7 @@ class RoleUpdateBuilder(AwaitableBuilder[Role]):
             self.data['mentionable'] = bool(mentionable) if mentionable is not None else None
 
     async def action(self) -> Role:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             UPDATE_GUILD_ROLE, guild_id=self.guild_id, role_id=self.role_id, json=self.data
         )
         assert isinstance(data, dict)
@@ -147,7 +147,7 @@ class RolePositionsBuilder(AwaitableBuilder[typing.List[Role]]):
     async def action(self) -> typing.List[Role]:
         json = list(self.data.values())
 
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             UPDATE_GUILD_ROLE_POSITIONS, guild_id=self.guild_id, json=json
         )
         assert isinstance(data, list)

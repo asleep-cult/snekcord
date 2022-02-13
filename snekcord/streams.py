@@ -17,7 +17,7 @@ __all__ = (
     'AsyncReadStream',
     'BufferReadStream',
     'FSReadStream',
-    'HTTPReadStream',
+    'ResponseReadStream',
 )
 
 CHUNK_SIZE = 2 ** 16
@@ -95,10 +95,9 @@ class BufferReadStream(AsyncReadStream):
     @classmethod
     def from_bytes(cls, data: bytes, known_content_type: typing.Optional[str] = None) -> Self:
         self = cls.__new__(cls)
-
         self.buffer = io.BytesIO(data)
-        self.known_content_type = known_content_type
 
+        AsyncReadStream.__init__(self, known_content_type=known_content_type)
         return self
 
     async def aread(self, amount: int) -> bytes:
@@ -120,11 +119,10 @@ class FSReadStream(AsyncReadStream):
     @classmethod
     def from_fp(cls, fp: typing.IO[bytes], known_content_type: typing.Optional[str] = None) -> Self:
         self = cls.__new__(cls)
-
         self.path = None
         self.fp = fp
-        self.known_content_type = known_content_type
 
+        AsyncReadStream.__init__(self, known_content_type=known_content_type)
         return self
 
     def read(self, amount: int) -> bytes:
@@ -138,7 +136,7 @@ class FSReadStream(AsyncReadStream):
         return await loop.run_in_executor(None, self.read, amount)
 
 
-class HTTPReadStream(AsyncReadStream):
+class ResponseReadStream(AsyncReadStream):
     def __init__(
         self, response: aiohttp.ClientResponse, *, known_content_type: typing.Optional[str] = None
     ) -> None:

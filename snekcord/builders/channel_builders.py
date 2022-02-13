@@ -72,7 +72,7 @@ class ChannelCreateBuilder(AwaitableBuilder[BaseChannel]):
             self.data['nsfw'] = bool(nsfw)
 
     async def action(self) -> BaseChannel:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             CREATE_GUILD_CHANNEL, guild_id=self.guild_id, json=self.data
         )
         assert isinstance(data, dict)

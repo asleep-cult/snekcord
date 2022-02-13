@@ -111,7 +111,7 @@ class GuildChannel(BaseChannel):
     position: int = attr.ib()
 
     async def delete(self) -> None:
-        await self.client.rest.request(DELETE_CHANNEL, channel_id=self.id)
+        await self.client.rest.request_api(DELETE_CHANNEL, channel_id=self.id)
 
 
 @attr.s(kw_only=True)
@@ -124,7 +124,7 @@ class TextChannel(GuildChannel):
     messages: ChannelMessagesView = attr.ib()
 
     async def trigger_typing(self) -> None:
-        await self.client.rest.request(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
+        await self.client.rest.request_api(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
 
 
 @attr.s(kw_only=True)

@@ -82,10 +82,10 @@ class RESTError(Exception):
     def __init__(
         self,
         session: RESTSession,
-        method: typing.Literal['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
+        method: str,
         url: str,
         response: aiohttp.ClientResponse,
-        data: typing.Union[JSONType, bytes],
+        data: typing.Optional[typing.Union[JSONType, bytes]],
     ) -> None:
         self.session = session
         self.method = method

@@ -7,11 +7,12 @@ import aiohttp
 from multidict import CIMultiDict
 
 from . import hdrs
+from .endpoints import APIEndpoint, CDNEndpoint
 from ..exceptions import RESTError
 from ..json import load_json
+from ..streams import ResponseReadStream
 
 if typing.TYPE_CHECKING:
-    from .endpoints import RESTEndpoint
     from ..json import JSONType
     from ..auth import Authorization
 
@@ -49,35 +50,50 @@ class RESTSession:
 
         self.headers[hdrs.AUTHORIZATION] = self.authorization.to_token()
 
-        self.client: typing.Optional[aiohttp.ClientSession] = None
+        self.session: typing.Optional[aiohttp.ClientSession] = None
 
-    async def request(
-        self, endpoint: RESTEndpoint, **kwargs: typing.Any
+    async def request_api(
+        self, endpoint: APIEndpoint, **kwargs: typing.Any
     ) -> typing.Union[bytes, JSONType]:
-        if self.client is None:
-            self.client = aiohttp.ClientSession()
-
-        keywords = {keyword: kwargs.pop(keyword) for keyword in endpoint.keywords}
+        if self.session is None:
+            self.session = aiohttp.ClientSession()
 
         try:
-            headers = kwargs['headers']
+            headers = kwargs.pop('headers')
         except KeyError:
-            kwargs['headers'] = self.headers
+            headers = self.headers
         else:
             headers.update(self.headers)
 
-        url = self.api + endpoint.path.format_map(keywords)
-        response = await self.client.request(endpoint.method, url, **kwargs)
+        params = kwargs.pop('params', None)
+        json = kwargs.pop('json', None)
+
+        url = endpoint.url(self.api, **kwargs)
+        response = await self.session.request(
+            endpoint.method, url, params=params, headers=headers, json=json
+        )
 
         data = await response.read()
         if response.headers.get(hdrs.CONTENT_TYPE) == hdrs.APPLICATION_JSON:
             data = load_json(data)
 
-        if response.status >= 400:
+        if not response.ok:
             raise RESTError(self, endpoint.method, url, response, data)
 
         return data
 
+    async def request_cdn(self, endpoint: CDNEndpoint, **kwargs: typing.Any) -> ResponseReadStream:
+        if self.session is None:
+            self.session = aiohttp.ClientSession()
+
+        url = endpoint.url(self.cdn, **kwargs)
+        response = await self.session.request('GET', url)
+
+        if not response.ok:
+            raise RESTError(self, 'GET', url, response, None)
+
+        return ResponseReadStream(response)
+
     async def aclose(self) -> None:
-        if self.client is not None:
-            await self.client.close()
+        if self.session is not None:
+            await self.session.close()

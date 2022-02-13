@@ -225,7 +225,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         self.channel_id = self.client.channels.to_unique(channel)
 
     async def crosspost(self, message: SupportsMessageID) -> Message:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             CROSSPOST_CHANNEL_MESSAGE,
             channel_id=self.channel_id,
             message_id=self.to_unique(message),
@@ -235,17 +235,17 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         return await self.client.messages.upsert(data)
 
     async def pin(self, message: SupportsMessageID) -> None:
-        await self.client.rest.request(
+        await self.client.rest.request_api(
             ADD_CHANNEL_PIN, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
 
     async def unpin(self, message: SupportsMessageID) -> None:
-        await self.client.rest.request(
+        await self.client.rest.request_api(
             REMOVE_CHANNEL_PIN, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
 
     async def fetch_pins(self) -> typing.List[Message]:
-        data = await self.client.rest.request(GET_CHANNEL_PINS, channel_id=self.channel_id)
+        data = await self.client.rest.request_api(GET_CHANNEL_PINS, channel_id=self.channel_id)
         assert isinstance(data, list)
 
         return [await self.client.messages.upsert(message) for message in data]
@@ -268,7 +268,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         return builder
 
     async def fetch(self, message: SupportsMessageID) -> Message:
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             GET_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
         assert isinstance(data, dict)
@@ -296,7 +296,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         if limit is not undefined:
             params['limit'] = int(limit)
 
-        data = await self.client.rest.request(
+        data = await self.client.rest.request_api(
             GET_CHANNEL_MESSAGES, channel_id=self.channel_id, params=params
         )
         assert isinstance(data, list)
@@ -322,7 +322,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     async def delete(self, message: SupportsMessageID) -> typing.Optional[Message]:
         message_id = self.client.messages.to_unique(message)
 
-        await self.client.rest.request(
+        await self.client.rest.request_api(
             DELETE_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=message_id
         )
         return await self.client.messages.drop(message_id)
@@ -335,7 +335,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         if not 1 < len(message_ids) <= 100:
             raise ValueError('len(messages) should be > 1 and <= 100')
 
-        await self.client.rest.request(
+        await self.client.rest.request_api(
             DELETE_CHANNEL_MESSAGES,
             channel_id=self.channel_id,
             json={'messages': tuple(message_ids)},

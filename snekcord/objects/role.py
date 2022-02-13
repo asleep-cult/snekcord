@@ -79,7 +79,7 @@ class Role(SnowflakeObject[SupportsRoleID]):
         return builder
 
     async def delete(self) -> typing.Optional[Role]:
-        await self.client.rest.request(
+        await self.client.rest.request_api(
             DELETE_GUILD_ROLE, guild_id=self.guild.unwrap_id(), role_id=self.id
         )
         return await self.client.roles.drop(self.id)

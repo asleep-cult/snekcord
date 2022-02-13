@@ -122,7 +122,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
         self.guild_id = self.client.guilds.to_unique(guild)
 
     async def fetch_all(self) -> typing.List[Role]:
-        data = await self.client.rest.request(GET_GUILD_ROLES, guild_id=self.guild_id)
+        data = await self.client.rest.request_api(GET_GUILD_ROLES, guild_id=self.guild_id)
         assert isinstance(data, list)
 
         return [await self.client.roles.upsert(role) for role in data]
@@ -178,5 +178,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
     async def delete(self, role: SupportsRoleID) -> typing.Optional[Role]:
         role_id = self.client.roles.to_unique(role)
 
-        await self.client.rest.request(DELETE_GUILD_ROLE, guild_id=self.guild_id, role_id=role_id)
+        await self.client.rest.request_api(
+            DELETE_GUILD_ROLE, guild_id=self.guild_id, role_id=role_id
+        )
         return await self.client.roles.drop(role_id)
