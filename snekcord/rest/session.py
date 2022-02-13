@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import typing
 
-import httpx
+import aiohttp
+
+from multidict import CIMultiDict
 
 from . import hdrs
 from ..exceptions import RESTError
@@ -18,32 +20,43 @@ BASE_CDN_URL = 'https://cdn.discordapp.com'
 
 
 class RESTSession:
-    def __init__(self, *, authorization: Authorization, **kwargs: typing.Any) -> None:
+    headers: CIMultiDict[str]
+
+    def __init__(
+        self,
+        *,
+        authorization: Authorization,
+        api: typing.Optional[str] = None,
+        cdn: typing.Optional[str] = None,
+        headers: typing.Optional[typing.Mapping[str, str]] = None,
+    ) -> None:
         self.authorization = authorization
 
-        try:
-            self.api = kwargs.pop('api').rstrip('/')
-        except KeyError:
+        if api is not None:
+            self.api = api
+        else:
             self.api = BASE_API_URL
 
-        try:
-            self.cdn = kwargs.pop('cdn').rstrip('/')
-        except KeyError:
+        if cdn is not None:
+            self.cdn = cdn
+        else:
             self.cdn = BASE_CDN_URL
 
-        try:
-            self.headers = httpx.Headers(kwargs.pop('headers'))
-        except KeyError:
-            self.headers = httpx.Headers()
+        if headers is not None:
+            self.headers = CIMultiDict(headers)
+        else:
+            self.headers = CIMultiDict()
 
         self.headers[hdrs.AUTHORIZATION] = self.authorization.to_token()
 
-        kwargs.setdefault('timeout', None)
-        self.client = httpx.AsyncClient(**kwargs)
+        self.client: typing.Optional[aiohttp.ClientSession] = None
 
     async def request(
         self, endpoint: RESTEndpoint, **kwargs: typing.Any
     ) -> typing.Union[bytes, JSONType]:
+        if self.client is None:
+            self.client = aiohttp.ClientSession()
+
         keywords = {keyword: kwargs.pop(keyword) for keyword in endpoint.keywords}
 
         try:
@@ -54,16 +67,17 @@ class RESTSession:
             headers.update(self.headers)
 
         url = self.api + endpoint.path.format_map(keywords)
-        response: typing.Any = await self.client.request(endpoint.method, url, **kwargs)
+        response = await self.client.request(endpoint.method, url, **kwargs)
 
-        data = await response.aread()
+        data = await response.read()
         if response.headers.get(hdrs.CONTENT_TYPE) == hdrs.APPLICATION_JSON:
             data = load_json(data)
 
-        if response.status_code >= 400:
+        if response.status >= 400:
             raise RESTError(self, endpoint.method, url, response, data)
 
         return data
 
     async def aclose(self) -> None:
-        await self.client.aclose()
+        if self.client is not None:
+            await self.client.close()

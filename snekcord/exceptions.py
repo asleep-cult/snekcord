@@ -6,7 +6,7 @@ from http import HTTPStatus
 from .snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
-    from httpx import Response
+    import aiohttp
 
     from .json import JSONObject, JSONType
     from .rest import RESTSession
@@ -84,7 +84,7 @@ class RESTError(Exception):
         session: RESTSession,
         method: typing.Literal['GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
         url: str,
-        response: Response,
+        response: aiohttp.ClientResponse,
         data: typing.Union[JSONType, bytes],
     ) -> None:
         self.session = session
@@ -95,7 +95,7 @@ class RESTError(Exception):
 
     @property
     def status(self) -> HTTPStatus:
-        return HTTPStatus(self.response.status_code)
+        return HTTPStatus(self.response.status)
 
     def is_unauthorized(self):
         return self.status is HTTPStatus.UNAUTHORIZED
