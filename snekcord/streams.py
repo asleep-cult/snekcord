@@ -128,10 +128,10 @@ class FSReadStream(AsyncReadStream):
         return self
 
     def read(self, amount: int) -> bytes:
-        if self.fd is None:
-            self.fd = open(self.path, 'rb')
+        if self.fp is None:
+            self.fp = open(self.path, 'rb')
 
-        return self.fd.read(amount)
+        return self.fp.read(amount)
 
     async def aread(self, amount: int) -> bytes:
         loop = asyncio.get_running_loop()
