@@ -25,8 +25,8 @@ DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
 
 class AsyncReadStream:
-    def __init__(self, *, known_content_type: typing.Optional[str] = None) -> None:
-        self.known_content_type = known_content_type
+    def __init__(self, *, content_type: typing.Optional[str] = None) -> None:
+        self.content_type = content_type
         self.unread: collections.deque[bytes] = collections.deque()
 
     async def detect_content_type(self) -> str:
@@ -44,15 +44,15 @@ class AsyncReadStream:
 
         return DEFAULT_CONTENT_TYPE
 
-    async def content_type(self) -> str:
-        if self.known_content_type is not None:
-            return self.known_content_type
+    async def get_content_type(self) -> str:
+        if self.content_type is not None:
+            return self.content_type
 
-        self.known_content_type = await self.detect_content_type()
-        return self.known_content_type
+        self.content_type = await self.detect_content_type()
+        return self.content_type
 
-    async def extension(self) -> str:
-        content_type = await self.content_type()
+    async def get_extension(self) -> str:
+        content_type = await self.get_content_type()
 
         extension = mimetypes.guess_extension(content_type)
         if extension is None:
@@ -81,23 +81,23 @@ class AsyncReadStream:
         return buffer.getvalue()
 
     async def to_data_uri(self) -> str:
-        content_type = await self.content_type()
+        content_type = await self.get_content_type()
         data = await self.aread_all()
 
         return f'data:{content_type};base64,{base64.b64encode(data)}'
 
 
 class BufferReadStream(AsyncReadStream):
-    def __init__(self, buffer: io.BytesIO, known_content_type: typing.Optional[str] = None) -> None:
+    def __init__(self, buffer: io.BytesIO, content_type: typing.Optional[str] = None) -> None:
         self.buffer = buffer
-        super().__init__(known_content_type=known_content_type)
+        super().__init__(content_type=content_type)
 
     @classmethod
-    def from_bytes(cls, data: bytes, known_content_type: typing.Optional[str] = None) -> Self:
+    def from_bytes(cls, data: bytes, content_type: typing.Optional[str] = None) -> Self:
         self = cls.__new__(cls)
         self.buffer = io.BytesIO(data)
 
-        AsyncReadStream.__init__(self, known_content_type=known_content_type)
+        AsyncReadStream.__init__(self, content_type=content_type)
         return self
 
     async def aread(self, amount: int) -> bytes:
@@ -106,23 +106,23 @@ class BufferReadStream(AsyncReadStream):
 
 class FSReadStream(AsyncReadStream):
     def __init__(
-        self, path: os.PathLike[str], *, known_content_type: typing.Optional[str] = None
+        self, path: os.PathLike[str], *, content_type: typing.Optional[str] = None
     ) -> None:
         self.path = path
         self.fp: typing.Optional[typing.IO[bytes]] = None
 
-        if known_content_type is None:
-            known_content_type = mimetypes.guess_type(self.path)[0]
+        if content_type is None:
+            content_type = mimetypes.guess_type(self.path)[0]
 
-        super().__init__(known_content_type=known_content_type)
+        super().__init__(content_type=content_type)
 
     @classmethod
-    def from_fp(cls, fp: typing.IO[bytes], known_content_type: typing.Optional[str] = None) -> Self:
+    def from_fp(cls, fp: typing.IO[bytes], content_type: typing.Optional[str] = None) -> Self:
         self = cls.__new__(cls)
         self.path = None
         self.fp = fp
 
-        AsyncReadStream.__init__(self, known_content_type=known_content_type)
+        AsyncReadStream.__init__(self, content_type=content_type)
         return self
 
     def read(self, amount: int) -> bytes:
@@ -138,14 +138,14 @@ class FSReadStream(AsyncReadStream):
 
 class ResponseReadStream(AsyncReadStream):
     def __init__(
-        self, response: aiohttp.ClientResponse, *, known_content_type: typing.Optional[str] = None
+        self, response: aiohttp.ClientResponse, *, content_type: typing.Optional[str] = None
     ) -> None:
         self.response = response
 
-        if known_content_type is None:
-            known_content_type = response.content_type
+        if content_type is None:
+            content_type = response.content_type
 
-        super().__init__(known_content_type=known_content_type)
+        super().__init__(content_type=content_type)
 
     async def aread(self, amount: int) -> bytes:
         return await self.response.content.read(amount)
