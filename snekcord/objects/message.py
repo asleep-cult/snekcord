@@ -24,11 +24,8 @@ if typing.TYPE_CHECKING:
         ChannelIDWrapper,
         GuildIDWrapper,
         UserIDWrapper,
-        SupportsMessageID,
         # WebhookIDWrapper,
     )
-else:
-    SupportsMessageID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
     'CachedMessage',
@@ -101,7 +98,7 @@ class MessageFlags(enum.IntFlag):
 
 
 @attr.s(kw_only=True, slots=True, hash=True)
-class Message(SnowflakeObject[SupportsMessageID]):
+class Message(SnowflakeObject):
     channel: ChannelIDWrapper = attr.ib(eq=False)
     guild: GuildIDWrapper = attr.ib(eq=False)
     author: UserIDWrapper = attr.ib(eq=False)

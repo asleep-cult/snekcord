@@ -13,11 +13,8 @@ if typing.TYPE_CHECKING:
     from ..states import (
         # EmojiRolesView,
         GuildIDWrapper,
-        SupportsEmojiID,
         UserIDWrapper,
     )
-else:
-    SupportsEmojiID = typing.NewType('SupportsEmojiID', typing.Any)
 
 __all__ = ('CachedCustomEmoji', 'CustomEmoji')
 
@@ -35,7 +32,7 @@ class CachedCustomEmoji(CachedModel):
 
 
 @attr.s(kw_only=True)
-class CustomEmoji(SnowflakeObject[SupportsEmojiID]):
+class CustomEmoji(SnowflakeObject):
     guild: GuildIDWrapper = attr.ib()
     name: str = attr.ib()
     require_colons: bool = attr.ib()

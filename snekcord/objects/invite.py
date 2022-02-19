@@ -11,13 +11,6 @@ from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
-if typing.TYPE_CHECKING:
-    from ..states import (
-        SupportsInviteCode,
-    )
-else:
-    SupportsInviteCode = typing.NewType('SupportsInviteCode', typing.Any)
-
 
 class CachedInvite(CachedModel):
     code: str
@@ -41,7 +34,7 @@ class InviteTargetType(enum.IntEnum):
 
 
 @attr.s(kw_only=True)
-class Invite(CodeObject[SupportsInviteCode]):
+class Invite(CodeObject):
     guild_id: Snowflake = attr.ib()
     channel_id: Snowflake = attr.ib()
     inviter_id: Snowflake = attr.ib()

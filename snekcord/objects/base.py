@@ -25,21 +25,21 @@ ObjectT = typing.TypeVar('ObjectT')
 
 
 @attr.s(kw_only=True, slots=True)
-class BaseObject(typing.Generic[SupportsUniqueT, UniqueT]):
+class BaseObject:
     """The base class for all Discord objects."""
 
     client: Client = attr.ib(repr=False, eq=False)
 
 
 @attr.s(kw_only=True, slots=True, eq=True, hash=True)
-class SnowflakeObject(BaseObject[SupportsUniqueT, Snowflake]):
+class SnowflakeObject(BaseObject):
     """The base class for all objects with an id."""
 
     id: Snowflake = attr.ib(repr=True, eq=True, hash=True)
 
 
 @attr.s(kw_only=True, slots=True, eq=True, hash=True)
-class CodeObject(BaseObject[SupportsUniqueT, str]):
+class CodeObject(BaseObject):
     """The base class for all objects with a code."""
 
     code: str = attr.field(repr=True, eq=True, hash=True)

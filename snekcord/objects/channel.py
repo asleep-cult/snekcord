@@ -21,10 +21,7 @@ if typing.TYPE_CHECKING:
         ChannelIDWrapper,
         GuildIDWrapper,
         MessageIDWrapper,
-        SupportsChannelID,
     )
-else:
-    SupportsChannelID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
     'CachedChannel',
@@ -76,7 +73,7 @@ class ChannelType(enum.IntEnum):
 
 
 @attr.s(kw_only=True)
-class BaseChannel(SnowflakeObject[SupportsChannelID]):
+class BaseChannel(SnowflakeObject):
     type: typing.Union[ChannelType, int] = attr.ib(hash=False, repr=True)
 
     def is_text(self) -> bool:

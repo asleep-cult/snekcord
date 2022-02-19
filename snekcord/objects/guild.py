@@ -18,11 +18,8 @@ if typing.TYPE_CHECKING:
         GuildEmojisView,
         # GuildMembersView,
         GuildRolesView,
-        SupportsGuildID,
         UserIDWrapper,
     )
-else:
-    SupportsGuildID = typing.NewType('SupportsChannelID', typing.Any)
 
 __all__ = (
     'CachedGuild',
@@ -146,7 +143,7 @@ class GuildFeature(enum.Enum):
 
 
 @attr.s(kw_only=True)
-class PartialGuild(SnowflakeObject[SupportsGuildID]):
+class PartialGuild(SnowflakeObject):
     name: str = attr.ib()
     icon: typing.Optional[str] = attr.ib()
 
