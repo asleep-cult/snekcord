@@ -163,6 +163,153 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         if object.channel_id is not None:
             await self.channel_refstore.remove(object.channel_id, object.id)
 
+    async def crosspost(self, channel: SupportsChannelID, message: SupportsMessageID) -> Message:
+        data = await self.client.rest.request_api(
+            CROSSPOST_CHANNEL_MESSAGE,
+            channel_id=self.client.channels.to_unique(channel),
+            message_id=self.to_unique(message),
+        )
+        assert isinstance(data, dict)
+
+        return await self.client.messages.upsert(data)
+
+    async def pin(self, channel: SupportsChannelID, message: SupportsMessageID) -> None:
+        await self.client.rest.request_api(
+            ADD_CHANNEL_PIN,
+            channel_id=self.client.channels.to_unique(channel),
+            message_id=self.to_unique(message),
+        )
+
+    async def unpin(self, channel: SupportsChannelID, message: SupportsMessageID) -> None:
+        await self.client.rest.request_api(
+            REMOVE_CHANNEL_PIN,
+            channel_id=self.client.channels.to_unique(channel),
+            message_id=self.to_unique(message),
+        )
+
+    async def fetch_pins(self, channel: SupportsChannelID) -> typing.List[Message]:
+        data = await self.client.rest.request_api(
+            GET_CHANNEL_PINS, channel_id=self.client.channels.to_unique(channel)
+        )
+        assert isinstance(data, list)
+
+        return [await self.client.messages.upsert(message) for message in data]
+
+    def create(
+        self,
+        channel: SupportsChannelID,
+        *,
+        content: MaybeUndefined[str] = undefined,
+        tts: MaybeUndefined[bool] = undefined,
+        # embeds, allowed mentions, message reference
+        # components, stickers, attachments
+        flags: MaybeUndefined[MessageFlags] = undefined,
+    ) -> MessageCreateBuilder:
+        builder = MessageCreateBuilder(
+            client=self.client, channel_id=self.client.channels.to_unique(channel)
+        )
+
+        if content is not undefined:
+            builder.content(content)
+
+        if tts is not undefined:
+            builder.tts(tts)
+
+        if flags is not undefined:
+            builder.flags(flags)
+
+        return builder
+
+    async def fetch(self, channel: SupportsChannelID, message: SupportsMessageID) -> Message:
+        data = await self.client.rest.request_api(
+            GET_CHANNEL_MESSAGE,
+            channel_id=self.client.channels.to_unique(channel),
+            message_id=self.to_unique(message),
+        )
+        assert isinstance(data, dict)
+
+        return await self.client.messages.upsert(data)
+
+    async def fetch_many(
+        self,
+        channel: SupportsChannelID,
+        ordering: MaybeUndefined[FetchOrdering] = undefined,
+        point: MaybeUndefined[typing.Union[SupportsMessageID, datetime]] = undefined,
+        *,
+        limit: MaybeUndefined[int] = undefined,
+    ) -> typing.List[Message]:
+        params = {}
+
+        if point is not undefined:
+            if isinstance(point, datetime):
+                snowflake = Snowflake.build(point)
+            else:
+                snowflake = self.client.messages.to_unique(point)
+
+            assert ordering is not undefined
+            params[ordering.value] = snowflake
+
+        if limit is not undefined:
+            params['limit'] = int(limit)
+
+        data = await self.client.rest.request_api(
+            GET_CHANNEL_MESSAGES, channel_id=self.client.channels.to_unique(channel), params=params
+        )
+        assert isinstance(data, list)
+
+        return [await self.client.messages.upsert(message) for message in data]
+
+    def update(
+        self,
+        channel: SupportsChannelID,
+        message: SupportsMessageID,
+        *,
+        content: MaybeUndefined[typing.Optional[str]] = undefined,
+        flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
+    ) -> MessageUpdateBuilder:
+        builder = MessageUpdateBuilder(
+            client=self.client,
+            channel_id=self.client.channels.to_unique(channel),
+            message_id=self.to_unique(message),
+        )
+
+        if content is not undefined:
+            builder.content(content)
+
+        if flags is not undefined:
+            builder.flags(flags)
+
+        return builder
+
+    async def delete(
+        self, channel: SupportsChannelID, message: SupportsMessageID
+    ) -> typing.Optional[Message]:
+        message_id = self.client.messages.to_unique(message)
+
+        await self.client.rest.request_api(
+            DELETE_CHANNEL_MESSAGE,
+            channel_id=self.client.channels.to_unique(channel),
+            message_id=message_id,
+        )
+        return await self.client.messages.drop(message_id)
+
+    async def delete_many(
+        self, channel: SupportsChannelID, messages: typing.Iterable[SupportsMessageID]
+    ) -> typing.List[Message]:
+        message_ids = {str(self.to_unique(message)) for message in messages}
+
+        if not 1 < len(message_ids) <= 100:
+            raise ValueError('len(messages) should be > 1 and <= 100')
+
+        await self.client.rest.request_api(
+            DELETE_CHANNEL_MESSAGES,
+            channel_id=self.client.channels.to_unique(channel),
+            json={'messages': tuple(message_ids)},
+        )
+
+        iterator = (await self.client.messages.drop(message_id) for message_id in message_ids)
+        return [message async for message in iterator if message is not None]
+
     def on_create(self) -> OnDecoratorT[MessageCreateEvent]:
         return self.on(MessageEvents.CREATE)
 
@@ -225,30 +372,16 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         self.channel_id = self.client.channels.to_unique(channel)
 
     async def crosspost(self, message: SupportsMessageID) -> Message:
-        data = await self.client.rest.request_api(
-            CROSSPOST_CHANNEL_MESSAGE,
-            channel_id=self.channel_id,
-            message_id=self.to_unique(message),
-        )
-        assert isinstance(data, dict)
-
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.crosspost(self.channel_id, message)
 
     async def pin(self, message: SupportsMessageID) -> None:
-        await self.client.rest.request_api(
-            ADD_CHANNEL_PIN, channel_id=self.channel_id, message_id=self.to_unique(message)
-        )
+        return await self.client.messages.pin(self.channel_id, message)
 
     async def unpin(self, message: SupportsMessageID) -> None:
-        await self.client.rest.request_api(
-            REMOVE_CHANNEL_PIN, channel_id=self.channel_id, message_id=self.to_unique(message)
-        )
+        return await self.client.messages.unpin(self.channel_id, message)
 
     async def fetch_pins(self) -> typing.List[Message]:
-        data = await self.client.rest.request_api(GET_CHANNEL_PINS, channel_id=self.channel_id)
-        assert isinstance(data, list)
-
-        return [await self.client.messages.upsert(message) for message in data]
+        return await self.client.messages.fetch_pins(self.channel_id)
 
     def create(
         self,
@@ -259,26 +392,10 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         # components, stickers, attachments
         flags: MaybeUndefined[MessageFlags] = undefined,
     ) -> MessageCreateBuilder:
-        builder = MessageCreateBuilder(client=self.client, channel_id=self.channel_id)
-
-        if content is not undefined:
-            builder.content(content)
-
-        if tts is not undefined:
-            builder.tts(tts)
-
-        if flags is not undefined:
-            builder.flags(flags)
-
-        return builder
+        return self.client.messages.create(self.channel_id, content=content, tts=tts, flags=flags)
 
     async def fetch(self, message: SupportsMessageID) -> Message:
-        data = await self.client.rest.request_api(
-            GET_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=self.to_unique(message)
-        )
-        assert isinstance(data, dict)
-
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.fetch(self.channel_id, message)
 
     async def fetch_many(
         self,
@@ -287,26 +404,7 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         *,
         limit: MaybeUndefined[int] = undefined,
     ) -> typing.List[Message]:
-        params = {}
-
-        if point is not undefined:
-            if isinstance(point, datetime):
-                snowflake = Snowflake.build(point)
-            else:
-                snowflake = self.client.messages.to_unique(point)
-
-            assert ordering is not undefined
-            params[ordering.value] = snowflake
-
-        if limit is not undefined:
-            params['limit'] = int(limit)
-
-        data = await self.client.rest.request_api(
-            GET_CHANNEL_MESSAGES, channel_id=self.channel_id, params=params
-        )
-        assert isinstance(data, list)
-
-        return [await self.client.messages.upsert(message) for message in data]
+        return await self.client.messages.fetch_many(self.channel_id, ordering, point, limit=limit)
 
     def update(
         self,
@@ -315,39 +413,12 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
         content: MaybeUndefined[typing.Optional[str]] = undefined,
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
-        builder = MessageUpdateBuilder(
-            client=self.client, channel_id=self.channel_id, message_id=self.to_unique(message)
-        )
-
-        if content is not undefined:
-            builder.content(content)
-
-        if flags is not undefined:
-            builder.flags(flags)
-
-        return builder
+        return self.client.messages.update(self.channel_id, message, content=content, flags=flags)
 
     async def delete(self, message: SupportsMessageID) -> typing.Optional[Message]:
-        message_id = self.client.messages.to_unique(message)
-
-        await self.client.rest.request_api(
-            DELETE_CHANNEL_MESSAGE, channel_id=self.channel_id, message_id=message_id
-        )
-        return await self.client.messages.drop(message_id)
+        return await self.client.messages.delete(self.channel_id, message)
 
     async def delete_many(
         self, messages: typing.Iterable[SupportsMessageID]
     ) -> typing.List[Message]:
-        message_ids = {str(self.to_unique(message)) for message in messages}
-
-        if not 1 < len(message_ids) <= 100:
-            raise ValueError('len(messages) should be > 1 and <= 100')
-
-        await self.client.rest.request_api(
-            DELETE_CHANNEL_MESSAGES,
-            channel_id=self.channel_id,
-            json={'messages': tuple(message_ids)},
-        )
-
-        iterator = (await self.client.messages.drop(message_id) for message_id in message_ids)
-        return [message async for message in iterator if message is not None]
+        return await self.client.messages.delete_many(self.channel_id, messages)

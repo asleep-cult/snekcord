@@ -195,6 +195,61 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         return await self.upsert(data)
 
+    async def fetch_all(self, guild: SupportsGuildID) -> typing.List[BaseChannel]:
+        data = await self.client.rest.request_api(
+            GET_GUILD_CHANNELS, guild_id=self.client.guilds.to_unique(guild)
+        )
+        assert isinstance(data, list)
+
+        return [await self.client.channels.upsert(role) for role in data]
+
+    def create(
+        self,
+        guild: SupportsGuildID,
+        *,
+        name: MaybeUndefined[str] = undefined,
+        type: MaybeUndefined[ChannelType] = undefined,
+        topic: MaybeUndefined[str] = undefined,
+        bitrate: MaybeUndefined[int] = undefined,
+        user_limit: MaybeUndefined[int] = undefined,
+        rate_limit_per_user: MaybeUndefined[int] = undefined,
+        position: MaybeUndefined[int] = undefined,
+        parent: MaybeUndefined[SupportsChannelID] = undefined,
+        nsfw: MaybeUndefined[bool] = undefined,
+    ) -> ChannelCreateBuilder:
+        builder = ChannelCreateBuilder(
+            client=self.client, guild_id=self.client.guilds.to_unique(guild)
+        )
+
+        if name is not undefined:
+            builder.name(name)
+
+        if type is not undefined:
+            builder.type(type)
+
+        if topic is not undefined:
+            builder.topic(topic)
+
+        if bitrate is not undefined:
+            builder.bitrate(bitrate)
+
+        if user_limit is not undefined:
+            builder.user_limit(user_limit)
+
+        if rate_limit_per_user is not undefined:
+            builder.rate_limit_per_user(rate_limit_per_user)
+
+        if position is not undefined:
+            builder.position(position)
+
+        if parent is not undefined:
+            builder.parent(parent)
+
+        if nsfw is not undefined:
+            builder.nsfw(nsfw)
+
+        return builder
+
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
         return self.on(ChannelEvents.CREATE)
 
@@ -248,10 +303,7 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
         self.guild_id = self.client.guilds.to_unique(guild)
 
     async def fetch_all(self) -> typing.List[BaseChannel]:
-        data = await self.client.rest.request_api(GET_GUILD_CHANNELS, guild_id=self.guild_id)
-        assert isinstance(data, list)
-
-        return [await self.client.channels.upsert(role) for role in data]
+        return await self.client.channels.fetch_all(self.guild_id)
 
     def create(
         self,
@@ -266,33 +318,15 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
         parent: MaybeUndefined[SupportsChannelID] = undefined,
         nsfw: MaybeUndefined[bool] = undefined,
     ) -> ChannelCreateBuilder:
-        builder = ChannelCreateBuilder(client=self.client, guild_id=self.guild_id)
-
-        if name is not undefined:
-            builder.name(name)
-
-        if type is not undefined:
-            builder.type(type)
-
-        if topic is not undefined:
-            builder.topic(topic)
-
-        if bitrate is not undefined:
-            builder.bitrate(bitrate)
-
-        if user_limit is not undefined:
-            builder.user_limit(user_limit)
-
-        if rate_limit_per_user is not undefined:
-            builder.rate_limit_per_user(rate_limit_per_user)
-
-        if position is not undefined:
-            builder.position(position)
-
-        if parent is not undefined:
-            builder.parent(parent)
-
-        if nsfw is not undefined:
-            builder.nsfw(nsfw)
-
-        return builder
+        return self.client.channels.create(
+            self.guild_id,
+            name=name,
+            type=type,
+            topic=topic,
+            bitrate=bitrate,
+            user_limit=user_limit,
+            rate_limit_per_user=rate_limit_per_user,
+            position=position,
+            parent=parent,
+            nsfw=nsfw,
+        )

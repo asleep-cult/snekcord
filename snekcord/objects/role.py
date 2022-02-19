@@ -8,7 +8,6 @@ from ..builders import RoleUpdateBuilder
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
 from ..permissions import Permissions
-from ..rest.endpoints import DELETE_GUILD_ROLE
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
@@ -62,32 +61,16 @@ class Role(SnowflakeObject):
         unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
-        builder = RoleUpdateBuilder(
-            client=self.client, guild_id=self.guild.unwrap_id(), role_id=self.id
+        return self.client.roles.update(
+            self.guild.unwrap_id(),
+            self.id,
+            name=name,
+            permissions=permissions,
+            color=color,
+            hoist=hoist,
+            unicode_emoji=unicode_emoji,
+            mentionable=mentionable,
         )
-
-        if name is not undefined:
-            builder.name(name)
-
-        if permissions is not undefined:
-            builder.permissions(permissions)
-
-        if color is not undefined:
-            builder.color(color)
-
-        if hoist is not undefined:
-            builder.hoist(hoist)
-
-        if unicode_emoji is not undefined:
-            builder.unicode_emoji(unicode_emoji)
-
-        if mentionable is not undefined:
-            builder.mentionable(mentionable)
-
-        return builder
 
     async def delete(self) -> typing.Optional[Role]:
-        await self.client.rest.request_api(
-            DELETE_GUILD_ROLE, guild_id=self.guild.unwrap_id(), role_id=self.id
-        )
-        return await self.client.roles.drop(self.id)
+        return await self.client.roles.delete(self.guild.unwrap_id(), self.id)

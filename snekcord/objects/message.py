@@ -9,12 +9,6 @@ import attr
 from ..builders import MessageUpdateBuilder
 from ..cache import CachedModel
 from ..objects import SnowflakeObject
-from ..rest.endpoints import (
-    ADD_CHANNEL_PIN,
-    CROSSPOST_CHANNEL_MESSAGE,
-    DELETE_CHANNEL_MESSAGE,
-    REMOVE_CHANNEL_PIN,
-)
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
@@ -114,22 +108,13 @@ class Message(SnowflakeObject):
     flags: MessageFlags = attr.ib(eq=False)
 
     async def crosspost(self) -> Message:
-        data = await self.client.rest.request_api(
-            CROSSPOST_CHANNEL_MESSAGE, channel_id=self.channel.unwrap_id(), message_id=self.id
-        )
-        assert isinstance(data, dict)
-
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.crosspost(self.channel.unwrap_id(), self.id)
 
     async def pin(self) -> None:
-        await self.client.rest.request_api(
-            ADD_CHANNEL_PIN, channel_id=self.channel.unwrap_id(), message_id=self.id
-        )
+        return await self.client.messages.pin(self.channel.unwrap_id(), self.id)
 
     async def unpin(self) -> None:
-        await self.client.rest.request_api(
-            REMOVE_CHANNEL_PIN, channel_id=self.channel.unwrap_id(), message_id=self.id
-        )
+        return await self.client.messages.unpin(self.channel.unwrap_id(), self.id)
 
     def update(
         self,
@@ -137,20 +122,12 @@ class Message(SnowflakeObject):
         content: MaybeUndefined[typing.Optional[str]] = undefined,
         flags: MaybeUndefined[typing.Optional[MessageFlags]] = undefined,
     ) -> MessageUpdateBuilder:
-        builder = MessageUpdateBuilder(
-            client=self.client, channel_id=self.channel.unwrap_id(), message_id=self.id
+        return self.client.messages.update(
+            self.channel.unwrap_id(),
+            self.id,
+            content=content,
+            flags=flags,
         )
-
-        if content is not undefined:
-            builder.content(content)
-
-        if flags is not undefined:
-            builder.flags(flags)
-
-        return builder
 
     async def delete(self) -> typing.Optional[Message]:
-        await self.client.rest.request_api(
-            DELETE_CHANNEL_MESSAGE, channel_id=self.channel.unwrap_id(), message_id=self.id
-        )
-        return await self.client.messages.drop(self.id)
+        return await self.client.messages.delete(self.channel.unwrap_id(), self.id)
