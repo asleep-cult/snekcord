@@ -268,14 +268,31 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
     ) -> ChannelCreateBuilder:
         builder = ChannelCreateBuilder(client=self.client, guild_id=self.guild_id)
 
-        builder.name(name)
-        builder.type(type)
-        builder.topic(topic)
-        builder.bitrate(bitrate)
-        builder.user_limit(user_limit)
-        builder.rate_limit_per_user(rate_limit_per_user)
-        builder.position(position)
-        builder.parent(parent)
-        builder.nsfw(nsfw)
+        if name is not undefined:
+            builder.name(name)
+
+        if type is not undefined:
+            builder.type(type)
+
+        if topic is not undefined:
+            builder.topic(topic)
+
+        if bitrate is not undefined:
+            builder.bitrate(bitrate)
+
+        if user_limit is not undefined:
+            builder.user_limit(user_limit)
+
+        if rate_limit_per_user is not undefined:
+            builder.rate_limit_per_user(rate_limit_per_user)
+
+        if position is not undefined:
+            builder.position(position)
+
+        if parent is not undefined:
+            builder.parent(parent)
+
+        if nsfw is not undefined:
+            builder.nsfw(nsfw)
 
         return builder

@@ -261,9 +261,14 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
     ) -> MessageCreateBuilder:
         builder = MessageCreateBuilder(client=self.client, channel_id=self.channel_id)
 
-        builder.content(content)
-        builder.tts(tts)
-        builder.flags(flags)
+        if content is not undefined:
+            builder.content(content)
+
+        if tts is not undefined:
+            builder.tts(tts)
+
+        if flags is not undefined:
+            builder.flags(flags)
 
         return builder
 
@@ -314,8 +319,11 @@ class ChannelMessagesView(CachedStateView[SupportsMessageID, Snowflake, Message]
             client=self.client, channel_id=self.channel_id, message_id=self.to_unique(message)
         )
 
-        builder.content(content)
-        builder.flags(flags)
+        if content is not undefined:
+            builder.content(content)
+
+        if flags is not undefined:
+            builder.flags(flags)
 
         return builder
 

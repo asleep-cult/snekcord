@@ -141,8 +141,11 @@ class Message(SnowflakeObject):
             client=self.client, channel_id=self.channel.unwrap_id(), message_id=self.id
         )
 
-        builder.content(content)
-        builder.flags(flags)
+        if content is not undefined:
+            builder.content(content)
+
+        if flags is not undefined:
+            builder.flags(flags)
 
         return builder
 

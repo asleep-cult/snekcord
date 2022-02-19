@@ -66,12 +66,23 @@ class Role(SnowflakeObject):
             client=self.client, guild_id=self.guild.unwrap_id(), role_id=self.id
         )
 
-        builder.name(name)
-        builder.permissions(permissions)
-        builder.color(color)
-        builder.hoist(hoist)
-        builder.unicode_emoji(unicode_emoji)
-        builder.mentionable(mentionable)
+        if name is not undefined:
+            builder.name(name)
+
+        if permissions is not undefined:
+            builder.permissions(permissions)
+
+        if color is not undefined:
+            builder.color(color)
+
+        if hoist is not undefined:
+            builder.hoist(hoist)
+
+        if unicode_emoji is not undefined:
+            builder.unicode_emoji(unicode_emoji)
+
+        if mentionable is not undefined:
+            builder.mentionable(mentionable)
 
         return builder
 

@@ -139,12 +139,23 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
     ) -> RoleCreateBuilder:
         builder = RoleCreateBuilder(client=self.client, guild_id=self.guild_id)
 
-        builder.name(name)
-        builder.permissions(permissions)
-        builder.color(color)
-        builder.hoist(hoist)
-        builder.unicode_emoji(unicode_emoji)
-        builder.mentionable(mentionable)
+        if name is not undefined:
+            builder.name(name)
+
+        if permissions is not undefined:
+            builder.permissions(permissions)
+
+        if color is not undefined:
+            builder.color(color)
+
+        if hoist is not undefined:
+            builder.hoist(hoist)
+
+        if unicode_emoji is not undefined:
+            builder.unicode_emoji(unicode_emoji)
+
+        if mentionable is not undefined:
+            builder.mentionable(mentionable)
 
         return builder
 
@@ -163,12 +174,23 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
             client=self.client, guild_id=self.guild_id, role_id=self.to_unique(role)
         )
 
-        builder.name(name)
-        builder.permissions(permissions)
-        builder.color(color)
-        builder.hoist(hoist)
-        builder.unicode_emoji(unicode_emoji)
-        builder.mentionable(mentionable)
+        if name is not undefined:
+            builder.name(name)
+
+        if permissions is not undefined:
+            builder.permissions(permissions)
+
+        if color is not undefined:
+            builder.color(color)
+
+        if hoist is not undefined:
+            builder.hoist(hoist)
+
+        if unicode_emoji is not undefined:
+            builder.unicode_emoji(unicode_emoji)
+
+        if mentionable is not undefined:
+            builder.mentionable(mentionable)
 
         return builder
 

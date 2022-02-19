@@ -10,7 +10,6 @@ from ..rest.endpoints import (
     UPDATE_CHANNEL_MESSAGE,
 )
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -27,19 +26,16 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
     channel_id: Snowflake = attr.ib()
 
     @setter
-    def content(self, content: MaybeUndefined[str]) -> None:
-        if content is not undefined:
-            self.data['content'] = str(content)
+    def content(self, content: str) -> None:
+        self.data['content'] = str(content)
 
     @setter
-    def tts(self, tts: MaybeUndefined[bool]) -> None:
-        if tts is not undefined:
-            self.data['tts'] = bool(tts)
+    def tts(self, tts: bool) -> None:
+        self.data['tts'] = bool(tts)
 
     @setter
-    def flags(self, flags: MaybeUndefined[MessageFlags]) -> None:
-        if flags is not undefined:
-            self.data['flags'] = int(flags)
+    def flags(self, flags: MessageFlags) -> None:
+        self.data['flags'] = int(flags)
 
     async def action(self) -> Message:
         data = await self.client.rest.request_api(
@@ -64,14 +60,12 @@ class MessageUpdateBuilder(AwaitableBuilder[Message]):
     message_id: Snowflake = attr.ib()
 
     @setter
-    def content(self, content: MaybeUndefined[typing.Optional[str]]) -> None:
-        if content is not undefined:
-            self.data['content'] = str(content) if content is not None else None
+    def content(self, content: typing.Optional[str]) -> None:
+        self.data['content'] = str(content) if content is not None else None
 
     @setter
-    def flags(self, flags: MaybeUndefined[typing.Optional[MessageFlags]]) -> None:
-        if flags is not undefined:
-            self.data['flags'] = int(flags) if flags is not None else None
+    def flags(self, flags: typing.Optional[MessageFlags]) -> None:
+        self.data['flags'] = int(flags) if flags is not None else None
 
     async def action(self) -> Message:
         data = await self.client.rest.request_api(
