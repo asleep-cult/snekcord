@@ -29,7 +29,7 @@ __all__ = (
 SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
 UniqueT = typing.TypeVar('UniqueT')
 CachedModelT = typing.TypeVar('CachedModelT', bound=CachedModel)
-ObjectT = typing.TypeVar('ObjectT', covariant=True)
+ObjectT = typing.TypeVar('ObjectT')
 
 EventT = typing.TypeVar('EventT', bound=BaseEvent)
 OnCallbackT = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any, None]]
@@ -85,6 +85,9 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         raise NotImplementedError
 
+    async def len(self) -> int:
+        raise NotImplementedError
+
     async def all(self) -> list[ObjectT]:
         return [object async for object in self]
 
@@ -114,19 +117,25 @@ class CachedEventState(
         async for item in self.cache.iterate():
             yield await self.from_cached(item)
 
+    async def len(self) -> int:
+        return await self.cache.len()
+
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         cached = await self.cache.get(self.to_unique(object))
-        if cached is not None:
-            return await self.from_cached(cached)
+        if cached is None:
+            return None
+
+        return await self.from_cached(cached)
 
     async def drop(
         self, object: typing.Union[UniqueT, SupportsUniqueT]
     ) -> typing.Optional[ObjectT]:
         cached = await self.cache.drop(self.to_unique(object))
+        if cached is None:
+            return None
 
-        if cached is not None:
-            await self.remove_refs(cached)
-            return await self.from_cached(cached)
+        await self.remove_refs(cached)
+        return await self.from_cached(cached)
 
     async def remove_refs(self, object: CachedModelT) -> None:
         """Removes any references to object from the corresponding RefStores.
@@ -155,7 +164,12 @@ class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
         iterator = (await self.state.get(key) for key in self.keys)
         return (object async for object in iterator if object is not None)
 
+    async def len(self) -> int:
+        return len(self.keys)
+
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         key = self.to_unique(object)
-        if key in self.keys:
-            return await self.state.get(key)
+        if key not in self.keys:
+            return None
+
+        return await self.state.get(key)
