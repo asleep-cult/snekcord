@@ -8,7 +8,10 @@ from .base_state import (
     CachedStateView,
     OnDecoratorT,
 )
-from ..builders import ChannelCreateBuilder
+from ..builders import (
+    ChannelCreateBuilder,
+    ChannelPositionsBuilder,
+)
 from ..cache import (
     RefStore,
     SnowflakeMemoryRefStore,
@@ -32,8 +35,10 @@ from ..objects import (
     VoiceChannel,
 )
 from ..rest.endpoints import (
+    DELETE_CHANNEL,
     GET_CHANNEL,
     GET_GUILD_CHANNELS,
+    TRIGGER_CHANNEL_TYPING,
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
@@ -192,6 +197,11 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         if object.guild_id is not undefined:
             await self.guild_refstore.remove(object.guild_id, object.id)
 
+    async def trigger_typing(self, channel: SupportsChannelID) -> None:
+        await self.client.rest.request_api(
+            TRIGGER_CHANNEL_TYPING, channel_id=self.client.channels.to_unique(channel)
+        )
+
     async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
         channel_id = self.to_unique(channel)
 
@@ -255,6 +265,17 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             builder.nsfw(nsfw)
 
         return builder
+
+    def update_positions(self, guild: SupportsGuildID) -> ChannelPositionsBuilder:
+        return ChannelPositionsBuilder(
+            client=self.client, guild_id=self.client.guilds.to_unique(guild)
+        )
+
+    async def delete(self, channel: SupportsChannelID) -> typing.Optional[BaseChannel]:
+        channel_id = self.client.channels.to_unique(channel)
+
+        await self.client.rest.request_api(DELETE_CHANNEL, channel_id=channel_id)
+        return await self.drop(channel_id)
 
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
         return self.on(ChannelEvents.CREATE)
@@ -336,3 +357,6 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
             parent=parent,
             nsfw=nsfw,
         )
+
+    def update_position(self) -> ChannelPositionsBuilder:
+        return self.client.channels.update_positions(self.guild_id)

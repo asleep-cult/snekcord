@@ -8,10 +8,6 @@ import attr
 
 from .base import SnowflakeObject
 from ..cache import CachedModel
-from ..rest.endpoints import (
-    DELETE_CHANNEL,
-    TRIGGER_CHANNEL_TYPING,
-)
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
 
@@ -107,8 +103,8 @@ class GuildChannel(BaseChannel):
     name: str = attr.ib()
     position: int = attr.ib()
 
-    async def delete(self) -> None:
-        await self.client.rest.request_api(DELETE_CHANNEL, channel_id=self.id)
+    async def delete(self) -> typing.Optional[BaseChannel]:
+        return await self.client.channels.drop(self.id)
 
 
 @attr.s(kw_only=True)
@@ -121,7 +117,7 @@ class TextChannel(GuildChannel):
     messages: ChannelMessagesView = attr.ib()
 
     async def trigger_typing(self) -> None:
-        await self.client.rest.request_api(TRIGGER_CHANNEL_TYPING, channel_id=self.id)
+        return await self.client.channels.trigger_typing(self.id)
 
 
 @attr.s(kw_only=True)

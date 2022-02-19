@@ -199,31 +199,6 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         iterator = (self.inject_metadata(message, channel_id) for message in data)
         return [await self.upsert(message) for message in iterator]
 
-    def create(
-        self,
-        channel: SupportsChannelID,
-        *,
-        content: MaybeUndefined[str] = undefined,
-        tts: MaybeUndefined[bool] = undefined,
-        # embeds, allowed mentions, message reference
-        # components, stickers, attachments
-        flags: MaybeUndefined[MessageFlags] = undefined,
-    ) -> MessageCreateBuilder:
-        builder = MessageCreateBuilder(
-            client=self.client, channel_id=self.client.channels.to_unique(channel)
-        )
-
-        if content is not undefined:
-            builder.content(content)
-
-        if tts is not undefined:
-            builder.tts(tts)
-
-        if flags is not undefined:
-            builder.flags(flags)
-
-        return builder
-
     async def fetch(self, channel: SupportsChannelID, message: SupportsMessageID) -> Message:
         channel_id = self.client.channels.to_unique(channel)
 
@@ -265,6 +240,31 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
         iterator = (self.inject_metadata(message, channel_id) for message in data)
         return [await self.upsert(message) for message in iterator]
+
+    def create(
+        self,
+        channel: SupportsChannelID,
+        *,
+        content: MaybeUndefined[str] = undefined,
+        tts: MaybeUndefined[bool] = undefined,
+        # embeds, allowed mentions, message reference
+        # components, stickers, attachments
+        flags: MaybeUndefined[MessageFlags] = undefined,
+    ) -> MessageCreateBuilder:
+        builder = MessageCreateBuilder(
+            client=self.client, channel_id=self.client.channels.to_unique(channel)
+        )
+
+        if content is not undefined:
+            builder.content(content)
+
+        if tts is not undefined:
+            builder.tts(tts)
+
+        if flags is not undefined:
+            builder.flags(flags)
+
+        return builder
 
     def update(
         self,
@@ -354,13 +354,8 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             )
 
         elif event is MessageEvents.BULK_DELETE:
-            messages: typing.List[Message] = []
-
-            for message_id in payload['ids']:
-                message = await self.drop(message_id)
-
-                if message is not None:
-                    messages.append(message)
+            iterator = (await self.drop(message_id) for message_id in payload['ids'])
+            messages = [message async for message in iterator if message is not None]
 
             return MessageBulkDeleteEvent(
                 shard=shard, payload=payload, guild=guild, channel=channel, messages=messages
