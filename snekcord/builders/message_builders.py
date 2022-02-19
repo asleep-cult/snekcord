@@ -43,8 +43,9 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
         )
         assert isinstance(data, dict)
 
-        data['channel_id'] = self.channel_id
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.upsert(
+            self.client.messages.inject_metadata(data, self.channel_id)
+        )
 
     def get_message(self) -> Message:
         if self.result is None:
@@ -76,8 +77,9 @@ class MessageUpdateBuilder(AwaitableBuilder[Message]):
         )
         assert isinstance(data, dict)
 
-        data['channel_id'] = self.channel_id
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.upsert(
+            self.client.messages.inject_metadata(data, self.channel_id)
+        )
 
     def get_message(self) -> Message:
         if self.result is None:

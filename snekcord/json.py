@@ -29,5 +29,9 @@ def load_json(*args: typing.Union[str, bytes], **kwargs: typing.Any) -> typing.A
 def dump_json(
     obj: typing.Any, *, separators: typing.Tuple[str, str] = (',', ':'), **kwargs: typing.Any
 ) -> str:
-    """Equivalent to json.dumps using the library's JSONEncoder class."""
+    """Equivalent to json.dumps but converts any iterable object to a tuple."""
     return json.dumps(obj, separators=separators, **kwargs, default=dump_json)
+
+
+def update_json(obj: JSONObject, **kwargs: typing.Any) -> JSONObject:
+    return dict(obj, **kwargs)

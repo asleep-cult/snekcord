@@ -74,6 +74,9 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         roles = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_roles_view(roles, guild_id)
 
+    def inject_metadata(self, data: JSONObject, guild_id: Snowflake) -> JSONObject:
+        return dict(data, guild_id=guild_id)
+
     async def upsert(self, data: JSONObject) -> Role:
         role_id = Snowflake.into(data, 'id')
         assert role_id is not None
@@ -114,12 +117,13 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
             await self.guild_refstore.remove(object.guild_id, object.id)
 
     async def fetch_all(self, guild: SupportsGuildID) -> typing.List[Role]:
-        data = await self.client.rest.request_api(
-            GET_GUILD_ROLES, guild_id=self.client.guilds.to_unique(guild)
-        )
+        guild_id = self.client.guilds.to_unique(guild)
+
+        data = await self.client.rest.request_api(GET_GUILD_ROLES, guild_id=guild_id)
         assert isinstance(data, list)
 
-        return [await self.client.roles.upsert(role) for role in data]
+        iterator = (self.inject_metadata(role, guild_id) for role in data)
+        return [await self.upsert(role) for role in iterator]
 
     def create(
         self,

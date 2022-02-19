@@ -85,6 +85,9 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         channels = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_channels_view(channels, guild_id)
 
+    def inject_metadata(self, data: JSONObject, guild_id: Snowflake) -> JSONObject:
+        return dict(data, guild_id=guild_id)
+
     async def upsert(self, data: JSONObject) -> BaseChannel:
         channel_id = Snowflake.into(data, 'id')
         assert channel_id is not None
@@ -190,18 +193,21 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             await self.guild_refstore.remove(object.guild_id, object.id)
 
     async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
-        data = await self.client.rest.request_api(GET_CHANNEL, channel_id=self.to_unique(channel))
+        channel_id = self.to_unique(channel)
+
+        data = await self.client.rest.request_api(GET_CHANNEL, channel_id=channel_id)
         assert isinstance(data, dict)
 
-        return await self.upsert(data)
+        return await self.upsert(self.inject_metadata(data, channel_id))
 
     async def fetch_all(self, guild: SupportsGuildID) -> typing.List[BaseChannel]:
-        data = await self.client.rest.request_api(
-            GET_GUILD_CHANNELS, guild_id=self.client.guilds.to_unique(guild)
-        )
+        guild_id = self.client.guilds.to_unique(guild)
+
+        data = await self.client.rest.request_api(GET_GUILD_CHANNELS, guild_id=guild_id)
         assert isinstance(data, list)
 
-        return [await self.client.channels.upsert(role) for role in data]
+        iterator = (self.inject_metadata(channel, guild_id) for channel in data)
+        return [await self.upsert(channel) for channel in iterator]
 
     def create(
         self,

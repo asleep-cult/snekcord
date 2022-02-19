@@ -93,6 +93,9 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         messages = await self.channel_refstore.get(channel_id)
         return self.client.create_channel_messages_view(messages, channel_id)
 
+    def inject_metadata(self, data: JSONObject, channel_id: Snowflake) -> JSONObject:
+        return dict(data, channel_id=channel_id)
+
     async def upsert(self, data: JSONObject) -> Message:
         message_id = Snowflake.into(data, 'id')
         assert message_id is not None
@@ -164,14 +167,14 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             await self.channel_refstore.remove(object.channel_id, object.id)
 
     async def crosspost(self, channel: SupportsChannelID, message: SupportsMessageID) -> Message:
+        channel_id = self.client.channels.to_unique(channel)
+
         data = await self.client.rest.request_api(
-            CROSSPOST_CHANNEL_MESSAGE,
-            channel_id=self.client.channels.to_unique(channel),
-            message_id=self.to_unique(message),
+            CROSSPOST_CHANNEL_MESSAGE, channel_id=channel_id, message_id=self.to_unique(message)
         )
         assert isinstance(data, dict)
 
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.upsert(self.inject_metadata(data, channel_id))
 
     async def pin(self, channel: SupportsChannelID, message: SupportsMessageID) -> None:
         await self.client.rest.request_api(
@@ -188,12 +191,13 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         )
 
     async def fetch_pins(self, channel: SupportsChannelID) -> typing.List[Message]:
-        data = await self.client.rest.request_api(
-            GET_CHANNEL_PINS, channel_id=self.client.channels.to_unique(channel)
-        )
+        channel_id = self.client.channels.to_unique(channel)
+
+        data = await self.client.rest.request_api(GET_CHANNEL_PINS, channel_id=channel_id)
         assert isinstance(data, list)
 
-        return [await self.client.messages.upsert(message) for message in data]
+        iterator = (self.inject_metadata(message, channel_id) for message in data)
+        return [await self.upsert(message) for message in iterator]
 
     def create(
         self,
@@ -221,14 +225,14 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         return builder
 
     async def fetch(self, channel: SupportsChannelID, message: SupportsMessageID) -> Message:
+        channel_id = self.client.channels.to_unique(channel)
+
         data = await self.client.rest.request_api(
-            GET_CHANNEL_MESSAGE,
-            channel_id=self.client.channels.to_unique(channel),
-            message_id=self.to_unique(message),
+            GET_CHANNEL_MESSAGE, channel_id=channel_id, message_id=self.to_unique(message)
         )
         assert isinstance(data, dict)
 
-        return await self.client.messages.upsert(data)
+        return await self.client.messages.upsert(self.inject_metadata(data, channel_id))
 
     async def fetch_many(
         self,
@@ -252,12 +256,15 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         if limit is not undefined:
             params['limit'] = int(limit)
 
+        channel_id = self.client.channels.to_unique(channel)
+
         data = await self.client.rest.request_api(
-            GET_CHANNEL_MESSAGES, channel_id=self.client.channels.to_unique(channel), params=params
+            GET_CHANNEL_MESSAGES, channel_id=channel_id, params=params
         )
         assert isinstance(data, list)
 
-        return [await self.client.messages.upsert(message) for message in data]
+        iterator = (self.inject_metadata(message, channel_id) for message in data)
+        return [await self.upsert(message) for message in iterator]
 
     def update(
         self,

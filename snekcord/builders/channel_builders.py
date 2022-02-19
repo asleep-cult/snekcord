@@ -67,5 +67,6 @@ class ChannelCreateBuilder(AwaitableBuilder[BaseChannel]):
         )
         assert isinstance(data, dict)
 
-        data['guild_id'] = self.guild_id
-        return await self.client.channels.upsert(data)
+        return await self.client.channels.upsert(
+            self.client.channels.inject_metadata(data, self.guild_id)
+        )

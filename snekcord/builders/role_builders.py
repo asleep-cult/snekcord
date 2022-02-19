@@ -64,8 +64,9 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
         )
         assert isinstance(data, dict)
 
-        data['guild_id'] = self.guild_id
-        return await self.client.roles.upsert(data)
+        return await self.client.roles.upsert(
+            self.client.roles.inject_metadata(data, self.guild_id)
+        )
 
     def get_role(self) -> Role:
         if self.result is None:
@@ -112,8 +113,9 @@ class RoleUpdateBuilder(AwaitableBuilder[Role]):
         )
         assert isinstance(data, dict)
 
-        data['guild_id'] = self.guild_id
-        return await self.client.roles.upsert(data)
+        return await self.client.roles.upsert(
+            self.client.roles.inject_metadata(data, self.guild_id)
+        )
 
     def get_role(self) -> Role:
         if self.result is None:
@@ -140,7 +142,8 @@ class RolePositionsBuilder(AwaitableBuilder[typing.List[Role]]):
         )
         assert isinstance(data, list)
 
-        return [await self.client.roles.upsert(role) for role in data]
+        iterator = (self.client.roles.inject_metadata(role, self.guild_id) for role in data)
+        return [await self.client.roles.upsert(role) for role in iterator]
 
     def get_roles(self) -> typing.List[Role]:
         if self.result is None:
