@@ -31,7 +31,3 @@ def dump_json(
 ) -> str:
     """Equivalent to json.dumps but converts any iterable object to a tuple."""
     return json.dumps(obj, separators=separators, **kwargs, default=dump_json)
-
-
-def update_json(obj: JSONObject, **kwargs: typing.Any) -> JSONObject:
-    return dict(obj, **kwargs)
