@@ -33,15 +33,8 @@ class RESTSession:
     ) -> None:
         self.authorization = authorization
 
-        if api is not None:
-            self.api = api
-        else:
-            self.api = BASE_API_URL
-
-        if cdn is not None:
-            self.cdn = cdn
-        else:
-            self.cdn = BASE_CDN_URL
+        self.api = api if api is not None else BASE_API_URL
+        self.cdn = cdn if cdn is not None else BASE_CDN_URL
 
         if headers is not None:
             self.headers = CIMultiDict(headers)

@@ -62,7 +62,7 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
     def unwrap_id(self) -> Snowflake:
         if self.id is None:
-            raise TypeError('unwrap_id() called on null wrapper')
+            raise TypeError('unwrap_id() called on empty wrapper')
 
         return self.id
 
@@ -110,7 +110,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
     def unwrap_code(self) -> str:
         if self.code is None:
-            raise TypeError('unwrap() called on empty wrapper')
+            raise TypeError('unwrap_code() called on empty wrapper')
 
         return self.code
 
