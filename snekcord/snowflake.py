@@ -8,7 +8,7 @@ if typing.TYPE_CHECKING:
 
     from .json import JSONObject
 
-__all__ = ('Snowflake', 'SnowflakeIterator')
+__all__ = ('Snowflake',)
 
 _SNOWFLAKE_EPOCH = 1420070400000
 
@@ -25,21 +25,21 @@ class Snowflake(int):
     @classmethod
     def build(
         cls,
-        time: typing.Optional[datetime] = None,
+        timestamp: typing.Optional[datetime] = None,
         *,
         worker_id: int = 0,
         process_id: int = 0,
         increment: int = 0,
     ) -> Self:
-        if time is None:
-            timestamp = datetime.now().timestamp()
+        if timestamp is None:
+            seconds = datetime.utcnow().timestamp()
         else:
-            timestamp = time.timestamp()
+            seconds = timestamp.timestamp()
 
-        timestamp = int((timestamp * 1000) - _SNOWFLAKE_EPOCH)
+        milliseconds = int((seconds * 1000) - _SNOWFLAKE_EPOCH)
 
         return cls(
-            (timestamp << _TIMESTAMP_SHIFT)
+            (milliseconds << _TIMESTAMP_SHIFT)
             | (worker_id << _WORKER_ID_SHIFT)
             | (process_id << _PROCESS_ID_SHIFT)
             | increment
@@ -48,9 +48,10 @@ class Snowflake(int):
     @classmethod
     def into(cls, data: JSONObject, key: str) -> typing.Optional[Self]:
         value = data.get(key)
-        if value is not None:
-            value = data[key] = cls(value)
+        if value is None:
+            return None
 
+        value = data[key] = cls(value)
         return value
 
     @property
@@ -78,4 +79,4 @@ class SnowflakeIterator:
         self.iterable = iterable
 
     def __iter__(self) -> typing.Iterator[Snowflake]:
-        return map(Snowflake, self.iterable)
+        return (Snowflake(value) for value in self.iterable)

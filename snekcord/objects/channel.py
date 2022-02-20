@@ -104,7 +104,7 @@ class GuildChannel(BaseChannel):
     position: int = attr.ib()
 
     async def delete(self) -> typing.Optional[BaseChannel]:
-        return await self.client.channels.drop(self.id)
+        return await self.client.channels.delete(self.id)
 
 
 @attr.s(kw_only=True)
