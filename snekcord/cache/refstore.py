@@ -41,9 +41,11 @@ class MemoryRefStore(RefStore[UniqueT, RefT]):
 
     async def remove(self, key: UniqueT, ref: RefT) -> None:
         refs = self.refs.get(key)
-        if refs is not None:
-            with contextlib.suppress(ValueError):
-                refs.remove(ref)
+        if refs is None:
+            return None
+
+        with contextlib.suppress(ValueError):
+            refs.remove(ref)
 
     async def clear(self, key: UniqueT) -> None:
         self.refs.pop(key, None)
@@ -63,9 +65,11 @@ class SnowflakeMemoryRefStore(RefStore[UniqueT, Snowflake]):
 
     async def remove(self, key: UniqueT, ref: Snowflake) -> None:
         refs = self.refs.get(key)
-        if refs is not None:
-            with contextlib.suppress(ValueError):
-                refs.remove(ref)
+        if refs is None:
+            return None
+
+        with contextlib.suppress(ValueError):
+            refs.remove(ref)
 
     async def clear(self, key: UniqueT) -> None:
         self.refs.pop(key, None)

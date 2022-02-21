@@ -9,7 +9,7 @@ from multidict import CIMultiDict
 from . import hdrs
 from .endpoints import APIEndpoint, CDNEndpoint
 from ..exceptions import RESTError
-from ..json import load_json
+from ..json import dump_json, load_json
 from ..streams import ResponseReadStream
 
 if typing.TYPE_CHECKING:
@@ -45,11 +45,14 @@ class RESTSession:
 
         self.session: typing.Optional[aiohttp.ClientSession] = None
 
+    def create_session(self) -> aiohttp.ClientSession:
+        return aiohttp.ClientSession(json_serialize=dump_json)
+
     async def request_api(
         self, endpoint: APIEndpoint, **kwargs: typing.Any
     ) -> typing.Union[bytes, JSONType]:
         if self.session is None:
-            self.session = aiohttp.ClientSession()
+            self.session = self.create_session()
 
         try:
             headers = kwargs.pop('headers')
@@ -77,7 +80,7 @@ class RESTSession:
 
     async def request_cdn(self, endpoint: CDNEndpoint, **kwargs: typing.Any) -> ResponseReadStream:
         if self.session is None:
-            self.session = aiohttp.ClientSession()
+            self.session = self.create_session()
 
         url = endpoint.url(self.cdn, **kwargs)
         response = await self.session.request('GET', url)
@@ -87,6 +90,6 @@ class RESTSession:
 
         return ResponseReadStream(response)
 
-    async def aclose(self) -> None:
+    async def close(self) -> None:
         if self.session is not None:
             await self.session.close()

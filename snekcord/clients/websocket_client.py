@@ -106,4 +106,4 @@ class WebSocketClient(Client):
             await shard.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
 
         await asyncio.gather(*(shard.join() for shard in self.get_shards()))
-        await self.rest.aclose()
+        await self.rest.close()

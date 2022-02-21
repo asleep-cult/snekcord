@@ -12,6 +12,8 @@ import aiohttp
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
+    from _typeshed import ReadableBuffer
+
 
 __all__ = (
     'AsyncReadStream',
@@ -82,9 +84,9 @@ class AsyncReadStream:
 
     async def to_data_uri(self) -> str:
         content_type = await self.get_content_type()
-        data = await self.aread_all()
+        data = base64.b64encode(await self.aread_all())
 
-        return f'data:{content_type};base64,{base64.b64encode(data)}'
+        return f'data:{content_type};base64,{data.decode("utf-8")}'
 
 
 class BufferReadStream(AsyncReadStream):
@@ -93,9 +95,11 @@ class BufferReadStream(AsyncReadStream):
         super().__init__(content_type=content_type)
 
     @classmethod
-    def from_bytes(cls, data: bytes, content_type: typing.Optional[str] = None) -> Self:
+    def from_bytes(cls, data: ReadableBuffer, content_type: typing.Optional[str] = None) -> Self:
         self = cls.__new__(cls)
-        self.buffer = io.BytesIO(data)
+
+        self.buffer = io.BytesIO()
+        self.buffer.write(data)
 
         AsyncReadStream.__init__(self, content_type=content_type)
         return self
@@ -119,6 +123,7 @@ class FSReadStream(AsyncReadStream):
     @classmethod
     def from_fp(cls, fp: typing.IO[bytes], content_type: typing.Optional[str] = None) -> Self:
         self = cls.__new__(cls)
+
         self.path = None
         self.fp = fp
 
@@ -149,3 +154,35 @@ class ResponseReadStream(AsyncReadStream):
 
     async def aread(self, amount: int) -> bytes:
         return await self.response.content.read(amount)
+
+
+SupportsStream = typing.Union[
+    AsyncReadStream,
+    'ReadableBuffer',
+    io.BytesIO,
+    os.PathLike[str],
+    typing.IO[bytes],
+    aiohttp.ClientResponse,
+]
+
+
+def create_stream(
+    object: SupportsStream, *, content_type: typing.Optional[str] = None
+) -> AsyncReadStream:
+    if isinstance(object, AsyncReadStream):
+        return object
+
+    elif isinstance(object, io.BytesIO):
+        return BufferReadStream(object, content_type=content_type)
+
+    elif isinstance(object, os.PathLike):
+        return FSReadStream(object, content_type=content_type)
+
+    elif isinstance(object, typing.IO):
+        return FSReadStream.from_fp(object, content_type=content_type)
+
+    elif isinstance(object, aiohttp.ClientResponse):
+        return ResponseReadStream(object, content_type=content_type)
+
+    # object: bytes, bytearray, memoryview, array.array, mmap.mmap, ctypes._CData
+    return BufferReadStream.from_bytes(object, content_type=content_type)

@@ -311,7 +311,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         await self.client.rest.request_api(
             DELETE_CHANNEL_MESSAGES,
             channel_id=self.client.channels.to_unique(channel),
-            json={'messages': tuple(message_ids)},
+            json={'messages': message_ids},
         )
 
         iterator = (await self.client.messages.drop(message_id) for message_id in message_ids)

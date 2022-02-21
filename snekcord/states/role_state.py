@@ -26,6 +26,7 @@ from ..rest.endpoints import (
     GET_GUILD_ROLES,
 )
 from ..snowflake import Snowflake
+from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
@@ -133,6 +134,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         permissions: MaybeUndefined[Permissions] = undefined,
         color: MaybeUndefined[int] = undefined,
         hoist: MaybeUndefined[bool] = undefined,
+        icon: MaybeUndefined[SupportsStream] = undefined,
         unicode_emoji: MaybeUndefined[str] = undefined,
         mentionable: MaybeUndefined[bool] = undefined,
     ) -> RoleCreateBuilder:
@@ -152,6 +154,9 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         if hoist is not undefined:
             builder.hoist(hoist)
 
+        if icon is not undefined:
+            builder.icon(icon)
+
         if unicode_emoji is not undefined:
             builder.unicode_emoji(unicode_emoji)
 
@@ -169,6 +174,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         permissions: MaybeUndefined[typing.Optional[Permissions]] = undefined,
         color: MaybeUndefined[typing.Optional[int]] = undefined,
         hoist: MaybeUndefined[typing.Optional[bool]] = undefined,
+        icon: MaybeUndefined[typing.Optional[SupportsStream]] = undefined,
         unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
@@ -189,6 +195,9 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
 
         if hoist is not undefined:
             builder.hoist(hoist)
+
+        if icon is not undefined:
+            builder.icon(icon)
 
         if unicode_emoji is not undefined:
             builder.unicode_emoji(unicode_emoji)

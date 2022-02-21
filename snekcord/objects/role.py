@@ -9,6 +9,7 @@ from ..cache import CachedModel
 from ..objects import SnowflakeObject
 from ..permissions import Permissions
 from ..snowflake import Snowflake
+from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
@@ -58,6 +59,7 @@ class Role(SnowflakeObject):
         permissions: MaybeUndefined[typing.Optional[Permissions]] = undefined,
         color: MaybeUndefined[typing.Optional[int]] = undefined,
         hoist: MaybeUndefined[typing.Optional[bool]] = undefined,
+        icon: MaybeUndefined[typing.Optional[SupportsStream]] = undefined,
         unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
@@ -68,6 +70,7 @@ class Role(SnowflakeObject):
             permissions=permissions,
             color=color,
             hoist=hoist,
+            icon=icon,
             unicode_emoji=unicode_emoji,
             mentionable=mentionable,
         )

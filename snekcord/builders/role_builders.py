@@ -12,6 +12,7 @@ from ..rest.endpoints import (
     UPDATE_GUILD_ROLE_POSITIONS,
 )
 from ..snowflake import Snowflake
+from ..streams import SupportsStream, create_stream
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -48,7 +49,9 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
     def hoist(self, hoist: bool) -> None:
         self.data['hoist'] = bool(hoist)
 
-    # TODO: icon
+    @setter
+    def icon(self, icon: SupportsStream) -> None:
+        self.data['icon'] = create_stream(icon)
 
     @setter
     def unicode_emoji(self, unicode_emoji: str) -> None:
@@ -59,6 +62,13 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
         self.data['mentionable'] = bool(mentionable)
 
     async def action(self) -> Role:
+        icon = self.data.get('icon')
+        if icon is not None:
+            if icon is not None:
+                self.data['icon'] = await icon.to_data_uri()
+            else:
+                self.data['icon'] = None
+
         data = await self.client.rest.request_api(
             CREATE_GUILD_ROLE, guild_id=self.guild_id, json=self.data
         )
@@ -97,7 +107,9 @@ class RoleUpdateBuilder(AwaitableBuilder[Role]):
     def hoist(self, hoist: typing.Optional[bool]) -> None:
         self.data['hoist'] = bool(hoist) if hoist is not None else None
 
-    # TODO: icon
+    @setter
+    def icon(self, icon: typing.Optional[SupportsStream]) -> None:
+        self.data['icon'] = create_stream(icon) if icon is not None else None
 
     @setter
     def unicode_emoji(self, unicode_emoji: typing.Optional[str]) -> None:
@@ -108,6 +120,10 @@ class RoleUpdateBuilder(AwaitableBuilder[Role]):
         self.data['mentionable'] = bool(mentionable) if mentionable is not None else None
 
     async def action(self) -> Role:
+        icon = self.data.get('icon')
+        if icon is not None:
+            self.data['icon'] = await icon.to_data_uri()
+
         data = await self.client.rest.request_api(
             UPDATE_GUILD_ROLE, guild_id=self.guild_id, role_id=self.role_id, json=self.data
         )
