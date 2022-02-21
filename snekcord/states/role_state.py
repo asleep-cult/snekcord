@@ -238,6 +238,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
         permissions: MaybeUndefined[Permissions] = undefined,
         color: MaybeUndefined[int] = undefined,
         hoist: MaybeUndefined[bool] = undefined,
+        icon: MaybeUndefined[SupportsStream] = undefined,
         unicode_emoji: MaybeUndefined[str] = undefined,
         mentionable: MaybeUndefined[bool] = undefined,
     ) -> RoleCreateBuilder:
@@ -247,6 +248,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
             permissions=permissions,
             color=color,
             hoist=hoist,
+            icon=icon,
             unicode_emoji=unicode_emoji,
             mentionable=mentionable,
         )
@@ -259,6 +261,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
         permissions: MaybeUndefined[typing.Optional[Permissions]] = undefined,
         color: MaybeUndefined[typing.Optional[int]] = undefined,
         hoist: MaybeUndefined[typing.Optional[bool]] = undefined,
+        icon: MaybeUndefined[typing.Optional[SupportsStream]] = undefined,
         unicode_emoji: MaybeUndefined[typing.Optional[str]] = undefined,
         mentionable: MaybeUndefined[typing.Optional[bool]] = undefined,
     ) -> RoleUpdateBuilder:
@@ -269,6 +272,7 @@ class GuildRolesView(CachedStateView[SupportsRoleID, Snowflake, Role]):
             permissions=permissions,
             color=color,
             hoist=hoist,
+            icon=icon,
             unicode_emoji=unicode_emoji,
             mentionable=mentionable,
         )
