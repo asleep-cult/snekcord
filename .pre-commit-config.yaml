@@ -1,12 +1,18 @@
 repos:
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        name: isort (python)
+
   - repo: local
     hooks:
-      - id: blue
-        name: Blue
-        description: Runs blue to format the files.
+      - id: black
+        name: Black
+        description: Runs black to format the files.
         language: system
         types: [python]
-        entry: poetry run blue ./snekcord
+        entry: poetry run black ./snekcord -S
         require_serial: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
