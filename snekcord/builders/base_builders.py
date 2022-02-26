@@ -12,15 +12,23 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Concatenate, Self
 
     P = typing.ParamSpec('P')
+    T = typing.TypeVar('T')
     T_contra = typing.TypeVar('T_contra', contravariant=True)
+
+    SelfT = typing.TypeVar('SelfT')
+    ResultT = typing.TypeVar('ResultT')
 
     class SetterFunc(typing.Protocol[T_contra, P]):
         def __call__(self, instance: T_contra, /, *args: P.args, **kwargs: P.kwargs) -> None:
             ...
 
+    class ActionBuilder(typing.Protocol[T]):
+        data: JSONObject
+        awaited: bool
+        result: typing.Optional[T]
 
-SelfT = typing.TypeVar('SelfT')
-ResultT = typing.TypeVar('ResultT')
+        async def action(self) -> T:
+            ...
 
 
 def setter(func: SetterFunc[SelfT, P]) -> typing.Callable[Concatenate[SelfT, P], SelfT]:
@@ -31,7 +39,7 @@ def setter(func: SetterFunc[SelfT, P]) -> typing.Callable[Concatenate[SelfT, P],
     return wrapped
 
 
-@attr.s(kw_only=True, slots=True)
+@attr.s(kw_only=True)
 class BaseBuilder:
     data: JSONObject = attr.ib(init=False, factory=dict)
 
@@ -39,13 +47,10 @@ class BaseBuilder:
         return f'<{self.__class__.__name__} {self.data!r}>'
 
 
-@attr.s(kw_only=True, slots=True)
-class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
+@attr.s(kw_only=True)
+class AwaitableBuilder(BaseBuilder):
     awaited: bool = attr.ib(init=False, default=False)
-    result: typing.Optional[ResultT] = attr.ib(init=False, default=None)
-
-    async def action(self) -> ResultT:
-        raise NotImplementedError
+    result: typing.Any = attr.ib(init=False, default=None)
 
     async def __aenter__(self) -> Self:
         if self.awaited:
@@ -63,17 +68,19 @@ class AwaitableBuilder(typing.Generic[ResultT], BaseBuilder):
         if exc_tb is None:
             self.result = await self.action()
 
-    def __await__(self) -> typing.Generator[None, None, ResultT]:
+    def __await__(self: ActionBuilder[ResultT]) -> typing.Iterable[ResultT]:
         if self.awaited:
             raise RuntimeError(f'cannot reuse {self.__class__.__name__}')
-
-        self.awaited = True
 
         async def wrapper() -> ResultT:
             self.result = await self.action()
             return self.result
 
+        self.awaited = True
         return wrapper().__await__()
+
+    async def action(self: ActionBuilder[ResultT]) -> ResultT:
+        raise NotImplementedError
 
     def __del__(self) -> None:
         if not self.awaited:

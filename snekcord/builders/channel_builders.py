@@ -14,14 +14,12 @@ if typing.TYPE_CHECKING:
     from ..json import JSONObject
     from ..objects import BaseChannel, ChannelType
     from ..states import SupportsChannelID
-else:
-    BaseChannel = typing.NewType('BaseChannel', typing.Any)
 
 __all__ = ('ChannelCreateBuilder', 'ChannelPositionsBuilder')
 
 
 @attr.s(kw_only=True)
-class ChannelCreateBuilder(AwaitableBuilder[BaseChannel]):
+class ChannelCreateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
@@ -75,7 +73,7 @@ class ChannelCreateBuilder(AwaitableBuilder[BaseChannel]):
 
 
 @attr.s(kw_only=True)
-class ChannelPositionsBuilder(AwaitableBuilder[None]):
+class ChannelPositionsBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
@@ -88,33 +86,25 @@ class ChannelPositionsBuilder(AwaitableBuilder[None]):
         lock_permissions: MaybeUndefined[typing.Optional[bool]] = undefined,
         parent: MaybeUndefined[typing.Optional[SupportsChannelID]] = undefined,
     ) -> None:
-        channel_id = str(self.client.channels.to_unique(channel))
-
-        data: JSONObject = {'id': channel_id}
+        data: JSONObject = {}
 
         if position is not undefined:
-            if position is not None:
-                data['position'] = int(position)
-            else:
-                data['position'] = None
+            data['position'] = int(position) if position is not None else None
 
         if lock_permissions is not undefined:
-            if lock_permissions is not None:
-                data['lock_permissions'] = bool(lock_permissions)
-            else:
-                data['lock_permissions'] = None
+            data['lock_permissions'] = (
+                bool(lock_permissions) if lock_permissions is not None else None
+            )
 
         if parent is not undefined:
-            if parent is not None:
-                data['parent_id'] = str(self.client.channels.to_unique(parent))
-            else:
-                data['parent_id'] = None
+            data['parent_id'] = (
+                str(self.client.channels.to_unique(parent)) if parent is not None else None
+            )
 
+        channel_id = data['id'] = str(self.client.channels.to_unique(channel))
         self.data[channel_id] = data
 
     async def action(self) -> None:
-        json = list(self.data.values())
-
         await self.client.rest.request_api(
-            UPDATE_GUILD_CHANNEL_POSITIONS, guild_id=self.guild_id, json=json
+            UPDATE_GUILD_CHANNEL_POSITIONS, guild_id=self.guild_id, json=self.data.values()
         )

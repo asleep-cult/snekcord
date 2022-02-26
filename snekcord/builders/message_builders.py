@@ -11,14 +11,12 @@ from .base_builders import AwaitableBuilder, setter
 if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..objects import Message, MessageFlags
-else:
-    Message = typing.NewType('Message', typing.Any)
 
 __all__ = ('MessageCreateBuilder', 'MessageUpdateBuilder')
 
 
 @attr.s(kw_only=True, slots=True)
-class MessageCreateBuilder(AwaitableBuilder[Message]):
+class MessageCreateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
 
@@ -52,7 +50,7 @@ class MessageCreateBuilder(AwaitableBuilder[Message]):
 
 
 @attr.s(kw_only=True, slots=True)
-class MessageUpdateBuilder(AwaitableBuilder[Message]):
+class MessageUpdateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
     message_id: Snowflake = attr.ib()

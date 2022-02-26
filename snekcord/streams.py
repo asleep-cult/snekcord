@@ -22,7 +22,7 @@ __all__ = (
     'ResponseReadStream',
 )
 
-CHUNK_SIZE = 2**16
+CHUNK_SIZE = 2 ** 16
 DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
 

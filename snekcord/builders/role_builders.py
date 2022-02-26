@@ -18,8 +18,6 @@ if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..objects import Role
     from ..states import SupportsRoleID
-else:
-    Role = typing.NewType('Role', typing.Any)
 
 __all__ = (
     'RoleCreateBuilder',
@@ -29,7 +27,7 @@ __all__ = (
 
 
 @attr.s(kw_only=True)
-class RoleCreateBuilder(AwaitableBuilder[Role]):
+class RoleCreateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
@@ -64,10 +62,7 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
     async def action(self) -> Role:
         icon = self.data.get('icon')
         if icon is not None:
-            if icon is not None:
-                self.data['icon'] = await icon.to_data_uri()
-            else:
-                self.data['icon'] = None
+            self.data['icon'] = await icon.to_data_uri() if icon is not None else None
 
         data = await self.client.rest.request_api(
             CREATE_GUILD_ROLE, guild_id=self.guild_id, json=self.data
@@ -86,7 +81,7 @@ class RoleCreateBuilder(AwaitableBuilder[Role]):
 
 
 @attr.s(kw_only=True)
-class RoleUpdateBuilder(AwaitableBuilder[Role]):
+class RoleUpdateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
     role_id: Snowflake = attr.ib()
@@ -141,7 +136,7 @@ class RoleUpdateBuilder(AwaitableBuilder[Role]):
 
 
 @attr.s(kw_only=True)
-class RolePositionsBuilder(AwaitableBuilder[typing.List[Role]]):
+class RolePositionsBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
@@ -151,10 +146,8 @@ class RolePositionsBuilder(AwaitableBuilder[typing.List[Role]]):
         self.data[role_id] = {'id': role_id, 'position': position}
 
     async def action(self) -> typing.List[Role]:
-        json = list(self.data.values())
-
         data = await self.client.rest.request_api(
-            UPDATE_GUILD_ROLE_POSITIONS, guild_id=self.guild_id, json=json
+            UPDATE_GUILD_ROLE_POSITIONS, guild_id=self.guild_id, json=self.data.values()
         )
         assert isinstance(data, list)
 
