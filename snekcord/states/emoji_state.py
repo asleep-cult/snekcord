@@ -2,26 +2,16 @@ from __future__ import annotations
 
 import typing
 
-from .base_state import (
-    CachedEventState,
-    CachedStateView,
-)
-from ..cache import (
-    RefStore,
-    SnowflakeMemoryRefStore,
-)
-from ..objects import (
-    CachedCustomEmoji,
-    CustomEmoji,
-    SnowflakeWrapper,
-)
+from ..cache import RefStore, SnowflakeMemoryRefStore
+from ..objects import CachedCustomEmoji, CustomEmoji, SnowflakeWrapper
 from ..snowflake import Snowflake
 from ..undefined import undefined
+from .base_state import CachedEventState, CachedStateView
 
 if typing.TYPE_CHECKING:
-    from .guild_state import SupportsGuildID
     from ..clients import Client
     from ..json import JSONObject
+    from .guild_state import SupportsGuildID
 
 __all__ = (
     'SupportsEmojiID',

@@ -9,10 +9,7 @@ from .base_events import BaseEvent
 
 if typing.TYPE_CHECKING:
     from ..objects import Message
-    from ..states import (
-        ChannelIDWrapper,
-        GuildIDWrapper,
-    )
+    from ..states import ChannelIDWrapper, GuildIDWrapper
 
 __all__ = (
     'MessageEvents',

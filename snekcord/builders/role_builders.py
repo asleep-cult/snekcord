@@ -4,7 +4,6 @@ import typing
 
 import attr
 
-from .base_builders import AwaitableBuilder, setter
 from ..permissions import Permissions
 from ..rest.endpoints import (
     CREATE_GUILD_ROLE,
@@ -13,6 +12,7 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 from ..streams import SupportsStream, create_stream
+from .base_builders import AwaitableBuilder, setter
 
 if typing.TYPE_CHECKING:
     from ..clients import Client

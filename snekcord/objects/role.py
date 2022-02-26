@@ -13,9 +13,7 @@ from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
-    from ..states import (
-        GuildIDWrapper,
-    )
+    from ..states import GuildIDWrapper
 
 
 class CachedRoleTags(typing.TypedDict, total=False):

@@ -3,10 +3,6 @@ from __future__ import annotations
 import typing
 from datetime import datetime
 
-from .base_state import (
-    CachedEventState,
-    OnDecoratorT,
-)
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -24,8 +20,8 @@ from ..objects import (
     Guild,
     GuildExplicitContentFilter,
     GuildFeature,
-    GuildMFALevel,
     GuildMessageNotificationsLevel,
+    GuildMFALevel,
     GuildNSFWLevel,
     GuildPremiumTier,
     GuildSystemChannelFlags,
@@ -36,6 +32,7 @@ from ..objects import (
 )
 from ..snowflake import Snowflake
 from ..undefined import undefined
+from .base_state import CachedEventState, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..websockets import Shard

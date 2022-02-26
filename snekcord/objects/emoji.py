@@ -4,17 +4,13 @@ import typing
 
 import attr
 
-from .base import SnowflakeObject
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
+from .base import SnowflakeObject
 
 if typing.TYPE_CHECKING:
-    from ..states import (
-        # EmojiRolesView,
-        GuildIDWrapper,
-        UserIDWrapper,
-    )
+    from ..states import GuildIDWrapper, UserIDWrapper  # EmojiRolesView,
 
 __all__ = ('CachedCustomEmoji', 'CustomEmoji')
 

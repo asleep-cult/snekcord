@@ -5,10 +5,10 @@ import typing
 
 import attr
 
-from .base import SnowflakeObject
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
+from .base import SnowflakeObject
 
 __all__ = (
     'CachedUser',

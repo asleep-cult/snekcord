@@ -3,18 +3,17 @@ from __future__ import annotations
 import typing
 
 import aiohttp
-
 from multidict import CIMultiDict
 
-from . import hdrs
-from .endpoints import APIEndpoint, CDNEndpoint
 from ..exceptions import RESTError
 from ..json import dump_json, load_json
 from ..streams import ResponseReadStream
+from . import hdrs
+from .endpoints import APIEndpoint, CDNEndpoint
 
 if typing.TYPE_CHECKING:
-    from ..json import JSONType
     from ..auth import Authorization
+    from ..json import JSONType
 
 BASE_API_URL = 'https://discord.com/api/v9'
 BASE_CDN_URL = 'https://cdn.discordapp.com'

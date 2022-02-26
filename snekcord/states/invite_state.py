@@ -1,14 +1,8 @@
 import typing
 
+from ..events import InviteEvents
+from ..objects import CachedInvite, CodeWrapper, Invite
 from .base_state import CachedEventState
-from ..events import (
-    InviteEvents,
-)
-from ..objects import (
-    CachedInvite,
-    CodeWrapper,
-    Invite,
-)
 
 __all__ = (
     'SupportsInviteCode',

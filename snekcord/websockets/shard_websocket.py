@@ -7,12 +7,7 @@ import random
 import time
 
 from loguru import logger
-
-from wsaio import (
-    HandshakeFailureError,
-    WebSocketClient,
-    WebSocketCloseCode,
-)
+from wsaio import HandshakeFailureError, WebSocketClient, WebSocketCloseCode
 
 from ..exceptions import (
     AuthenticationFailedError,

@@ -3,19 +3,8 @@ from __future__ import annotations
 import typing
 from datetime import datetime
 
-from .base_state import (
-    CachedEventState,
-    CachedStateView,
-    OnDecoratorT,
-)
-from ..builders import (
-    MessageCreateBuilder,
-    MessageUpdateBuilder,
-)
-from ..cache import (
-    RefStore,
-    SnowflakeMemoryRefStore,
-)
+from ..builders import MessageCreateBuilder, MessageUpdateBuilder
+from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enum import convert_enum
 from ..events import (
     BaseEvent,
@@ -45,12 +34,13 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
+from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
-    from .channel_state import SupportsChannelID
     from ..clients import Client
     from ..json import JSONObject
     from ..websockets import Shard
+    from .channel_state import SupportsChannelID
 
 __all__ = (
     'SupportsMessageID',

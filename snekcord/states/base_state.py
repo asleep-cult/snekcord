@@ -5,14 +5,11 @@ import typing
 import weakref
 from collections import defaultdict
 
-from ..cache import (
-    CacheDriver,
-    MemoryCacheDriver,
-)
+from ..cache import CacheDriver, MemoryCacheDriver
 
 if typing.TYPE_CHECKING:
-    from ..clients import Client
     from ..cache import CachedModel
+    from ..clients import Client
     from ..events import BaseEvent
     from ..json import JSONObject
     from ..websockets import Shard

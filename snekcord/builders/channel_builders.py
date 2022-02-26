@@ -4,13 +4,10 @@ import typing
 
 import attr
 
-from .base_builders import AwaitableBuilder, setter
-from ..rest.endpoints import (
-    CREATE_GUILD_CHANNEL,
-    UPDATE_GUILD_CHANNEL_POSITIONS,
-)
+from ..rest.endpoints import CREATE_GUILD_CHANNEL, UPDATE_GUILD_CHANNEL_POSITIONS
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
+from .base_builders import AwaitableBuilder, setter
 
 if typing.TYPE_CHECKING:
     from ..clients import Client

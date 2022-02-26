@@ -6,10 +6,10 @@ from datetime import datetime
 
 import attr
 
-from .base import CodeObject
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
+from .base import CodeObject
 
 
 class CachedInvite(CachedModel):

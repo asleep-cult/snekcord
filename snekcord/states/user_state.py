@@ -2,17 +2,11 @@ from __future__ import annotations
 
 import typing
 
-from .base_state import CachedEventState
 from ..enum import convert_enum
-from ..objects import (
-    CachedUser,
-    PremiumType,
-    SnowflakeWrapper,
-    User,
-    UserFlags,
-)
+from ..objects import CachedUser, PremiumType, SnowflakeWrapper, User, UserFlags
 from ..snowflake import Snowflake
 from ..undefined import undefined
+from .base_state import CachedEventState
 
 if typing.TYPE_CHECKING:
     from ..json import JSONObject

@@ -11,8 +11,8 @@ import typing
 import aiohttp
 
 if typing.TYPE_CHECKING:
-    from typing_extensions import Self
     from _typeshed import ReadableBuffer
+    from typing_extensions import Self
 
 
 __all__ = (
@@ -22,7 +22,7 @@ __all__ = (
     'ResponseReadStream',
 )
 
-CHUNK_SIZE = 2 ** 16
+CHUNK_SIZE = 2**16
 DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
 

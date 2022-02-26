@@ -5,18 +5,14 @@ import typing
 from signal import Signals
 
 import asygpy
-
 from loguru import logger
 
-from .client import Client
 from ..auth import Authorization
 from ..intents import WebSocketIntents
-from ..rest.endpoints import (
-    GET_GATEWAY,
-    GET_GATEWAY_BOT,
-)
+from ..rest.endpoints import GET_GATEWAY, GET_GATEWAY_BOT
 from ..states import EventState
 from ..websockets.shard_websocket import Shard, ShardCancellationToken
+from .client import Client
 
 if typing.TYPE_CHECKING:
     from ..json import JSONObject

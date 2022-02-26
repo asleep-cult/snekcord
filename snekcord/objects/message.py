@@ -13,12 +13,10 @@ from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 
 if typing.TYPE_CHECKING:
-    from ..states import (
-        # ApplicationIDWrapper,
+    from ..states import (  # ApplicationIDWrapper,; WebhookIDWrapper,
         ChannelIDWrapper,
         GuildIDWrapper,
         UserIDWrapper,
-        # WebhookIDWrapper,
     )
 
 __all__ = (

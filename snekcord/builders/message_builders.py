@@ -4,12 +4,9 @@ import typing
 
 import attr
 
-from .base_builders import AwaitableBuilder, setter
-from ..rest.endpoints import (
-    CREATE_CHANNEL_MESSAGE,
-    UPDATE_CHANNEL_MESSAGE,
-)
+from ..rest.endpoints import CREATE_CHANNEL_MESSAGE, UPDATE_CHANNEL_MESSAGE
 from ..snowflake import Snowflake
+from .base_builders import AwaitableBuilder, setter
 
 if typing.TYPE_CHECKING:
     from ..clients import Client

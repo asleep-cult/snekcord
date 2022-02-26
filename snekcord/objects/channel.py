@@ -6,15 +6,15 @@ from datetime import datetime
 
 import attr
 
-from .base import SnowflakeObject
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
+from .base import SnowflakeObject
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        ChannelMessagesView,
         ChannelIDWrapper,
+        ChannelMessagesView,
         GuildIDWrapper,
         MessageIDWrapper,
     )

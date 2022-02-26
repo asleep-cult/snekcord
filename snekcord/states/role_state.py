@@ -2,37 +2,21 @@ from __future__ import annotations
 
 import typing
 
-from .base_state import CachedEventState, CachedStateView
-from ..builders import (
-    RoleCreateBuilder,
-    RolePositionsBuilder,
-    RoleUpdateBuilder,
-)
-from ..cache import (
-    RefStore,
-    SnowflakeMemoryRefStore,
-)
-from ..events import (
-    RoleEvents,
-)
-from ..objects import (
-    CachedRole,
-    Role,
-    SnowflakeWrapper,
-)
+from ..builders import RoleCreateBuilder, RolePositionsBuilder, RoleUpdateBuilder
+from ..cache import RefStore, SnowflakeMemoryRefStore
+from ..events import RoleEvents
+from ..objects import CachedRole, Role, SnowflakeWrapper
 from ..permissions import Permissions
-from ..rest.endpoints import (
-    DELETE_GUILD_ROLE,
-    GET_GUILD_ROLES,
-)
+from ..rest.endpoints import DELETE_GUILD_ROLE, GET_GUILD_ROLES
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
+from .base_state import CachedEventState, CachedStateView
 
 if typing.TYPE_CHECKING:
-    from .guild_state import SupportsGuildID
     from ..clients import Client
     from ..json import JSONObject
+    from .guild_state import SupportsGuildID
 
 __all__ = (
     'SupportsRoleID',
