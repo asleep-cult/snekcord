@@ -99,7 +99,7 @@ class WebSocketClient(Client):
 
     async def cleanup(self) -> None:
         for shard in self.get_shards():
-            await shard.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
+            shard.state.cancel(ShardCancellationToken.SIGNAL_INTERRUPT)
 
         await asyncio.gather(*(shard.join() for shard in self.get_shards()))
         await self.rest.close()

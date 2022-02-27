@@ -9,7 +9,7 @@ __all__ = (
 T = typing.TypeVar('T')
 
 JSONObject = typing.Dict[str, typing.Any]
-JSONType = typing.Union[JSONObject, str, int, float, typing.List[typing.Any]]
+JSONType = typing.Union[JSONObject, str, int, float, typing.Iterable[typing.Any]]
 
 
 def dump_default(
