@@ -55,7 +55,7 @@ class BaseBuilder:
                 except AttributeError:
                     raise TypeError(f'setters() got an unexpected keyword arguemnt {key!r}')
 
-                setter(value)
+                setter(self, value)
 
         return self
 
