@@ -7,6 +7,7 @@ import warnings
 import attr
 
 from ..json import JSONObject
+from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Concatenate, Self
@@ -45,6 +46,18 @@ class BaseBuilder:
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} {self.data!r}>'
+
+    def setters(self, **kwargs: typing.Any) -> Self:
+        for key, value in kwargs.items():
+            if value is not undefined:
+                try:
+                    setter = getattr(self.__class__, key)
+                except AttributeError:
+                    raise TypeError(f'setters() got an unexpected keyword arguemnt {key!r}')
+
+                setter(value)
+
+        return self
 
 
 @attr.s(kw_only=True)

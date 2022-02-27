@@ -227,34 +227,17 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             client=self.client, guild_id=self.client.guilds.to_unique(guild)
         )
 
-        if name is not undefined:
-            builder.name(name)
-
-        if type is not undefined:
-            builder.type(type)
-
-        if topic is not undefined:
-            builder.topic(topic)
-
-        if bitrate is not undefined:
-            builder.bitrate(bitrate)
-
-        if user_limit is not undefined:
-            builder.user_limit(user_limit)
-
-        if rate_limit_per_user is not undefined:
-            builder.rate_limit_per_user(rate_limit_per_user)
-
-        if position is not undefined:
-            builder.position(position)
-
-        if parent is not undefined:
-            builder.parent(parent)
-
-        if nsfw is not undefined:
-            builder.nsfw(nsfw)
-
-        return builder
+        return builder.setters(
+            name=name,
+            type=type,
+            topic=topic,
+            bitrate=bitrate,
+            user_limit=user_limit,
+            rate_limit_per_user=rate_limit_per_user,
+            position=position,
+            parent=parent,
+            nsfw=nsfw,
+        )
 
     def update_positions(self, guild: SupportsGuildID) -> ChannelPositionsBuilder:
         return ChannelPositionsBuilder(

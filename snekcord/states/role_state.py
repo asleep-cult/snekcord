@@ -126,28 +126,15 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
             client=self.client, guild_id=self.client.guilds.to_unique(guild)
         )
 
-        if name is not undefined:
-            builder.name(name)
-
-        if permissions is not undefined:
-            builder.permissions(permissions)
-
-        if color is not undefined:
-            builder.color(color)
-
-        if hoist is not undefined:
-            builder.hoist(hoist)
-
-        if icon is not undefined:
-            builder.icon(icon)
-
-        if unicode_emoji is not undefined:
-            builder.unicode_emoji(unicode_emoji)
-
-        if mentionable is not undefined:
-            builder.mentionable(mentionable)
-
-        return builder
+        return builder.setters(
+            name=name,
+            permissions=permissions,
+            color=color,
+            hoist=hoist,
+            icon=icon,
+            unicode_emoji=unicode_emoji,
+            mentionable=mentionable,
+        )
 
     def update(
         self,
@@ -168,28 +155,15 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
             role_id=self.to_unique(role),
         )
 
-        if name is not undefined:
-            builder.name(name)
-
-        if permissions is not undefined:
-            builder.permissions(permissions)
-
-        if color is not undefined:
-            builder.color(color)
-
-        if hoist is not undefined:
-            builder.hoist(hoist)
-
-        if icon is not undefined:
-            builder.icon(icon)
-
-        if unicode_emoji is not undefined:
-            builder.unicode_emoji(unicode_emoji)
-
-        if mentionable is not undefined:
-            builder.mentionable(mentionable)
-
-        return builder
+        return builder.setters(
+            name=name,
+            permissions=permissions,
+            color=color,
+            hoist=hoist,
+            icon=icon,
+            unicode_emoji=unicode_emoji,
+            mentionable=mentionable,
+        )
 
     def update_positions(self, guild: SupportsGuildID) -> RolePositionsBuilder:
         return RolePositionsBuilder(

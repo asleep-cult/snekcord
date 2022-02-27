@@ -245,16 +245,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             client=self.client, channel_id=self.client.channels.to_unique(channel)
         )
 
-        if content is not undefined:
-            builder.content(content)
-
-        if tts is not undefined:
-            builder.tts(tts)
-
-        if flags is not undefined:
-            builder.flags(flags)
-
-        return builder
+        return builder.setters(content=content, tts=tts, flags=flags)
 
     def update(
         self,
@@ -270,13 +261,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             message_id=self.to_unique(message),
         )
 
-        if content is not undefined:
-            builder.content(content)
-
-        if flags is not undefined:
-            builder.flags(flags)
-
-        return builder
+        return builder.setters(content=content, flags=flags)
 
     async def delete(
         self, channel: SupportsChannelID, message: SupportsMessageID
