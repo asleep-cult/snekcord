@@ -9,6 +9,7 @@ from loguru import logger
 
 from ..auth import Authorization
 from ..intents import WebSocketIntents
+from ..json import json_get
 from ..rest.endpoints import GET_GATEWAY, GET_GATEWAY_BOT
 from ..states import EventState
 from ..websockets.shard_websocket import Shard, ShardCancellationToken
@@ -59,7 +60,10 @@ class WebSocketClient(Client):
         else:
             endpoint = GET_GATEWAY
 
-        return await self.rest.request_api(endpoint)
+        data = await self.rest.request_api(endpoint)
+        assert isinstance(data, dict)
+
+        return data
 
     async def connect(self) -> typing.Literal[Signals.SIGINT, Signals.SIGTERM]:
         self.loop = asyncio.get_running_loop()
@@ -73,16 +77,18 @@ class WebSocketClient(Client):
         notifier.start_notifying()
 
         gateway = await self.fetch_gateway()
+        url = json_get(gateway, 'url', str)
 
         if self.shard_ids is not None:
             sharded = True
         else:
-            shards = gateway.get('shards', 1)
+            shards = json_get(gateway, 'shards', int, default=1)
+
             sharded = shards > 1
             self.shard_ids = tuple(range(shards))
 
         for shard_id in self.shard_ids:
-            shard = Shard(self, gateway['url'], shard_id, sharded=sharded)
+            shard = Shard(self, url, shard_id, sharded=sharded)
             self._shards[shard_id] = shard
 
         for shard in self.get_shards():

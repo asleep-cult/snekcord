@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 
 from ..cache import RefStore, SnowflakeMemoryRefStore
+from ..json import JSONObject, json_get
 from ..objects import CachedCustomEmoji, CustomEmoji, SnowflakeWrapper
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -10,7 +11,6 @@ from .base_state import CachedEventState, CachedStateView
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..json import JSONObject
     from .guild_state import SupportsGuildID
 
 __all__ = (
@@ -58,9 +58,9 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         if guild_id is not None:
             await self.guild_refstore.add(guild_id, emoji_id)
 
-        user = data.get('user')
+        user = json_get(data, 'user', JSONObject, default=None)
         if user is not None:
-            data['user_id'] = Snowflake(user['id'])
+            data['user_id'] = Snowflake(json_get(user, 'id', str))
             await self.client.users.upsert(user)
 
         async with self.synchronize(emoji_id):
