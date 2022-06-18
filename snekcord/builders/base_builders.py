@@ -6,7 +6,6 @@ import warnings
 
 import attr
 
-from ..json import JSONObject
 from ..undefined import undefined
 
 if typing.TYPE_CHECKING:
@@ -24,7 +23,6 @@ if typing.TYPE_CHECKING:
             ...
 
     class ActionBuilder(typing.Protocol[T]):
-        data: JSONObject
         awaited: bool
         result: typing.Optional[T]
 
@@ -42,11 +40,6 @@ def setter(func: SetterFunc[SelfT, P]) -> typing.Callable[Concatenate[SelfT, P],
 
 @attr.s(kw_only=True)
 class BaseBuilder:
-    data: JSONObject = attr.ib(init=False, factory=dict)
-
-    def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} {self.data!r}>'
-
     def setters(self, **kwargs: typing.Any) -> Self:
         for key, value in kwargs.items():
             if value is not undefined:

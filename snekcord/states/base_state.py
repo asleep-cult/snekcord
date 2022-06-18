@@ -136,7 +136,7 @@ class CachedEventState(
 
     async def remove_refs(self, object: CachedModelT) -> None:
         """Removes any references to object from the corresponding RefStores.
-        This is called as part of the deletion routine and should not be called
+        This is called as part of the dropping routine and should not be called
         manually."""
 
     async def from_cached(self, cached: CachedModelT) -> ObjectT:

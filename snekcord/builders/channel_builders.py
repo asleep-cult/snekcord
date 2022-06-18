@@ -23,6 +23,8 @@ class ChannelCreateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
+    data: JSONObject = attr.ib(init=False, factory=dict)
+
     @setter
     def name(self, name: str) -> None:
         self.data['name'] = str(name)
@@ -77,6 +79,8 @@ class ChannelPositionsBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
+    channels: typing.List[JSONObject] = attr.ib(init=False, factory=list)
+
     @setter
     def set(
         self,
@@ -101,10 +105,10 @@ class ChannelPositionsBuilder(AwaitableBuilder):
                 str(self.client.channels.to_unique(parent)) if parent is not None else None
             )
 
-        channel_id = data['id'] = str(self.client.channels.to_unique(channel))
-        self.data[channel_id] = data
+        data['id'] = str(self.client.channels.to_unique(channel))
+        self.channels.append(data)
 
     async def action(self) -> None:
         await self.client.rest.request_api(
-            UPDATE_GUILD_CHANNEL_POSITIONS, guild_id=self.guild_id, json=self.data.values()
+            UPDATE_GUILD_CHANNEL_POSITIONS, guild_id=self.guild_id, json=self.channels
         )
