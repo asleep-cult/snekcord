@@ -10,6 +10,7 @@ from .base_builders import AwaitableBuilder, setter
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
+    from ..json import JSONObject
     from ..objects import Message, MessageFlags
 
 __all__ = ('MessageCreateBuilder', 'MessageUpdateBuilder')
@@ -19,6 +20,8 @@ __all__ = ('MessageCreateBuilder', 'MessageUpdateBuilder')
 class MessageCreateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
+
+    data: JSONObject = attr.ib(init=False, factory=dict)
 
     @setter
     def content(self, content: str) -> None:
@@ -54,6 +57,8 @@ class MessageUpdateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
     message_id: Snowflake = attr.ib()
+
+    data: JSONObject = attr.ib(init=False, factory=dict)
 
     @setter
     def content(self, content: typing.Optional[str]) -> None:

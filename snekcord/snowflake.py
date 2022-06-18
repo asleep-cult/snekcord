@@ -51,7 +51,9 @@ class Snowflake(int):
         if value is None:
             return None
 
+        assert isinstance(value, (str, int))
         value = data[key] = cls(value)
+
         return value
 
     @property

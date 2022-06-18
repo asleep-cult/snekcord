@@ -11,11 +11,13 @@ from ..rest.endpoints import (
     UPDATE_GUILD_ROLE_POSITIONS,
 )
 from ..snowflake import Snowflake
-from ..streams import SupportsStream, create_stream
+from ..streams import AsyncReadStream, SupportsStream, create_stream
+from ..undefined import MaybeUndefined, undefined
 from .base_builders import AwaitableBuilder, setter
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
+    from ..json import JSONObject
     from ..objects import Role
     from ..states import SupportsRoleID
 
@@ -30,6 +32,9 @@ __all__ = (
 class RoleCreateBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
+
+    data: JSONObject = attr.ib(init=False, factory=dict)
+    icon_stream: typing.Optional[AsyncReadStream] = attr.ib(init=False, default=None)
 
     @setter
     def name(self, name: str) -> None:
@@ -49,7 +54,7 @@ class RoleCreateBuilder(AwaitableBuilder):
 
     @setter
     def icon(self, icon: SupportsStream) -> None:
-        self.data['icon'] = create_stream(icon)
+        self.icon_stream = create_stream(icon)
 
     @setter
     def unicode_emoji(self, unicode_emoji: str) -> None:
@@ -60,9 +65,8 @@ class RoleCreateBuilder(AwaitableBuilder):
         self.data['mentionable'] = bool(mentionable)
 
     async def action(self) -> Role:
-        icon = self.data.get('icon')
-        if icon is not None:
-            self.data['icon'] = await icon.to_data_uri() if icon is not None else None
+        if self.icon_stream is not None:
+            self.data['icon'] = await self.icon_stream.to_data_uri()
 
         data = await self.client.rest.request_api(
             CREATE_GUILD_ROLE, guild_id=self.guild_id, json=self.data
@@ -86,6 +90,11 @@ class RoleUpdateBuilder(AwaitableBuilder):
     guild_id: Snowflake = attr.ib()
     role_id: Snowflake = attr.ib()
 
+    data: JSONObject = attr.ib(init=False, factory=dict)
+    icon_stream: MaybeUndefined[typing.Optional[AsyncReadStream]] = attr.ib(
+        init=False, default=undefined
+    )
+
     @setter
     def name(self, name: typing.Optional[str]) -> None:
         self.data['name'] = str(name) if name is not None else None
@@ -104,7 +113,7 @@ class RoleUpdateBuilder(AwaitableBuilder):
 
     @setter
     def icon(self, icon: typing.Optional[SupportsStream]) -> None:
-        self.data['icon'] = create_stream(icon) if icon is not None else None
+        self.icon_stream = create_stream(icon) if icon is not None else None
 
     @setter
     def unicode_emoji(self, unicode_emoji: typing.Optional[str]) -> None:
@@ -115,9 +124,11 @@ class RoleUpdateBuilder(AwaitableBuilder):
         self.data['mentionable'] = bool(mentionable) if mentionable is not None else None
 
     async def action(self) -> Role:
-        icon = self.data.get('icon')
-        if icon is not None:
-            self.data['icon'] = await icon.to_data_uri()
+        if self.icon_stream is not undefined:
+            if self.icon_stream is not None:
+                self.data['icon'] = await self.icon_stream.to_data_uri()
+            else:
+                self.data['icon'] = None
 
         data = await self.client.rest.request_api(
             UPDATE_GUILD_ROLE, guild_id=self.guild_id, role_id=self.role_id, json=self.data
@@ -140,14 +151,16 @@ class RolePositionsBuilder(AwaitableBuilder):
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
+    roles: typing.List[JSONObject] = attr.ib(init=False, factory=list)
+
     @setter
     def set(self, role: SupportsRoleID, *, position: int) -> None:
         role_id = str(self.client.roles.to_unique(role))
-        self.data[role_id] = {'id': role_id, 'position': position}
+        self.roles.append({'id': role_id, 'position': position})
 
     async def action(self) -> typing.List[Role]:
         data = await self.client.rest.request_api(
-            UPDATE_GUILD_ROLE_POSITIONS, guild_id=self.guild_id, json=self.data.values()
+            UPDATE_GUILD_ROLE_POSITIONS, guild_id=self.guild_id, json=self.roles
         )
         assert isinstance(data, list)
 

@@ -9,7 +9,7 @@ CachedObjectT = typing.TypeVar('CachedObjectT')
 
 
 class CacheDriver(typing.Generic[UniqueT, CachedObjectT]):
-    async def len(self) -> int:
+    async def size(self) -> int:
         raise NotImplementedError
 
     def iterate(self) -> typing.AsyncIterator[CachedObjectT]:
@@ -32,7 +32,7 @@ class MemoryCacheDriver(CacheDriver[UniqueT, CachedObjectT]):
     def __init__(self) -> None:
         self.map: dict[UniqueT, CachedObjectT] = {}
 
-    async def len(self) -> int:
+    async def size(self) -> int:
         return len(self.map)
 
     async def iterate(self) -> typing.AsyncIterator[CachedObjectT]:

@@ -14,6 +14,7 @@ from ..events import (
     MessageEvents,
     MessageUpdateEvent,
 )
+from ..json import JSONObject, json_get
 from ..objects import (
     CachedMessage,
     Message,
@@ -38,7 +39,6 @@ from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..json import JSONObject
     from ..websockets import Shard
     from .channel_state import SupportsChannelID
 
@@ -99,12 +99,12 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             if guild_id is None:
                 channel = await self.client.channels.cache.get(channel_id)
 
-                if channel is not None:
+                if channel is not None and channel.guild_id is not undefined:
                     data['guild_id'] = channel.guild_id
 
-        author = data.get('author')
+        author = json_get(data, 'author', JSONObject)
         if author is not None:
-            data['author_id'] = Snowflake(author['id'])
+            data['author_id'] = Snowflake(json_get(author, 'id', str))
             await self.client.users.upsert(author)
 
         timestamp = data.get('timestamp')
@@ -307,8 +307,11 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
     async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         event = MessageEvents(event)
 
-        guild = SnowflakeWrapper(payload.get('guild_id'), state=self.client.guilds)
-        channel = SnowflakeWrapper(payload.get('channel_id'), state=self.client.channels)
+        guild_id = json_get(payload, 'guild_id', str, default=None)
+        guild = SnowflakeWrapper(guild_id, state=self.client.guilds)
+
+        channel_id = json_get(payload, 'channel_id', str)
+        channel = SnowflakeWrapper(channel_id, state=self.client.channels)
 
         if event is MessageEvents.CREATE:
             message = await self.upsert(payload)
@@ -323,13 +326,15 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             )
 
         elif event is MessageEvents.DELETE:
-            message = await self.drop(payload['id'])
+            message = await self.drop(json_get(payload, 'id', str))
             return MessageDeleteEvent(
                 shard=shard, payload=payload, guild=guild, channel=channel, message=message
             )
 
         elif event is MessageEvents.BULK_DELETE:
-            iterator = (await self.drop(message_id) for message_id in payload['ids'])
+            message_ids = json_get(payload, 'ids', typing.List[str])
+
+            iterator = (await self.drop(message_id) for message_id in message_ids)
             messages = [message async for message in iterator if message is not None]
 
             return MessageBulkDeleteEvent(

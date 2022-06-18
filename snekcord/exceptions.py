@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 from http import HTTPStatus
 
+from .json import JSONObject, json_get
 from .snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
@@ -129,24 +130,28 @@ class RESTError(Exception):
 
         if isinstance(self.data, dict):
             if 'errors' in self.data:
-                errors: JSONObject = self.data['errors']
+                errors = json_get(self.data, 'errors', JSONObject)
                 stack: typing.List[typing.Tuple[typing.Tuple[str, ...], JSONObject]] = []
 
-                for key, value in errors.items():
+                for key in errors:
                     if key == '_errors':
-                        for error in value:
+                        values = json_get(errors, '_errors', typing.List[JSONObject])
+                        for error in values:
                             string += self.format_error(error)
                     else:
+                        value = json_get(errors, key, JSONObject)
                         stack.append(((key,), value))
 
                 while stack:
                     keys, errors = stack.pop()
 
-                    for key, value in errors.items():
+                    for key in errors:
                         if key == '_errors':
-                            for error in value:
-                                string += self.format_error(error, keys)
+                            values = json_get(errors, '_errors', typing.List[JSONObject])
+                            for error in values:
+                                string += self.format_error(error)
                         else:
+                            value = json_get(errors, key, JSONObject)
                             stack.append((keys + (key,), value))
 
         return string
