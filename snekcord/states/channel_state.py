@@ -14,6 +14,7 @@ from ..events import (
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
+from ..json import JSONObject, json_get
 from ..objects import (
     BaseChannel,
     CachedChannel,
@@ -35,7 +36,6 @@ from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..json import JSONObject
     from ..websockets import Shard
     from .guild_state import SupportsGuildID
 
@@ -265,7 +265,8 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
         event = ChannelEvents(event)
 
-        guild = SnowflakeWrapper(payload['guild_id'], state=self.client.guilds)
+        guild_id = json_get(payload, 'guild_id', str, default=None)
+        guild = SnowflakeWrapper(guild_id, state=self.client.guilds)
 
         if event is ChannelEvents.CREATE:
             channel = await self.upsert(payload)
@@ -276,13 +277,13 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             return ChannelUpdateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         elif event is ChannelEvents.DELETE:
-            channel = await self.drop(payload['id'])
+            channel = await self.drop(json_get(payload, 'id', str))
             return ChannelDeleteEvent(shard=shard, payload=payload, guild=guild, channel=channel)
 
         elif event is ChannelEvents.PINS_UPDATE:
-            channel = await self.get(payload['channel_id'])
+            channel = await self.get(json_get(payload, 'channel_id', str))
 
-            timestamp = payload.get('timestamp')
+            timestamp = json_get(payload, 'timestamp', typing.Optional[str])
             if timestamp is not None:
                 timestamp = datetime.fromisoformat(timestamp)
 

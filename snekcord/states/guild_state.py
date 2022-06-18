@@ -14,7 +14,7 @@ from ..events import (
     GuildUnavailableEvent,
     GuildUpdateEvent,
 )
-from ..json import JSONObject
+from ..json import JSONObject, json_get
 from ..objects import (
     CachedGuild,
     Guild,
@@ -68,18 +68,20 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         guild_id = Snowflake.into(data, 'id')
         assert guild_id is not None
 
-        for role in data['roles']:
+        roles = json_get(data, 'roles', typing.List[JSONObject])
+        for role in roles:
             role['guild_id'] = guild_id
             await self.client.roles.upsert(role)
 
-        for emoji in data['emojis']:
+        emojis = json_get(data, 'emojis', typing.List[JSONObject])
+        for emoji in emojis:
             emoji['guild_id'] = guild_id
             await self.client.emojis.upsert(emoji)
 
-        if 'channels' in data:
-            for channel in data['channels']:
-                channel['guild_id'] = guild_id
-                await self.client.channels.upsert(channel)
+        channels = json_get(data, 'channels', typing.List[JSONObject], default=())
+        for channel in channels:
+            channel['guild_id'] = guild_id
+            await self.client.channels.upsert(channel)
 
         # if 'members' in data:
         #    for member in data['members']:
@@ -103,8 +105,8 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         return RESTGuild.from_guild(
             guild,
-            presence_count=data.get('approximate_presence_count'),
-            member_count=data.get('approximate_member_count'),
+            presence_count=json_get(data, 'approximate_presence_count', int, default=None),
+            member_count=json_get(data, 'approximate_member_count', int, default=None),
         )
 
     async def from_cached(self, cached: CachedGuild) -> Guild:
@@ -201,7 +203,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             return GuildUpdateEvent(shard=shard, payload=payload, guild=guild)
 
         elif event is GuildEvents.DELETE:
-            guild = await self.drop(payload['id'])
+            guild = await self.drop(json_get(payload, 'id', str))
             return GuildDeleteEvent(shard=shard, payload=payload, guild=guild)
 
         assert False

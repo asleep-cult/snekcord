@@ -17,7 +17,7 @@ from ..exceptions import (
     PendingCancellationError,
     ShardCloseError,
 )
-from ..json import JSONObject, dump_json, load_json
+from ..json import JSONObject, dump_json, json_get, load_json
 
 if typing.TYPE_CHECKING:
     from ..clients import WebSocketClient
@@ -133,7 +133,7 @@ class ShardWebSocket(wsaio.WebSocketClient):
         await self.send_json(payload)
 
     async def send_resume(self, token: str, session_id: str, sequence: int) -> None:
-        payload = {
+        payload: JSONObject = {
             'op': ShardOpcode.RESUME,
             'd': {
                 'tokens': token,
@@ -232,19 +232,22 @@ class ShardWebSocket(wsaio.WebSocketClient):
         logger.info(f'WebSocket received {opcode.name} payload')
 
         if opcode is ShardOpcode.DISPATCH:
-            event = payload.get('t')
-            if not isinstance(event, str):
+            try:
+                event = json_get(payload, 't', str)
+            except TypeError:
                 return logger.debug('WebSocket received DISPATCH payload with invalid event name')
 
-            sequence = payload.get('s')
-            if not isinstance(sequence, int):
+            try:
+                sequence = json_get(payload, 's', int)
+            except TypeError:
                 return logger.debug('WebSocket received DISPATCH payload with invalid sequence')
 
-            data = payload.get('d')
-            if not isinstance(data, dict):
+            try:
+                event_data = json_get(payload, 'd', JSONObject)
+            except TypeError:
                 return logger.debug('WebSocket received DISPATCH payload with invalid data')
 
-            await self.shard.on_dispatch(event, sequence, data)
+            await self.shard.on_dispatch(event, sequence, event_data)
 
         elif opcode is ShardOpcode.HEARTBEAT:
             await self.send_heartbeat()
@@ -260,11 +263,12 @@ class ShardWebSocket(wsaio.WebSocketClient):
             await self.shard.on_invalid_session(reconnect)
 
         elif opcode is ShardOpcode.HELLO:
-            data = payload.get('d')
-            if not isinstance(data, dict):
-                self.shard.state.cancel(ShardCancellationToken.INVALID_HELLO_DATA)
-            else:
-                await self.shard.on_hello(data)
+            try:
+                hello_data = json_get(payload, 'd', JSONObject)
+            except TypeError:
+                return self.shard.state.cancel(ShardCancellationToken.INVALID_HELLO_DATA)
+
+            await self.shard.on_hello(hello_data)
 
         elif opcode is ShardOpcode.HEARTBEAT_ACK:
             await self.shard.on_heartbeat_ack()
@@ -339,7 +343,7 @@ class ShardState:
         self.cancellation_queue = asyncio.Queue()
 
         self.sequence = -1
-        self.session_id = None
+        self.session_id: typing.Optional[str] = None
         self.guilds: typing.Dict[str, ShardGuildStatus] = {}
 
         self.hello_future = None
@@ -448,7 +452,7 @@ class Shard:
     def create_beater(self) -> ShardBeater:
         return ShardBeater(self)
 
-    def get_identify_properties(self):
+    def get_identify_properties(self) -> JSONObject:
         return {'$os': platform.system(), '$browser': 'snekcord', '$device': 'snekcord'}
 
     async def create_connection(self, *, reconnect: bool = False) -> None:
@@ -468,8 +472,8 @@ class Shard:
             except asyncio.TimeoutError:
                 return self.state.cancel(ShardCancellationToken.HELLO_TIMEOUT)
 
-            if reconnect and self._session_id is not None:
-                await self.ws.send_resume(self.token, self._session_id, self.state.sequence)
+            if reconnect and self.state.session_id is not None:
+                await self.ws.send_resume(self.token, self.state.session_id, self.state.sequence)
             else:
                 shard = (self.shard_id, len(self.client.shard_ids)) if self.sharded else None
 
@@ -501,24 +505,28 @@ class Shard:
             self.state.sequence = sequence
 
         if event == 'READY':
-            session_id = data.get('session_id')
-            if not isinstance(session_id, str):
+            try:
+                self.state.session_id = json_get(data, 'session_id', str)
+            except TypeError:
                 logger.debug('WebSocket received READY payload with invalid session_id')
-            else:
-                self._session_id = session_id
 
-            user = data.get('user')
-            if not isinstance(user, dict):
+            try:
+                user = json_get(data, 'user', JSONObject)
+            except TypeError:
                 logger.debug('WebSocket received HELLO payload with invalid user')
             else:
                 await self.client.users.upsert(user)
 
-            guilds = data.get('guilds')
-            if not isinstance(guilds, list):
+            try:
+                guilds = json_get(data, 'guilds', list[JSONObject])
+            except TypeError:
                 logger.debug('WebSocket received HELLO payload with invalid guilds')
             else:
                 for guild in guilds:
-                    self.state.set_guild_status(guild['id'], ShardGuildStatus.UNKNOWN)
+                    guild_id = guild.get('id')
+
+                    if isinstance(guild_id, str):
+                        self.state.set_guild_status(guild_id, ShardGuildStatus.UNKNOWN)
 
             return self.state.set_ready()
 
@@ -526,7 +534,7 @@ class Shard:
             return self.state.set_ready()
 
         if event == 'GUILD_CREATE':
-            guild_id = data['id']
+            guild_id = json_get(data, 'id', str)
 
             state = self.state.get_guild_status(guild_id)
             if state is None:
@@ -539,7 +547,7 @@ class Shard:
             self.state.set_guild_status(guild_id, ShardGuildStatus.AVAILABLE)
 
         elif event == 'GUILD_DELETE':
-            guild_id = data['id']
+            guild_id = json_get(data, 'id', str)
 
             if data.get('unavailable', False):
                 event = 'GUILD_UNAVAILABLE'
