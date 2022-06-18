@@ -82,7 +82,7 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         raise NotImplementedError
 
-    async def len(self) -> int:
+    async def size(self) -> int:
         raise NotImplementedError
 
     async def all(self) -> list[ObjectT]:
@@ -114,8 +114,8 @@ class CachedEventState(
         async for item in self.cache.iterate():
             yield await self.from_cached(item)
 
-    async def len(self) -> int:
-        return await self.cache.len()
+    async def size(self) -> int:
+        return await self.cache.size()
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
         cached = await self.cache.get(self.to_unique(object))
@@ -161,7 +161,7 @@ class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
         iterator = (await self.state.get(key) for key in self.keys)
         return (object async for object in iterator if object is not None)
 
-    async def len(self) -> int:
+    async def size(self) -> int:
         return len(self.keys)
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
