@@ -110,7 +110,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         author = json_get(data, 'author', JSONObject)
         if author is not None:
             data['author_id'] = Snowflake(json_get(author, 'id', str))
-            await self.client.users.upsert_cached(author)
+            await self.client.users.upsert_cached(author, flags)
 
         timestamp = data.get('timestamp')
         if timestamp is None:

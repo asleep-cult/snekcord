@@ -73,17 +73,17 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         roles = json_get(data, 'roles', typing.List[JSONObject])
         for role in roles:
             role['guild_id'] = guild_id
-            await self.client.roles.upsert_cached(role)
+            await self.client.roles.upsert_cached(role, flags)
 
         emojis = json_get(data, 'emojis', typing.List[JSONObject])
         for emoji in emojis:
             emoji['guild_id'] = guild_id
-            await self.client.emojis.upsert_cached(emoji)
+            await self.client.emojis.upsert_cached(emoji, flags)
 
         channels = json_get(data, 'channels', typing.List[JSONObject], default=())
         for channel in channels:
             channel['guild_id'] = guild_id
-            await self.client.channels.upsert_cached(channel)
+            await self.client.channels.upsert_cached(channel, flags)
 
         # if 'members' in data:
         #    for member in data['members']:

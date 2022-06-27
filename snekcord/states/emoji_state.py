@@ -63,7 +63,7 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         user = json_get(data, 'user', JSONObject, default=None)
         if user is not None:
             data['user_id'] = Snowflake(json_get(user, 'id', str))
-            await self.client.users.upsert(user)
+            await self.client.users.upsert_cached(user, flags)
 
         async with self.synchronize(emoji_id):
             cached = await self.cache.get(emoji_id)
