@@ -15,7 +15,7 @@ from .base_state import CachedEventState, CachedStateView, CacheFlags
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..json import JSONObject
+    from ..json import JSONObject, JSONType
     from .guild_state import SupportsGuildID
 
 __all__ = (
@@ -59,7 +59,10 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         roles = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_roles_view(roles, guild_id)
 
-    def inject_metadata(self, data: JSONObject, guild_id: Snowflake) -> JSONObject:
+    def inject_metadata(self, data: JSONType, guild_id: Snowflake) -> JSONObject:
+        if not isinstance(data, dict):
+            raise TypeError('data should be a JSON object')
+
         return dict(data, guild_id=guild_id)
 
     async def upsert_cached(

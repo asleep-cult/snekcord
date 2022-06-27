@@ -14,7 +14,7 @@ from ..events import (
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
-from ..json import JSONObject, json_get
+from ..json import JSONObject, JSONType, json_get
 from ..objects import (
     BaseChannel,
     CachedChannel,
@@ -80,7 +80,10 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         channels = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_channels_view(channels, guild_id)
 
-    def inject_metadata(self, data: JSONObject, guild_id: Snowflake) -> JSONObject:
+    def inject_metadata(self, data: JSONType, guild_id: Snowflake) -> JSONObject:
+        if not isinstance(data, dict):
+            raise TypeError('data should be a JSON object')
+
         return dict(data, guild_id=guild_id)
 
     async def upsert_cached(

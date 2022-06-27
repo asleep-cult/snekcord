@@ -14,7 +14,7 @@ from ..events import (
     MessageEvents,
     MessageUpdateEvent,
 )
-from ..json import JSONObject, json_get
+from ..json import JSONObject, JSONType, json_get
 from ..objects import (
     CachedMessage,
     Message,
@@ -83,7 +83,10 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         messages = await self.channel_refstore.get(channel_id)
         return self.client.create_channel_messages_view(messages, channel_id)
 
-    def inject_metadata(self, data: JSONObject, channel_id: Snowflake) -> JSONObject:
+    def inject_metadata(self, data: JSONType, channel_id: Snowflake) -> JSONObject:
+        if not isinstance(data, dict):
+            raise TypeError('data should be a JSON object')
+
         return dict(data, channel_id=channel_id)
 
     async def upsert_cached(
