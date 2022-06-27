@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import asyncio
-import enum
 import typing
 import weakref
 from collections import defaultdict
 
 from ..cache import CacheDriver, MemoryCacheDriver
+from ..enums import CacheFlags
 
 if typing.TYPE_CHECKING:
     from ..cache import CachedModel
@@ -19,7 +19,6 @@ else:
     CachedModel = typing.NewType('CachedModel', typing.Any)
 
 __all__ = (
-    'CacheFlags',
     'EventState',
     'CachedState',
     'CachedEventState',
@@ -35,13 +34,8 @@ OnCallbackT = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any,
 OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 
-class CacheFlags(enum.IntFlag):
-    NONE = 0
-    ALL = 0
-
-
 class EventState:
-    callbacks: defaultdict[str, list[OnCallbackT[BaseEvent]]]
+    callbacks: defaultdict[str, typing.List[OnCallbackT[typing.Any]]]
 
     def __init__(self, *, client: Client) -> None:
         self.client = client
@@ -92,7 +86,7 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     async def size(self) -> int:
         raise NotImplementedError
 
-    async def all(self) -> list[ObjectT]:
+    async def all(self) -> typing.List[ObjectT]:
         return [object async for object in self]
 
 

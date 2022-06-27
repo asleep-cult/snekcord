@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 from datetime import datetime
 
-from ..enum import convert_enum
+from ..enums import CacheFlags, convert_enum
 from ..events import (
     BaseEvent,
     GuildAvailableEvent,
@@ -32,7 +32,7 @@ from ..objects import (
 )
 from ..snowflake import Snowflake
 from ..undefined import undefined
-from .base_state import CachedEventState, CacheFlags, OnDecoratorT
+from .base_state import CachedEventState, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..websockets import Shard
@@ -70,32 +70,32 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         guild_id = Snowflake.into(data, 'id')
         assert guild_id is not None
 
-        roles = json_get(data, 'roles', typing.List[JSONObject])
-        for role in roles:
-            role['guild_id'] = guild_id
-            await self.client.roles.upsert_cached(role, flags)
+        if flags & CacheFlags.ROLES:
+            roles = json_get(data, 'roles', typing.List[JSONObject])
+            for role in roles:
+                role['guild_id'] = guild_id
+                await self.client.roles.upsert_cached(role, flags)
 
-        emojis = json_get(data, 'emojis', typing.List[JSONObject])
-        for emoji in emojis:
-            emoji['guild_id'] = guild_id
-            await self.client.emojis.upsert_cached(emoji, flags)
+        if flags & CacheFlags.EMOJIS:
+            emojis = json_get(data, 'emojis', typing.List[JSONObject])
+            for emoji in emojis:
+                emoji['guild_id'] = guild_id
+                await self.client.emojis.upsert_cached(emoji, flags)
 
-        channels = json_get(data, 'channels', typing.List[JSONObject], default=())
-        for channel in channels:
-            channel['guild_id'] = guild_id
-            await self.client.channels.upsert_cached(channel, flags)
-
-        # if 'members' in data:
-        #    for member in data['members']:
-        #        member['guild_id'] = guild_id
-        #        await self.client.members.upsert(member)
+        if flags & CacheFlags.CHANNELS:
+            channels = json_get(data, 'channels', typing.List[JSONObject], default=())
+            for channel in channels:
+                channel['guild_id'] = guild_id
+                await self.client.channels.upsert_cached(channel, flags)
 
         async with self.synchronize(guild_id):
             cached = await self.cache.get(guild_id)
 
             if cached is None:
                 cached = CachedGuild.from_json(data)
-                await self.cache.create(guild_id, cached)
+
+                if flags & CacheFlags.GUILDS:
+                    await self.cache.create(guild_id, cached)
             else:
                 cached.update(data)
                 await self.cache.update(guild_id, cached)

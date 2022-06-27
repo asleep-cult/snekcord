@@ -8,7 +8,7 @@ import asygpy
 from loguru import logger
 
 from ..auth import Authorization
-from ..intents import WebSocketIntents
+from ..enums import WebSocketIntents
 from ..json import json_get
 from ..rest.endpoints import GET_GATEWAY, GET_GATEWAY_BOT
 from ..states import EventState

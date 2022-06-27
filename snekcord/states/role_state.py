@@ -4,14 +4,14 @@ import typing
 
 from ..builders import RoleCreateBuilder, RolePositionsBuilder, RoleUpdateBuilder
 from ..cache import RefStore, SnowflakeMemoryRefStore
+from ..enums import CacheFlags, Permissions
 from ..events import RoleEvents
 from ..objects import CachedRole, Role, SnowflakeWrapper
-from ..permissions import Permissions
 from ..rest.endpoints import DELETE_GUILD_ROLE, GET_GUILD_ROLES
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
-from .base_state import CachedEventState, CachedStateView, CacheFlags
+from .base_state import CachedEventState, CachedStateView
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -72,7 +72,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         assert role_id is not None
 
         guild_id = Snowflake.into(data, 'guild_id')
-        if guild_id is not None:
+        if guild_id is not None and flags & CacheFlags.GUILDS:
             await self.guild_refstore.add(guild_id, role_id)
 
         async with self.synchronize(role_id):
@@ -80,7 +80,9 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
 
             if cached is None:
                 cached = CachedRole.from_json(data)
-                await self.cache.create(role_id, cached)
+
+                if flags & CacheFlags.ROLES:
+                    await self.cache.create(role_id, cached)
             else:
                 cached.update(data)
                 await self.cache.update(role_id, cached)

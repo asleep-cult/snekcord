@@ -5,7 +5,7 @@ from datetime import datetime
 
 from ..builders import ChannelCreateBuilder, ChannelPositionsBuilder
 from ..cache import RefStore, SnowflakeMemoryRefStore
-from ..enum import convert_enum
+from ..enums import CacheFlags, convert_enum
 from ..events import (
     BaseEvent,
     ChannelCreateEvent,
@@ -32,7 +32,7 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
-from .base_state import CachedEventState, CachedStateView, CacheFlags, OnDecoratorT
+from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -93,7 +93,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         assert channel_id is not None
 
         guild_id = Snowflake.into(data, 'guild_id')
-        if guild_id is not None:
+        if guild_id is not None and flags & CacheFlags.GUILDS:
             await self.guild_refstore.add(guild_id, channel_id)
 
         async with self.synchronize(channel_id):
@@ -101,7 +101,9 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
             if cached is None:
                 cached = CachedChannel.from_json(data)
-                await self.cache.create(channel_id, cached)
+
+                if flags & CacheFlags.CHANNELS:
+                    await self.cache.create(channel_id, cached)
             else:
                 cached.update(data)
                 await self.cache.update(channel_id, cached)

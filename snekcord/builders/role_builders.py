@@ -4,7 +4,7 @@ import typing
 
 import attr
 
-from ..permissions import Permissions
+from ..enums import Permissions
 from ..rest.endpoints import (
     CREATE_GUILD_ROLE,
     UPDATE_GUILD_ROLE,

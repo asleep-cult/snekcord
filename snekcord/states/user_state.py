@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import typing
 
-from ..enum import convert_enum
+from ..enums import CacheFlags, convert_enum
 from ..objects import CachedUser, PremiumType, SnowflakeWrapper, User, UserFlags
 from ..snowflake import Snowflake
 from ..undefined import undefined
-from .base_state import CachedEventState, CacheFlags
+from .base_state import CachedEventState
 
 if typing.TYPE_CHECKING:
     from ..json import JSONObject
@@ -45,7 +45,9 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
 
             if cached is None:
                 cached = CachedUser.from_json(data)
-                await self.cache.create(user_id, cached)
+
+                if flags & CacheFlags.ROLES:
+                    await self.cache.create(user_id, cached)
             else:
                 cached.update(data)
                 await self.cache.update(user_id, cached)

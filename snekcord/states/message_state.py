@@ -5,7 +5,7 @@ from datetime import datetime
 
 from ..builders import MessageCreateBuilder, MessageUpdateBuilder
 from ..cache import RefStore, SnowflakeMemoryRefStore
-from ..enum import convert_enum
+from ..enums import CacheFlags, FetchOrdering, convert_enum
 from ..events import (
     BaseEvent,
     MessageBulkDeleteEvent,
@@ -22,7 +22,6 @@ from ..objects import (
     MessageType,
     SnowflakeWrapper,
 )
-from ..ordering import FetchOrdering
 from ..rest.endpoints import (
     ADD_CHANNEL_PIN,
     CROSSPOST_CHANNEL_MESSAGE,
@@ -35,7 +34,7 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
-from .base_state import CachedEventState, CachedStateView, CacheFlags, OnDecoratorT
+from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -99,7 +98,8 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
         channel_id = Snowflake.into(data, 'channel_id')
         if channel_id is not None:
-            await self.channel_refstore.add(channel_id, message_id)
+            if flags & CacheFlags.CHANNELS:
+                await self.channel_refstore.add(channel_id, message_id)
 
             if guild_id is None:
                 channel = await self.client.channels.cache.get(channel_id)
@@ -107,12 +107,14 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
                 if channel is not None and channel.guild_id is not undefined:
                     data['guild_id'] = channel.guild_id
 
-        author = json_get(data, 'author', JSONObject)
+        author = json_get(data, 'author', JSONObject, default=None)
         if author is not None:
             data['author_id'] = Snowflake(json_get(author, 'id', str))
-            await self.client.users.upsert_cached(author, flags)
 
-        timestamp = data.get('timestamp')
+            if flags & CacheFlags.USERS:
+                await self.client.users.upsert_cached(author, flags)
+
+        timestamp = json_get(data, 'timestamp', str, default=None)
         if timestamp is None:
             data['timestamp'] = message_id.to_datetime().isoformat()
 
@@ -121,7 +123,9 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
 
             if cached is None:
                 cached = CachedMessage.from_json(data)
-                await self.cache.create(message_id, cached)
+
+                if flags & CacheFlags.MESSAGES:
+                    await self.cache.create(message_id, cached)
             else:
                 cached.update(data)
                 await self.cache.update(message_id, cached)

@@ -6,8 +6,8 @@ import attr
 
 from ..builders import RoleUpdateBuilder
 from ..cache import CachedModel
+from ..enums import Permissions
 from ..objects import SnowflakeObject
-from ..permissions import Permissions
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined

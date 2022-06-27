@@ -3,11 +3,12 @@ from __future__ import annotations
 import typing
 
 from ..cache import RefStore, SnowflakeMemoryRefStore
+from ..enums import CacheFlags
 from ..json import JSONObject, json_get
 from ..objects import CachedCustomEmoji, CustomEmoji, SnowflakeWrapper
 from ..snowflake import Snowflake
 from ..undefined import undefined
-from .base_state import CachedEventState, CachedStateView, CacheFlags
+from .base_state import CachedEventState, CachedStateView
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -57,20 +58,24 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         assert emoji_id is not None
 
         guild_id = Snowflake.into(data, 'guild_id')
-        if guild_id is not None:
+        if guild_id is not None and flags & CacheFlags.GUILDS:
             await self.guild_refstore.add(guild_id, emoji_id)
 
         user = json_get(data, 'user', JSONObject, default=None)
         if user is not None:
             data['user_id'] = Snowflake(json_get(user, 'id', str))
-            await self.client.users.upsert_cached(user, flags)
+
+            if flags and CacheFlags.USERS:
+                await self.client.users.upsert_cached(user, flags)
 
         async with self.synchronize(emoji_id):
             cached = await self.cache.get(emoji_id)
 
             if cached is None:
                 cached = CachedCustomEmoji.from_json(data)
-                await self.cache.create(emoji_id, cached)
+
+                if flags & CacheFlags.EMOJIS:
+                    await self.cache.create(emoji_id, cached)
             else:
                 cached.update(data)
                 await self.cache.update(emoji_id, cached)
