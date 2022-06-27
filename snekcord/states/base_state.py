@@ -37,6 +37,7 @@ OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 class CacheFlags(enum.IntFlag):
     NONE = 0
+    ALL = 0
 
 
 class EventState:
@@ -146,14 +147,14 @@ class CachedEventState(
         manually."""
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedModelT:
         raise NotImplementedError
 
     async def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError
 
-    async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE) -> ObjectT:
+    async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
         cached = await self.upsert_cached(data, flags)
         return await self.from_cached(cached)
 

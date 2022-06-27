@@ -90,7 +90,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         return dict(data, channel_id=channel_id)
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedMessage:
         message_id = Snowflake.into(data, 'id')
         assert message_id is not None

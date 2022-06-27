@@ -87,7 +87,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         return dict(data, guild_id=guild_id)
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedChannel:
         channel_id = Snowflake.into(data, 'id')
         assert channel_id is not None

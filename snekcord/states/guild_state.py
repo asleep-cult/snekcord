@@ -65,7 +65,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedGuild:
         guild_id = Snowflake.into(data, 'id')
         assert guild_id is not None

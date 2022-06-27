@@ -35,7 +35,7 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
         raise TypeError('Expected, Snowflake, str, int, or User')
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedUser:
         user_id = Snowflake.into(data, 'id')
         assert user_id is not None

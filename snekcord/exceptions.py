@@ -3,13 +3,12 @@ from __future__ import annotations
 import typing
 from http import HTTPStatus
 
-from .json import JSONObject, json_get
+from .json import JSONObject, JSONType, json_get
 from .snowflake import Snowflake
 
 if typing.TYPE_CHECKING:
     import aiohttp
 
-    from .json import JSONObject, JSONType
     from .rest import RESTSession
     from .websockets import Shard
 

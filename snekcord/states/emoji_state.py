@@ -51,7 +51,7 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         return self.client.create_guild_emojis_view(emojis, guild_id)
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedCustomEmoji:
         emoji_id = Snowflake.into(data, 'id')
         assert emoji_id is not None

@@ -66,7 +66,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         return dict(data, guild_id=guild_id)
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedRole:
         role_id = Snowflake.into(data, 'id')
         assert role_id is not None
