@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Concatenate, Self
 
     P = typing.ParamSpec('P')
-    T = typing.TypeVar('T')
+    T_co = typing.TypeVar('T_co', covariant=True)
     T_contra = typing.TypeVar('T_contra', contravariant=True)
 
     SelfT = typing.TypeVar('SelfT')
@@ -22,11 +22,11 @@ if typing.TYPE_CHECKING:
         def __call__(self, instance: T_contra, /, *args: P.args, **kwargs: P.kwargs) -> None:
             ...
 
-    class ActionBuilder(typing.Protocol[T]):
+    class ActionBuilder(typing.Protocol[T_co]):
         awaited: bool
-        result: typing.Optional[T]
+        result: typing.Optional[T_co]
 
-        async def action(self) -> T:
+        async def action(self) -> T_co:
             ...
 
 
