@@ -32,7 +32,7 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
-from .base_state import CachedEventState, CachedStateView, OnDecoratorT
+from .base_state import CachedEventState, CachedStateView, CacheFlags, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -83,7 +83,9 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     def inject_metadata(self, data: JSONObject, guild_id: Snowflake) -> JSONObject:
         return dict(data, guild_id=guild_id)
 
-    async def upsert(self, data: JSONObject) -> BaseChannel:
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedChannel:
         channel_id = Snowflake.into(data, 'id')
         assert channel_id is not None
 
@@ -92,16 +94,16 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             await self.guild_refstore.add(guild_id, channel_id)
 
         async with self.synchronize(channel_id):
-            channel = await self.cache.get(channel_id)
+            cached = await self.cache.get(channel_id)
 
-            if channel is None:
-                channel = CachedChannel.from_json(data)
-                await self.cache.create(channel_id, channel)
+            if cached is None:
+                cached = CachedChannel.from_json(data)
+                await self.cache.create(channel_id, cached)
             else:
-                channel.update(data)
-                await self.cache.update(channel_id, channel)
+                cached.update(data)
+                await self.cache.update(channel_id, cached)
 
-        return await self.from_cached(channel)
+        return cached
 
     async def from_cached(self, cached: CachedChannel) -> BaseChannel:
         cached.id = Snowflake(cached.id)

@@ -515,7 +515,7 @@ class Shard:
             except TypeError:
                 logger.debug('WebSocket received HELLO payload with invalid user')
             else:
-                await self.client.users.upsert(user)
+                await self.client.users.upsert_cached(user)
 
             try:
                 guilds = json_get(data, 'guilds', list[JSONObject])

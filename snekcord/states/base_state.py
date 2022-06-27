@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import enum
 import typing
 import weakref
 from collections import defaultdict
@@ -18,6 +19,7 @@ else:
     CachedModel = typing.NewType('CachedModel', typing.Any)
 
 __all__ = (
+    'CacheFlags',
     'EventState',
     'CachedState',
     'CachedEventState',
@@ -31,6 +33,10 @@ ObjectT = typing.TypeVar('ObjectT')
 EventT = typing.TypeVar('EventT', bound=BaseEvent)
 OnCallbackT = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any, None]]
 OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
+
+
+class CacheFlags(enum.IntFlag):
+    NONE = 0
 
 
 class EventState:
@@ -139,8 +145,17 @@ class CachedEventState(
         This is called as part of the dropping routine and should not be called
         manually."""
 
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedModelT:
+        raise NotImplementedError
+
     async def from_cached(self, cached: CachedModelT) -> ObjectT:
         raise NotImplementedError
+
+    async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE) -> ObjectT:
+        cached = await self.upsert_cached(data, flags)
+        return await self.from_cached(cached)
 
 
 class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):

@@ -7,7 +7,7 @@ from ..json import JSONObject, json_get
 from ..objects import CachedCustomEmoji, CustomEmoji, SnowflakeWrapper
 from ..snowflake import Snowflake
 from ..undefined import undefined
-from .base_state import CachedEventState, CachedStateView
+from .base_state import CachedEventState, CachedStateView, CacheFlags
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -50,7 +50,9 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         emojis = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_emojis_view(emojis, guild_id)
 
-    async def upsert(self, data: JSONObject) -> CustomEmoji:
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedCustomEmoji:
         emoji_id = Snowflake.into(data, 'id')
         assert emoji_id is not None
 
@@ -64,16 +66,16 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
             await self.client.users.upsert(user)
 
         async with self.synchronize(emoji_id):
-            emoji = await self.cache.get(emoji_id)
+            cached = await self.cache.get(emoji_id)
 
-            if emoji is None:
-                emoji = CachedCustomEmoji.from_json(data)
-                await self.cache.create(emoji_id, emoji)
+            if cached is None:
+                cached = CachedCustomEmoji.from_json(data)
+                await self.cache.create(emoji_id, cached)
             else:
-                emoji.update(data)
-                await self.cache.update(emoji_id, emoji)
+                cached.update(data)
+                await self.cache.update(emoji_id, cached)
 
-        return await self.from_cached(emoji)
+        return cached
 
     async def from_cached(self, cached: CachedCustomEmoji) -> CustomEmoji:
         user_id = undefined.nullify(cached.user_id)

@@ -35,7 +35,7 @@ from ..rest.endpoints import (
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
-from .base_state import CachedEventState, CachedStateView, OnDecoratorT
+from .base_state import CachedEventState, CachedStateView, CacheFlags, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -86,7 +86,9 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
     def inject_metadata(self, data: JSONObject, channel_id: Snowflake) -> JSONObject:
         return dict(data, channel_id=channel_id)
 
-    async def upsert(self, data: JSONObject) -> Message:
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedMessage:
         message_id = Snowflake.into(data, 'id')
         assert message_id is not None
 
@@ -105,7 +107,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         author = json_get(data, 'author', JSONObject)
         if author is not None:
             data['author_id'] = Snowflake(json_get(author, 'id', str))
-            await self.client.users.upsert(author)
+            await self.client.users.upsert_cached(author)
 
         timestamp = data.get('timestamp')
         if timestamp is None:
@@ -121,7 +123,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
                 cached.update(data)
                 await self.cache.update(message_id, cached)
 
-        return await self.from_cached(cached)
+        return cached
 
     async def from_cached(self, cached: CachedMessage) -> Message:
         emited_timestamp = cached.edited_timestamp

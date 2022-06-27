@@ -11,7 +11,7 @@ from ..rest.endpoints import DELETE_GUILD_ROLE, GET_GUILD_ROLES
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
-from .base_state import CachedEventState, CachedStateView
+from .base_state import CachedEventState, CachedStateView, CacheFlags
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -62,7 +62,9 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
     def inject_metadata(self, data: JSONObject, guild_id: Snowflake) -> JSONObject:
         return dict(data, guild_id=guild_id)
 
-    async def upsert(self, data: JSONObject) -> Role:
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedRole:
         role_id = Snowflake.into(data, 'id')
         assert role_id is not None
 
@@ -80,7 +82,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
                 cached.update(data)
                 await self.cache.update(role_id, cached)
 
-        return await self.from_cached(cached)
+        return cached
 
     async def from_cached(self, cached: CachedRole) -> Role:
         return Role(

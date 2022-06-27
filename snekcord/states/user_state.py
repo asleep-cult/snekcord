@@ -6,7 +6,7 @@ from ..enum import convert_enum
 from ..objects import CachedUser, PremiumType, SnowflakeWrapper, User, UserFlags
 from ..snowflake import Snowflake
 from ..undefined import undefined
-from .base_state import CachedEventState
+from .base_state import CachedEventState, CacheFlags
 
 if typing.TYPE_CHECKING:
     from ..json import JSONObject
@@ -34,7 +34,9 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
 
         raise TypeError('Expected, Snowflake, str, int, or User')
 
-    async def upsert(self, data: JSONObject) -> User:
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedUser:
         user_id = Snowflake.into(data, 'id')
         assert user_id is not None
 
@@ -48,7 +50,7 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
                 cached.update(data)
                 await self.cache.update(user_id, cached)
 
-        return await self.from_cached(cached)
+        return cached
 
     async def from_cached(self, cached: CachedUser) -> User:
         if cached.flags is not undefined:

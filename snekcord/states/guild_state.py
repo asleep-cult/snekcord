@@ -32,7 +32,7 @@ from ..objects import (
 )
 from ..snowflake import Snowflake
 from ..undefined import undefined
-from .base_state import CachedEventState, OnDecoratorT
+from .base_state import CachedEventState, CacheFlags, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..websockets import Shard
@@ -64,24 +64,26 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
 
-    async def upsert(self, data: JSONObject) -> Guild:
+    async def upsert_cached(
+        self, data: JSONObject, flags: CacheFlags = CacheFlags.NONE
+    ) -> CachedGuild:
         guild_id = Snowflake.into(data, 'id')
         assert guild_id is not None
 
         roles = json_get(data, 'roles', typing.List[JSONObject])
         for role in roles:
             role['guild_id'] = guild_id
-            await self.client.roles.upsert(role)
+            await self.client.roles.upsert_cached(role)
 
         emojis = json_get(data, 'emojis', typing.List[JSONObject])
         for emoji in emojis:
             emoji['guild_id'] = guild_id
-            await self.client.emojis.upsert(emoji)
+            await self.client.emojis.upsert_cached(emoji)
 
         channels = json_get(data, 'channels', typing.List[JSONObject], default=())
         for channel in channels:
             channel['guild_id'] = guild_id
-            await self.client.channels.upsert(channel)
+            await self.client.channels.upsert_cached(channel)
 
         # if 'members' in data:
         #    for member in data['members']:
@@ -98,7 +100,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
                 cached.update(data)
                 await self.cache.update(guild_id, cached)
 
-        return await self.from_cached(cached)
+        return cached
 
     async def upsert_rest(self, data: JSONObject) -> RESTGuild:
         guild = await self.upsert(data)
