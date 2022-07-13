@@ -78,7 +78,19 @@ class EventState:
         callbacks.append(callback)
 
     def on(self, event: str) -> OnDecoratorT[EventT]:
-        """Return a decorator that registeres a function to an event.
+        """Return a decorator that registers the function to be called when an event is received.
+
+        Parameters
+        ----------
+        event: str
+            The name of the event to register the callback to.
+
+        Raises
+        ------
+        ValueError
+            Raised when the event does not exist.
+        TypeError
+            Raised when the callback is not a coroutine function.
 
         Example
         -------
@@ -116,12 +128,12 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
         Parameters
         ----------
         object: typing.Union[UniqueT, SupportsUniqueT]
-            The object to convert into a unique identifier.
+            The object to convert.
 
         Returns
         -------
         UniqueT
-            A unique identifier that can be used for cache operations.
+            A unique identifier that can be used with cache operations.
 
         Raises
         ------
@@ -283,8 +295,22 @@ class CachedEventState(
         raise NotImplementedError
 
     async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
-        """A convencience wrapper for upsert_cached that creates
-        a user facing object from the result."""
+        """Add or otherwise update an object in cache. If you do not need the result, consider
+        using `snekcord.CachedEventState.upsert_cached` instead.
+
+        Parameters
+        ----------
+        data: JSONObject
+            The data to update the object with.
+        flags: CacheFlags
+            The flags determining which objects to add to cache.
+            This should be passed down to other upsert functions.
+
+        Returns
+        -------
+        CachedModelT
+            A user facing version of the object in cache.
+        """
         cached = await self.upsert_cached(data, flags)
         return await self.from_cached(cached)
 
@@ -308,12 +334,12 @@ class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
         Parameters
         ----------
         object: typing.Union[UniqueT, SupportsUniqueT]
-            The object to convert into a unique identifier.
+            The object to convert.
 
         Returns
         -------
         UniqueT
-            A unique identifier that can be used for cache operations.
+            A unique identifier that can be used with cache operations.
 
         Raises
         ------
