@@ -31,23 +31,34 @@ if typing.TYPE_CHECKING:
 
 
 def setter(func: SetterFunc[SelfT, P]) -> typing.Callable[Concatenate[SelfT, P], SelfT]:
-    def wrapped(instance: SelfT, *args: P.args, **kwargs: P.kwargs) -> SelfT:
+    """A decorator that causes a function to return the first argument passed to it.
+    This is intended for use by setter methods which return the instance of the
+    builder to allow for call chaining."""
+
+    def __setter__(instance: SelfT, *args: P.args, **kwargs: P.kwargs) -> SelfT:
         func(instance, *args, **kwargs)
         return instance
 
-    return wrapped
+    return __setter__
 
 
 @attr.s(kw_only=True)
 class BaseBuilder:
     def setters(self, **kwargs: typing.Any) -> Self:
-        for key, value in kwargs.items():
-            if value is not undefined:
-                try:
-                    setter = getattr(self.__class__, key)
-                except AttributeError:
-                    raise TypeError(f'setters() got an unexpected keyword arguemnt {key!r}')
+        """Calls each setter in **kwargs ignoring undefined values.
 
+        Raises
+        ------
+        TypeError
+            The specified key is not a valid setter.
+        """
+        for key, value in kwargs.items():
+            setter = getattr(self.__class__, key, None)
+
+            if not isinstance(setter, types.FunctionType) or setter.__name__ != '__setter__':
+                raise TypeError(f'{key!r} is not a valid setter')
+
+            if value is not undefined:
                 setter(self, value)
 
         return self
@@ -55,8 +66,14 @@ class BaseBuilder:
 
 @attr.s(kw_only=True)
 class AwaitableBuilder(BaseBuilder):
+    """The base class for a builder that can be awaited or used in an asnyc with block.
+    Instances can only be used once and will emit a resource warning if they are left unused."""
+
     awaited: bool = attr.ib(init=False, default=False)
+    """Whether or not the builder has been awaited or used in an async with block."""
+
     result: typing.Any = attr.ib(init=False, default=None)
+    """The return value of action or None if it hasn't been called yet."""
 
     async def __aenter__(self) -> Self:
         if self.awaited:
@@ -86,6 +103,8 @@ class AwaitableBuilder(BaseBuilder):
         return wrapper().__await__()
 
     async def action(self: ActionBuilder[ResultT]) -> ResultT:
+        """Called after the builder is awaited or used in an async with block.
+        This method must be implemented in subclasses."""
         raise NotImplementedError
 
     def __del__(self) -> None:

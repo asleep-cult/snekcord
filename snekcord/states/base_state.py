@@ -35,6 +35,8 @@ OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
 
 class EventState:
+    """The base class for all states that can receive events."""
+
     callbacks: defaultdict[str, typing.List[OnCallbackT[typing.Any]]]
 
     def __init__(self, *, client: Client) -> None:
@@ -46,9 +48,16 @@ class EventState:
 
     @property
     def events(self) -> typing.Tuple[str, ...]:
+        """Returns a list of event names that this state can receive."""
         return tuple()
 
     def on(self, event: str) -> OnDecoratorT[EventT]:
+        """A decorator the registers the function to be called when the event is received.
+
+        Raises
+        ------
+        TypeError
+            The specified event is not valid."""
         if event not in self.events:
             raise TypeError(f'Invalid event: {event!r}')
 
@@ -72,21 +81,32 @@ class EventState:
 
 
 class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
+    """The base class for all states with a cache."""
+
     client: Client
 
     def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
+        """Converts an object into a unique identifier that can be used for cache operations.
+
+        Raises
+        ------
+        TypeError
+            The object is not supported."""
         raise NotImplementedError
 
     def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
         raise NotImplementedError
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        """Retrieves an object from the cache."""
         raise NotImplementedError
 
     async def size(self) -> int:
+        """Returns the number of objects in the cache."""
         raise NotImplementedError
 
     async def all(self) -> typing.List[ObjectT]:
+        """Returns a list containing all of the objects in the cache."""
         return [object async for object in self]
 
 
@@ -103,12 +123,13 @@ class CachedEventState(
         self.locks = defaultdict(asyncio.Lock, weakref.WeakValueDictionary())
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
+        """Creates the cache driver to be used by this state.
+        All states use an in-memory driver by default."""
         return MemoryCacheDriver()
 
-    def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
-        raise NotImplementedError
-
     def synchronize(self, object: SupportsUniqueT) -> asyncio.Lock:
+        """A basic synchronization function that aims to prevent race conditions
+        within the upsert method."""
         return self.locks[self.to_unique(object)]
 
     async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
@@ -128,6 +149,8 @@ class CachedEventState(
     async def drop(
         self, object: typing.Union[UniqueT, SupportsUniqueT]
     ) -> typing.Optional[ObjectT]:
+        """Removes an object from the cache and cleans up any references to it.
+        The last known version of the object is returned."""
         cached = await self.cache.drop(self.to_unique(object))
         if cached is None:
             return None
@@ -136,19 +159,25 @@ class CachedEventState(
         return await self.from_cached(cached)
 
     async def remove_refs(self, object: CachedModelT) -> None:
-        """Removes any references to object from the corresponding RefStores.
-        This is called as part of the dropping routine and should not be called
+        """Removes any references to the object from the corresponding ref-stores.
+        This is called as part of the drop routine and should not be called
         manually."""
 
     async def upsert_cached(
         self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedModelT:
+        """Adds or otherwise updates an object in the cache with the data. The provided flags
+        should be passed down to other upsert functions, determining which objects should
+        be added to the cache."""
         raise NotImplementedError
 
     async def from_cached(self, cached: CachedModelT) -> ObjectT:
+        """Creates an immutable user facing object from a cached model."""
         raise NotImplementedError
 
     async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
+        """A convencience wrapper for upsert_cached that creates
+        a user facing object from the result."""
         cached = await self.upsert_cached(data, flags)
         return await self.from_cached(cached)
 

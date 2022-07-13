@@ -14,20 +14,30 @@ RefT = typing.TypeVar('RefT')
 
 
 class RefStore(typing.Generic[UniqueT, RefT]):
+    """The abstract base class for all ref-stores. Ref-stores can be thought of as
+    storage containers for objects who are related to one-another in some way.
+    An example of this would be a mapping of guild ids to every channel id in the guild."""
+
     async def get(self, key: UniqueT) -> typing.Iterable[RefT]:
+        """Retrieves the references under key."""
         raise NotImplementedError
 
     async def add(self, key: UniqueT, ref: RefT) -> None:
+        """Adds a reference under key."""
         raise NotImplementedError
 
     async def remove(self, key: UniqueT, ref: RefT) -> None:
+        """Removes a reference under key."""
         raise NotImplementedError
 
     async def clear(self, key: UniqueT) -> None:
+        """Clears every reference under key."""
         raise NotImplementedError
 
 
 class MemoryRefStore(RefStore[UniqueT, RefT]):
+    """A simple in-memory ref-store using a defaultdict of lists."""
+
     refs: defaultdict[UniqueT, typing.List[RefT]]
 
     def __init__(self) -> None:
@@ -52,6 +62,8 @@ class MemoryRefStore(RefStore[UniqueT, RefT]):
 
 
 class SnowflakeMemoryRefStore(RefStore[UniqueT, Snowflake]):
+    """An in-memory ref-store optimized for Snowflakes by using a defaultdict of arrays."""
+
     refs: defaultdict[UniqueT, array.array[int]]
 
     def __init__(self) -> None:

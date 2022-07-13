@@ -18,6 +18,8 @@ __all__ = ('MessageCreateBuilder', 'MessageUpdateBuilder')
 
 @attr.s(kw_only=True, slots=True)
 class MessageCreateBuilder(AwaitableBuilder):
+    """A builder for the CREATE_CHANNEL_MESSAGE endpoint."""
+
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
 
@@ -54,6 +56,8 @@ class MessageCreateBuilder(AwaitableBuilder):
 
 @attr.s(kw_only=True, slots=True)
 class MessageUpdateBuilder(AwaitableBuilder):
+    """A builder for the UPDATE_CHANNEL_MESSAGE endpoint."""
+
     client: Client = attr.ib()
     channel_id: Snowflake = attr.ib()
     message_id: Snowflake = attr.ib()

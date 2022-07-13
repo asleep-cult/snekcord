@@ -14,6 +14,8 @@ __all__ = ('CachedModel',)
 
 
 class ModelField:
+    """Represents a field in a cached model."""
+
     def __init__(self, name: str, annotation: typing.Any) -> None:
         self.name = name
         self.nullable = False

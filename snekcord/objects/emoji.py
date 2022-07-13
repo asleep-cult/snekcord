@@ -16,6 +16,8 @@ __all__ = ('CachedCustomEmoji', 'CustomEmoji')
 
 
 class CachedCustomEmoji(CachedModel):
+    """Represents a raw custom emoji within the emoji cache."""
+
     id: Snowflake
     guild_id: Snowflake
     name: str
@@ -29,6 +31,8 @@ class CachedCustomEmoji(CachedModel):
 
 @attr.s(kw_only=True)
 class CustomEmoji(SnowflakeObject):
+    """Represents a custom emoji within a guild."""
+
     guild: GuildIDWrapper = attr.ib()
     name: str = attr.ib()
     require_colons: bool = attr.ib()

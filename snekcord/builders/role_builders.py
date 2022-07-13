@@ -30,6 +30,8 @@ __all__ = (
 
 @attr.s(kw_only=True)
 class RoleCreateBuilder(AwaitableBuilder):
+    """A builder for the CREATE_GUILD_ROLE endpoint."""
+
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
@@ -86,6 +88,8 @@ class RoleCreateBuilder(AwaitableBuilder):
 
 @attr.s(kw_only=True)
 class RoleUpdateBuilder(AwaitableBuilder):
+    """A builder for the UPDATE_GUILD_ROLE endpoint."""
+
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
     role_id: Snowflake = attr.ib()
@@ -148,6 +152,8 @@ class RoleUpdateBuilder(AwaitableBuilder):
 
 @attr.s(kw_only=True)
 class RolePositionsBuilder(AwaitableBuilder):
+    """A builder for the UPDATE_GUILD_ROLE_POSITIONS endpoint."""
+
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 

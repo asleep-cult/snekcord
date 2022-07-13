@@ -20,6 +20,8 @@ __all__ = ('ChannelCreateBuilder', 'ChannelPositionsBuilder')
 
 @attr.s(kw_only=True)
 class ChannelCreateBuilder(AwaitableBuilder):
+    """A builder for the CREATE_GUILD_CHANNEL endpoint."""
+
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 
@@ -76,6 +78,8 @@ class ChannelCreateBuilder(AwaitableBuilder):
 
 @attr.s(kw_only=True)
 class ChannelPositionsBuilder(AwaitableBuilder):
+    """A builder for the UPDATE_GUILD_CHANNEL_POSITIONS endpoint."""
+
     client: Client = attr.ib()
     guild_id: Snowflake = attr.ib()
 

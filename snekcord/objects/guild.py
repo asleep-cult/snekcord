@@ -38,6 +38,8 @@ __all__ = (
 
 
 class CachedGuild(CachedModel):
+    """Represents a raw guild within the guild cache."""
+
     id: Snowflake
     name: str
     icon: typing.Optional[str]

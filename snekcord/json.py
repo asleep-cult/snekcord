@@ -32,7 +32,7 @@ def load_json(*args: typing.Union[str, bytes], **kwargs: typing.Any) -> JSONType
 def dump_json(
     obj: typing.Any, *, separators: typing.Tuple[str, str] = (',', ':'), **kwargs: typing.Any
 ) -> str:
-    """Equivalent to json.dumps but converts any iterable object to a tuple."""
+    """Equivalent to json.dumps but converts any iterable object into a tuple."""
     return json.dumps(obj, separators=separators, **kwargs, default=dump_default)
 
 

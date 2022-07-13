@@ -33,20 +33,21 @@ class BaseObject:
 
 @attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class SnowflakeObject(BaseObject):
-    """The base class for all objects with an id."""
+    """The base class for all Discord objects with an id."""
 
     id: Snowflake = attr.ib(repr=True, eq=True, hash=True)
 
 
 @attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class CodeObject(BaseObject):
-    """The base class for all objects with a code."""
+    """The base class for all Discord objects with a code."""
 
     code: str = attr.field(repr=True, eq=True, hash=True)
 
 
 class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
-    """A wrapper for a Snowflake allowing for retrieval of the underlying object."""
+    """A wrapper for a Snowflake allowing for retrieval of the
+    underlying object from its respective cache."""
 
     def __init__(
         self,
@@ -61,6 +62,7 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return f'SnowflakeWrapper(id={self.id})'
 
     def unwrap_id(self) -> Snowflake:
+        """Returns the wrapper's id or raises TypeError if the id is None."""
         if self.id is None:
             raise TypeError('unwrap_id() called on empty wrapper')
 
@@ -94,7 +96,8 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
 
 class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
-    """A wrapper for a code allowing for retrieval of the underlying object."""
+    """A wrapper for a code allowing for retrieval of the
+    underlying object from its respective cache."""
 
     def __init__(
         self,
@@ -109,6 +112,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return f'CodeWrapper(code={self.code!r})'
 
     def unwrap_code(self) -> str:
+        """Returns the wrapper's code or raises TypeError is the code is None."""
         if self.code is None:
             raise TypeError('unwrap_code() called on empty wrapper')
 
