@@ -12,7 +12,7 @@ from .base_builders import AwaitableBuilder, setter
 if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..json import JSONObject
-    from ..objects import BaseChannel, ChannelType
+    from ..objects import Channel, ChannelType
     from ..states import SupportsChannelID
 
 __all__ = ('ChannelCreateBuilder', 'ChannelPositionsBuilder')
@@ -65,7 +65,7 @@ class ChannelCreateBuilder(AwaitableBuilder):
     def nsfw(self, nsfw: bool) -> None:
         self.data['nsfw'] = bool(nsfw)
 
-    async def action(self) -> BaseChannel:
+    async def action(self) -> Channel:
         data = await self.client.rest.request_api(
             CREATE_GUILD_CHANNEL, guild_id=self.guild_id, json=self.data
         )
@@ -97,17 +97,22 @@ class ChannelPositionsBuilder(AwaitableBuilder):
         data: JSONObject = {}
 
         if position is not undefined:
-            data['position'] = int(position) if position is not None else None
+            if position is not None:
+                data['position'] = int(position)
+            else:
+                data['position'] = None
 
         if lock_permissions is not undefined:
-            data['lock_permissions'] = (
-                bool(lock_permissions) if lock_permissions is not None else None
-            )
+            if lock_permissions is not None:
+                data['lock_permissions'] = lock_permissions
+            else:
+                data['lock_permissions'] = None
 
         if parent is not undefined:
-            data['parent_id'] = (
-                str(self.client.channels.to_unique(parent)) if parent is not None else None
-            )
+            if parent is not None:
+                data['parent_id'] = str(self.client.channels.to_unique(parent))
+            else:
+                data['parent_id'] = None
 
         data['id'] = str(self.client.channels.to_unique(channel))
         self.channels.append(data)

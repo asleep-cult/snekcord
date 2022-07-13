@@ -70,7 +70,7 @@ class AwaitableBuilder(BaseBuilder):
     Instances can only be used once and will emit a resource warning if they are left unused."""
 
     awaited: bool = attr.ib(init=False, default=False)
-    """Whether or not the builder has been awaited or used in an async with block."""
+    """Whether the builder has been awaited or used in an async with block."""
 
     result: typing.Any = attr.ib(init=False, default=None)
     """The return value of action or None if it hasn't been called yet."""
@@ -103,8 +103,7 @@ class AwaitableBuilder(BaseBuilder):
         return wrapper().__await__()
 
     async def action(self: ActionBuilder[ResultT]) -> ResultT:
-        """Called after the builder is awaited or used in an async with block.
-        This method must be implemented in subclasses."""
+        """Called after the builder is awaited or used in an async with block."""
         raise NotImplementedError
 
     def __del__(self) -> None:

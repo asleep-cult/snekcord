@@ -16,9 +16,9 @@ from ..events import (
 )
 from ..json import JSONObject, JSONType, json_get
 from ..objects import (
-    BaseChannel,
     CachedChannel,
     CategoryChannel,
+    Channel,
     ChannelType,
     SnowflakeWrapper,
     TextChannel,
@@ -46,11 +46,11 @@ __all__ = (
     'GuildChannelsView',
 )
 
-SupportsChannelID = typing.Union[Snowflake, str, int, BaseChannel]
-ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, BaseChannel]
+SupportsChannelID = typing.Union[Snowflake, str, int, Channel]
+ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, Channel]
 
 
-class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, BaseChannel]):
+class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, Channel]):
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
         self.guild_refstore = self.create_guild_refstore()
@@ -69,12 +69,34 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         elif isinstance(object, (str, int)):
             return Snowflake(object)
 
-        elif isinstance(object, BaseChannel):
+        elif isinstance(object, Channel):
             return object.id
 
         raise TypeError('Expected Snowflake, str, int, or BaseChannel')
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildChannelsView:
+        """Create a cache view for a specific guild. If you have a guild object
+        consider using the `snekcord.Guild.channels` attribute instead.
+
+        Parameters
+        ----------
+        guild: snekcord.SupportsGuildID
+            The guild or id of the guild to create the view for.
+
+        Returns
+        -------
+        snekcord.GuildChannelsView
+            An immutable view containing every cached channel in the guild.
+
+        Example
+        -------
+        ```py
+        channels = await client.channnels.for_guild(834890063581020210)
+
+        async for channel in channels:
+            print(f'{channel.name} | ID: {channel.id}')
+        ```
+        """
         guild_id = self.client.guilds.to_unique(guild)
 
         channels = await self.guild_refstore.get(guild_id)
@@ -110,7 +132,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         return cached
 
-    async def from_cached(self, cached: CachedChannel) -> BaseChannel:
+    async def from_cached(self, cached: CachedChannel) -> Channel:
         cached.id = Snowflake(cached.id)
         type = convert_enum(ChannelType, cached.type)
 
@@ -188,7 +210,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rtc_region=cached.rtc_region,
             )
 
-        return BaseChannel(client=self.client, id=cached.id, type=type)
+        return Channel(client=self.client, id=cached.id, type=type)
 
     async def remove_refs(self, object: CachedChannel) -> None:
         if object.guild_id is not undefined:
@@ -199,7 +221,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             TRIGGER_CHANNEL_TYPING, channel_id=self.client.channels.to_unique(channel)
         )
 
-    async def fetch(self, channel: SupportsChannelID) -> BaseChannel:
+    async def fetch(self, channel: SupportsChannelID) -> Channel:
         channel_id = self.to_unique(channel)
 
         data = await self.client.rest.request_api(GET_CHANNEL, channel_id=channel_id)
@@ -207,7 +229,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         return await self.upsert(self.inject_metadata(data, channel_id))
 
-    async def fetch_all(self, guild: SupportsGuildID) -> typing.List[BaseChannel]:
+    async def fetch_all(self, guild: SupportsGuildID) -> typing.List[Channel]:
         guild_id = self.client.guilds.to_unique(guild)
 
         data = await self.client.rest.request_api(GET_GUILD_CHANNELS, guild_id=guild_id)
@@ -251,7 +273,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             client=self.client, guild_id=self.client.guilds.to_unique(guild)
         )
 
-    async def delete(self, channel: SupportsChannelID) -> typing.Optional[BaseChannel]:
+    async def delete(self, channel: SupportsChannelID) -> typing.Optional[Channel]:
         channel_id = self.client.channels.to_unique(channel)
 
         await self.client.rest.request_api(DELETE_CHANNEL, channel_id=channel_id)
@@ -299,7 +321,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             )
 
 
-class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChannel]):
+class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, Channel]):
     def __init__(
         self,
         *,
@@ -310,7 +332,7 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, BaseChanne
         super().__init__(state=state, keys=channels)
         self.guild_id = self.client.guilds.to_unique(guild)
 
-    async def fetch_all(self) -> typing.List[BaseChannel]:
+    async def fetch_all(self) -> typing.List[Channel]:
         return await self.client.channels.fetch_all(self.guild_id)
 
     def create(

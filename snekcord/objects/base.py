@@ -63,29 +63,34 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return f'SnowflakeWrapper(id={self.id})'
 
     def unwrap_id(self) -> Snowflake:
-        """Returns the wrapper's id or raises TypeError if the id is None."""
+        """Return the wrapper's id, raises TypeError if the id is None."""
         if self.id is None:
             raise TypeError('unwrap_id() called on empty wrapper')
 
         return self.id
 
     async def unwrap(self) -> ObjectT:
-        """Attempts to retrieve the object from cache.
+        """Attempt to retrieve the object from cache.
 
-        Example
+        Returns
         -------
-        .. code-block:: python
-
-            >>> user = SnowflakeWrapper(506618674921340958, state=client.users)
-            >>> await user.unwrap()
-            User(id=506618674921340958, name='ToxicKidz', discriminator='4376')
+        ObjectT
+            The object from cache with the same id.
 
         Raises
         ------
         TypeError
-            The wrapper is empty; i.e. the ID is None.
+            The wrapper is empty (the id is None.)
         UnknownSnowflakeError
             The object is not in cache or it does not exist.
+
+        Example
+        -------
+        ```py
+        >>> user = SnowflakeWrapper(506618674921340958, state=client.users)
+        >>> await user.unwrap()
+        User(id=506618674921340958, name='ToxicKidz', discriminator='4376')
+        ```
         """
         id = self.unwrap_id()
 
@@ -96,16 +101,20 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return object
 
     async def unwrap_as(self, type: typing.Type[TypeT]) -> TypeT:
-        """A convenience wrapper for unwrap that enforces a type check on the return value.
+        """Unwrap the object and enforce a type check on the return value.
         This is useful for states the can create multiple different types.
+
+        Raises
+        ------
+        TypeError
+            Raised when the unwrapped object does not match the provided type.
 
         Example
         -------
-        .. code-block:: python
-
-            >>> channel = SnowflakeWrapper(834891949781549056, state=client.channels)
-            >>> await channel.unwrap_as(snekcord.TextChannel)
-            TextChannel(id=834891949781549056, name='github')
+        ```py
+        >>> channel = SnowflakeWrapper(834891949781549056, state=client.channels)
+        >>> await channel.unwrap_as(snekcord.TextChannel)
+        TextChannel(id=834891949781549056, name='github')
         """
         object = await self.unwrap()
 
@@ -139,22 +148,27 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return self.code
 
     async def unwrap(self) -> ObjectT:
-        """Attempts to retrieve the object from cache.
+        """Attempt to retrieve the object from cache.
 
-        Example
+        Returns
         -------
-        .. code-block:: python
-
-            >>> invite = CodeWrapper('kAe2m4hdZ7', state=client.invites)
-            >>> await invite.unwrap()
-            Invite(code='kAe2m4hdZ7', uses=28)
+        ObjectT
+            The object from cache with the same code.
 
         Raises
         ------
         TypeError
-            The wrapper is empty; i.e. the code is None.
-        UnknownCodeError
+            The wrapper is empty (the code is None.)
+        UnknownSnowflakeError
             The object is not in cache or it does not exist.
+
+        Example
+        -------
+        ```py
+        >>> invite = CodeWrapper('kAe2m4hdZ7', state=client.invites)
+        >>> await invite.unwrap()
+        Invite(code='kAe2m4hdZ7', uses=28)
+        ```
         """
         code = self.unwrap_code()
 
@@ -165,7 +179,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return object
 
     async def unwrap_as(self, type: typing.Type[TypeT]) -> TypeT:
-        """A convenience wrapper for unwrap that enforces a type check on the return value.
+        """Unwrap the object and enforce a type check on the return value.
         This is useful for states the can create multiple different types."""
         object = await self.unwrap()
 

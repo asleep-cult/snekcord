@@ -34,10 +34,24 @@ class CustomEmoji(SnowflakeObject):
     """Represents a custom emoji within a guild."""
 
     guild: GuildIDWrapper = attr.ib()
+    """The id of the guild the emoji is in."""
+
     name: str = attr.ib()
+    """The name of the emoji."""
+
     require_colons: bool = attr.ib()
+    """Whether the emoji must be wrapped in colons."""
+
     managed: bool = attr.ib()
+    """Whether the emoji is managed."""
+
     animated: bool = attr.ib()
+    """Whether the emoji is animated."""
+
     available: bool = attr.ib()
+    """Whether the emoji is available, may be False due to loss of server boosts."""
+
     user: UserIDWrapper = attr.ib()
+    """A wrapper for the user who created the emoji."""
+
     # roles: EmojiRolesView = attr.ib()

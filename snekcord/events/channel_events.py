@@ -10,7 +10,7 @@ from .base_events import BaseEvent
 if typing.TYPE_CHECKING:
     from datetime import datetime
 
-    from ..objects import BaseChannel
+    from ..objects import Channel
     from ..states import GuildIDWrapper
 
 __all__ = (
@@ -33,23 +33,23 @@ class ChannelEvents(str, enum.Enum):
 @attr.s(kw_only=True)
 class ChannelCreateEvent(BaseEvent):
     guild: GuildIDWrapper = attr.ib()
-    channel: BaseChannel = attr.ib()
+    channel: Channel = attr.ib()
 
 
 @attr.s(kw_only=True)
 class ChannelUpdateEvent(BaseEvent):
     guild: GuildIDWrapper = attr.ib()
-    channel: BaseChannel = attr.ib()
+    channel: Channel = attr.ib()
 
 
 @attr.s(kw_only=True)
 class ChannelDeleteEvent(BaseEvent):
     guild: GuildIDWrapper = attr.ib()
-    channel: typing.Optional[BaseChannel] = attr.ib()
+    channel: typing.Optional[Channel] = attr.ib()
 
 
 @attr.s(kw_only=True)
 class ChannelPinsUpdateEvent(BaseEvent):
     guild: GuildIDWrapper = attr.ib()
-    channel: typing.Optional[BaseChannel] = attr.ib()
+    channel: typing.Optional[Channel] = attr.ib()
     timestamp: typing.Optional[datetime] = attr.ib()

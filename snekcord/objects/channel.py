@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 __all__ = (
     'CachedChannel',
     'ChannelType',
-    'BaseChannel',
+    'Channel',
     'GuildChannel',
     'TextChannel',
     'VoiceChannel',
@@ -98,11 +98,12 @@ class ChannelType(enum.IntEnum):
 
 
 @attr.s(kw_only=True)
-class BaseChannel(SnowflakeObject):
+class Channel(SnowflakeObject):
     """The base class for all channels exposing only the id and type fields.
     This class is directly used when a channel with an unknown type is encountered."""
 
     type: typing.Union[ChannelType, int] = attr.ib(hash=False, repr=True)
+    """The type of the channel, may be an :class:`int` if the type is unknown."""
 
     def is_text(self) -> bool:
         """Returns True if the channel's type is GUILD_TEXT."""
@@ -138,44 +139,69 @@ class BaseChannel(SnowflakeObject):
 
 
 @attr.s(kw_only=True)
-class GuildChannel(BaseChannel):
+class GuildChannel(Channel):
     """The base class for all channels within a guild."""
 
     guild: GuildIDWrapper = attr.ib()
-    name: str = attr.ib()
-    position: int = attr.ib()
+    """A wrapper for the guild the channel is in."""
 
-    async def delete(self) -> typing.Optional[BaseChannel]:
-        """Deletes the channel. Requires the MANAGE_CHANNELS permission to execute."""
+    name: str = attr.ib()
+    """The name of the channel."""
+
+    position: int = attr.ib()
+    """The sorting position of the channel."""
+
+    async def delete(self) -> typing.Optional[Channel]:
         return await self.client.channels.delete(self.id)
 
 
 @attr.s(kw_only=True)
 class TextChannel(GuildChannel):
-    """Represents a GUILD_TEXT channel."""
+    """Represents a `snekcord.ChannelType.GUILD_TEXT` channel."""
 
     parent: ChannelIDWrapper = attr.ib()
+    """A wrapper for the category the channel is in."""
+
     nsfw: typing.Optional[bool] = attr.ib()
+    """Whether the channel is NSFW."""
+
     rate_limit_per_user: int = attr.ib()
+    """The amount of seconds a user had to wait before sending another message."""
+
     last_message: MessageIDWrapper = attr.ib()
+    """A wrapper for the last message sent in the channel."""
+
     last_pin_timestamp: typing.Optional[datetime] = attr.ib()
+    """The timestamp of when the last message was pinned in the channel."""
+
     messages: ChannelMessagesView = attr.ib()
+    """A frozen view containing every cached message in the channel."""
 
     async def trigger_typing(self) -> None:
-        """Triggers the client's typing indicator in the channel."""
         return await self.client.channels.trigger_typing(self.id)
 
 
 @attr.s(kw_only=True)
 class VoiceChannel(GuildChannel):
-    """Represents a GUILD_VOICE channel."""
+    """Represents a `snekcord.ChannelType.GUILD_VOICE` channel."""
 
     parent: ChannelIDWrapper = attr.ib()
+    """A wrapper for the category the channel is in."""
+
     nsfw: typing.Optional[bool] = attr.ib()
+    """Whether the channel is NSFW."""
+
     bitrate: int = attr.ib()
+    """The bitrate of the channel."""
+
     user_limit: int = attr.ib()
+    """The maximum number of users that can be in the voice channel."""
+
     rtc_region: typing.Optional[str] = attr.ib()
+    """The voice region id for the channel or None if automatic."""
 
 
 class CategoryChannel(GuildChannel):
+    """Represents a `snekcord.ChannelType.GUILD_CATEGORY` channel."""
+
     __slots__ = ()

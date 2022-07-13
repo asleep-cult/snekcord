@@ -48,25 +48,49 @@ class EventState:
 
     @property
     def events(self) -> typing.Tuple[str, ...]:
-        """Returns a list of event names that the state can receive."""
+        """Return a list of event names that the state can receive."""
         return tuple()
 
-    def on(self, event: str) -> OnDecoratorT[EventT]:
-        """A decorator the registers the function to be called when the event is received.
+    def register_callback(self, event: str, callback: OnCallbackT[EventT]) -> None:
+        """Register a function to be called when an event is received.
+
+        Parameters
+        ----------
+        event: str
+            The name of the event to register the callback to.
+        callback: typing.Callable[[BaseEvent], typing.Coroutine[typing.Any, typing.Any, None]]
+            The coroutine function to call when the event is received.
 
         Raises
         ------
+        ValueError
+            Raised when the event does not exist.
         TypeError
-            The specified event is not valid.
+            Raised when the callback is not a coroutine function.
         """
         if event not in self.events:
-            raise TypeError(f'Invalid event: {event!r}')
+            raise ValueError(f'{event!r} is not a valid event')
+
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError('The callback should be a coroutine function.')
+
+        callbacks = self.callbacks[event]
+        callbacks.append(callback)
+
+    def on(self, event: str) -> OnDecoratorT[EventT]:
+        """Return a decorator that registeres a function to an event.
+
+        Example
+        -------
+        ```py
+        @client.messages.on(MessageEvents.Create)
+        def on_message_create(evt: snekcord.MessageCreateEvent) -> None:
+            print(f'A message was created: {evt.message.content!r}')
+        ```
+        """
 
         def decorator(callback: OnCallbackT[EventT]) -> OnCallbackT[EventT]:
-            if not asyncio.iscoroutinefunction(callback):
-                raise TypeError('The callback should be a coroutine function')
-
-            self.callbacks[event].append(callback)
+            self.register_callback(event, callback)
             return callback
 
         return decorator
@@ -87,12 +111,22 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
     client: Client
 
     def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
-        """Converts an object into a unique identifier that can be used for cache operations.
+        """Convert an object into a unique identifier.
+
+        Parameters
+        ----------
+        object: typing.Union[UniqueT, SupportsUniqueT]
+            The object to convert into a unique identifier.
+
+        Returns
+        -------
+        UniqueT
+            A unique identifier that can be used for cache operations.
 
         Raises
         ------
         TypeError
-            The object is not supported.
+            Raised when the object does not support conversion.
         """
         raise NotImplementedError
 
@@ -100,15 +134,32 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
         raise NotImplementedError
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
-        """Retrieves an object from the cache."""
+        """Retrieve an object from cache.
+
+        Parameters
+        ----------
+        object: typing.Union[UniqueT, SupportsUniqueT]
+            The object to use for the cache lookup.
+
+        Returns
+        -------
+        typing.Optional[ObjectT]
+            An object from cache that exists under the unique identifier
+            or None if it does not exist.
+
+        Raises
+        ------
+        TypeError
+            Raised when the object cannot be converted into a unique identifier.
+        """
         raise NotImplementedError
 
     async def size(self) -> int:
-        """Returns the number of objects in the cache."""
+        """Return the number of objects currently in cache."""
         raise NotImplementedError
 
     async def all(self) -> typing.List[ObjectT]:
-        """Returns a list containing all of the objects in the cache."""
+        """Return a list of all objects currently in cahe."""
         return [object async for object in self]
 
 
@@ -117,6 +168,8 @@ class CachedEventState(
     EventState,
     CachedState[SupportsUniqueT, UniqueT, ObjectT],
 ):
+    """A cached state with the ability to receive events."""
+
     locks: defaultdict[UniqueT, asyncio.Lock]
 
     def __init__(self, *, client: Client) -> None:
@@ -125,13 +178,25 @@ class CachedEventState(
         self.locks = defaultdict(asyncio.Lock, weakref.WeakValueDictionary())
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
-        """Creates the cache driver to be used by the state.
-        All states use an in-memory driver by default."""
+        """Create the cache driver to be used by the state.
+        This should be overriden in a subclass for custom cache implementations.
+
+        Returns
+        -------
+        MemoryCacheDriver
+            An in-memory cache driver to be used by the state.
+        """
         return MemoryCacheDriver()
 
     def synchronize(self, object: SupportsUniqueT) -> asyncio.Lock:
-        """A basic synchronization function that aims to prevent race conditions
-        within the upsert method."""
+        """Return a lock for a specific object. This should be used
+        by upsert functions to prevent race conditions.
+
+        Raises
+        ------
+        TypeError
+            Raised when the object cannot be converted into a unique identifier.
+        """
         return self.locks[self.to_unique(object)]
 
     async def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
@@ -139,9 +204,27 @@ class CachedEventState(
             yield await self.from_cached(item)
 
     async def size(self) -> int:
+        """Return the number of object in cache according to the cache driver."""
         return await self.cache.size()
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        """Retrieve an object from the cache driver.
+
+        Parameters
+        ----------
+        object: typing.Union[UniqueT, SupportsUniqueT]
+            The object to use for the cache lookup.
+
+        Returns
+        -------
+        typing.Optional[ObjectT]
+            The user facing version of the cached object or None if it does not exist.
+
+        Raises
+        ------
+        TypeError
+            Raised when the object cannot be converted into a unique identifier.
+        """
         cached = await self.cache.get(self.to_unique(object))
         if cached is None:
             return None
@@ -151,8 +234,18 @@ class CachedEventState(
     async def drop(
         self, object: typing.Union[UniqueT, SupportsUniqueT]
     ) -> typing.Optional[ObjectT]:
-        """Removes an object from the cache and cleans up any references to it.
-        The last known version of the object is returned."""
+        """Remove an object from the cache driver and clean up any references to it.
+
+        Returns
+        -------
+        typing.Optional[ObjectT]
+            The user facing version of the cached object or None if it does not exist.
+
+        Raises
+        ------
+        TypeError
+            Raised when the object cannot be converted into a unique identifier.
+        """
         cached = await self.cache.drop(self.to_unique(object))
         if cached is None:
             return None
@@ -161,20 +254,32 @@ class CachedEventState(
         return await self.from_cached(cached)
 
     async def remove_refs(self, object: CachedModelT) -> None:
-        """Removes any references to the object from the corresponding ref-stores.
+        """Remove any references to object from the corresponding ref-stores.
         This is called as part of the drop routine and should not be called
         manually."""
 
     async def upsert_cached(
         self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedModelT:
-        """Adds or otherwise updates an object in the cache with the data. The provided flags
-        should be passed down to other upsert functions, determining which objects should
-        be added to the cache."""
+        """Add or otherwise update an object in cache.
+
+        Parameters
+        ----------
+        data: JSONObject
+            The data to update the object with.
+        flags: CacheFlags
+            The flags determining which objects to add to cache.
+            This should be passed down to other upsert functions.
+
+        Returns
+        -------
+        CachedModelT
+            A raw model representing the updated object in cache.
+        """
         raise NotImplementedError
 
     async def from_cached(self, cached: CachedModelT) -> ObjectT:
-        """Creates an immutable user facing object from a cached model."""
+        """Return an immutable user facing object from a cached model."""
         raise NotImplementedError
 
     async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
@@ -198,6 +303,23 @@ class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
         self.keys = frozenset(self.to_unique(key) for key in keys)
 
     def to_unique(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> UniqueT:
+        """Convert an object into a unique identifier using the parent state's functionality.
+
+        Parameters
+        ----------
+        object: typing.Union[UniqueT, SupportsUniqueT]
+            The object to convert into a unique identifier.
+
+        Returns
+        -------
+        UniqueT
+            A unique identifier that can be used for cache operations.
+
+        Raises
+        ------
+        TypeError
+            Raised when the object does not support conversion.
+        """
         return self.state.to_unique(object)
 
     def __aiter__(self) -> typing.AsyncIterator[ObjectT]:
@@ -205,9 +327,29 @@ class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
         return (object async for object in iterator if object is not None)
 
     async def size(self) -> int:
+        """Return the number of items known to be in the state when it was created."""
         return len(self.keys)
 
     async def get(self, object: typing.Union[UniqueT, SupportsUniqueT]) -> typing.Optional[ObjectT]:
+        """Retrieve an object from cache using the parent state's functionality.
+
+        Parameters
+        ----------
+        object: typing.Union[UniqueT, SupportsUniqueT]
+            The object to use for the cache lookup, None is automatically returned
+            if the object is not in the state's know set of keys.
+
+        Returns
+        -------
+        typing.Optional[ObjectT]
+            An object from cache that exists under the unique identifier
+            or None if it does not exist.
+
+        Raises
+        ------
+        TypeError
+            Raised when the object cannot be converted into a unique identifier.
+        """
         key = self.to_unique(object)
         if key not in self.keys:
             return None
