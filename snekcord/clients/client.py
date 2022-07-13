@@ -11,9 +11,11 @@ from ..states import (
     EventState,
     GuildChannelsView,
     GuildEmojisView,
+    GuildMembersView,
     GuildRolesView,
     GuildState,
     InviteState,
+    MemberState,
     MessageState,
     RoleState,
     SupportsChannelID,
@@ -21,6 +23,7 @@ from ..states import (
     SupportsGuildID,
     SupportsMessageID,
     SupportsRoleID,
+    SupportsUserID,
     UserState,
 )
 
@@ -42,6 +45,7 @@ class Client:
         self.emojis = self.create_emoji_state()
         self.guilds = self.create_guild_state()
         self.invites = self.create_invite_state()
+        self.members = self.create_member_state()
         self.messages = self.create_message_state()
         self.roles = self.create_role_state()
         self.users = self.create_user_state()
@@ -57,6 +61,9 @@ class Client:
 
     def create_invite_state(self) -> InviteState:
         return InviteState(client=self)
+
+    def create_member_state(self) -> MemberState:
+        return MemberState(client=self)
 
     def create_message_state(self) -> MessageState:
         return MessageState(client=self)
@@ -81,6 +88,11 @@ class Client:
         self, emojis: typing.Iterable[SupportsEmojiID], guild: SupportsGuildID
     ) -> GuildEmojisView:
         return GuildEmojisView(state=self.emojis, emojis=emojis, guild=guild)
+
+    def create_guild_members_view(
+        self, users: typing.Iterable[SupportsUserID], guild: SupportsGuildID
+    ) -> GuildMembersView:
+        return GuildMembersView(state=self.members, users=users, guild=guild)
 
     def create_guild_roles_view(
         self, roles: typing.Iterable[SupportsRoleID], guild: SupportsGuildID

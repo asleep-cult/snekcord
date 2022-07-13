@@ -10,6 +10,7 @@ if typing.TYPE_CHECKING:
     import aiohttp
 
     from .rest import RESTSession
+    from .states import MemberID
     from .websockets import Shard
 
 
@@ -36,6 +37,14 @@ class UnknownCodeError(Exception):
 
     def __str__(self) -> str:
         return f'Object with code {self.code} is not cached'
+
+
+class UnknownMemberError(Exception):
+    def __init__(self, id: MemberID) -> None:
+        self.id = id
+
+    def __str__(self) -> str:
+        return f'Member with id {self.id!r} is not cached'
 
 
 class ShardConnectError(Exception):

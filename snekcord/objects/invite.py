@@ -13,6 +13,8 @@ from .base import CodeObject
 
 
 class CachedInvite(CachedModel):
+    """Represents a raw invite within the invite cache."""
+
     code: str
     guild_id: MaybeUndefined[str]
     channel_id: typing.Optional[str]

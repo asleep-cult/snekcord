@@ -52,7 +52,7 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
     def __init__(
         self,
-        id: typing.Optional[SupportsUniqueT],
+        id: typing.Optional[SupportsUniqueT] = None,
         *,
         state: CachedState[SupportsUniqueT, Snowflake, ObjectT],
     ) -> None:
@@ -62,6 +62,10 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     def __repr__(self) -> str:
         return f'SnowflakeWrapper(id={self.id})'
 
+    @property
+    def client(self) -> Client:
+        return self.state.client
+
     def unwrap_id(self) -> Snowflake:
         """Return the wrapper's id, raises TypeError if the id is None."""
         if self.id is None:
@@ -70,7 +74,7 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return self.id
 
     async def unwrap(self) -> ObjectT:
-        """Attempt to retrieve the object from cache.
+        """Retrieve the object from cache.
 
         Returns
         -------
@@ -130,7 +134,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
     def __init__(
         self,
-        code: typing.Optional[SupportsUniqueT],
+        code: typing.Optional[SupportsUniqueT] = None,
         *,
         state: CachedState[SupportsUniqueT, str, ObjectT],
     ) -> None:
@@ -140,6 +144,10 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     def __repr__(self) -> str:
         return f'CodeWrapper(code={self.code!r})'
 
+    @property
+    def client(self) -> Client:
+        return self.state.client
+
     def unwrap_code(self) -> str:
         """Returns the wrapper's code or raises TypeError if the code is None."""
         if self.code is None:
@@ -148,7 +156,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return self.code
 
     async def unwrap(self) -> ObjectT:
-        """Attempt to retrieve the object from cache.
+        """Retrieve the object from cache.
 
         Returns
         -------
@@ -159,7 +167,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         ------
         TypeError
             The wrapper is empty (the code is None.)
-        UnknownSnowflakeError
+        UnknownCodeError
             The object is not in cache or it does not exist.
 
         Example

@@ -12,10 +12,11 @@ from ..undefined import MaybeUndefined
 from .base import SnowflakeObject
 
 if typing.TYPE_CHECKING:
-    from ..states import (  # GuildMembersView,
+    from ..states import (
         ChannelIDWrapper,
         GuildChannelsView,
         GuildEmojisView,
+        GuildMembersView,
         GuildRolesView,
         UserIDWrapper,
     )
@@ -190,7 +191,7 @@ class Guild(PartialGuild):
     nsfw_level: typing.Union[GuildNSFWLevel, int] = attr.ib()
     roles: GuildRolesView = attr.ib()
     emojis: GuildEmojisView = attr.ib()
-    # members: GuildMembersView = attr.ib()
+    members: GuildMembersView = attr.ib()
     channels: GuildChannelsView = attr.ib()
 
 

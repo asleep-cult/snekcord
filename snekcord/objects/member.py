@@ -8,16 +8,17 @@ import attr
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
-from .base import SnowflakeObject
+from .base import BaseObject
 
 if typing.TYPE_CHECKING:
-    from ..states import MemberRolesView
+    from ..states import GuildIDWrapper, MemberID, UserIDWrapper
 
-__all__ = ('Member',)
+__all__ = ('CachedMember', 'Member')
 
 
 class CachedMember(CachedModel):
     user_id: Snowflake
+    guild_id: Snowflake
     nick: MaybeUndefined[typing.Optional[str]]
     avatar: MaybeUndefined[typing.Optional[str]]
     role_ids: typing.List[str]
@@ -30,10 +31,13 @@ class CachedMember(CachedModel):
 
 
 @attr.s(kw_only=True)
-class Member(SnowflakeObject):
+class Member(BaseObject):
+    id: MemberID = attr.ib()
+    guild: GuildIDWrapper = attr.ib()
+    user: UserIDWrapper = attr.ib()
     nick: typing.Optional[str] = attr.ib()
     avatar: typing.Optional[str] = attr.ib()
-    roles: MemberRolesView = attr.ib()
+    # roles: MemberRolesView = attr.ib()
     joined_at: datetime = attr.ib()
     premium_since: typing.Optional[datetime] = attr.ib()
     deaf: bool = attr.ib()

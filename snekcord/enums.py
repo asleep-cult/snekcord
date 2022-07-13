@@ -26,11 +26,12 @@ class CacheFlags(enum.IntFlag):
     EMOJIS = enum.auto()
     GUILDS = enum.auto()
     INVITES = enum.auto()
+    MEMBERS = enum.auto()
     MESSAGES = enum.auto()
     ROLES = enum.auto()
     USERS = enum.auto()
 
-    ALL = CHANNELS | EMOJIS | GUILDS | INVITES | MESSAGES | ROLES | USERS
+    ALL = CHANNELS | EMOJIS | GUILDS | INVITES | MEMBERS | MESSAGES | ROLES | USERS
 
 
 class FetchOrdering(str, enum.Enum):

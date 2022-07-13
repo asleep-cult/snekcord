@@ -88,6 +88,12 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
                 channel['guild_id'] = guild_id
                 await self.client.channels.upsert_cached(channel, flags)
 
+        if flags & CacheFlags.MEMBERS:
+            members = json_get(data, 'members', typing.List[JSONObject], default=())
+            for member in members:
+                member['guild_id'] = guild_id
+                await self.client.members.upsert(member, flags)
+
         async with self.synchronize(guild_id):
             cached = await self.cache.get(guild_id)
 
@@ -121,7 +127,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
 
         roles = await self.client.roles.for_guild(cached.id)
         emojis = await self.client.emojis.for_guild(cached.id)
-        # members = await self.member_refstore.get(cached.id)
+        members = await self.client.members.for_guild(cached.id)
         channels = await self.client.channels.for_guild(cached.id)
 
         return Guild(
@@ -163,7 +169,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
             roles=roles,
             emojis=emojis,
-            # members=self.client.create_guild_members_view(member_ids, cached.id),
+            members=members,
             channels=channels,
         )
 
