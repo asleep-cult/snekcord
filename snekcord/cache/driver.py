@@ -20,19 +20,19 @@ class CacheDriver(typing.Generic[UniqueT, CachedObjectT]):
         raise NotImplementedError
 
     async def create(self, key: UniqueT, object: CachedObjectT) -> None:
-        """Creates an entry in the cache for the object specified by key."""
+        """Creates an entry in the cache for the object under key."""
         raise NotImplementedError
 
     async def get(self, key: UniqueT) -> typing.Optional[CachedObjectT]:
-        """Retrieves the object in the cache specified by key."""
+        """Retrieves the object in the cache under key."""
         raise NotImplementedError
 
     async def update(self, key: UniqueT, object: CachedObjectT) -> None:
-        """Updated the object in the cache specified by key."""
+        """Updates the object in the cache under key."""
         raise NotImplementedError
 
     async def drop(self, key: UniqueT) -> typing.Optional[CachedObjectT]:
-        """Removes the object in the cache specified by key and returns it."""
+        """Removes the object in the cache under key and returns it."""
         raise NotImplementedError
 
 

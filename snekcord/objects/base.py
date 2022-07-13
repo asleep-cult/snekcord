@@ -112,7 +112,7 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         return f'CodeWrapper(code={self.code!r})'
 
     def unwrap_code(self) -> str:
-        """Returns the wrapper's code or raises TypeError is the code is None."""
+        """Returns the wrapper's code or raises TypeError if the code is None."""
         if self.code is None:
             raise TypeError('unwrap_code() called on empty wrapper')
 

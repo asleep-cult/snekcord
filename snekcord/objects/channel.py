@@ -162,7 +162,7 @@ class TextChannel(GuildChannel):
     messages: ChannelMessagesView = attr.ib()
 
     async def trigger_typing(self) -> None:
-        """Triggers the client's typing indicator in this channel."""
+        """Triggers the client's typing indicator in the channel."""
         return await self.client.channels.trigger_typing(self.id)
 
 

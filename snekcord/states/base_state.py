@@ -48,7 +48,7 @@ class EventState:
 
     @property
     def events(self) -> typing.Tuple[str, ...]:
-        """Returns a list of event names that this state can receive."""
+        """Returns a list of event names that the state can receive."""
         return tuple()
 
     def on(self, event: str) -> OnDecoratorT[EventT]:
@@ -123,7 +123,7 @@ class CachedEventState(
         self.locks = defaultdict(asyncio.Lock, weakref.WeakValueDictionary())
 
     def create_driver(self) -> CacheDriver[UniqueT, CachedModelT]:
-        """Creates the cache driver to be used by this state.
+        """Creates the cache driver to be used by the state.
         All states use an in-memory driver by default."""
         return MemoryCacheDriver()
 
@@ -183,6 +183,8 @@ class CachedEventState(
 
 
 class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):
+    """A frozen view into a cached state with only a subset of objects."""
+
     def __init__(
         self,
         *,
