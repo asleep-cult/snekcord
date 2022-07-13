@@ -57,7 +57,8 @@ class EventState:
         Raises
         ------
         TypeError
-            The specified event is not valid."""
+            The specified event is not valid.
+        """
         if event not in self.events:
             raise TypeError(f'Invalid event: {event!r}')
 
@@ -91,7 +92,8 @@ class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
         Raises
         ------
         TypeError
-            The object is not supported."""
+            The object is not supported.
+        """
         raise NotImplementedError
 
     def __aiter__(self) -> typing.AsyncIterator[ObjectT]:

@@ -22,6 +22,7 @@ __all__ = (
 SupportsUniqueT = typing.TypeVar('SupportsUniqueT')
 UniqueT = typing.TypeVar('UniqueT')
 ObjectT = typing.TypeVar('ObjectT')
+TypeT = typing.TypeVar('TypeT')
 
 
 @attr.s(kw_only=True, slots=True)
@@ -94,6 +95,25 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
         return object
 
+    async def unwrap_as(self, type: typing.Type[TypeT]) -> TypeT:
+        """A convenience wrapper for unwrap that enforces a type check on the return value.
+        This is useful for states the can create multiple different types.
+
+        Example
+        -------
+        .. code-block:: python
+
+            >>> channel = SnowflakeWrapper(834891949781549056, state=client.channels)
+            >>> await channel.unwrap_as(snekcord.TextChannel)
+            TextChannel(id=834891949781549056, name='github')
+        """
+        object = await self.unwrap()
+
+        if not isinstance(object, type):
+            raise TypeError(f'Expected {type.__name__!r} for {object.__class__.__name__}')
+
+        return object
+
 
 class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a code allowing for retrieval of the
@@ -141,5 +161,15 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         object = await self.state.get(code)
         if object is None:
             raise UnknownCodeError(code)
+
+        return object
+
+    async def unwrap_as(self, type: typing.Type[TypeT]) -> TypeT:
+        """A convenience wrapper for unwrap that enforces a type check on the return value.
+        This is useful for states the can create multiple different types."""
+        object = await self.unwrap()
+
+        if not isinstance(object, type):
+            raise TypeError(f'Expected {type.__name__!r} for {object.__class__.__name__}')
 
         return object

@@ -91,7 +91,7 @@ class AwaitableBuilder(BaseBuilder):
         if exc_tb is None:
             self.result = await self.action()
 
-    def __await__(self: ActionBuilder[ResultT]) -> typing.Iterable[ResultT]:
+    def __await__(self: ActionBuilder[ResultT]) -> typing.Generator[None, None, ResultT]:
         if self.awaited:
             raise RuntimeError(f'cannot reuse {self.__class__.__name__}')
 

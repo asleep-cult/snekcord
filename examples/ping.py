@@ -1,14 +1,8 @@
-## snekcord!
-A higly customizable Discord API wrapper.
-
-```py
 import asyncio
+
 import snekcord
 
-intents = (
-    snekcord.WebSocketIntents.GUILDS
-    | snekcord.WebSocketIntents.GUILD_MESSAGES
-)
+intents = snekcord.WebSocketIntents.GUILDS | snekcord.WebSocketIntents.GUILD_MESSAGES
 client = snekcord.WebSocketClient("Bot <TOKEN>", intents=intents)
 
 
@@ -22,4 +16,3 @@ async def message_create(evt: snekcord.MessageCreateEvent):
 
 if __name__ == '__main__':
     asyncio.run(client.connect())
-```
