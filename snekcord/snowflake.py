@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import typing
 from datetime import datetime
 
@@ -8,7 +9,7 @@ if typing.TYPE_CHECKING:
 
     from .json import JSONObject
 
-__all__ = ('Snowflake',)
+__all__ = ('Snowflake', 'SnowflakeCouple')
 
 _SNOWFLAKE_EPOCH = 1420070400000
 
@@ -82,3 +83,44 @@ class SnowflakeIterator:
 
     def __iter__(self) -> typing.Iterator[Snowflake]:
         return (Snowflake(value) for value in self.iterable)
+
+
+class SnowflakeCouple(int):
+    # Taken from https://stackoverflow.com/a/42333590
+
+    def __new__(cls, high: int, low: int) -> Self:
+        if high < 0 or low < 0:
+            raise ValueError('low and high should be >= 0')
+
+        x = high * 2
+        y = low * 2
+        z = (x * x + x + y) if x >= y else (x + y * y)
+
+        return int.__new__(SnowflakeCouple, z // 2)
+
+    def __repr__(self) -> str:
+        return f'SnowflakeCouple({self.high}, {self.low})'
+
+    @property
+    def high(self) -> Snowflake:
+        z = self * 2
+
+        s = math.isqrt(z)
+        if z - s * s < s:
+            x = z - s * s
+        else:
+            x = s
+
+        return Snowflake(x // 2)
+
+    @property
+    def low(self) -> Snowflake:
+        z = self * 2
+
+        s = math.isqrt(z)
+        if z - s * s < s:
+            y = s
+        else:
+            y = z - s * s - s
+
+        return Snowflake(y // 2)

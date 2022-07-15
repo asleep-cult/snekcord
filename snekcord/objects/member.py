@@ -6,14 +6,16 @@ from datetime import datetime
 import attr
 
 from ..cache import CachedModel
-from ..snowflake import Snowflake
+from ..exceptions import UnknownMemberError
+from ..snowflake import Snowflake, SnowflakeCouple
 from ..undefined import MaybeUndefined
-from .base import BaseObject
+from .base import BaseObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
-    from ..states import GuildIDWrapper, MemberID, UserIDWrapper
+    from ..clients import Client
+    from ..states import GuildIDWrapper, MemberState, SupportsMemberID, UserIDWrapper
 
-__all__ = ('CachedMember', 'Member')
+__all__ = ('CachedMember', 'Member', 'MemberIDWrapper')
 
 
 class CachedMember(CachedModel):
@@ -32,7 +34,7 @@ class CachedMember(CachedModel):
 
 @attr.s(kw_only=True)
 class Member(BaseObject):
-    id: MemberID = attr.ib()
+    id: SnowflakeCouple = attr.ib()
     guild: GuildIDWrapper = attr.ib()
     user: UserIDWrapper = attr.ib()
     nick: typing.Optional[str] = attr.ib()
@@ -44,3 +46,37 @@ class Member(BaseObject):
     mute: bool = attr.ib()
     pending: typing.Optional[bool] = attr.ib()
     communication_disabled_until: typing.Optional[int] = attr.ib()
+
+
+class MemberIDWrapper:
+    def __init__(self, id: typing.Optional[SupportsMemberID] = None, *, state: MemberState) -> None:
+        self.state = state
+        self.id = self.state.to_unique(id) if id is not None else None
+
+        self.guild = SnowflakeWrapper(state=self.client.guilds)
+        self.user = SnowflakeWrapper(state=self.client.users)
+
+        if self.id is not None:
+            self.guild.id, self.user.id = self.id.high, self.id.low
+
+    def __repr__(self) -> str:
+        return f'MemberIDWrapper(id={self.id!r})'
+
+    @property
+    def client(self) -> Client:
+        return self.state.client
+
+    def unwrap_id(self) -> SnowflakeCouple:
+        if self.id is None:
+            raise TypeError('unwrap_id() called on empty wrapper')
+
+        return self.id
+
+    async def unwrap(self) -> Member:
+        id = self.unwrap_id()
+
+        member = await self.state.get(id)
+        if member is None:
+            raise UnknownMemberError(id)
+
+        return member

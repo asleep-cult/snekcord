@@ -5,10 +5,9 @@ from datetime import datetime
 
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags
-from ..exceptions import UnknownMemberError
 from ..json import JSONObject, JSONType, json_get
 from ..objects import CachedMember, Member, SnowflakeWrapper
-from ..snowflake import Snowflake
+from ..snowflake import Snowflake, SnowflakeCouple
 from ..undefined import undefined
 from .base_state import CachedEventState, CachedState
 from .guild_state import SupportsGuildID
@@ -17,60 +16,10 @@ from .user_state import SupportsUserID
 if typing.TYPE_CHECKING:
     from ..clients import Client
 
-MemberID = typing.Tuple[Snowflake, Snowflake]
-SupportsMemberID = typing.Tuple[SupportsGuildID, SupportsUserID]
+SupportsMemberID = typing.Union[typing.Tuple[SupportsGuildID, SupportsUserID], SnowflakeCouple]
 
 
-class MemberIDWrapper:
-    def __init__(self, id: typing.Optional[SupportsMemberID], *, state: MemberState) -> None:
-        self.state = state
-        self.id = self.state.to_unique(id) if id is not None else None
-
-        self.guild = SnowflakeWrapper(state=self.client.guilds)
-        self.user = SnowflakeWrapper(state=self.client.users)
-
-        if self.id is not None:
-            self.guild.id, self.user.id = self.id
-
-    def __repr__(self) -> str:
-        return f'MemberIDWrapper(id={self.id!r})'
-
-    @property
-    def client(self) -> Client:
-        return self.state.client
-
-    def unwrap_id(self) -> MemberID:
-        """Return the wrapper's id, raises TypeError if the id is None."""
-        if self.id is None:
-            raise TypeError('unwrap_id() called on empty wrapper')
-
-        return self.id
-
-    async def unwrap(self) -> Member:
-        """Retrieve the member from cache.
-
-        Returns
-        -------
-        Member
-            The member from cache with the same id.
-
-        Raises
-        ------
-        TypeError
-            The wrapper is empty (the id is None.)
-        UnknownMemberError
-            The member is not in cache or it does not exist.
-        """
-        id = self.unwrap_id()
-
-        member = await self.state.get(id)
-        if member is None:
-            raise UnknownMemberError(id)
-
-        return member
-
-
-class MemberState(CachedEventState[SupportsMemberID, MemberID, CachedMember, Member]):
+class MemberState(CachedEventState[SupportsMemberID, SnowflakeCouple, CachedMember, Member]):
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
         self.guild_refstore = self.create_guild_refstore()
@@ -78,14 +27,20 @@ class MemberState(CachedEventState[SupportsMemberID, MemberID, CachedMember, Mem
     def create_guild_refstore(self) -> RefStore[Snowflake, Snowflake]:
         return SnowflakeMemoryRefStore()
 
-    def to_unique(self, object: SupportsMemberID) -> MemberID:
-        if not isinstance(object, tuple) or len(object) != 2:
-            raise TypeError('Expected tuple with 2 items')
+    def to_unique(self, object: SupportsMemberID) -> SnowflakeCouple:
+        if isinstance(object, SnowflakeCouple):
+            return object
 
-        guild_id = self.client.guilds.to_unique(object[0])
-        user_id = self.client.users.to_unique(object[1])
+        elif isinstance(object, tuple):
+            if len(object) != 2:
+                raise TypeError('tuple should have 2 items')
 
-        return (guild_id, user_id)
+            guild_id = self.client.guilds.to_unique(object[0])
+            user_id = self.client.users.to_unique(object[1])
+
+            return SnowflakeCouple(guild_id, user_id)
+
+        raise TypeError('Expected SnowflakeCouple or tuple')
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildMembersView:
         guild_id = self.client.guilds.to_unique(guild)
@@ -121,7 +76,7 @@ class MemberState(CachedEventState[SupportsMemberID, MemberID, CachedMember, Mem
         if flags & CacheFlags.MEMBERS:
             await self.guild_refstore.add(guild_id, user_id)
 
-        member_id = (guild_id, user_id)
+        member_id = SnowflakeCouple(guild_id, user_id)
 
         async with self.synchronize(member_id):
             cached = await self.cache.get(member_id)
@@ -144,7 +99,7 @@ class MemberState(CachedEventState[SupportsMemberID, MemberID, CachedMember, Mem
 
         return Member(
             client=self.client,
-            id=(cached.guild_id, cached.user_id),
+            id=SnowflakeCouple(cached.guild_id, cached.user_id),
             guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
             user=SnowflakeWrapper(cached.user_id, state=self.client.users),
             nick=undefined.nullify(cached.nick),
@@ -161,7 +116,7 @@ class MemberState(CachedEventState[SupportsMemberID, MemberID, CachedMember, Mem
         await self.guild_refstore.remove(object.guild_id, object.user_id)
 
 
-class GuildMembersView(CachedState[SupportsMemberID, MemberID, Member]):
+class GuildMembersView(CachedState[SupportsMemberID, SnowflakeCouple, Member]):
     def __init__(
         self,
         *,
@@ -175,14 +130,17 @@ class GuildMembersView(CachedState[SupportsMemberID, MemberID, Member]):
         self.user_ids = frozenset(self.client.users.to_unique(user) for user in users)
         self.guild_id = self.client.guilds.to_unique(guild)
 
-    def to_unique(self, object: typing.Union[SupportsUserID, SupportsMemberID]) -> MemberID:
+    def to_unique(self, object: typing.Union[SupportsUserID, SupportsMemberID]) -> SnowflakeCouple:
         if isinstance(object, SupportsUserID):
-            return (self.guild_id, self.client.users.to_unique(object))
+            return SnowflakeCouple(self.guild_id, self.client.users.to_unique(object))
 
         return self.state.to_unique(object)
 
     def __aiter__(self) -> typing.AsyncIterator[Member]:
-        iterator = (await self.state.get((self.guild_id, user_id)) for user_id in self.user_ids)
+        iterator = (
+            await self.state.get(SnowflakeCouple(self.guild_id, user_id))
+            for user_id in self.user_ids
+        )
         return (object async for object in iterator if object is not None)
 
     async def size(self) -> int:
@@ -191,8 +149,8 @@ class GuildMembersView(CachedState[SupportsMemberID, MemberID, Member]):
     async def get(
         self, object: typing.Union[SupportsUserID, SupportsMemberID]
     ) -> typing.Optional[Member]:
-        guild_id, user_id = self.to_unique(object)
-        if user_id not in self.user_ids:
+        id = self.to_unique(object)
+        if id.low not in self.user_ids:
             return None
 
-        return await self.state.get((guild_id, user_id))
+        return await self.state.get(id)
