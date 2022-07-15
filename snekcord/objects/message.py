@@ -8,22 +8,23 @@ import attr
 
 from ..builders import MessageUpdateBuilder
 from ..cache import CachedModel
-from ..objects import SnowflakeObject
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
+from .base import SnowflakeObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
-    from ..states import (  # ApplicationIDWrapper,; WebhookIDWrapper,
-        ChannelIDWrapper,
-        GuildIDWrapper,
-        UserIDWrapper,
-    )
+    from .channel import ChannelIDWrapper
+    from .guild import GuildIDWrapper
+    from .member import MemberIDWrapper
+    from .user import UserIDWrapper
 
 __all__ = (
     'CachedMessage',
     'MessageType',
     'MessageFlags',
     'Message',
+    'SupportsMessageID',
+    'MessageIDWrapper',
 )
 
 
@@ -94,6 +95,7 @@ class Message(SnowflakeObject):
     channel: ChannelIDWrapper = attr.ib(eq=False)
     guild: GuildIDWrapper = attr.ib(eq=False)
     author: UserIDWrapper = attr.ib(eq=False)
+    member: MemberIDWrapper = attr.ib(eq=False)
     content: typing.Optional[str] = attr.ib(repr=False, eq=False)
     timestamp: datetime = attr.ib(repr=False, eq=False)
     edited_timestamp: typing.Optional[datetime] = attr.ib(repr=False, eq=False)
@@ -129,3 +131,7 @@ class Message(SnowflakeObject):
 
     async def delete(self) -> typing.Optional[Message]:
         return await self.client.messages.delete(self.channel.unwrap_id(), self.id)
+
+
+SupportsMessageID = typing.Union[Snowflake, str, int, Message]
+MessageIDWrapper = SnowflakeWrapper[SupportsMessageID, Message]

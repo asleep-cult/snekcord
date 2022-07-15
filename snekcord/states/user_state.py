@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 from ..enums import CacheFlags, convert_enum
-from ..objects import CachedUser, PremiumType, SnowflakeWrapper, User, UserFlags
+from ..objects import CachedUser, PremiumType, SupportsUserID, User, UserFlags
 from ..snowflake import Snowflake
 from ..undefined import undefined
 from .base_state import CachedEventState
@@ -11,14 +11,7 @@ from .base_state import CachedEventState
 if typing.TYPE_CHECKING:
     from ..json import JSONObject
 
-__all__ = (
-    'SupportsUserID',
-    'UserIDWrapper',
-    'UserState',
-)
-
-SupportsUserID = typing.Union[Snowflake, str, int, User]
-UserIDWrapper = SnowflakeWrapper[SupportsUserID, User]
+__all__ = ('UserState',)
 
 
 class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):

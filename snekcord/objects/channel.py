@@ -10,15 +10,12 @@ from ..cache import CachedModel
 from ..enums import convert_enum
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
-from .base import SnowflakeObject
+from .base import SnowflakeObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
-    from ..states import (
-        ChannelIDWrapper,
-        ChannelMessagesView,
-        GuildIDWrapper,
-        MessageIDWrapper,
-    )
+    from ..states import ChannelMessagesView
+    from .guild import GuildIDWrapper
+    from .message import MessageIDWrapper
 
 __all__ = (
     'CachedChannel',
@@ -28,6 +25,8 @@ __all__ = (
     'TextChannel',
     'VoiceChannel',
     'CategoryChannel',
+    'SupportsChannelID',
+    'ChannelIDWrapper',
 )
 
 
@@ -205,3 +204,7 @@ class CategoryChannel(GuildChannel):
     """Represents a `snekcord.ChannelType.GUILD_CATEGORY` channel."""
 
     __slots__ = ()
+
+
+SupportsChannelID = typing.Union[Snowflake, str, int, Channel]
+ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, Channel]

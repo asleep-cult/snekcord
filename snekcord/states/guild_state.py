@@ -29,6 +29,7 @@ from ..objects import (
     PartialGuild,
     RESTGuild,
     SnowflakeWrapper,
+    SupportsGuildID,
 )
 from ..snowflake import Snowflake
 from ..undefined import undefined
@@ -37,14 +38,7 @@ from .base_state import CachedEventState, OnDecoratorT
 if typing.TYPE_CHECKING:
     from ..websockets import Shard
 
-__all__ = (
-    'SupportsGuildID',
-    'GuildIDWrapper',
-    'GuildState',
-)
-
-SupportsGuildID = typing.Union[Snowflake, str, int, PartialGuild]
-GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]
+__all__ = ('GuildState',)
 
 
 class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild]):

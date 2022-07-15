@@ -6,7 +6,13 @@ from ..builders import RoleCreateBuilder, RolePositionsBuilder, RoleUpdateBuilde
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags, Permissions
 from ..events import RoleEvents
-from ..objects import CachedRole, Role, SnowflakeWrapper
+from ..objects import (
+    CachedRole,
+    Role,
+    SnowflakeWrapper,
+    SupportsGuildID,
+    SupportsRoleID,
+)
 from ..rest.endpoints import DELETE_GUILD_ROLE, GET_GUILD_ROLES
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
@@ -16,17 +22,8 @@ from .base_state import CachedEventState, CachedStateView
 if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..json import JSONObject, JSONType
-    from .guild_state import SupportsGuildID
 
-__all__ = (
-    'SupportsRoleID',
-    'RoleIDWrapper',
-    'RoleState',
-    'GuildRolesView',
-)
-
-SupportsRoleID = typing.Union[Snowflake, str, int, Role]
-RoleIDWrapper = SnowflakeWrapper[SupportsRoleID, Role]
+__all__ = ('RoleState', 'GuildRolesView')
 
 
 class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):

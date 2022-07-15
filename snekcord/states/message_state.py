@@ -17,10 +17,13 @@ from ..events import (
 from ..json import JSONObject, JSONType, json_get
 from ..objects import (
     CachedMessage,
+    MemberIDWrapper,
     Message,
     MessageFlags,
     MessageType,
     SnowflakeWrapper,
+    SupportsChannelID,
+    SupportsMessageID,
 )
 from ..rest.endpoints import (
     ADD_CHANNEL_PIN,
@@ -32,24 +35,15 @@ from ..rest.endpoints import (
     GET_CHANNEL_PINS,
     REMOVE_CHANNEL_PIN,
 )
-from ..snowflake import Snowflake
+from ..snowflake import Snowflake, SnowflakeCouple
 from ..undefined import MaybeUndefined, undefined
 from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..websockets import Shard
-    from .channel_state import SupportsChannelID
 
-__all__ = (
-    'SupportsMessageID',
-    'MessageIDWrapper',
-    'MessageState',
-    'ChannelMessagesView',
-)
-
-SupportsMessageID = typing.Union[Snowflake, str, int, Message]
-MessageIDWrapper = SnowflakeWrapper[SupportsMessageID, Message]
+__all__ = ('MessageState', 'ChannelMessagesView')
 
 
 class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage, Message]):
@@ -114,6 +108,14 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             if flags & CacheFlags.USERS:
                 await self.client.users.upsert_cached(author, flags)
 
+        member = json_get(data, 'member', JSONObject, default=None)
+        if member is not None:
+            if guild_id is not None and flags & CacheFlags.MEMBERS:
+                member['user_id'] = data['author_id']
+                member['guild_id'] = guild_id
+
+                await self.client.members.upsert(member, flags)
+
         timestamp = json_get(data, 'timestamp', str, default=None)
         if timestamp is None:
             data['timestamp'] = message_id.to_datetime().isoformat()
@@ -140,6 +142,11 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         guild_id = undefined.nullify(cached.guild_id)
         author_id = undefined.nullify(cached.author_id)
 
+        if guild_id is not None and author_id is not None:
+            member_id = SnowflakeCouple(guild_id, author_id)
+        else:
+            member_id = None
+
         if cached.flags is not undefined:
             flags = MessageFlags(cached.flags)
         else:
@@ -151,6 +158,7 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             channel=SnowflakeWrapper(cached.channel_id, state=self.client.channels),
             guild=SnowflakeWrapper(guild_id, state=self.client.guilds),
             author=SnowflakeWrapper(author_id, state=self.client.users),
+            member=MemberIDWrapper(member_id, state=self.client.members),
             content=cached.content,
             timestamp=datetime.fromisoformat(cached.timestamp),
             edited_timestamp=emited_timestamp,

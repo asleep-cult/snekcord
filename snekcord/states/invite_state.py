@@ -1,17 +1,10 @@
 import typing
 
 from ..events import InviteEvents
-from ..objects import CachedInvite, CodeWrapper, Invite
+from ..objects import CachedInvite, Invite, SupportsInviteCode
 from .base_state import CachedEventState
 
-__all__ = (
-    'SupportsInviteCode',
-    'InviteCodeWrapper',
-    'InviteState',
-)
-
-SupportsInviteCode = typing.Union[str, Invite]
-InviteCodeWrapper = CodeWrapper[SupportsInviteCode, Invite]
+__all__ = ('InviteState',)
 
 
 class InviteState(CachedEventState[SupportsInviteCode, str, CachedInvite, Invite]):

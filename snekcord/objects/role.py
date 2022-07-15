@@ -7,13 +7,13 @@ import attr
 from ..builders import RoleUpdateBuilder
 from ..cache import CachedModel
 from ..enums import Permissions
-from ..objects import SnowflakeObject
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
 from ..undefined import MaybeUndefined, undefined
+from .base import SnowflakeObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
-    from ..states import GuildIDWrapper
+    from .guild import GuildIDWrapper
 
 
 class CachedRoleTags(typing.TypedDict, total=False):
@@ -75,3 +75,7 @@ class Role(SnowflakeObject):
 
     async def delete(self) -> typing.Optional[Role]:
         return await self.client.roles.delete(self.guild.unwrap_id(), self.id)
+
+
+SupportsRoleID = typing.Union[Snowflake, str, int, Role]
+RoleIDWrapper = SnowflakeWrapper[SupportsRoleID, Role]

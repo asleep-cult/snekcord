@@ -8,13 +8,15 @@ import attr
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
-from .base import SnowflakeObject
+from .base import SnowflakeObject, SnowflakeWrapper
 
 __all__ = (
     'CachedUser',
     'UserFlags',
     'PremiumType',
     'User',
+    'SupportsUserID',
+    'UserIDWrapper',
 )
 
 
@@ -76,3 +78,7 @@ class User(SnowflakeObject):
     flags: UserFlags = attr.ib(repr=False, eq=False)
     premium_type: typing.Optional[typing.Union[PremiumType, int]] = attr.ib(repr=False, eq=False)
     public_flags: UserFlags = attr.ib(repr=False, eq=False)
+
+
+SupportsUserID = typing.Union[Snowflake, str, int, User]
+UserIDWrapper = SnowflakeWrapper[SupportsUserID, User]

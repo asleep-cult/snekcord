@@ -9,17 +9,17 @@ import attr
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
-from .base import SnowflakeObject
+from .base import SnowflakeObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
     from ..states import (
-        ChannelIDWrapper,
         GuildChannelsView,
         GuildEmojisView,
         GuildMembersView,
         GuildRolesView,
-        UserIDWrapper,
     )
+    from .channel import ChannelIDWrapper
+    from .user import UserIDWrapper
 
 __all__ = (
     'CachedGuild',
@@ -35,6 +35,8 @@ __all__ = (
     'GuildPreview',
     'Guild',
     'RESTGuild',
+    'SupportsGuildID',
+    'GuildIDWrapper',
 )
 
 
@@ -209,3 +211,7 @@ class RESTGuild(Guild):
         member_count: typing.Optional[int],
     ) -> RESTGuild:
         return cls(presence_count=presence_count, member_count=member_count, **attr.asdict(guild))
+
+
+SupportsGuildID = typing.Union[Snowflake, str, int, PartialGuild]
+GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]

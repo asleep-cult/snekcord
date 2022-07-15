@@ -21,6 +21,8 @@ from ..objects import (
     Channel,
     ChannelType,
     SnowflakeWrapper,
+    SupportsChannelID,
+    SupportsGuildID,
     TextChannel,
     VoiceChannel,
 )
@@ -37,17 +39,8 @@ from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 if typing.TYPE_CHECKING:
     from ..clients import Client
     from ..websockets import Shard
-    from .guild_state import SupportsGuildID
 
-__all__ = (
-    'SupportsChannelID',
-    'ChannelIDWrapper',
-    'ChannelState',
-    'GuildChannelsView',
-)
-
-SupportsChannelID = typing.Union[Snowflake, str, int, Channel]
-ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, Channel]
+__all__ = ('ChannelState', 'GuildChannelsView')
 
 
 class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, Channel]):
@@ -94,7 +87,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         channels = await client.channnels.for_guild(834890063581020210)
 
         async for channel in channels:
-            print(f'{channel.name} | ID: {channel.id}')
+            print(f'{channel.name}  (ID: {channel.id})')
         ```
         """
         guild_id = self.client.guilds.to_unique(guild)

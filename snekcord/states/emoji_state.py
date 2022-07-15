@@ -5,24 +5,21 @@ import typing
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags
 from ..json import JSONObject, json_get
-from ..objects import CachedCustomEmoji, CustomEmoji, SnowflakeWrapper
+from ..objects import (
+    CachedCustomEmoji,
+    CustomEmoji,
+    SnowflakeWrapper,
+    SupportsEmojiID,
+    SupportsGuildID,
+)
 from ..snowflake import Snowflake
 from ..undefined import undefined
 from .base_state import CachedEventState, CachedStateView
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from .guild_state import SupportsGuildID
 
-__all__ = (
-    'SupportsEmojiID',
-    'EmojiIDWrapper',
-    'EmojiState',
-    'GuildEmojisView',
-)
-
-SupportsEmojiID = typing.Union[Snowflake, str, int, CustomEmoji]
-EmojiIDWrapper = SnowflakeWrapper[SupportsEmojiID, CustomEmoji]
+__all__ = ('EmojiState', 'GuildEmojisView')
 
 
 class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji, CustomEmoji]):

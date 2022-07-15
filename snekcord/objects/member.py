@@ -13,9 +13,11 @@ from .base import BaseObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..states import GuildIDWrapper, MemberState, SupportsMemberID, UserIDWrapper
+    from ..states import MemberState
+    from .guild import GuildIDWrapper, SupportsGuildID
+    from .user import SupportsUserID, UserIDWrapper
 
-__all__ = ('CachedMember', 'Member', 'MemberIDWrapper')
+__all__ = ('CachedMember', 'Member', 'SupportsMemberID', 'MemberIDWrapper')
 
 
 class CachedMember(CachedModel):
@@ -80,3 +82,10 @@ class MemberIDWrapper:
             raise UnknownMemberError(id)
 
         return member
+
+
+SupportsMemberID = typing.Union[
+    SnowflakeCouple,
+    typing.Tuple['SupportsGuildID', 'SupportsUserID'],
+    Member,
+]

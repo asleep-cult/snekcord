@@ -7,12 +7,13 @@ import attr
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
-from .base import SnowflakeObject
+from .base import SnowflakeObject, SnowflakeWrapper
 
 if typing.TYPE_CHECKING:
-    from ..states import GuildIDWrapper, UserIDWrapper  # EmojiRolesView,
+    from .guild import GuildIDWrapper
+    from .user import UserIDWrapper
 
-__all__ = ('CachedCustomEmoji', 'CustomEmoji')
+__all__ = ('CachedCustomEmoji', 'CustomEmoji', 'SupportsEmojiID', 'EmojiIDWrapper')
 
 
 class CachedCustomEmoji(CachedModel):
@@ -55,3 +56,7 @@ class CustomEmoji(SnowflakeObject):
     """A wrapper for the user who created the emoji."""
 
     # roles: EmojiRolesView = attr.ib()
+
+
+SupportsEmojiID = typing.Union[Snowflake, str, int, CustomEmoji]
+EmojiIDWrapper = SnowflakeWrapper[SupportsEmojiID, CustomEmoji]

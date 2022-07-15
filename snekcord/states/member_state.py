@@ -6,17 +6,22 @@ from datetime import datetime
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags
 from ..json import JSONObject, JSONType, json_get
-from ..objects import CachedMember, Member, SnowflakeWrapper
+from ..objects import (
+    CachedMember,
+    Member,
+    SnowflakeWrapper,
+    SupportsGuildID,
+    SupportsMemberID,
+    SupportsUserID,
+)
 from ..snowflake import Snowflake, SnowflakeCouple
 from ..undefined import undefined
 from .base_state import CachedEventState, CachedState
-from .guild_state import SupportsGuildID
-from .user_state import SupportsUserID
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
 
-SupportsMemberID = typing.Union[typing.Tuple[SupportsGuildID, SupportsUserID], SnowflakeCouple]
+__all__ = ('MemberState', 'GuildMembersView')
 
 
 class MemberState(CachedEventState[SupportsMemberID, SnowflakeCouple, CachedMember, Member]):
@@ -40,7 +45,10 @@ class MemberState(CachedEventState[SupportsMemberID, SnowflakeCouple, CachedMemb
 
             return SnowflakeCouple(guild_id, user_id)
 
-        raise TypeError('Expected SnowflakeCouple or tuple')
+        elif isinstance(object, Member):
+            return object.id
+
+        raise TypeError('Expected SnowflakeCouple, tuple, or Member')
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildMembersView:
         guild_id = self.client.guilds.to_unique(guild)
@@ -150,7 +158,7 @@ class GuildMembersView(CachedState[SupportsMemberID, SnowflakeCouple, Member]):
         self, object: typing.Union[SupportsUserID, SupportsMemberID]
     ) -> typing.Optional[Member]:
         id = self.to_unique(object)
-        if id.low not in self.user_ids:
+        if id.high != self.guild_id or id.low not in self.user_ids:
             return None
 
         return await self.state.get(id)

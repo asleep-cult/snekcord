@@ -9,7 +9,7 @@ import attr
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
-from .base import CodeObject
+from .base import CodeObject, CodeWrapper
 
 
 class CachedInvite(CachedModel):
@@ -49,3 +49,7 @@ class Invite(CodeObject):
 class RESTInvite(Invite):
     presence_count: int = attr.ib()
     member_count: int = attr.ib()
+
+
+SupportsInviteCode = typing.Union[str, Invite]
+InviteCodeWrapper = CodeWrapper[SupportsInviteCode, Invite]
