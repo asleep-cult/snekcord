@@ -7,11 +7,10 @@ from signal import Signals
 import asygpy
 from loguru import logger
 
+from ..api import BaseAPI
 from ..auth import Authorization
 from ..enums import WebSocketIntents
-from ..json import json_get
 from ..rest.endpoints import GET_GATEWAY, GET_GATEWAY_BOT
-from ..states import EventState
 from ..websockets.shard_websocket import Shard, ShardCancellationToken
 from .client import Client
 
@@ -39,7 +38,7 @@ class WebSocketClient(Client):
 
         self._shards: typing.Dict[int, Shard] = {}
 
-    def get_event(self, event: str) -> typing.Optional[EventState]:
+    def get_event(self, event: str) -> typing.Optional[BaseAPI]:
         return self.events.get(event)
 
     def get_shard(self, shard_id: int) -> Shard:
@@ -77,12 +76,12 @@ class WebSocketClient(Client):
         notifier.start_notifying()
 
         gateway = await self.fetch_gateway()
-        url = json_get(gateway, 'url', str)
+        url = gateway['url'] + '?v=10'
 
         if self.shard_ids is not None:
             sharded = True
         else:
-            shards = json_get(gateway, 'shards', int, default=1)
+            shards = gateway.get('shards', 1)
 
             sharded = shards > 1
             self.shard_ids = tuple(range(shards))

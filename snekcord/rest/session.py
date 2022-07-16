@@ -48,10 +48,14 @@ class RESTSession:
         return aiohttp.ClientSession(json_serialize=dump_json)
 
     async def request_api(
-        self, endpoint: APIEndpoint, **kwargs: typing.Any
-    ) -> typing.Union[bytes, JSONType]:
+        self,
+        endpoint: APIEndpoint,
+        **kwargs: typing.Any,
+    ) -> typing.Union[JSONType, bytes]:
         if self.session is None:
             self.session = self.create_session()
+
+        kwargs.pop('audit_log_reason', None)
 
         try:
             headers = kwargs.pop('headers')

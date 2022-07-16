@@ -18,6 +18,7 @@ if typing.TYPE_CHECKING:
     from .message import MessageIDWrapper
 
 __all__ = (
+    'SupportsChannelID',
     'CachedChannel',
     'ChannelType',
     'Channel',
@@ -25,9 +26,12 @@ __all__ = (
     'TextChannel',
     'VoiceChannel',
     'CategoryChannel',
-    'SupportsChannelID',
     'ChannelIDWrapper',
 )
+
+ChannelT = typing.TypeVar('ChannelT', bound='Channel')
+
+SupportsChannelID = typing.Union[Snowflake, str, int, 'Channel']
 
 
 class CachedChannel(CachedModel):
@@ -104,6 +108,9 @@ class Channel(SnowflakeObject):
     type: typing.Union[ChannelType, int] = attr.ib(hash=False, repr=True)
     """The type of the channel, may be an :class:`int` if the type is unknown."""
 
+    name: str = attr.ib()
+    """The name of the channel."""
+
     def is_text(self) -> bool:
         """Returns True if the channel's type is GUILD_TEXT."""
         return self.type is ChannelType.GUILD_TEXT
@@ -143,9 +150,6 @@ class GuildChannel(Channel):
 
     guild: GuildIDWrapper = attr.ib()
     """A wrapper for the guild the channel is in."""
-
-    name: str = attr.ib()
-    """The name of the channel."""
 
     position: int = attr.ib()
     """The sorting position of the channel."""
@@ -206,5 +210,27 @@ class CategoryChannel(GuildChannel):
     __slots__ = ()
 
 
-SupportsChannelID = typing.Union[Snowflake, str, int, Channel]
-ChannelIDWrapper = SnowflakeWrapper[SupportsChannelID, Channel]
+class ChannelIDWrapper(SnowflakeWrapper[SupportsChannelID, Channel]):
+    async def unwrap_as(self, type: typing.Type[ChannelT]) -> ChannelT:
+        """Unwrap the channel and enforce a type check on the return value.
+        This is useful when you need a specific channel type.
+
+        Raises
+        ------
+        TypeError
+            Raised when the unwrapped channel is not an instance of the provided type.
+
+        Example
+        -------
+        ```py
+        >>> channel = SnowflakeWrapper(834891949781549056, state=client.channels)
+        >>> await channel.unwrap_as(snekcord.TextChannel)
+        TextChannel(id=834891949781549056, name='github')
+        ```
+        """
+        channel = await self.unwrap()
+
+        if not isinstance(channel, type):
+            raise TypeError(f'Expected channel to be a {type.__name__}')
+
+        return channel

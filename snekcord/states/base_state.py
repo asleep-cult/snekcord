@@ -12,8 +12,6 @@ if typing.TYPE_CHECKING:
     from ..cache import CachedModel
     from ..clients import Client
     from ..events import BaseEvent
-    from ..json import JSONObject
-    from ..websockets import Shard
 else:
     BaseEvent = typing.NewType('BaseEvent', typing.Any)
     CachedModel = typing.NewType('CachedModel', typing.Any)
@@ -29,7 +27,7 @@ UniqueT = typing.TypeVar('UniqueT')
 CachedModelT = typing.TypeVar('CachedModelT', bound=CachedModel)
 ObjectT = typing.TypeVar('ObjectT')
 
-EventT = typing.TypeVar('EventT', bound=BaseEvent)
+EventT = typing.TypeVar('EventT', bound=BaseEvent[typing.Any])
 OnCallbackT = typing.Callable[[EventT], typing.Coroutine[typing.Any, typing.Any, None]]
 OnDecoratorT = typing.Callable[[OnCallbackT[EventT]], OnCallbackT[EventT]]
 
@@ -42,9 +40,6 @@ class EventState:
     def __init__(self, *, client: Client) -> None:
         self.client = client
         self.callbacks = defaultdict(list)
-
-        for event in self.events:
-            self.client.events[event] = self
 
     @property
     def events(self) -> typing.Tuple[str, ...]:
@@ -107,14 +102,9 @@ class EventState:
 
         return decorator
 
-    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
-        raise NotImplementedError
-
-    async def dispatch(self, event: str, shard: Shard, paylaod: JSONObject) -> None:
-        ret = await self.create_event(event, shard, paylaod)
-
-        for callback in self.callbacks[event]:
-            asyncio.create_task(callback(ret))
+    async def dispatch(self, name: str, event: BaseEvent[typing.Any]) -> None:
+        for callback in self.callbacks[name]:
+            asyncio.create_task(callback(event))
 
 
 class CachedState(typing.Generic[SupportsUniqueT, UniqueT, ObjectT]):
@@ -271,7 +261,7 @@ class CachedEventState(
         manually."""
 
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
+        self, data: typing.Any, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedModelT:
         """Add or otherwise update an object in cache.
 
@@ -294,7 +284,7 @@ class CachedEventState(
         """Return an immutable user facing object from a cached model."""
         raise NotImplementedError
 
-    async def upsert(self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
+    async def upsert(self, data: typing.Any, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
         """Add or otherwise update an object in cache. If you do not need the result, consider
         using `snekcord.CachedEventState.upsert_cached` instead.
 

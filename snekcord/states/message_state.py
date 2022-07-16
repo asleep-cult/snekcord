@@ -17,11 +17,10 @@ from ..events import (
 from ..json import JSONObject, JSONType, json_get
 from ..objects import (
     CachedMessage,
-    MemberIDWrapper,
     Message,
     MessageFlags,
+    MessageIDWrapper,
     MessageType,
-    SnowflakeWrapper,
     SupportsChannelID,
     SupportsMessageID,
 )
@@ -69,6 +68,12 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
             return object.id
 
         raise TypeError('Expected Snowflake, str, int, or Message')
+
+    def wrap(self, message: typing.Optional[SupportsMessageID]) -> MessageIDWrapper:
+        if message is not None:
+            message = self.to_unique(message)
+
+        return MessageIDWrapper(state=self, id=message)
 
     async def for_channel(self, channel: SupportsChannelID) -> ChannelMessagesView:
         channel_id = self.client.channels.to_unique(channel)
@@ -155,10 +160,10 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         return Message(
             client=self.client,
             id=Snowflake(cached.id),
-            channel=SnowflakeWrapper(cached.channel_id, state=self.client.channels),
-            guild=SnowflakeWrapper(guild_id, state=self.client.guilds),
-            author=SnowflakeWrapper(author_id, state=self.client.users),
-            member=MemberIDWrapper(member_id, state=self.client.members),
+            channel=self.client.channels.wrap(cached.channel_id),
+            guild=self.client.guilds.wrap(guild_id),
+            author=self.client.users.wrap(author_id),
+            member=self.client.members.wrap(member_id),
             content=cached.content,
             timestamp=datetime.fromisoformat(cached.timestamp),
             edited_timestamp=emited_timestamp,
@@ -325,10 +330,10 @@ class MessageState(CachedEventState[SupportsMessageID, Snowflake, CachedMessage,
         event = MessageEvents(event)
 
         guild_id = json_get(payload, 'guild_id', str, default=None)
-        guild = SnowflakeWrapper(guild_id, state=self.client.guilds)
+        guild = self.client.guilds.wrap(guild_id)
 
         channel_id = json_get(payload, 'channel_id', str)
-        channel = SnowflakeWrapper(channel_id, state=self.client.channels)
+        channel = self.client.channels.wrap(channel_id)
 
         if event is MessageEvents.CREATE:
             message = await self.upsert(payload)

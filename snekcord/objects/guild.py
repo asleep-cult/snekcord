@@ -22,6 +22,7 @@ if typing.TYPE_CHECKING:
     from .user import UserIDWrapper
 
 __all__ = (
+    'SupportsGuildID',
     'CachedGuild',
     'GuildMessageNotificationsLevel',
     'GuildMFALevel',
@@ -35,9 +36,10 @@ __all__ = (
     'GuildPreview',
     'Guild',
     'RESTGuild',
-    'SupportsGuildID',
     'GuildIDWrapper',
 )
+
+SupportsGuildID = typing.Union[Snowflake, str, int, 'PartialGuild']
 
 
 class CachedGuild(CachedModel):
@@ -213,5 +215,4 @@ class RESTGuild(Guild):
         return cls(presence_count=presence_count, member_count=member_count, **attr.asdict(guild))
 
 
-SupportsGuildID = typing.Union[Snowflake, str, int, PartialGuild]
 GuildIDWrapper = SnowflakeWrapper[SupportsGuildID, Guild]

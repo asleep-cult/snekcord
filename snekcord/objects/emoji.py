@@ -35,7 +35,7 @@ class CustomEmoji(SnowflakeObject):
     """Represents a custom emoji within a guild."""
 
     guild: GuildIDWrapper = attr.ib()
-    """The id of the guild the emoji is in."""
+    """A wrapper for the guild the emoji is in."""
 
     name: str = attr.ib()
     """The name of the emoji."""

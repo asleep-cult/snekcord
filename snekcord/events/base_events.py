@@ -6,21 +6,22 @@ import attr
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
-    from ..json import JSONObject
     from ..websockets import Shard
 
 __all__ = ('BaseEvent',)
 
+DataT = typing.TypeVar('DataT', bound=typing.Mapping[str, typing.Any])
+
 
 @attr.s(kw_only=True)
-class BaseEvent:
+class BaseEvent(typing.Generic[DataT]):
     """The base class for all DISPATCH events recieved from Discord's gateway."""
 
     shard: Shard = attr.ib()
     """The shard that received the event."""
 
-    payload: JSONObject = attr.ib()
-    """The payload sent with the event."""
+    data: DataT = attr.ib()
+    """The data sent with the event."""
 
     @property
     def client(self) -> Client:

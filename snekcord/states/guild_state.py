@@ -20,6 +20,7 @@ from ..objects import (
     Guild,
     GuildExplicitContentFilter,
     GuildFeature,
+    GuildIDWrapper,
     GuildMessageNotificationsLevel,
     GuildMFALevel,
     GuildNSFWLevel,
@@ -28,7 +29,6 @@ from ..objects import (
     GuildVerificationLevel,
     PartialGuild,
     RESTGuild,
-    SnowflakeWrapper,
     SupportsGuildID,
 )
 from ..snowflake import Snowflake
@@ -57,6 +57,12 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             return object.id
 
         raise TypeError('Expected Snowflake, str, int, or PartialGuild')
+
+    def wrap(self, guild: typing.Optional[SupportsGuildID]) -> GuildIDWrapper:
+        if guild is not None:
+            guild = self.to_unique(guild)
+
+        return GuildIDWrapper(state=self, id=guild)
 
     async def upsert_cached(
         self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
@@ -131,11 +137,11 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             icon=cached.icon,
             splash=cached.splash,
             discovery_splash=cached.discovery_splash,
-            owner=SnowflakeWrapper(cached.owner_id, state=self.client.users),
-            afk_channel=SnowflakeWrapper(cached.afk_channel_id, state=self.client.channels),
+            owner=self.client.users.wrap(cached.owner_id),
+            afk_channel=self.client.channels.wrap(cached.afk_channel_id),
             afk_timeout=cached.afk_timeout,
             widget_enabled=undefined.nullify(cached.widget_enabled),
-            widget_channel=SnowflakeWrapper(widget_channel_id, state=self.client.channels),
+            widget_channel=self.client.channels.wrap(widget_channel_id),
             verification_level=convert_enum(GuildVerificationLevel, cached.verification_level),
             message_notifications_level=convert_enum(
                 GuildMessageNotificationsLevel, cached.default_message_notifications
@@ -145,7 +151,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             ),
             features=features,
             mfa_level=convert_enum(GuildMFALevel, cached.mfa_level),
-            system_channel=SnowflakeWrapper(cached.system_channel_id, state=self.client.channels),
+            system_channel=self.client.channels.wrap(cached.system_channel_id),
             system_channel_flags=GuildSystemChannelFlags(cached.system_channel_flags),
             joined_at=joined_at,
             max_presences=undefined.nullify(cached.max_presences),
@@ -156,9 +162,7 @@ class GuildState(CachedEventState[SupportsGuildID, Snowflake, CachedGuild, Guild
             premium_tier=convert_enum(GuildPremiumTier, cached.premium_tier),
             premium_subscription_count=undefined.nullify(cached.premium_subscription_count),
             preferred_locale=cached.preferred_locale,
-            public_updates_channel=SnowflakeWrapper(
-                cached.public_updates_channel_id, state=self.client.channels
-            ),
+            public_updates_channel=self.client.channels.wrap(cached.public_updates_channel_id),
             max_video_channel_users=undefined.nullify(cached.max_video_channel_users),
             nsfw_level=convert_enum(GuildNSFWLevel, cached.nsfw_level),
             roles=roles,

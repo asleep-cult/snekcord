@@ -3,34 +3,34 @@ from __future__ import annotations
 import typing
 from datetime import datetime
 
+from ..api import (
+    ChannelAPI,
+    RawChannelCreate,
+    RawChannelDelete,
+    RawChannelPinsUpdate,
+    RawChannelTypes,
+    RawChannelUpdate,
+)
 from ..builders import ChannelCreateBuilder, ChannelPositionsBuilder
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags, convert_enum
 from ..events import (
-    BaseEvent,
     ChannelCreateEvent,
     ChannelDeleteEvent,
     ChannelEvents,
     ChannelPinsUpdateEvent,
     ChannelUpdateEvent,
 )
-from ..json import JSONObject, JSONType, json_get
 from ..objects import (
     CachedChannel,
     CategoryChannel,
     Channel,
+    ChannelIDWrapper,
     ChannelType,
-    SnowflakeWrapper,
     SupportsChannelID,
     SupportsGuildID,
     TextChannel,
     VoiceChannel,
-)
-from ..rest.endpoints import (
-    DELETE_CHANNEL,
-    GET_CHANNEL,
-    GET_GUILD_CHANNELS,
-    TRIGGER_CHANNEL_TYPING,
 )
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
@@ -46,7 +46,11 @@ __all__ = ('ChannelState', 'GuildChannelsView')
 class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel, Channel]):
     def __init__(self, *, client: Client) -> None:
         super().__init__(client=client)
+        self.api = self.create_api()
         self.guild_refstore = self.create_guild_refstore()
+
+    def create_api(self) -> ChannelAPI:
+        return ChannelAPI(client=self.client)
 
     def create_guild_refstore(self) -> RefStore[Snowflake, Snowflake]:
         return SnowflakeMemoryRefStore()
@@ -66,6 +70,12 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
             return object.id
 
         raise TypeError('Expected Snowflake, str, int, or BaseChannel')
+
+    def wrap(self, channel: typing.Optional[SupportsChannelID]) -> ChannelIDWrapper:
+        if channel is not None:
+            channel = self.to_unique(channel)
+
+        return ChannelIDWrapper(state=self, id=channel)
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildChannelsView:
         """Create a cache view for a specific guild. If you have a guild object
@@ -95,19 +105,12 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         channels = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_channels_view(channels, guild_id)
 
-    def inject_metadata(self, data: JSONType, guild_id: Snowflake) -> JSONObject:
-        if not isinstance(data, dict):
-            raise TypeError('data should be a JSON object')
-
-        return dict(data, guild_id=guild_id)
-
     async def upsert_cached(
-        self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
+        self, data: RawChannelTypes, flags: CacheFlags = CacheFlags.ALL
     ) -> CachedChannel:
-        channel_id = Snowflake.into(data, 'id')
-        assert channel_id is not None
+        channel_id = data['id']
 
-        guild_id = Snowflake.into(data, 'guild_id')
+        guild_id = data.get('guild_id')
         if guild_id is not None and flags & CacheFlags.GUILDS:
             await self.guild_refstore.add(guild_id, channel_id)
 
@@ -126,7 +129,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         return cached
 
     async def from_cached(self, cached: CachedChannel) -> Channel:
-        cached.id = Snowflake(cached.id)
         type = convert_enum(ChannelType, cached.type)
 
         if type is ChannelType.GUILD_CATEGORY:
@@ -140,7 +142,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 client=self.client,
                 id=cached.id,
                 type=type,
-                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+                guild=self.client.guilds.wrap(cached.guild_id),
                 name=cached.name,
                 position=cached.position,
             )
@@ -166,13 +168,13 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 client=self.client,
                 id=cached.id,
                 type=type,
-                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
-                parent=SnowflakeWrapper(parent_id, state=self.client.channels),
+                guild=self.client.guilds.wrap(cached.guild_id),
+                parent=self.client.channels.wrap(parent_id),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw if cached.nsfw is not undefined else False,
                 rate_limit_per_user=cached.rate_limit_per_user,
-                last_message=SnowflakeWrapper(cached.last_message_id, state=self.client.messages),
+                last_message=self.client.messages.wrap(cached.last_message_id),
                 last_pin_timestamp=last_pin_timestamp,
                 messages=messages,
             )
@@ -193,8 +195,8 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 client=self.client,
                 id=cached.id,
                 type=type,
-                guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
-                parent=SnowflakeWrapper(parent_id, state=self.client.channels),
+                guild=self.client.guilds.wrap(cached.guild_id),
+                parent=self.client.channels.wrap(parent_id),
                 name=cached.name,
                 position=cached.position,
                 nsfw=cached.nsfw if cached.nsfw is not undefined else False,
@@ -203,33 +205,28 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
                 rtc_region=cached.rtc_region,
             )
 
-        return Channel(client=self.client, id=cached.id, type=type)
+        assert cached.name is not undefined
+        return Channel(client=self.client, id=cached.id, type=type, name=cached.name)
 
     async def remove_refs(self, object: CachedChannel) -> None:
         if object.guild_id is not undefined:
             await self.guild_refstore.remove(object.guild_id, object.id)
 
     async def trigger_typing(self, channel: SupportsChannelID) -> None:
-        await self.client.rest.request_api(
-            TRIGGER_CHANNEL_TYPING, channel_id=self.client.channels.to_unique(channel)
-        )
+        channel_id = self.to_unique(channel)
+        await self.api.trigger_channel_typing(channel_id)
 
     async def fetch(self, channel: SupportsChannelID) -> Channel:
         channel_id = self.to_unique(channel)
 
-        data = await self.client.rest.request_api(GET_CHANNEL, channel_id=channel_id)
-        assert isinstance(data, dict)
-
-        return await self.upsert(self.inject_metadata(data, channel_id))
+        data = await self.api.get_channel(channel_id)
+        return await self.upsert(data)
 
     async def fetch_all(self, guild: SupportsGuildID) -> typing.List[Channel]:
         guild_id = self.client.guilds.to_unique(guild)
 
-        data = await self.client.rest.request_api(GET_GUILD_CHANNELS, guild_id=guild_id)
-        assert isinstance(data, list)
-
-        iterator = (self.inject_metadata(channel, guild_id) for channel in data)
-        return [await self.upsert(channel) for channel in iterator]
+        channels = await self.api.get_guild_channels(guild_id)
+        return [await self.upsert(channel) for channel in channels]
 
     def create(
         self,
@@ -269,7 +266,7 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     async def delete(self, channel: SupportsChannelID) -> typing.Optional[Channel]:
         channel_id = self.client.channels.to_unique(channel)
 
-        await self.client.rest.request_api(DELETE_CHANNEL, channel_id=channel_id)
+        await self.api.delete_channel(channel_id)
         return await self.drop(channel_id)
 
     def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
@@ -284,34 +281,17 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
     def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
         return self.on(ChannelEvents.PINS_UPDATE)
 
-    async def create_event(self, event: str, shard: Shard, payload: JSONObject) -> BaseEvent:
-        event = ChannelEvents(event)
+    async def channel_created(self, shard: Shard, data: RawChannelCreate) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
 
-        guild_id = json_get(payload, 'guild_id', str, default=None)
-        guild = SnowflakeWrapper(guild_id, state=self.client.guilds)
+    async def channel_updated(self, shard: Shard, data: RawChannelUpdate) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
 
-        if event is ChannelEvents.CREATE:
-            channel = await self.upsert(payload)
-            return ChannelCreateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
+    async def channel_deleted(self, shard: Shard, data: RawChannelDelete) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
 
-        elif event is ChannelEvents.UPDATE:
-            channel = await self.upsert(payload)
-            return ChannelUpdateEvent(shard=shard, payload=payload, guild=guild, channel=channel)
-
-        elif event is ChannelEvents.DELETE:
-            channel = await self.drop(json_get(payload, 'id', str))
-            return ChannelDeleteEvent(shard=shard, payload=payload, guild=guild, channel=channel)
-
-        elif event is ChannelEvents.PINS_UPDATE:
-            channel = await self.get(json_get(payload, 'channel_id', str))
-
-            timestamp = json_get(payload, 'timestamp', typing.Optional[str])
-            if timestamp is not None:
-                timestamp = datetime.fromisoformat(timestamp)
-
-            return ChannelPinsUpdateEvent(
-                shard=shard, payload=payload, guild=guild, channel=channel, timestamp=timestamp
-            )
+    async def channel_pins_updated(self, shard: Shard, data: RawChannelPinsUpdate) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
 
 
 class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, Channel]):

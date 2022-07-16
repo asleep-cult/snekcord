@@ -9,7 +9,7 @@ from ..json import JSONObject, JSONType, json_get
 from ..objects import (
     CachedMember,
     Member,
-    SnowflakeWrapper,
+    MemberIDWrapper,
     SupportsGuildID,
     SupportsMemberID,
     SupportsUserID,
@@ -49,6 +49,15 @@ class MemberState(CachedEventState[SupportsMemberID, SnowflakeCouple, CachedMemb
             return object.id
 
         raise TypeError('Expected SnowflakeCouple, tuple, or Member')
+
+    def wrap(self, member: typing.Optional[SupportsMemberID]) -> MemberIDWrapper:
+        if member is not None:
+            member = self.to_unique(member)
+
+        guild = self.client.guilds.wrap(member.high if member is not None else None)
+        user = self.client.users.wrap(member.low if member is not None else None)
+
+        return MemberIDWrapper(state=self, id=member, guild=guild, user=user)
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildMembersView:
         guild_id = self.client.guilds.to_unique(guild)
@@ -108,8 +117,8 @@ class MemberState(CachedEventState[SupportsMemberID, SnowflakeCouple, CachedMemb
         return Member(
             client=self.client,
             id=SnowflakeCouple(cached.guild_id, cached.user_id),
-            guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
-            user=SnowflakeWrapper(cached.user_id, state=self.client.users),
+            guild=self.client.guilds.wrap(cached.guild_id),
+            user=self.client.users.wrap(cached.user_id),
             nick=undefined.nullify(cached.nick),
             avatar=undefined.nullify(cached.avatar),
             joined_at=datetime.fromisoformat(cached.joined_at),

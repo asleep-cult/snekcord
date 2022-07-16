@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typing
 
+from ..api import BaseAPI
 from ..auth import Authorization
 from ..objects import (
     SupportsChannelID,
@@ -16,7 +17,6 @@ from ..states import (
     ChannelMessagesView,
     ChannelState,
     EmojiState,
-    EventState,
     GuildChannelsView,
     GuildEmojisView,
     GuildMembersView,
@@ -39,7 +39,7 @@ class Client:
         else:
             self.authorization = Authorization.parse(authorization)
 
-        self.events: typing.Dict[str, EventState] = {}
+        self.events: typing.Dict[str, BaseAPI] = {}
 
         self.rest = RESTSession(authorization=self.authorization)
 

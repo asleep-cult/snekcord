@@ -3,15 +3,28 @@ from __future__ import annotations
 import typing
 from http import HTTPStatus
 
-from .json import JSONObject, JSONType, json_get
-from .snowflake import Snowflake
+from .json import JSONObject, JSONType
+from .snowflake import Snowflake, SnowflakeCouple
 
 if typing.TYPE_CHECKING:
     import aiohttp
 
     from .rest import RESTSession
-    from .states import MemberID
     from .websockets import Shard
+
+
+class UnsupportedDataError(Exception):
+    def __init__(
+        self,
+        session: RESTSession,
+        data: typing.Optional[typing.Union[JSONType, bytes]],
+    ) -> None:
+        self.session = session
+        self.data = data
+
+    def __repr__(self) -> str:
+        name = self.data.__class__.__name__
+        return f'[Unsupported Data ({name!r})]: {self.data!r}'
 
 
 class IncompleteDataError(Exception):
@@ -40,7 +53,7 @@ class UnknownCodeError(Exception):
 
 
 class UnknownMemberError(Exception):
-    def __init__(self, id: MemberID) -> None:
+    def __init__(self, id: SnowflakeCouple) -> None:
         self.id = id
 
     def __str__(self) -> str:
@@ -133,21 +146,21 @@ class RESTError(Exception):
 
         return f'\n{message} ({code})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         string = f'[{self.method} {self.url} => {self.status} {self.status.phrase}]'
 
         if isinstance(self.data, dict):
             if 'errors' in self.data:
-                errors = json_get(self.data, 'errors', JSONObject)
+                errors: JSONObject = self.data['errors']
                 stack: typing.List[typing.Tuple[typing.Tuple[str, ...], JSONObject]] = []
 
                 for key in errors:
                     if key == '_errors':
-                        values = json_get(errors, '_errors', typing.List[JSONObject])
+                        values: typing.List[JSONObject] = errors['_errors']
                         for error in values:
                             string += self.format_error(error)
                     else:
-                        value = json_get(errors, key, JSONObject)
+                        value = errors[key]
                         stack.append(((key,), value))
 
                 while stack:
@@ -155,11 +168,11 @@ class RESTError(Exception):
 
                     for key in errors:
                         if key == '_errors':
-                            values = json_get(errors, '_errors', typing.List[JSONObject])
+                            values: typing.List[JSONObject] = errors['_errors']
                             for error in values:
                                 string += self.format_error(error)
                         else:
-                            value = json_get(errors, key, JSONObject)
+                            value = errors[key]
                             stack.append((keys + (key,), value))
 
         return string

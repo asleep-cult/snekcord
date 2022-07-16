@@ -5,13 +5,18 @@ import typing
 
 import attr
 
+from ..api import (
+    RawChannelCreate,
+    RawChannelDelete,
+    RawChannelPinsUpdate,
+    RawChannelUpdate,
+)
 from .base_events import BaseEvent
 
 if typing.TYPE_CHECKING:
     from datetime import datetime
 
-    from ..objects import Channel
-    from ..states import GuildIDWrapper
+    from ..objects import Channel, GuildIDWrapper
 
 __all__ = (
     'ChannelEvents',
@@ -31,25 +36,25 @@ class ChannelEvents(str, enum.Enum):
 
 
 @attr.s(kw_only=True)
-class ChannelCreateEvent(BaseEvent):
+class ChannelCreateEvent(BaseEvent[RawChannelCreate]):
     guild: GuildIDWrapper = attr.ib()
     channel: Channel = attr.ib()
 
 
 @attr.s(kw_only=True)
-class ChannelUpdateEvent(BaseEvent):
+class ChannelUpdateEvent(BaseEvent[RawChannelUpdate]):
     guild: GuildIDWrapper = attr.ib()
     channel: Channel = attr.ib()
 
 
 @attr.s(kw_only=True)
-class ChannelDeleteEvent(BaseEvent):
+class ChannelDeleteEvent(BaseEvent[RawChannelDelete]):
     guild: GuildIDWrapper = attr.ib()
     channel: typing.Optional[Channel] = attr.ib()
 
 
 @attr.s(kw_only=True)
-class ChannelPinsUpdateEvent(BaseEvent):
+class ChannelPinsUpdateEvent(BaseEvent[RawChannelPinsUpdate]):
     guild: GuildIDWrapper = attr.ib()
     channel: typing.Optional[Channel] = attr.ib()
     timestamp: typing.Optional[datetime] = attr.ib()

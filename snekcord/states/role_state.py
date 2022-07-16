@@ -6,13 +6,7 @@ from ..builders import RoleCreateBuilder, RolePositionsBuilder, RoleUpdateBuilde
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags, Permissions
 from ..events import RoleEvents
-from ..objects import (
-    CachedRole,
-    Role,
-    SnowflakeWrapper,
-    SupportsGuildID,
-    SupportsRoleID,
-)
+from ..objects import CachedRole, Role, RoleIDWrapper, SupportsGuildID, SupportsRoleID
 from ..rest.endpoints import DELETE_GUILD_ROLE, GET_GUILD_ROLES
 from ..snowflake import Snowflake
 from ..streams import SupportsStream
@@ -49,6 +43,12 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
             return object.id
 
         raise TypeError('Expected Snowflake, str, int, or Role')
+
+    def wrap(self, role: typing.Optional[SupportsRoleID]) -> RoleIDWrapper:
+        if role is not None:
+            role = self.to_unique(role)
+
+        return RoleIDWrapper(state=self, id=role)
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildRolesView:
         guild_id = self.client.guilds.to_unique(guild)
@@ -90,7 +90,7 @@ class RoleState(CachedEventState[SupportsRoleID, Snowflake, CachedRole, Role]):
         return Role(
             client=self.client,
             id=cached.id,
-            guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+            guild=self.client.guilds.wrap(cached.guild_id),
             name=cached.name,
             color=cached.color,
             hoist=cached.hoist,

@@ -17,7 +17,7 @@ from ..exceptions import (
     PendingCancellationError,
     ShardCloseError,
 )
-from ..json import JSONObject, dump_json, json_get, load_json
+from ..json import JSONObject, dump_json, load_json
 
 if typing.TYPE_CHECKING:
     from ..clients import WebSocketClient
@@ -555,9 +555,9 @@ class Shard:
             else:
                 self.state.remove_guild_status(guild_id)
 
-        state = self.client.get_event(event)
-        if state is not None:
-            await state.dispatch(event, self, data)
+        api = self.client.get_event(event)
+        if api is not None:
+            await api.event_received(event, self, data)
         else:
             logger.debug(f'WebSocket received unhandled event {event!r}')
 

@@ -46,21 +46,15 @@ class CodeObject(BaseObject):
     code: str = attr.field(repr=True, eq=True, hash=True)
 
 
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a Snowflake allowing for retrieval of the
     underlying object from its respective cache."""
 
-    def __init__(
-        self,
-        id: typing.Optional[SupportsUniqueT] = None,
-        *,
-        state: CachedState[SupportsUniqueT, Snowflake, ObjectT],
-    ) -> None:
-        self.state = state
-        self.id = self.state.to_unique(id) if id is not None else None
-
-    def __repr__(self) -> str:
-        return f'SnowflakeWrapper(id={self.id})'
+    state: CachedState[SupportsUniqueT, Snowflake, ObjectT] = attr.ib(
+        eq=False, hash=False, repr=False
+    )
+    id: typing.Optional[Snowflake] = attr.ib(eq=True, hash=True, repr=True)
 
     @property
     def client(self) -> Client:
@@ -87,14 +81,6 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
             The wrapper is empty (the id is None.)
         UnknownSnowflakeError
             The object is not in cache or it does not exist.
-
-        Example
-        -------
-        ```py
-        >>> user = SnowflakeWrapper(506618674921340958, state=client.users)
-        >>> await user.unwrap()
-        User(id=506618674921340958, name='ToxicKidz', discriminator='4376')
-        ```
         """
         id = self.unwrap_id()
 
@@ -104,45 +90,14 @@ class SnowflakeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
 
         return object
 
-    async def unwrap_as(self, type: typing.Type[TypeT]) -> TypeT:
-        """Unwrap the object and enforce a type check on the return value.
-        This is useful for states the can create multiple different types.
 
-        Raises
-        ------
-        TypeError
-            Raised when the unwrapped object does not match the provided type.
-
-        Example
-        -------
-        ```py
-        >>> channel = SnowflakeWrapper(834891949781549056, state=client.channels)
-        >>> await channel.unwrap_as(snekcord.TextChannel)
-        TextChannel(id=834891949781549056, name='github')
-        """
-        object = await self.unwrap()
-
-        if not isinstance(object, type):
-            raise TypeError(f'Expected {type.__name__!r} for {object.__class__.__name__}')
-
-        return object
-
-
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
     """A wrapper for a code allowing for retrieval of the
     underlying object from its respective cache."""
 
-    def __init__(
-        self,
-        code: typing.Optional[SupportsUniqueT] = None,
-        *,
-        state: CachedState[SupportsUniqueT, str, ObjectT],
-    ) -> None:
-        self.state = state
-        self.code = self.state.to_unique(code) if code is not None else None
-
-    def __repr__(self) -> str:
-        return f'CodeWrapper(code={self.code!r})'
+    state: CachedState[SupportsUniqueT, str, ObjectT] = attr.ib(eq=False, hash=False, repr=False)
+    code: typing.Optional[str] = attr.ib(eq=True, hash=True, repr=True)
 
     @property
     def client(self) -> Client:
@@ -183,15 +138,5 @@ class CodeWrapper(typing.Generic[SupportsUniqueT, ObjectT]):
         object = await self.state.get(code)
         if object is None:
             raise UnknownCodeError(code)
-
-        return object
-
-    async def unwrap_as(self, type: typing.Type[TypeT]) -> TypeT:
-        """Unwrap the object and enforce a type check on the return value.
-        This is useful for states the can create multiple different types."""
-        object = await self.unwrap()
-
-        if not isinstance(object, type):
-            raise TypeError(f'Expected {type.__name__!r} for {object.__class__.__name__}')
 
         return object

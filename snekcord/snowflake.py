@@ -7,8 +7,6 @@ from datetime import datetime
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-    from .json import JSONObject
-
 __all__ = ('Snowflake', 'SnowflakeCouple')
 
 _SNOWFLAKE_EPOCH = 1420070400000
@@ -45,17 +43,6 @@ class Snowflake(int):
             | (process_id << _PROCESS_ID_SHIFT)
             | increment
         )
-
-    @classmethod
-    def into(cls, data: JSONObject, key: str) -> typing.Optional[Self]:
-        value = data.get(key)
-        if value is None:
-            return None
-
-        assert isinstance(value, (str, int))
-        value = data[key] = cls(value)
-
-        return value
 
     @property
     def timestamp(self) -> float:

@@ -8,7 +8,7 @@ from ..json import JSONObject, json_get
 from ..objects import (
     CachedCustomEmoji,
     CustomEmoji,
-    SnowflakeWrapper,
+    EmojiIDWrapper,
     SupportsEmojiID,
     SupportsGuildID,
 )
@@ -41,6 +41,12 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
             return object.id
 
         raise TypeError('Expected Snowflake, str, int, or CustomEmoji')
+
+    def wrap(self, emoji: typing.Optional[SupportsEmojiID]) -> EmojiIDWrapper:
+        if emoji is not None:
+            emoji = self.to_unique(emoji)
+
+        return EmojiIDWrapper(state=self, id=emoji)
 
     async def for_guild(self, guild: SupportsGuildID) -> GuildEmojisView:
         guild_id = self.client.guilds.to_unique(guild)
@@ -85,13 +91,13 @@ class EmojiState(CachedEventState[SupportsEmojiID, Snowflake, CachedCustomEmoji,
         return CustomEmoji(
             client=self.client,
             id=Snowflake(cached.id),
-            guild=SnowflakeWrapper(cached.guild_id, state=self.client.guilds),
+            guild=self.client.guilds.wrap(cached.guild_id),
             name=cached.name,
             require_colons=cached.require_colons,
             managed=cached.managed,
             animated=cached.animated,
             available=cached.available,
-            user=SnowflakeWrapper(user_id, state=self.client.users),
+            user=self.client.users.wrap(user_id),
             # roles=self.client.create_emoji_roles_view(cached.role_ids),
         )
 

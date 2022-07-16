@@ -9,7 +9,7 @@ from ..cache import CachedModel
 from ..exceptions import UnknownMemberError
 from ..snowflake import Snowflake, SnowflakeCouple
 from ..undefined import MaybeUndefined
-from .base import BaseObject, SnowflakeWrapper
+from .base import BaseObject
 
 if typing.TYPE_CHECKING:
     from ..clients import Client
@@ -17,7 +17,16 @@ if typing.TYPE_CHECKING:
     from .guild import GuildIDWrapper, SupportsGuildID
     from .user import SupportsUserID, UserIDWrapper
 
-__all__ = ('CachedMember', 'Member', 'SupportsMemberID', 'MemberIDWrapper')
+__all__ = (
+    'SupportsMemberID',
+    'CachedMember',
+    'Member',
+    'MemberIDWrapper',
+)
+
+SupportsMemberID = typing.Union[
+    SnowflakeCouple, typing.Tuple['SupportsGuildID', 'SupportsUserID'], 'Member'
+]
 
 
 class CachedMember(CachedModel):
@@ -50,19 +59,12 @@ class Member(BaseObject):
     communication_disabled_until: typing.Optional[int] = attr.ib()
 
 
+@attr.s(kw_only=True, slots=True, eq=True, hash=True)
 class MemberIDWrapper:
-    def __init__(self, id: typing.Optional[SupportsMemberID] = None, *, state: MemberState) -> None:
-        self.state = state
-        self.id = self.state.to_unique(id) if id is not None else None
-
-        self.guild = SnowflakeWrapper(state=self.client.guilds)
-        self.user = SnowflakeWrapper(state=self.client.users)
-
-        if self.id is not None:
-            self.guild.id, self.user.id = self.id.high, self.id.low
-
-    def __repr__(self) -> str:
-        return f'MemberIDWrapper(id={self.id!r})'
+    state: MemberState = attr.ib(eq=False, hash=False, repr=False)
+    id: typing.Optional[SnowflakeCouple] = attr.ib(eq=True, hash=True, repr=False)
+    guild: GuildIDWrapper = attr.ib(eq=False, hash=False, repr=True)
+    user: UserIDWrapper = attr.ib(eq=False, hash=False, repr=True)
 
     @property
     def client(self) -> Client:
@@ -82,10 +84,3 @@ class MemberIDWrapper:
             raise UnknownMemberError(id)
 
         return member
-
-
-SupportsMemberID = typing.Union[
-    SnowflakeCouple,
-    typing.Tuple['SupportsGuildID', 'SupportsUserID'],
-    Member,
-]

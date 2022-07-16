@@ -3,7 +3,14 @@ from __future__ import annotations
 import typing
 
 from ..enums import CacheFlags, convert_enum
-from ..objects import CachedUser, PremiumType, SupportsUserID, User, UserFlags
+from ..objects import (
+    CachedUser,
+    PremiumType,
+    SupportsUserID,
+    User,
+    UserFlags,
+    UserIDWrapper,
+)
 from ..snowflake import Snowflake
 from ..undefined import undefined
 from .base_state import CachedEventState
@@ -26,6 +33,12 @@ class UserState(CachedEventState[SupportsUserID, Snowflake, CachedUser, User]):
             return object.id
 
         raise TypeError('Expected, Snowflake, str, int, or User')
+
+    def wrap(self, user: typing.Optional[SupportsUserID]) -> UserIDWrapper:
+        if user is not None:
+            user = self.to_unique(user)
+
+        return UserIDWrapper(state=self, id=user)
 
     async def upsert_cached(
         self, data: JSONObject, flags: CacheFlags = CacheFlags.ALL
