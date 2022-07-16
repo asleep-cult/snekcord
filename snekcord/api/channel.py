@@ -6,6 +6,7 @@ import typing
 from ..enums import convert_enum
 from ..exceptions import UnsupportedDataError
 from ..rest.endpoints import (
+    CREATE_GUILD_CHANNEL,
     DELETE_CHANNEL,
     GET_CHANNEL,
     GET_GUILD_CHANNELS,
@@ -267,6 +268,22 @@ class ChannelAPI(BaseAPI):
             raise UnsupportedDataError(self.client.rest, channels)
 
         return [self.sanitize_channel(channel, guild_id=guild_id) for channel in channels]
+
+    async def create_guild_channel(
+        self,
+        guild_id: Snowflake,
+        json: JSONObject,
+        *,
+        autit_log_reason: typing.Optional[str] = None,
+    ) -> RawChannelTypes:
+        data = await self.request_api(
+            CREATE_GUILD_CHANNEL, guild_id=guild_id, json=json, autit_log_reason=autit_log_reason
+        )
+
+        if not isinstance(data, dict):
+            raise UnsupportedDataError(self.client.rest, data)
+
+        return self.sanitize_channel(data, guild_id=guild_id)
 
     async def update_channel(
         self,

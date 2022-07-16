@@ -4,18 +4,30 @@ import typing
 
 import attr
 
-from ..rest.endpoints import CREATE_GUILD_CHANNEL, UPDATE_GUILD_CHANNEL_POSITIONS
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined, undefined
 from .base_builders import AwaitableBuilder, setter
 
 if typing.TYPE_CHECKING:
+    from typing_extensions import NotRequired
+
     from ..clients import Client
     from ..json import JSONObject
-    from ..objects import Channel, ChannelType
-    from ..states import SupportsChannelID
+    from ..objects import Channel, ChannelType, SupportsChannelID
 
-__all__ = ('ChannelCreateBuilder', 'ChannelPositionsBuilder')
+__all__ = ('ChannelCreateSetters', 'ChannelCreateBuilder', 'ChannelPositionsBuilder')
+
+
+class ChannelCreateSetters(typing.TypedDict):
+    name: NotRequired[str]
+    type: NotRequired[ChannelType]
+    topic: NotRequired[str]
+    bitrate: NotRequired[int]
+    user_limit: NotRequired[int]
+    rate_limit_per_user: NotRequired[int]
+    position: NotRequired[int]
+    parent: NotRequired[SupportsChannelID]
+    nsfw: NotRequired[bool]
 
 
 @attr.s(kw_only=True)
@@ -66,14 +78,8 @@ class ChannelCreateBuilder(AwaitableBuilder):
         self.data['nsfw'] = bool(nsfw)
 
     async def action(self) -> Channel:
-        data = await self.client.rest.request_api(
-            CREATE_GUILD_CHANNEL, guild_id=self.guild_id, json=self.data
-        )
-        assert isinstance(data, dict)
-
-        return await self.client.channels.upsert(
-            self.client.channels.inject_metadata(data, self.guild_id)
-        )
+        data = await self.client.channels.api.create_guild_channel(self.guild_id, self.data)
+        return await self.client.channels.upsert(data)
 
 
 @attr.s(kw_only=True)
@@ -118,6 +124,6 @@ class ChannelPositionsBuilder(AwaitableBuilder):
         self.channels.append(data)
 
     async def action(self) -> None:
-        await self.client.rest.request_api(
-            UPDATE_GUILD_CHANNEL_POSITIONS, guild_id=self.guild_id, json=self.channels
+        await self.client.channels.api.update_channel_positions(
+            guild_id=self.guild_id, json=self.channels
         )

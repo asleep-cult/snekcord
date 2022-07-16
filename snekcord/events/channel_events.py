@@ -16,7 +16,8 @@ from .base_events import BaseEvent
 if typing.TYPE_CHECKING:
     from datetime import datetime
 
-    from ..objects import Channel, GuildIDWrapper
+    from ..objects import Channel, ChannelIDWrapper, GuildIDWrapper
+    from ..undefined import MaybeUndefined
 
 __all__ = (
     'ChannelEvents',
@@ -56,5 +57,5 @@ class ChannelDeleteEvent(BaseEvent[RawChannelDelete]):
 @attr.s(kw_only=True)
 class ChannelPinsUpdateEvent(BaseEvent[RawChannelPinsUpdate]):
     guild: GuildIDWrapper = attr.ib()
-    channel: typing.Optional[Channel] = attr.ib()
-    timestamp: typing.Optional[datetime] = attr.ib()
+    channel: ChannelIDWrapper = attr.ib()
+    timestamp: MaybeUndefined[typing.Optional[datetime]] = attr.ib()

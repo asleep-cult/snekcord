@@ -255,10 +255,25 @@ class CachedEventState(
         await self.remove_refs(cached)
         return await self.from_cached(cached)
 
-    async def remove_refs(self, object: CachedModelT) -> None:
-        """Remove any references to object from the corresponding ref-stores.
-        This is called as part of the drop routine and should not be called
-        manually."""
+    async def upsert(self, data: typing.Any, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
+        """Add or otherwise update an object in cache. If you do not need the result, consider
+        using `snekcord.CachedEventState.upsert_cached` instead.
+
+        Parameters
+        ----------
+        data: JSONObject
+            The data to update the object with.
+        flags: CacheFlags
+            The flags determining which objects to add to cache.
+            This should be passed down to other upsert functions.
+
+        Returns
+        -------
+        CachedModelT
+            A user facing version of the object in cache.
+        """
+        cached = await self.upsert_cached(data, flags)
+        return await self.from_cached(cached)
 
     async def upsert_cached(
         self, data: typing.Any, flags: CacheFlags = CacheFlags.ALL
@@ -284,25 +299,10 @@ class CachedEventState(
         """Return an immutable user facing object from a cached model."""
         raise NotImplementedError
 
-    async def upsert(self, data: typing.Any, flags: CacheFlags = CacheFlags.ALL) -> ObjectT:
-        """Add or otherwise update an object in cache. If you do not need the result, consider
-        using `snekcord.CachedEventState.upsert_cached` instead.
-
-        Parameters
-        ----------
-        data: JSONObject
-            The data to update the object with.
-        flags: CacheFlags
-            The flags determining which objects to add to cache.
-            This should be passed down to other upsert functions.
-
-        Returns
-        -------
-        CachedModelT
-            A user facing version of the object in cache.
-        """
-        cached = await self.upsert_cached(data, flags)
-        return await self.from_cached(cached)
+    async def remove_refs(self, object: CachedModelT) -> None:
+        """Remove any references to object from the corresponding ref-stores.
+        This is called as part of the drop routine and should not be called
+        manually."""
 
 
 class CachedStateView(CachedState[SupportsUniqueT, UniqueT, ObjectT]):

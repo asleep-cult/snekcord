@@ -11,7 +11,11 @@ from ..api import (
     RawChannelTypes,
     RawChannelUpdate,
 )
-from ..builders import ChannelCreateBuilder, ChannelPositionsBuilder
+from ..builders import (
+    ChannelCreateBuilder,
+    ChannelCreateSetters,
+    ChannelPositionsBuilder,
+)
 from ..cache import RefStore, SnowflakeMemoryRefStore
 from ..enums import CacheFlags, convert_enum
 from ..events import (
@@ -33,10 +37,12 @@ from ..objects import (
     VoiceChannel,
 )
 from ..snowflake import Snowflake
-from ..undefined import MaybeUndefined, undefined
+from ..undefined import undefined
 from .base_state import CachedEventState, CachedStateView, OnDecoratorT
 
 if typing.TYPE_CHECKING:
+    from typing_extensions import Unpack
+
     from ..clients import Client
     from ..websockets import Shard
 
@@ -104,6 +110,89 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
 
         channels = await self.guild_refstore.get(guild_id)
         return self.client.create_guild_channels_view(channels, guild_id)
+
+    async def fetch(self, channel: SupportsChannelID) -> Channel:
+        channel_id = self.to_unique(channel)
+
+        data = await self.api.get_channel(channel_id)
+        return await self.upsert(data)
+
+    async def fetch_all(self, guild: SupportsGuildID) -> typing.List[Channel]:
+        guild_id = self.client.guilds.to_unique(guild)
+
+        channels = await self.api.get_guild_channels(guild_id)
+        return [await self.upsert(channel) for channel in channels]
+
+    def create(
+        self, guild: SupportsGuildID, **kwargs: Unpack[ChannelCreateSetters]
+    ) -> ChannelCreateBuilder:
+        builder = ChannelCreateBuilder(
+            client=self.client, guild_id=self.client.guilds.to_unique(guild)
+        )
+        return builder.setters(**kwargs)
+
+    def update_positions(self, guild: SupportsGuildID) -> ChannelPositionsBuilder:
+        return ChannelPositionsBuilder(
+            client=self.client, guild_id=self.client.guilds.to_unique(guild)
+        )
+
+    async def delete(self, channel: SupportsChannelID) -> typing.Optional[Channel]:
+        channel_id = self.client.channels.to_unique(channel)
+
+        await self.api.delete_channel(channel_id)
+        return await self.drop(channel_id)
+
+    async def trigger_typing(self, channel: SupportsChannelID) -> None:
+        channel_id = self.to_unique(channel)
+        await self.api.trigger_channel_typing(channel_id)
+
+    def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
+        return self.on(ChannelEvents.CREATE)
+
+    def on_update(self) -> OnDecoratorT[ChannelUpdateEvent]:
+        return self.on(ChannelEvents.UPDATE)
+
+    def on_delete(self) -> OnDecoratorT[ChannelDeleteEvent]:
+        return self.on(ChannelEvents.DELETE)
+
+    def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
+        return self.on(ChannelEvents.PINS_UPDATE)
+
+    async def channel_created(self, shard: Shard, data: RawChannelCreate) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
+        channel = await self.upsert(data)
+
+        event = ChannelCreateEvent(shard=shard, data=data, guild=guild, channel=channel)
+        await self.dispatch(ChannelEvents.CREATE, event)
+
+    async def channel_updated(self, shard: Shard, data: RawChannelUpdate) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
+        channel = await self.upsert(data)
+
+        event = ChannelCreateEvent(shard=shard, data=data, guild=guild, channel=channel)
+        await self.dispatch(ChannelEvents.UPDATE, event)
+
+    async def channel_deleted(self, shard: Shard, data: RawChannelDelete) -> None:
+        await self.upsert_cached(data)
+
+        guild = self.client.guilds.wrap(data.get('guild_id'))
+        channel = await self.drop(data['id'])
+
+        event = ChannelDeleteEvent(shard=shard, data=data, guild=guild, channel=channel)
+        await self.dispatch(ChannelEvents.DELETE, event)
+
+    async def channel_pins_updated(self, shard: Shard, data: RawChannelPinsUpdate) -> None:
+        guild = self.client.guilds.wrap(data.get('guild_id'))
+        channel = self.wrap(data.get('channel_id'))
+
+        timestamp = data.get('last_pin_timestamp', undefined)
+        if timestamp is not None and timestamp is not undefined:
+            timestamp = datetime.fromisoformat(timestamp)
+
+        event = ChannelPinsUpdateEvent(
+            shard=shard, data=data, guild=guild, channel=channel, timestamp=timestamp
+        )
+        await self.dispatch(ChannelEvents.PINS_UPDATE, event)
 
     async def upsert_cached(
         self, data: RawChannelTypes, flags: CacheFlags = CacheFlags.ALL
@@ -212,87 +301,6 @@ class ChannelState(CachedEventState[SupportsChannelID, Snowflake, CachedChannel,
         if object.guild_id is not undefined:
             await self.guild_refstore.remove(object.guild_id, object.id)
 
-    async def trigger_typing(self, channel: SupportsChannelID) -> None:
-        channel_id = self.to_unique(channel)
-        await self.api.trigger_channel_typing(channel_id)
-
-    async def fetch(self, channel: SupportsChannelID) -> Channel:
-        channel_id = self.to_unique(channel)
-
-        data = await self.api.get_channel(channel_id)
-        return await self.upsert(data)
-
-    async def fetch_all(self, guild: SupportsGuildID) -> typing.List[Channel]:
-        guild_id = self.client.guilds.to_unique(guild)
-
-        channels = await self.api.get_guild_channels(guild_id)
-        return [await self.upsert(channel) for channel in channels]
-
-    def create(
-        self,
-        guild: SupportsGuildID,
-        *,
-        name: MaybeUndefined[str] = undefined,
-        type: MaybeUndefined[ChannelType] = undefined,
-        topic: MaybeUndefined[str] = undefined,
-        bitrate: MaybeUndefined[int] = undefined,
-        user_limit: MaybeUndefined[int] = undefined,
-        rate_limit_per_user: MaybeUndefined[int] = undefined,
-        position: MaybeUndefined[int] = undefined,
-        parent: MaybeUndefined[SupportsChannelID] = undefined,
-        nsfw: MaybeUndefined[bool] = undefined,
-    ) -> ChannelCreateBuilder:
-        builder = ChannelCreateBuilder(
-            client=self.client, guild_id=self.client.guilds.to_unique(guild)
-        )
-
-        return builder.setters(
-            name=name,
-            type=type,
-            topic=topic,
-            bitrate=bitrate,
-            user_limit=user_limit,
-            rate_limit_per_user=rate_limit_per_user,
-            position=position,
-            parent=parent,
-            nsfw=nsfw,
-        )
-
-    def update_positions(self, guild: SupportsGuildID) -> ChannelPositionsBuilder:
-        return ChannelPositionsBuilder(
-            client=self.client, guild_id=self.client.guilds.to_unique(guild)
-        )
-
-    async def delete(self, channel: SupportsChannelID) -> typing.Optional[Channel]:
-        channel_id = self.client.channels.to_unique(channel)
-
-        await self.api.delete_channel(channel_id)
-        return await self.drop(channel_id)
-
-    def on_create(self) -> OnDecoratorT[ChannelCreateEvent]:
-        return self.on(ChannelEvents.CREATE)
-
-    def on_update(self) -> OnDecoratorT[ChannelUpdateEvent]:
-        return self.on(ChannelEvents.UPDATE)
-
-    def on_delete(self) -> OnDecoratorT[ChannelDeleteEvent]:
-        return self.on(ChannelEvents.DELETE)
-
-    def on_pins_update(self) -> OnDecoratorT[ChannelPinsUpdateEvent]:
-        return self.on(ChannelEvents.PINS_UPDATE)
-
-    async def channel_created(self, shard: Shard, data: RawChannelCreate) -> None:
-        guild = self.client.guilds.wrap(data.get('guild_id'))
-
-    async def channel_updated(self, shard: Shard, data: RawChannelUpdate) -> None:
-        guild = self.client.guilds.wrap(data.get('guild_id'))
-
-    async def channel_deleted(self, shard: Shard, data: RawChannelDelete) -> None:
-        guild = self.client.guilds.wrap(data.get('guild_id'))
-
-    async def channel_pins_updated(self, shard: Shard, data: RawChannelPinsUpdate) -> None:
-        guild = self.client.guilds.wrap(data.get('guild_id'))
-
 
 class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, Channel]):
     def __init__(
@@ -308,31 +316,8 @@ class GuildChannelsView(CachedStateView[SupportsChannelID, Snowflake, Channel]):
     async def fetch_all(self) -> typing.List[Channel]:
         return await self.client.channels.fetch_all(self.guild_id)
 
-    def create(
-        self,
-        *,
-        name: MaybeUndefined[str] = undefined,
-        type: MaybeUndefined[ChannelType] = undefined,
-        topic: MaybeUndefined[str] = undefined,
-        bitrate: MaybeUndefined[int] = undefined,
-        user_limit: MaybeUndefined[int] = undefined,
-        rate_limit_per_user: MaybeUndefined[int] = undefined,
-        position: MaybeUndefined[int] = undefined,
-        parent: MaybeUndefined[SupportsChannelID] = undefined,
-        nsfw: MaybeUndefined[bool] = undefined,
-    ) -> ChannelCreateBuilder:
-        return self.client.channels.create(
-            self.guild_id,
-            name=name,
-            type=type,
-            topic=topic,
-            bitrate=bitrate,
-            user_limit=user_limit,
-            rate_limit_per_user=rate_limit_per_user,
-            position=position,
-            parent=parent,
-            nsfw=nsfw,
-        )
+    def create(self, **kwargs: Unpack[ChannelCreateSetters]) -> ChannelCreateBuilder:
+        return self.client.channels.create(self.guild_id, **kwargs)
 
     def update_position(self) -> ChannelPositionsBuilder:
         return self.client.channels.update_positions(self.guild_id)
