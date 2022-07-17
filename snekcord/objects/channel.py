@@ -59,47 +59,6 @@ class CachedChannel(CachedModel):
     video_quality_mode: MaybeUndefined[int]
 
 
-class ChannelType(enum.IntEnum):
-    """Represents the different channel types provided by Discord's API."""
-
-    GUILD_TEXT = 0
-    """A text channel within a guild."""
-
-    DM = 1
-    """A direct message between two users."""
-
-    GUILD_VOICE = 2
-    """A voice channel within a guild."""
-
-    GROUP_DM = 3
-    """A direct message between multiple users."""
-
-    GUILD_CATEGORY = 4
-    """An organizational category within a guild."""
-
-    GUILD_NEWS = 5
-    """A channel that users can follow and crosspost into their own guild."""
-
-    GUILD_NEWS_THREAD = 10
-    """A temporary sub-channel within a GUILD_NEWS channel."""
-
-    GUILD_PUBLIC_THREAD = 11
-    """A temporary sub-channel within a GUILD_TEXT channel."""
-
-    GUILD_PRIVATE_THREAD = 12
-    """A temporary sub-channel within a GUILD_TEXT channel that is only
-    viewable by those invited and those with the MANAGE_THREADS permission."""
-
-    GUILD_STAGE_VOICE = 13
-    """A voice channel for hosting events with an audience."""
-
-    GUILD_DIRECTORY = 14
-    """The channel in a hub containing the listed servers."""
-
-    GUILD_FORUM = 15
-    """A channel containing only threads."""
-
-
 @attr.s(kw_only=True)
 class Channel(SnowflakeObject):
     """The base class for all channels exposing only the id and type fields.
