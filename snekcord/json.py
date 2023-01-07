@@ -7,6 +7,8 @@ T = typing.TypeVar('T')
 DefaultT = typing.TypeVar('DefaultT')
 
 JSONObject = typing.Dict[str, typing.Any]
+ImmutableJsonObject = typing.Mapping[str, typing.Any]
+
 JSONType = typing.Union[None, bool, str, int, float, JSONObject, typing.List[typing.Any]]
 
 

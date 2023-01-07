@@ -21,24 +21,13 @@ class BaseAPI:
     Object APIs process all raw data from Discord's REST API and Gateway.
     """
 
-    events: typing.Dict[str, EventCallbackT]
-
     def __init__(self, *, client: Client) -> None:
         self.client = client
-        self.events = {}
+        self.events: typing.Dict[str, EventCallbackT] = {}
 
         for name, member in inspect.getmembers(self, inspect.isfunction):
             if name.startswith('on_'):
                 self.events[name[3:]] = member
-
-        for event in self.events:
-            self.client.events[event] = self
-
-    async def event_received(self, name: str, shard: Shard, data: JSONObject) -> None:
-        function = self.events.get(name)
-
-        if function is not None:
-            await function(shard, data)
 
     async def request_api(
         self, endpoint: APIEndpoint, **kwargs: typing.Any

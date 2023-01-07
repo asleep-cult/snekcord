@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-import enum
 import typing
 from datetime import datetime
 
 import attr
 
+from ..api import (
+    GuildExplicitContentFilter,
+    GuildFeature,
+    GuildMessageNotificationsLevel,
+    GuildMFALevel,
+    GuildNSFWLevel,
+    GuildPremiumTier,
+    GuildSystemChannelFlags,
+    GuildVerificationLevel,
+)
 from ..cache import CachedModel
 from ..snowflake import Snowflake
 from ..undefined import MaybeUndefined
@@ -24,14 +33,6 @@ if typing.TYPE_CHECKING:
 __all__ = (
     'SupportsGuildID',
     'CachedGuild',
-    'GuildMessageNotificationsLevel',
-    'GuildMFALevel',
-    'GuildVerificationLevel',
-    'GuildNSFWLevel',
-    'GuildExplicitContentFilter',
-    'GuildPremiumTier',
-    'GuildSystemChannelFlags',
-    'GuildFeature',
     'PartialGuild',
     'GuildPreview',
     'Guild',

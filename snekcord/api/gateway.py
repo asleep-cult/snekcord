@@ -3,20 +3,18 @@ from __future__ import annotations
 import enum
 import typing
 
-from ..enums import convert_enum
 from ..exceptions import UnsupportedDataError
 from ..rest.endpoints import GET_GATEWAY, GET_GATEWAY_BOT
 from ..snowflake import Snowflake
-from ..websockets import Shard
 from .bases import BaseAPI
 
 if typing.TYPE_CHECKING:
     from typing_extensions import NotRequired
 
-    from ..json import JSONObject, JSONType
+    from ..json import JSONObject
     from .presence import RawActivity
 
-OpcodeT = typing.TypeVar('OpcodeT')
+OpcodeT = typing.TypeVar('OpcodeT', bound='GatewayOpcode')
 DataT = typing.TypeVar('DataT')
 
 
@@ -75,10 +73,12 @@ class GatewayIntents(enum.IntFlag):
     )
 
 
+@typing.final
 class RawGateway(typing.TypedDict):
     url: str
 
 
+@typing.final
 class RawSessionStartLimit(typing.TypedDict):
     total: int
     remaining: int
@@ -86,8 +86,10 @@ class RawSessionStartLimit(typing.TypedDict):
     max_concurrency: int
 
 
-class RawBotGateway(RawGateway):
-    shards: str
+@typing.final
+class RawBotGateway(typing.TypedDict):
+    url: str
+    shards: int
     session_start_limit: RawSessionStartLimit
 
 
@@ -105,13 +107,7 @@ class GatewayOpcode(enum.IntEnum):
     HEARTBEAT_ACK = 11
 
 
-class RawGatewayPayload(typing.TypedDict):
-    op: typing.Union[GatewayOpcode, int]
-    d: typing.Optional[JSONType]
-    s: typing.Optional[int]
-    t: typing.Optional[str]
-
-
+@typing.final
 class RawDispatchPayload(typing.TypedDict):
     op: typing.Literal[GatewayOpcode.DISPATCH]
     d: JSONObject
@@ -119,17 +115,14 @@ class RawDispatchPayload(typing.TypedDict):
     t: str
 
 
-class RawPayload(typing.TypedDict, typing.Generic[OpcodeT, DataT]):
-    op: OpcodeT
-    d: DataT
-
-
+@typing.final
 class RawConnectionProperties(typing.TypedDict):
     os: str
     browser: str
     device: str
 
 
+@typing.final
 class RawIdentifyData(typing.TypedDict):
     token: str
     properties: RawConnectionProperties
@@ -140,6 +133,7 @@ class RawIdentifyData(typing.TypedDict):
     intents: int
 
 
+@typing.final
 class RawPresenceUpdateData(typing.TypedDict):
     since: typing.Optional[int]
     activities: typing.List[RawActivity]
@@ -147,6 +141,7 @@ class RawPresenceUpdateData(typing.TypedDict):
     afk: bool
 
 
+@typing.final
 class RawVoiceStateUpdateData(typing.TypedDict):
     guild_id: Snowflake
     channel_id: typing.Optional[Snowflake]
@@ -154,6 +149,7 @@ class RawVoiceStateUpdateData(typing.TypedDict):
     self_deaf: bool
 
 
+@typing.final
 class RawRequestGuildMembersData(typing.TypedDict):
     guild_id: Snowflake
     query: NotRequired[str]
@@ -163,28 +159,66 @@ class RawRequestGuildMembersData(typing.TypedDict):
     nonce: NotRequired[str]
 
 
+@typing.final
 class RawHelloData(typing.TypedDict):
     heartbeat_interval: int
 
 
-RawHeartbeatPayload = RawPayload[typing.Literal[GatewayOpcode.HEARTBEAT], None]
-RawIdentifyPayload = RawPayload[typing.Literal[GatewayOpcode.IDENTIFY], RawIdentifyData]
-RawPresenceUpdatePayload = RawPayload[
-    typing.Literal[GatewayOpcode.PRESENCE_UPDATE], RawPresenceUpdateData
-]
-RawVoiceStateUpdatePayload = RawPayload[
-    typing.Literal[GatewayOpcode.VOICE_STATE_UPDATE], RawVoiceStateUpdateData
-]
-RawReconnectPayload = RawPayload[typing.Literal[GatewayOpcode.RECONNECT], None]
-RawRequestGuildMembersPayload = RawPayload[
-    typing.Literal[GatewayOpcode.REQUEST_GUILD_MEMBERS], RawRequestGuildMembersData
-]
-RawInvalidSessionPayload = RawPayload[typing.Literal[GatewayOpcode.INVALID_SESSION], bool]
-RawHelloPayload = RawPayload[typing.Literal[GatewayOpcode.HELLO], RawHelloData]
-RawHeartbeatACKPayload = RawPayload[typing.Literal[GatewayOpcode.HEARTBEAT_ACK], None]
+@typing.final
+class RawHeartbeatPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.HEARTBEAT]
+    d: None
+
+
+@typing.final
+class RawIdentifyPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.IDENTIFY]
+    d: RawIdentifyData
+
+
+@typing.final
+class RawPresenceUpdatePayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.PRESENCE_UPDATE]
+    d: RawPresenceUpdateData
+
+
+@typing.final
+class RawVoiceStateUpdatePayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.VOICE_STATE_UPDATE]
+    d: RawVoiceStateUpdateData
+
+
+@typing.final
+class RawReconnectPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.RECONNECT]
+    d: None
+
+
+@typing.final
+class RawRequestGuildMembersPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.REQUEST_GUILD_MEMBERS]
+    d: RawRequestGuildMembersData
+
+
+@typing.final
+class RawInvalidSessionPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.INVALID_SESSION]
+    d: bool
+
+
+@typing.final
+class RawHelloPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.HELLO]
+    d: RawHelloData
+
+
+@typing.final
+class RawHeartbeatACKPayload(typing.TypedDict):
+    op: typing.Literal[GatewayOpcode.HEARTBEAT_ACK]
+    d: None
+
 
 RawGatewayPayloadTypes = typing.Union[
-    RawGatewayPayload,
     RawDispatchPayload,
     RawHeartbeatPayload,
     RawIdentifyPayload,
@@ -220,9 +254,9 @@ class GatewayAPI(BaseAPI):
         }
 
     def sanitize_payload(self, data: JSONObject) -> RawGatewayPayloadTypes:
-        opcode = convert_enum(GatewayOpcode, data['op'])
+        opcode = GatewayOpcode(data['op'])
 
-        if opcode is GatewayOpcode.DISPATCH:
+        if opcode == GatewayOpcode.DISPATCH:
             return {
                 'op': GatewayOpcode.DISPATCH,
                 'd': data['d'],
@@ -230,25 +264,16 @@ class GatewayAPI(BaseAPI):
                 't': data['t'],
             }
 
-        elif opcode is GatewayOpcode.HEARTBEAT:
-            return {
-                'op': GatewayOpcode.HEARTBEAT,
-                'd': None,
-            }
+        elif opcode == GatewayOpcode.HEARTBEAT:
+            return {'op': GatewayOpcode.HEARTBEAT, 'd': None}
 
-        elif opcode is GatewayOpcode.RECONNECT:
-            return {
-                'op': GatewayOpcode.RECONNECT,
-                'd': None,
-            }
+        elif opcode == GatewayOpcode.RECONNECT:
+            return {'op': GatewayOpcode.RECONNECT, 'd': None}
 
-        elif opcode is GatewayOpcode.INVALID_SESSION:
-            return {
-                'op': GatewayOpcode.INVALID_SESSION,
-                'd': data['d'],
-            }
+        elif opcode == GatewayOpcode.INVALID_SESSION:
+            return {'op': GatewayOpcode.INVALID_SESSION, 'd': data['d']}
 
-        elif opcode is GatewayOpcode.HELLO:
+        elif opcode == GatewayOpcode.HELLO:
             return {
                 'op': GatewayOpcode.HELLO,
                 'd': {
@@ -256,18 +281,10 @@ class GatewayAPI(BaseAPI):
                 },
             }
 
-        elif opcode is GatewayOpcode.HEARTBEAT_ACK:
-            return {
-                'op': GatewayOpcode.HEARTBEAT_ACK,
-                'd': None,
-            }
+        elif opcode == GatewayOpcode.HEARTBEAT_ACK:
+            return {'op': GatewayOpcode.HEARTBEAT_ACK, 'd': None}
 
-        return {
-            'op': opcode,
-            'd': data.get('d'),
-            's': data.get('s'),
-            't': data.get('t'),
-        }
+        raise ValueError(f'{opcode!r} is not valid in this context')
 
     async def get_gateway(self) -> RawGateway:
         data = await self.request_api(GET_GATEWAY)
@@ -284,6 +301,3 @@ class GatewayAPI(BaseAPI):
             raise UnsupportedDataError(self.client.rest, data)
 
         return self.sanitize_bot_gateway(data)
-
-    async def create_shard(self, url: str, shard_id: int) -> Shard:
-        return Shard(self.client, url, shard_id)

@@ -5,6 +5,7 @@ from datetime import datetime
 
 from ..api import (
     ChannelAPI,
+    ChannelType,
     RawChannelCreate,
     RawChannelDelete,
     RawChannelPinsUpdate,
@@ -30,7 +31,6 @@ from ..objects import (
     CategoryChannel,
     Channel,
     ChannelIDWrapper,
-    ChannelType,
     SupportsChannelID,
     SupportsGuildID,
     TextChannel,

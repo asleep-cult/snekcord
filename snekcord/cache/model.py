@@ -8,7 +8,7 @@ from ..undefined import undefined
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-    from ..json import JSONObject
+    from ..json import ImmutableJsonObject, JSONObject
 
 __all__ = ('CachedModel',)
 
@@ -67,7 +67,7 @@ class CachedModel(metaclass=CachedModelMeta):
     def get_fields(self) -> typing.Dict[str, ModelField]:
         return self.__model_fields__
 
-    def update(self, data: JSONObject, *, partial: bool = False) -> None:
+    def update(self, data: ImmutableJsonObject, *, partial: bool = False) -> None:
         for name, field in self.__model_fields__.items():
             if name in data:
                 setattr(self, name, data[name])
@@ -84,7 +84,7 @@ class CachedModel(metaclass=CachedModelMeta):
         return {name: value for name, value in iterator if value is not undefined}
 
     @classmethod
-    def from_json(cls, data: JSONObject, **kwargs: typing.Any) -> Self:
+    def from_json(cls, data: ImmutableJsonObject, **kwargs: typing.Any) -> Self:
         self = cls.__new__(cls)
         self.update(data)
 

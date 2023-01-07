@@ -11,9 +11,10 @@ from .base_builders import AwaitableBuilder, setter
 if typing.TYPE_CHECKING:
     from typing_extensions import NotRequired
 
+    from ..api import ChannelType
     from ..clients import Client
     from ..json import JSONObject
-    from ..objects import Channel, ChannelType, SupportsChannelID
+    from ..objects import Channel, SupportsChannelID
 
 __all__ = ('ChannelCreateSetters', 'ChannelCreateBuilder', 'ChannelPositionsBuilder')
 

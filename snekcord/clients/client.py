@@ -2,16 +2,7 @@ from __future__ import annotations
 
 import typing
 
-from ..api import BaseAPI
 from ..auth import Authorization
-from ..objects import (
-    SupportsChannelID,
-    SupportsEmojiID,
-    SupportsGuildID,
-    SupportsMessageID,
-    SupportsRoleID,
-    SupportsUserID,
-)
 from ..rest import RESTSession
 from ..states import (
     ChannelMessagesView,
@@ -29,6 +20,18 @@ from ..states import (
     UserState,
 )
 
+if typing.TYPE_CHECKING:
+    from ..json import JSONObject
+    from ..objects import (
+        SupportsChannelID,
+        SupportsEmojiID,
+        SupportsGuildID,
+        SupportsMessageID,
+        SupportsRoleID,
+        SupportsUserID,
+    )
+    from ..websockets import Shard
+
 __all__ = ('Client',)
 
 
@@ -38,8 +41,6 @@ class Client:
             self.authorization = authorization
         else:
             self.authorization = Authorization.parse(authorization)
-
-        self.events: typing.Dict[str, BaseAPI] = {}
 
         self.rest = RESTSession(authorization=self.authorization)
 
@@ -51,6 +52,11 @@ class Client:
         self.messages = self.create_message_state()
         self.roles = self.create_role_state()
         self.users = self.create_user_state()
+
+    def add_event_consumer(
+        self, event: str, consumer: typing.Callable[[Shard, JSONObject], None]
+    ) -> None:
+        raise NotImplementedError
 
     def create_channel_state(self) -> ChannelState:
         return ChannelState(client=self)

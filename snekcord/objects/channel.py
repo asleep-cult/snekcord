@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import enum
 import typing
 from datetime import datetime
 
 import attr
 
+from ..api import ChannelType
 from ..cache import CachedModel
 from ..enums import convert_enum
 from ..snowflake import Snowflake
@@ -20,7 +20,6 @@ if typing.TYPE_CHECKING:
 __all__ = (
     'SupportsChannelID',
     'CachedChannel',
-    'ChannelType',
     'Channel',
     'GuildChannel',
     'TextChannel',
